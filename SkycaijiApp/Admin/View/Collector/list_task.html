@@ -1,0 +1,31 @@
+<if condition="!empty($collList)">
+<div id="window_colls">
+	<ul class="row" id="coll_list">
+	<foreach name="collList" item="coll">
+	<li class="col-xs-6" style="padding:0;">
+		<a href="javascript:;" data-id="{$coll['id']}">
+			<if condition="!empty($taskNames[$coll['task_id']])">
+			任务规则：{$taskNames[$coll['task_id']]}
+			<else />
+			采集器：{$coll['name']}
+			</if>
+		</a>
+	</li>
+	</foreach>
+	</ul>
+	{$pagenav}
+	<script type="text/javascript">
+	$('#window_colls #coll_list li a').bind('click',function(){
+		var id=$(this).attr('data-id');
+		var name=$(this).text();
+		import_rule('collector:'+id,name);
+	});
+	$('#window_colls .pagination a').bind('click',function(){
+		windowModal('导入规则',$(this).attr('href'));
+		return false;
+	});
+	</script>
+</div>
+<else />
+	没有规则，请进入<a href="{:U('Store/index')}">云平台</a>下载
+</if>

@@ -1,0 +1,12 @@
+*.DS_Store
+*.log
+*.zip
+.idea
+.sass-cache/
+/nbproject/
+/nbproject/private/
+/node_modules/
+/bower_components/
+ad.js
+TODO
+test.html

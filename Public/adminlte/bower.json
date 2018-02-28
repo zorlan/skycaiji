@@ -1,0 +1,36 @@
+{
+  "name": "admin-lte",
+  "homepage": "https://adminlte.io",
+  "authors": [
+    "Abdullah Almsaeed <abdullah@almsaeedstudio.com>"
+  ],
+  "description": "Admin dashboard and control panel template",
+  "main": [
+    "index2.html",
+    "dist/css/AdminLTE.css",
+    "dist/js/app.js",
+    "build/less/AdminLTE.less"
+  ],
+  "keywords": [
+    "css",
+    "js",
+    "html",
+    "template",
+    "admin",
+    "bootstrap",
+    "theme",
+    "backend",
+    "responsive"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "/.*",
+    "node_modules",
+    "bower_components",
+    "composer.json",
+    "documentation"
+  ],
+  "dependencies": {
+
+  }
+}

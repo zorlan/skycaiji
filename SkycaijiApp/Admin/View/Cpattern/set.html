@@ -1,0 +1,209 @@
+<ul id="coll_tab" class="nav nav-tabs coll-tab">
+	<li class="active"><a href="#coll_pattern_coll" data-toggle="tab">采集器设置</a></li>
+	<li><a href="#coll_pattern_source" data-toggle="tab">起始页网址</a></li>
+	<li><a href="#coll_pattern_link" data-toggle="tab">内容页网址</a></li>
+	<li><a href="#coll_pattern_field" data-toggle="tab">获取内容</a></li>
+	<if condition="!empty($collData)">
+	<li class="nav-save2store"><a href="{:U('Collector/save2store?coll_id='.$collData['id'])}" onclick="windowModal('保存到云端',$(this).attr('href'));return false;">保存到云端</a></li>
+	</if>
+</ul>
+<div id="coll_tab_content" class="tab-content" style="margin-top:-1px">
+	<div class="tab-pane fade in active" id="coll_pattern_coll">
+		<div class="panel panel-default">
+			<div class="panel-body">
+	     		<div class="form-group">
+					<label class="control-label">{$Think.lang.coll_name}</label>
+					<input type="text" class="form-control" name="name" value="{$collData['name']}" placeholder="选填">
+				</div>
+	     		<div class="form-group">
+					<label class="control-label">网站编码</label>
+				    <select name="config[charset]" class="form-control">		
+						<option value="">自动检测</option>
+						<option value="utf-8">utf-8</option>
+						<option value="gbk">gbk</option>
+						<option value="gb2312">gb2312</option>
+						<option value="custom">自定义</option>
+					</select>
+					<input type="text" class="form-control" name="config[charset_custom]" style="margin-top:10px;display:none;">
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tab-pane fade" id="coll_pattern_source">
+		<div class="panel panel-default">
+	    	<div class="panel-body">
+	     		<div class="form-group">
+	     			<label class="control-label">起始网址</label>
+	      			<a href="javascript:;" class="glyphicon glyphicon-plus" title="添加"></a>
+	      			<a href="javascript:;" class="glyphicon glyphicon-trash" title="清空"></a>
+	      		</div>
+	      		<div class="c-p-source-urls">
+		     		<div class="form-group">
+			     		<div class="input-group">
+							<input type="text" class="form-control" autocomplete="off" name="config[source_url][]">
+		      				<div class="input-group-addon brl_0"><a href="javascript:;" class="glyphicon glyphicon-edit"></a></div>
+		      				<div class="input-group-addon brl_0"><a href="javascript:;" class="glyphicon glyphicon-remove"></a></div>
+		      				<div class="input-group-addon"><a href="javascript:;" class="glyphicon glyphicon-arrow-up"></a> <a href="javascript:;" class="glyphicon glyphicon-arrow-down"></a></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="panel-footer" style="padding-top:5px;padding-bottom:5px;">
+				<div class="checkbox">
+					<label>
+				    	<input type="checkbox" name="config[source_is_url]" value="1"> 设置为内容页网址（不选则为列表页）
+					</label>
+				</div>
+			</div>
+	    </div>
+	</div>
+	<div class="tab-pane fade" id="coll_pattern_link">
+		<div class="panel panel-default">
+			<div style="padding:10px;">
+    		<if condition="!empty($collData)">
+			<a href="{:U('Collector/test?op=source_urls&coll_id='.$collData['id'])}" target="_blank" onclick="windowModal('测试',$(this).attr('href'),{lg:1});return false;" class="btn btn-default btn-block" style="margin-bottom:10px;">测试（需先保存设置）</a>
+			</if>
+    		<!-- coll_pattern_link -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" href="#coll_pattern_link_area" aria-expanded="false" class="collapsed">从选定区域中提取网址</a>
+                    </h4>
+                </div>
+                <div id="coll_pattern_link_area" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                    <div class="panel-body">
+                    	<div class="input-group">
+			       			<textarea class="form-control" name="config[area_start]" rows="3" placeholder="区域开始代码（默认页面开头）"></textarea>
+			       			<div class="input-group-addon iga-rt">
+		      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'config[area_start]\']')">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+		      				</div>
+			       		</div>
+			       		<div class="input-group-addon" style="border-top:0;border-bottom:0;">到</div>
+                    	<div class="input-group">
+			       			<textarea class="form-control" name="config[area_end]" rows="3" placeholder="区域结束代码（默认页面结尾）"></textarea>
+		      				<div class="input-group-addon iga-rt">
+		      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'config[area_end]\']')">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+		      				</div>
+			       		</div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" href="#coll_pattern_link_match" class="" aria-expanded="true">匹配内容网址</a>
+                    </h4>
+                </div>
+                <div id="coll_pattern_link_match" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                    <div class="panel-body">
+			    		<div class="form-group">
+				     		<label class="control-label">提取网址规则</label>
+				     		<div class="input-group">
+				       			<textarea class="form-control" name="config[url_rule]" rows="3" placeholder="默认获取全部a标签链接"></textarea>
+			      				<div class="input-group-addon iga-rt">
+			      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'config[url_rule]\']')">(*)</a>
+			      					<a href="javascript:;" title="{$Think.lang.tips_sign_match}" class="blk" onclick="cpMatch('[name=\'config[url_rule]\']')">{:cp_sign('match')}</a>
+									<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+			      				</div>
+				       		</div>
+						</div>
+						<div class="form-group">
+				     		<label class="control-label">拼接网址</label>
+				     		<div class="input-group">
+				       			<input type="text" class="form-control" name="config[url_merge]" placeholder="默认拼接所有{:cp_sign('match')}"/>
+			      				<div class="input-group-addon iga-rt">
+			      					<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'config[url_rule]\']','[name=\'config[url_merge]\']')">{:cp_sign('match','N')}</a>
+			      				</div>
+				       		</div>
+						</div>
+						<div class="form-group">
+				     		<label class="control-label">可选操作</label>
+							<div class="checkbox" style="margin:0 0 0 2px;">
+								<label><input type="checkbox" name="config[url_op][]" value="not_complete">不自动补全网址</label>
+							</div>
+						</div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" href="#coll_pattern_link_filter" class="collapsed" aria-expanded="false">结果网址过滤</a>
+                    </h4>
+                </div>
+                <div id="coll_pattern_link_filter" class="panel-collapse collapse in" aria-expanded="true">
+                    <div class="panel-body">
+			     		<div class="input-group" style="margin-bottom:7px;">
+			       			<span class="input-group-addon">必须包含</span>
+			       			<input type="text" name="config[url_must]" class="form-control" />
+		      				<div class="input-group-addon iga-rt">
+		      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'config[url_must]\']')">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
+		      				</div>
+			       		</div>
+			     		<div class="input-group">
+			       			<span class="input-group-addon">不能包含</span>
+			       			<input type="text" name="config[url_ban]" class="form-control" />
+		      				<div class="input-group-addon iga-rt">
+		      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'config[url_ban]\']')">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
+		      				</div>
+			       		</div>
+                    </div>
+                </div>
+            </div>
+    		<!-- end coll_pattern_link -->
+			</div>
+		</div>		
+	</div>
+	<div class="tab-pane fade" id="coll_pattern_field">
+		<div class="panel panel-default">
+			<div class="panel-body">
+	        	<if condition="!empty($collData)">
+				<a href="{:U('Collector/test?op=cont_url&coll_id='.$collData['id'])}" target="_blank" onclick="windowModal('测试',$(this).attr('href'),{lg:1});return false;" class="btn btn-default btn-block" style="margin-bottom:10px;">测试（需先保存设置）</a>
+				</if>
+	     		<div class="h-title">
+	     			<label class="control-label">字段列表</label>
+	      			<a href="javascript:;" class="glyphicon glyphicon-plus add-field" title="添加"></a>
+	      			<a href="javascript:;" onclick="c_pattern.add_default_fields()" style="float:right;font-weight:normal;">添加默认</a>
+	      		</div>
+	   			<div class="table-responsive">
+	            	<table class="table table-bordered table-hover c-p-field-list">
+	                   <thead>
+	                       <tr>
+	                           <th>字段</th>
+	                           <th>获取方式</th>
+	                           <th>操作</th>
+	                       </tr>
+	                   </thead>
+	                   <tbody>
+	                   </tbody>
+	            	</table>
+	        	</div>
+	        	<div id="coll_pattern_process">
+		     		<div class="h-title">
+		     			<label class="control-label">数据处理（通用）</label>
+		      			<a href="javascript:;" class="glyphicon glyphicon-plus add-process" title="添加"></a>
+		      		</div>
+		   			<div class="form-group">
+						<div class="panel-group c-p-process-accordion">
+						</div>
+					</div>
+	        	</div>
+			</div>
+		</div>
+	</div>
+</div>
+<link href="__PUBLIC__/css/jquery.datetimepicker.css" rel="stylesheet">
+<script type="text/javascript" src="__PUBLIC__/js/jquery.datetimepicker.js"></script>
+<script type="text/javascript">
+var c_pattern=new CollectorPattern('form_coll');
+c_pattern.init();
+
+<if condition="!empty($collData['config'])">
+c_pattern.load({$collData['config']|json_encode});
+</if>
+
+</script>

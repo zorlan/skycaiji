@@ -1,0 +1,74 @@
+<!-- 数据处理模块 -->
+<div style="display:none;">
+	<div class="c-p-process-module" module="html">
+		<section>
+			<ul class="nav nav-tabs">
+	            <li class="active"><a href="#p_m_html_allow" data-toggle="tab">保留标签</a></li>
+	            <li><a href="#p_m_html_filter" data-toggle="tab">过滤标签</a></li>
+			</ul>
+			<div class="tab-content" style="padding-top:10px;">
+                <div class="tab-pane fade in active" id="p_m_html_allow">
+					<div class="form-group">
+						<input type="text" data-process="html:html_allow" class="form-control" value="p,br,img" />
+						<div class="p-m-html-tags" module-html="html_allow">
+							<a href="javascript:;"><span>img</span>图片</a>
+							<a href="javascript:;"><span>a</span>超链接</a>
+							<a href="javascript:;"><span>p</span>段落</a>
+							<a href="javascript:;"><span>br</span>换行</a>
+						</div>
+					</div>
+                </div>
+                <div class="tab-pane fade" id="p_m_html_filter">
+                    <div class="form-group">
+						<input type="text" data-process="html:html_filter" class="form-control" value="" />
+						<div class="p-m-html-tags" module-html="html_filter">
+							<a href="javascript:;"><span>all</span>全部标签</a>
+							<a href="javascript:;"><span>a</span>超链接</a>
+							<a href="javascript:;"><span>img</span>图片</a>
+							<a href="javascript:;"><span>div</span>层</a>
+							<a href="javascript:;"><span>p</span>段落</a>
+							<a href="javascript:;"><span>br</span>换行</a>
+							<a href="javascript:;"><span>form</span>表单</a>
+							<a href="javascript:;"><span>iframe</span>框架</a>
+							<a href="javascript:;"><span>object</span>对象</a>
+							<a href="javascript:;"><span>script</span>脚本</a>
+							<a href="javascript:;"><span>style</span>样式</a>
+							<a href="javascript:;"><span>link</span>外部样式</a>
+						</div>
+					</div>
+                </div>
+            </div>
+	   		<p>其它标签可直接输入，用空格或逗号分隔</p>
+	   	</section>
+	</div>
+	<div class="c-p-process-module" module="replace">
+		<div class="input-group">
+			<textarea data-process="replace:replace_from" rows="3" class="form-control"></textarea>
+			<div class="input-group-addon iga-rt">
+		      	<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk sign-wildcard">{$Think.lang.sign_wildcard}</a>
+				<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+			</div>
+		</div>
+		<p style="margin:5px 0;">替换成</p>
+		<div class="form-group">
+			<textarea data-process="replace:replace_to" rows="3" class="form-control"></textarea>
+		</div>
+	</div>
+	<div class="c-p-process-module" module="filter">
+		<div class="form-group">
+			<label>一行一个过滤词</label>
+			<textarea data-process="filter:filter_list" rows="3" class="form-control"></textarea>
+		</div>
+		<div class="form-group">
+			<label>过滤词替换成</label>
+			<input type="text" data-process="filter:filter_replace" class="form-control" value="" />
+		</div>
+		<div class="checkbox"><label><input type="checkbox" data-process="filter:filter_pass" value="1" /> 检测到过滤词跳过采集（字段值设为空）</label></div>
+	</div>
+	<div class="c-p-process-module" module="tool">
+		<div class="checkbox">
+			<label><input type="checkbox" data-process="tool:tool_list" value="trim" />去除前后空格</label>
+			&nbsp; <label><input type="checkbox" data-process="tool:tool_list" value="format" />清除文本格式（去除html元素的style、width、height等）</label>
+		</div>
+	</div>
+</div>

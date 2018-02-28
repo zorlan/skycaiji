@@ -1,0 +1,54 @@
+<div id="win_test_cont_url">
+	<div class="form-group">
+	  	<div class="input-group">
+	  		<span class="input-group-addon">网址：</span>
+	  		<input type="text" class="form-control" name="url" value="{$cont_url}" />
+	 		<div class="input-group-btn"><button type="button" class="btn btn-default">确定</button></div>
+	  	</div>
+	</div>
+	<div class="vals">
+	</div>
+</div>
+<script type="text/javascript">
+function win_test_view(id){
+	$('#win_test_view').remove();
+	var html='<div id="win_test_view" style="width:auto;border:1px solid #ccc;overflow-x:scroll;padding:10px;">'+$('#'+id).val()+'</div>';
+	$('#'+id).after(html);
+}
+$('#win_test_cont_url button').bind('click',function(){
+	$('#win_test_cont_url .vals').html('<img src="'+window.site_config.pub+'/images/loading.gif">');
+	var cont_url=$('#win_test_cont_url input[name="url"]').val();
+	if(!cont_url){
+		toastr.error('请输入网址');
+	}else{
+		var url="{:U('Collector/test?op=get_fields&coll_id='.$collData['id'].'&cont_url=_url_')}";
+		url=url.replace('_url_',encodeURIComponent(cont_url)); 
+		$.ajax({
+			type:'get',
+			url:url,
+			success:function(data){
+				if(data.status==1){
+					var html='';
+					for(var i in data.info){
+						var browse='';
+						var eleId=generateUUID();
+						if((/<[^<>]*>/).test(data.info[i])){
+							//检测到html代码
+							browse='<a href="javascript:;" onclick="win_test_view(\''+eleId+'\')">预览</a>';
+						}
+						html+='<label>'+i+'：</label>'+browse+'<textarea id="'+eleId+'" class="form-control">'+data.info[i]+'</textarea><br>';
+					}
+					$('#win_test_cont_url .vals').html(html);
+				}else{
+					$('#win_test_cont_url .vals').html(data.info);
+				}
+			},
+			dataType:'json'
+		});
+	}
+});
+if($('#win_test_cont_url input[name="url"]').val().length>0){
+	//有网址自动触发
+	$('#win_test_cont_url button').trigger("click");
+}
+</script>

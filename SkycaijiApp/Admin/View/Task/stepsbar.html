@@ -1,0 +1,22 @@
+<div class="steps-bar">
+	<div class="step <if condition="CONTROLLER_NAME=='Task'">current</if>">
+		<div class="each">
+			<a href="{:U('Task/edit?id='.$taskData['id'])}" class="round">1</a>
+			<div class="bar"></div>
+		</div>
+		<div class="info"><a href="{:U('Task/edit?id='.$taskData['id'])}">{$Think.lang.task_set_task}</a></div>
+	</div>
+	<div class="step <if condition="CONTROLLER_NAME=='Collector'">current</if>">
+		<div class="each">
+			<a href="{:U('Collector/set?task_id='.$taskData['id'])}" class="round">2</a>
+			<div class="bar"></div>
+		</div>
+		<div class="info"><a href="{:U('Collector/set?task_id='.$taskData['id'])}">{$Think.lang.task_set_collector}</a></div>
+	</div>
+	<div class="step <if condition="CONTROLLER_NAME=='Release'">current</if>">
+		<div class="each">
+			<a href="{:U('Release/set?task_id='.$taskData['id'])}" class="round">3</a>
+		</div>
+		<div class="info"><a href="{:U('Release/set?task_id='.$taskData['id'])}">{$Think.lang.task_set_release}</a></div>
+	</div>
+</div>

@@ -1,0 +1,39 @@
+[ 2018-02-28T22:04:57+08:00 ] ::1 /skycaiji/index.php?m=Admin&c=ProgramRelease&a=index
+INFO: [ app_init ] --START--
+INFO: Run Behavior\BuildLiteBehavior [ RunTime:0.000050s ]
+INFO: [ app_init ] --END-- [ RunTime:0.001551s ]
+INFO: [ app_begin ] --START--
+INFO: Run Behavior\ReadHtmlCacheBehavior [ RunTime:0.002038s ]
+INFO: Run Behavior\CheckLangBehavior [ RunTime:0.004907s ]
+INFO: Run Common\Behavior\InitBehavior [ RunTime:0.003574s ]
+NOTIC: [8] Constant LANG_SET already defined F:\www\skycaiji\ThinkPHP\Library\Behavior\CheckLangBehavior.class.php 第 55 行.
+INFO: Run Behavior\CheckLangBehavior [ RunTime:0.002821s ]
+SQL: SHOW COLUMNS FROM `skycaiji_user` [ RunTime:0.0088s ]
+SQL: SELECT * FROM `skycaiji_user` WHERE `uid` = 1 LIMIT 1   [ RunTime:0.0005s ]
+SQL: SHOW COLUMNS FROM `skycaiji_usergroup` [ RunTime:0.0085s ]
+SQL: SELECT * FROM `skycaiji_usergroup` WHERE `id` = 1 LIMIT 1   [ RunTime:0.0004s ]
+SQL: SHOW COLUMNS FROM `skycaiji_config` [ RunTime:0.0081s ]
+SQL: SELECT MAX(dateline) AS tp_max FROM `skycaiji_config` LIMIT 1   [ RunTime:0.0004s ]
+SQL: SELECT * FROM `skycaiji_config`  [ RunTime:0.0004s ]
+INFO: Run Admin\Behavior\InitBehavior [ RunTime:0.062532s ]
+INFO: [ app_begin ] --END-- [ RunTime:0.076337s ]
+NOTIC: [8] A session had already been started - ignoring session_start() F:\www\skycaiji\ThinkPHP\Common\functions.php 第 1263 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] unlink(F:\www\skycaiji\SkycaijiApp\Install\Data/upgrade.lock): No such file or directory F:\www\skycaiji\SkycaijiApp\Admin\Controller\ProgramReleaseController.class.php 第 27 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+NOTIC: [2] array_map(): Argument #2 should be an array F:\www\skycaiji\SkycaijiApp\Common\Common\function.php 第 217 行.
+

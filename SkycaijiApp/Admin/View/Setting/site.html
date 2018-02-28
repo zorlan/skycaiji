@@ -1,0 +1,30 @@
+<extend name="Common:main" />
+<block name="cssjs">
+
+</block>
+<block name="content">
+<div class="box box-default">
+	<div class="box-body">
+		<form id="form_set" method="post" ajax-submit="true" role="form" action="{:U('Admin/Setting/site')}">
+		    <div class="form-group">
+		        <label>{$Think.lang.set_site_verifycode}</label>
+		        <div class="radio">
+		        	<label><input type="radio" name="verifycode" value="1">{$Think.lang.yes}</label>
+		        	<label><input type="radio" name="verifycode" value="0">{$Think.lang.no}</label>
+		        </div>
+		    </div>
+		   	<div class="form-group">
+				<button type="submit" class="btn btn-primary">{$Think.lang.save}</button>
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+$('#form_set [name="verifycode"]').each(function(){
+	if($(this).val()=="{$siteConfig['verifycode']|intval}"){
+		$(this).attr('checked', 'checked');
+	}
+});
+
+</script>
+</block>

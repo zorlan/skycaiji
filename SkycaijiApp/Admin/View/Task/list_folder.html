@@ -1,0 +1,49 @@
+<extend name="Common:main" />
+<block name="cssjs">
+<script src="__PUBLIC__/js/admin/task.js?{$Think.config.HTML_V}"></script>
+</block>
+<block name="content">
+<div class="box">
+	<div class="box-body">
+		<form id="form_list" method="post" ajax-submit="true" action="{:U('Task/op')}">
+		<input type="hidden" name="show" value="folder" /> 
+		<input type="hidden" name="op" value="saveall" />
+		<div class="table-responsive">
+			<table id="task_folder" class="table table-bordered table-hover datatable">
+				<thead>
+				<tr>
+	                <th>{$Think.lang.task_name}</th>
+					<th width="80">{$Think.lang.sort}</th>
+	                <th>{$Think.lang.task_auto}</th>
+	                <th>{$Think.lang.task_module}</th>
+	                <th>{$Think.lang.task_addtime}</th>
+	                <th>{$Think.lang.task_caijitime}</th>
+	                <th>{$Think.lang.op}</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr level="0" tgid="0" id="level0">
+					<td colspan="6">
+						<a href="javascript:;" class="taskgroup" style="display:none;">
+							<span class="glyphicon glyphicon-plus"></span>
+							<span class="glyphicon glyphicon-folder-close"></span> {$Think.lang.task_root}
+						</a>
+					</td>
+				</tr>
+				</tbody>
+				<tfoot>
+				<tr>
+					<td colspan="8">
+						<button type="submit" class="btn btn-primary">{$Think.lang.save}</button>
+						<a href="{:U('Task/add')}" class="btn btn-success">{$Think.lang.task_add}</a>
+					</td>
+				</tr>
+				</tfoot>
+			</table>
+		</div>
+		</form>
+		{$pagenav}
+	</div>
+</div>
+<include file="Task:list_footer" />
+</block>

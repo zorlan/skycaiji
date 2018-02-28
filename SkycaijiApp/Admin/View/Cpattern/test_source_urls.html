@@ -1,0 +1,67 @@
+<style type="text/css">
+#test_source_urls .cont_urls{padding:5px;}
+#test_source_urls p{margin:0;}
+</style>
+<div id="test_source_urls">
+<if condition="empty($source_urls)">
+	没有起始页网址
+<else/>
+	<foreach name="source_urls" item="source_url">
+	<div class="cont_urls" url="{$source_url}">
+		<p>正在采集页面：{$source_url}</p>
+		<p class="cont_urls_num"></p>
+		<div class="cont_urls_list">
+			<img src="__PUBLIC__/images/load1.gif" />
+		</div>
+	</div>
+	</foreach>
+</if>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){
+	$('#test_source_urls .cont_urls').each(function(){
+		var obj=$(this);
+		var source_url=$(this).attr('url');
+		if(source_url){
+			var url="{:U('Collector/test?op=cont_urls&coll_id='.$collData['id'].'&source_url=_url_')}";
+			url=url.replace('_url_',encodeURIComponent(source_url)); 
+			$.ajax({
+				type:'get',
+				url:url,
+				success:function(data){
+					var test_cont_url="{:U('Collector/test?op=cont_url&coll_id='.$collData['id'])}&cont_url=_url_";
+					if(data.status==1){
+						//网址列表
+						var list='<ul style="list-style-type:square;padding-left:15px;white-space:normal;overflow-x:scroll;">';
+						for(var i in data.info){
+							list+='<li><a href="'+(test_cont_url.replace('_url_',encodeURIComponent(data.info[i])))+'" target="_test_cont">测试</a> '+data.info[i]+'</li>';
+						}
+						list+='</ul>';
+						obj.find('.cont_urls_list').html(list).hide();
+						
+						obj.find('.cont_urls_num').html('获取到'+data.info.length+'条网址 <a href="javascript:;" status="0">[展开]</a>');
+					}else{
+						//错误信息
+						obj.find('.cont_urls_list').html('<span style="color:red">'+data.info+'</span>');
+					}
+				},
+				dataType:'json'
+			});
+		}
+		
+	});
+	//展开收起
+	$('#test_source_urls').on('click','.cont_urls_num a',function(){
+		var status=$(this).attr('status');
+		if(status==1){
+			$(this).html('[展开]');
+			$(this).attr('status',0);
+			$(this).parent().siblings('.cont_urls_list').hide();
+		}else{
+			$(this).html('[收起]');
+			$(this).attr('status',1);
+			$(this).parent().siblings('.cont_urls_list').show();
+		}
+	});
+});
+</script>

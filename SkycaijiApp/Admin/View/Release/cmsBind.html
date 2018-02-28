@@ -1,0 +1,20 @@
+<if condition="!empty($cmsApp)">
+<php>$sltedCmsApp=array($cmsApp=>' selected="selected"');</php>
+<div class="form-group">
+	<div class="input-group">
+		<label class="input-group-addon"><b>CMS应用</b></label>
+		<select name="cms[app]" class="form-control">
+		<foreach name="cmsApps" item="cmsAppV">
+		<option value="{$cmsAppV['app']}"{$sltedCmsApp[$cmsAppV['app']]}>{$cmsAppV['name']}</option>
+		</foreach>
+		</select>
+	</div>
+</div>
+<div class="box box-primary">
+<div class="box-body">
+<php> !empty($releCms) && $releCms->tplBind(); </php>
+</div>
+</div>
+<else />
+没有“{$cmsName}”相关的发布应用，在<a href="http://www.skycaiji.com/store/cms?q={$cmsName|rawurlencode}" onclick="windowStore('CMS发布应用',$(this).attr('href'));return false;">云平台</a>中查找
+</if>
