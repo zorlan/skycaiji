@@ -23,7 +23,7 @@
 							<th class="sorting{$orderClass['app']}" data-order="app" title="app{$orderSort['app']}">APP</th>
 							<th>模块</th>
 							<th class="sorting{$orderClass['addtime']}" data-order="addtime" title="添加时间{$orderSort['addtime']}">添加时间</th>
-							<th class="sorting{$orderClass['uptime']}" data-order="uptime" title="修改时间{$orderSort['uptime']}">修改时间</th>
+							<th class="sorting{$orderClass['uptime']}" data-order="uptime" title="更新时间{$orderSort['uptime']}">更新时间</th>
 							<th>详细</th>
 							<th>{$Think.lang.op}</th>
 						</tr>
@@ -38,7 +38,7 @@
 							<td>{:date('Y-m-d H:i',$app['addtime'])}</td>
 							<td>{:date('Y-m-d H:i',$app['uptime'])}</td>
 							<td class="store-info"><a href="http://www.skycaiji.com/release/cms/detail?app={$app['app']}" class="store-detail">详细</a></td>
-							<td><a href="javascript:;" url="{:U('Mystore/releaseAppOp?op=delete&id='.$app['id'])}" class="delete">删除</a></td>
+							<td><a href="{:U('Develop/releaseCms?app='.$app['app'])}">开发</a> &nbsp; <a href="javascript:;" url="{:U('Mystore/releaseAppOp?op=delete&id='.$app['id'])}" class="delete">删除</a></td>
 						</tr>
 					</foreach>
 					</tbody>
@@ -47,6 +47,7 @@
 							<td class="chk"><label><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" />全部</label></td>
 							<td colspan="7">
 								<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
+								&nbsp;<a href="{:U('Develop/releaseCms')}" class="btn btn btn-success">开发一个</a>
 							</td>
 						</tr>
 		    			<if condition="!empty($pagenav)">

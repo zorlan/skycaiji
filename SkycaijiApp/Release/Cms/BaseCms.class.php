@@ -60,6 +60,10 @@ abstract class BaseCms extends ReleaseBaseEvent {
 	/*扩展初始化*/
 	public function init_extend(){}
 	
+	/*获取数据库对象*/
+	public function db(){
+		return $this->db;
+	}
 	/**
 	 * 导出数据
 	 * @param unknown $collFields 采集到的字段数据
@@ -117,9 +121,9 @@ abstract class BaseCms extends ReleaseBaseEvent {
 	
 	public function runTest($collFields){
 		//事务回滚仅对InnoDB类型表起作用
-		$this->db->startTrans();//开启事务
+		$this->db()->startTrans();//开启事务
 		$this->runExport($collFields);
-		$this->db->rollback();//回滚事务
+		$this->db()->rollback();//回滚事务
 	}
 	/*运行绑定*/
 	public function runBind(){}
@@ -132,7 +136,7 @@ abstract class BaseCms extends ReleaseBaseEvent {
 		foreach ($this->_params as $pkey=>$pval){
 			//必填参数
 			if($pval['require']){
-				if(empty($config['param'][$pkey])){
+				if($config['param'][$pkey]==''){
 					//没有值
 					$this->error($pval['name'].'不能为空');
 				}elseif('custom:'==$config['param'][$pkey]){
@@ -290,7 +294,7 @@ abstract class BaseCms extends ReleaseBaseEvent {
 	public function convert_param2html($paramKey,$paramVal){
 		if(!isset($this->paramHtmlList[$paramKey])){
 			$html='';
-			list($tag,$tType)=explode(':',strtolower($paramVal['tag']));//html标签
+			$tag=strtolower($paramVal['tag']);//html标签
 			$func=null;//函数
 			$options=array();//选项
 			if(preg_match('/^function\:(.*)$/i', $paramVal['option'],$func)){
@@ -318,7 +322,16 @@ abstract class BaseCms extends ReleaseBaseEvent {
 				if(!empty($func)){
 					//调用函数
 					if(method_exists($this, $func)){
-						$html.=$this->$func();
+						$funcData=$this->$func();
+						if(is_array($funcData)){
+							//返回的是数组
+							foreach ($funcData as $fdk=>$fdv){
+								$html.="<option value=\"{$fdk}\">{$fdv}</option>";
+							}
+						}else{
+							//返回的是字符串
+							$html.=$funcData;
+						}
 					}
 				}elseif(!empty($options)){
 					//选项
@@ -328,9 +341,15 @@ abstract class BaseCms extends ReleaseBaseEvent {
 				}
 				$html.='<option value="custom:">自定义内容</option></select>'
 						.'<input class="form-control" style="display:none;" name="cms_app[custom]['.$paramKey.']" />';
-			}elseif('input'==$tag){
-				$html.='<input type="'.$tType.'" name="_cms_app_param_" value=""/>';
+			}elseif(in_array($tag,array('input','text','number'))){
+				$html.='<input type="'.($tag=='input'?'text':$tag).'" name="_cms_app_param_" class="form-control" value="" />';
+			}elseif('radio'==$tag){
+				$html.='<label class="radio-inline"><input type="radio" name="_cms_app_param_" value="1" /> 是</label>';
+				$html.='<label class="radio-inline"><input type="radio" name="_cms_app_param_" value="0" /> 否</label>';
+			}elseif('textarea'==$tag){
+				$html.='<textarea name="_cms_app_param_" class="form-control"></textarea>';
 			}
+			
 			$this->paramHtmlList[$paramKey]=str_replace('_cms_app_param_', 'cms_app[param]['.$paramKey.']', $html);
 		}
 		return $this->paramHtmlList[$paramKey];
@@ -351,7 +370,6 @@ abstract class BaseCms extends ReleaseBaseEvent {
 		foreach($collFields as $collField){
 			$sltCollField.="<option value=\"field:{$collField}\">采集字段：{$collField}</option>";
 		}
-		
 		return $sltCollField;
 	}
 }

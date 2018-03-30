@@ -20,6 +20,7 @@
 		<ul id="cms_tab" class="nav nav-tabs">
 			<li class="active"><a href="#cms_tab_detect" data-toggle="tab">检测CMS程序</a></li>
 			<li><a href="#cms_tab_bind" data-toggle="tab">数据绑定</a></li>
+			<li style="float:right"><a href="{:U('Develop/releaseCms')}">开发CMS发布应用</a></li>
 		</ul>
 		<div id="cms_tab_content" class="tab-content" style="margin-top:-1px">
 			<div class="tab-pane fade in active" id="cms_tab_detect">
@@ -189,6 +190,10 @@
 			<div class="tab-pane fade" id="diy_tab_code">
 				<div class="panel panel-default">
 					<div class="panel-body">
+<if condition="!C('OPEN_DIY_CODE')">
+	出于安全考虑，如需开启该功能，请在根目录配置文件"data/config.php"中添加设置
+	<b>'OPEN_DIY_CODE'=>TRUE</b>
+<else />
 						<div class="form-group">
 							<div class="table-responsive">
 							<table>
@@ -234,7 +239,7 @@
 							<label>PHP代码</label>
 							<textarea name="diy[code]" class="form-control" rows="5"></textarea>
 							<div class="help-block">
-								可用变量：$fields = 采集到的字段数据列表，$url = 采集的页面网址，$this->db = 数据库操作， 可参考thinkphp3.2的数据库操作
+								可用变量：$fields = 采集到的字段数据列表，$url = 采集的页面网址，$this->db() = 数据库操作， 可参考thinkphp3.2的数据库操作
 								<br>获取字段值必须使用 $this->get_field_val($field);方法(可处理图片本地化等)，否则使用$field['value']调用字段原始值
 		
 		<p style="border-top:dashed 1px #ccc;padding-top:10px;margin-top:10px;">
@@ -248,6 +253,7 @@
 		入库的信息可在“已采集数据”中查看
 							</div>
 						</div>
+</if>
 					</div>
 				</div>
 			</div>

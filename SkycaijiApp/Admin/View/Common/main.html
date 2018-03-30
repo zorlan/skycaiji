@@ -100,6 +100,17 @@
 			<li><a href="{:U('Admin/User/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.user_list}</a></li>
 		</ul>
 	</li>
+	<li class="treeview{$curMenu['develop']}">
+		<a href="#">
+			<i class="fa fa-wrench"></i> <span>开发工具</span>
+			<span class="pull-right-container">
+				<i class="fa fa-angle-left pull-right"></i>
+			</span>
+		</a>
+		<ul class="treeview-menu">
+			<li><a href="{:U('Admin/Develop/releaseCms')}"><i class="fa fa-circle-o"></i> CMS发布应用</a></li>
+		</ul>
+	</li>
 	<li class="treeview">
 		<a href="#">
 			<i class="fa fa-dashboard"></i> <span>{$Think.lang.admincp_style}</span>

@@ -1,9 +1,15 @@
 <div id="win_test_cont_url">
 	<div class="form-group">
 	  	<div class="input-group">
-	  		<span class="input-group-addon">网址：</span>
+	  		<div class="input-group-btn">
+		    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><em style="font-style:normal">测试内容页</em> <span class="caret"></span></button>
+		        <ul class="dropdown-menu">
+		        	<li><a href="javascript:;" data-test="get_fields">测试内容页</a></li>
+		        	<li><a href="javascript:;" data-test="get_paging_urls">测试分页抓取</a></li>
+		        </ul>
+		    </div>
 	  		<input type="text" class="form-control" name="url" value="{$cont_url}" />
-	 		<div class="input-group-btn"><button type="button" class="btn btn-default">确定</button></div>
+	 		<div class="input-group-btn"><button type="button" class="btn btn-default test-sub">确定</button></div>
 	  	</div>
 	</div>
 	<div class="vals">
@@ -15,28 +21,50 @@ function win_test_view(id){
 	var html='<div id="win_test_view" style="width:auto;border:1px solid #ccc;overflow-x:scroll;padding:10px;">'+$('#'+id).val()+'</div>';
 	$('#'+id).after(html);
 }
-$('#win_test_cont_url button').bind('click',function(){
-	$('#win_test_cont_url .vals').html('<img src="'+window.site_config.pub+'/images/loading.gif">');
+//下拉选择
+$('#win_test_cont_url button.dropdown-toggle').bind('click',function(){
+	var curObj=$(this);
+	$(this).siblings('.dropdown-menu').find('li a').bind('click',function(){
+		curObj.attr('data-test',$(this).attr('data-test'));
+		curObj.find('em').eq(0).text($(this).text());
+	});
+});
+
+//测试按钮
+$('#win_test_cont_url button.test-sub').bind('click',function(){
 	var cont_url=$('#win_test_cont_url input[name="url"]').val();
 	if(!cont_url){
 		toastr.error('请输入网址');
 	}else{
-		var url="{:U('Collector/test?op=get_fields&coll_id='.$collData['id'].'&cont_url=_url_')}";
-		url=url.replace('_url_',encodeURIComponent(cont_url)); 
+		$('#win_test_cont_url .vals').html('<img src="'+window.site_config.pub+'/images/loading.gif">');
+		var testOp=$('#win_test_cont_url button.dropdown-toggle').attr('data-test');
+		testOp=testOp?testOp:'get_fields';//默认获取内容页
+		
+		var url="{:U('Collector/test?op=_op_&coll_id='.$collData['id'].'&cont_url=_url_')}";
+		url=url.replace('_op_',testOp).replace('_url_',encodeURIComponent(cont_url));
 		$.ajax({
 			type:'get',
 			url:url,
 			success:function(data){
 				if(data.status==1){
 					var html='';
-					for(var i in data.info){
-						var browse='';
-						var eleId=generateUUID();
-						if((/<[^<>]*>/).test(data.info[i])){
-							//检测到html代码
-							browse='<a href="javascript:;" onclick="win_test_view(\''+eleId+'\')">预览</a>';
+					
+					if(testOp=='get_paging_urls'){
+						html='<div class="page-header"><b>成功抓取到分页链接</b></div><ul>';
+						for(var i in data.info){
+							html+='<li>'+data.info[i]+'</li>';
 						}
-						html+='<label>'+i+'：</label>'+browse+'<textarea id="'+eleId+'" class="form-control">'+data.info[i]+'</textarea><br>';
+						html+='</ul>';
+					}else{
+						for(var i in data.info){
+							var browse='';
+							var eleId=generateUUID();
+							if((/<[^<>]*>/).test(data.info[i])){
+								//检测到html代码
+								browse='<a href="javascript:;" onclick="win_test_view(\''+eleId+'\')">预览</a>';
+							}
+							html+='<label>'+i+'：</label>'+browse+'<textarea id="'+eleId+'" class="form-control">'+data.info[i]+'</textarea><br>';
+						}
 					}
 					$('#win_test_cont_url .vals').html(html);
 				}else{

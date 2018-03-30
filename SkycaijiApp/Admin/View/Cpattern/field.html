@@ -40,9 +40,9 @@
 			   		</div>
 		   		</div>
 				<div class="form-group">
-			   		<label>拼接内容</label>
+			   		<label>拼接成最终内容</label>
 					<div class="input-group">
-			   			<textarea name="field[rule_merge]" class="form-control" rows="2" placeholder="默认拼接所有{:cp_sign('match')}">{$field['rule_merge']}</textarea>
+			   			<textarea name="field[rule_merge]" class="form-control" rows="2" placeholder="默认拼接所有{:cp_sign('match')}标签">{$field['rule_merge']}</textarea>
 						<div class="input-group-addon iga-rt">
 				      		<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'field[rule]\']','[name=\'field[rule_merge]\']')">{:cp_sign('match','N')}</a>
 				      	</div>
@@ -184,14 +184,14 @@
 				</div>
 				<div class="c-p-field-extract-module" extract-module="rule" style="display:none;">
 					<div class="input-group">
-			   			<textarea name="field[extract_rule]" class="form-control" rows="3">{$field['extract_rule']}</textarea>
+			   			<textarea name="field[extract_rule]" class="form-control" rows="3" placeholder="规则">{$field['extract_rule']}</textarea>
 						<div class="input-group-addon iga-rt">
-							<a href="javascript:;" title="通配符可匹配任意字符" class="blk" onclick="cpWildcard('[name=\'field[extract_rule]\']')">(*)</a>
-				      		<a href="javascript:;" title="将匹配的任意字符保存为标签" class="blk" onclick="cpMatch('[name=\'field[extract_rule]\']',{only:1})">{:cp_sign('match')}</a>
-							<span title="可使用正则表达式" class="blk">正则</span>
+							<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'field[extract_rule]\']')">{$Think.lang.sign_wildcard}</a>
+				      		<a href="javascript:;" title="{$Think.lang.tips_sign_match}" class="blk" onclick="cpMatch('[name=\'field[extract_rule]\']',{only:1})">{:cp_sign('match')}</a>
+							<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
 						</div>
 			   		</div>
-					<p class="help-block"><b>{:cp_sign('match')}</b>可返回匹配的数据，否则返回完全匹配的数据</p>
+					<p class="help-block"><b>{:cp_sign('match')}</b>标签可返回匹配的数据，否则返回完全匹配的数据</p>
 				</div>
 				<div class="c-p-field-extract-module" extract-module="xpath" style="display:none;">
 					<textarea name="field[extract_xpath]" class="form-control" rows="2" placeholder="xpath规则">{$field['extract_xpath']}</textarea>

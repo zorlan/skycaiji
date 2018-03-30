@@ -142,9 +142,37 @@ table.datatable thead .sorting_desc:after {
 .modal-title{font-size:16px;}
 .myModal .modal-body iframe{width:100%;height:100%;min-height:200px;}
 .myModal button.close{font-size:18px;}
+/*请求头信息*/
+.c-p-request-headers .delete-request-header{margin-top:8px;}
 /*采集器字段*/
 .c-p-field-list .field-name{color:#3c8dbc;cursor:pointer;}
 .c-p-field-list .exist-process{color:green;}
+/*分页字段*/
+#c_p_paging_fields{
+	width:auto;
+	overflow:hidden;
+}
+#c_p_paging_fields .paging-field{
+	font-weight:normal;
+	padding: 4px 8px;
+    text-decoration: none;
+    border-bottom: none;
+    color: #3B6268;
+    border: 1px #ccc solid;
+	margin:7px 10px 5px 0;
+	position:relative;
+	float:left;
+}
+
+#c_p_paging_fields .paging-field em{
+    font-style: normal;
+    display: block;
+    position: absolute;
+    top: -7px;
+    right: -5px;
+    z-index: 999;
+	background:#fff;
+}
 
 
 .form-inline label{font-weight:normal;}
@@ -173,7 +201,7 @@ table.datatable thead .sorting_desc:after {
 .iga-rt .mgr{margin-right:5px;}
 
 
-.nav-save2store{float:right!important;font-size:12px;}
+.nav-save2store{float:right!important;}
 /*数据处理*/
 .p-m-html-tags{}
 .p-m-html-tags a{font-size:12px;font-weight:normal;cursor:pointer;margin-right:5px;}
@@ -267,6 +295,9 @@ table.datatable thead .sorting_desc:after {
 
 .nav-check-update{float:right!important;}
 .nav-check-update img{width:14px;}
+/*设置*/
+
+.proxy-ip-list .delete-proxy-ip{margin-top:8px;}
 /**/
 
 .skin-black .nav-tabs-color li.active,.skin-black-light .nav-tabs-color li.active{border-top-color:#5A6E82!important;}

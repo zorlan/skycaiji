@@ -24,7 +24,7 @@ class DemoDiy extends BaseDiy{
 	public function runImport($url,$fields){
 		/*
 		 * -----这里开始写代码-----
-		 * 数据库操作：$this->db 可参考thinkphp3.2的数据库操作
+		 * 数据库操作：$this->db() 可参考thinkphp3.2的数据库操作
 		 * 获取字段值必须使用 $this->get_field_val($field);方法(可处理图片本地化等)，否则使用$field['value']调用字段原始值
 		 */
 		

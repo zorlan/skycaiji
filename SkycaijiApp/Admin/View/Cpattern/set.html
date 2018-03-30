@@ -4,7 +4,7 @@
 	<li><a href="#coll_pattern_link" data-toggle="tab">内容页网址</a></li>
 	<li><a href="#coll_pattern_field" data-toggle="tab">获取内容</a></li>
 	<if condition="!empty($collData)">
-	<li class="nav-save2store"><a href="{:U('Collector/save2store?coll_id='.$collData['id'])}" onclick="windowModal('保存到云端',$(this).attr('href'));return false;">保存到云端</a></li>
+	<li class="nav-save2store"><a href="{:U('Collector/save2store?coll_id='.$collData['id'])}" title="云端存储，下载规则更方便！" onclick="windowModal('保存到云端',$(this).attr('href'));return false;">保存到云端</a></li>
 	</if>
 </ul>
 <div id="coll_tab_content" class="tab-content" style="margin-top:-1px">
@@ -28,6 +28,73 @@
 				</div>
 			</div>
 		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">
+		        	<a data-toggle="collapse" href="#coll_pattern_request_headers" aria-expanded="false">请求头信息</a>
+		      	</h4>
+	    	</div>
+	    	<div id="coll_pattern_request_headers" class="panel-collapse collapse">
+	      		<div class="panel-body">
+	      			<div class="form-group">
+	       				<label class="control-label">开启</label>
+	       				<div class="input-group">
+	       					<label class="radio-inline"><input type="radio" name="config[request_headers][open]" value="1"> 是</label>
+	       					<label class="radio-inline"><input type="radio" name="config[request_headers][open]" value="0"> 否</label>
+	       				</div>
+		      		</div>
+	      			<div id="c_p_request_headers_open" style="display:none;">
+	      			<div class="form-group">
+	       				<label class="control-label">UserAgent 浏览器标识</label>
+	       				<div class="input-group">
+							<input type="text" class="form-control" name="config[request_headers][useragent]">
+							<div class="input-group-btn">
+						    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><em style="font-style:normal">常用标识</em> <span class="caret"></span></button>
+						        <ul class="dropdown-menu dropdown-menu-right dm-useragent">
+						        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11">谷歌浏览器(pc端)</a></li>
+						        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1">火狐浏览器</a></li>
+						        	<li><a href="javascript:;" data-useragent="Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)">IE8</a></li>
+						        	<li><a href="javascript:;" data-useragent="Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)">IE6</a></li>
+									<li role="separator" class="divider"></li>
+						        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (Linux; U; Android 4.0.3; zh-cn; M032 Build/IML74K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30">安卓系统</a></li>
+						        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1">IPhone 6</a></li>
+						        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (iPad; CPU OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1">iPad</a></li>
+						        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.89 Mobile Safari/537.36">三星 Galaxy S5</a></li>
+						        </ul>
+						    </div>
+						</div>
+	       			</div>
+	       			<div class="form-group">
+	       				<label class="control-label">Cookie 缓存数据</label>
+						<input type="text" class="form-control" name="config[request_headers][cookie]">
+	       			</div>
+	       			<div class="form-group">
+	       				<label class="control-label">Referer 来源网址</label>
+						<input type="text" class="form-control" name="config[request_headers][referer]">
+	       			</div>
+	       			<div class="h-title">
+	     				<label class="control-label">自定义</label>
+	      				<a href="javascript:;" class="glyphicon glyphicon-plus add-request-header" title="添加"></a>
+	      			</div>
+	      			<div class="form-group">
+	      				<div class="table-responsive">
+			            	<table class="table table-hover c-p-request-headers">
+			                   <thead>
+			                       <tr>
+			                           <th class="col-xs-4">名称</th>
+			                           <th class="col-xs-6">值</th>
+			                           <th class="col-xs-2">删除</th>
+			                       </tr>
+			                   </thead>
+			                   <tbody>
+			                   </tbody>
+							</table>
+			        	</div>
+	      			</div>
+	      		</div>
+	      		</div>
+	    	</div>
+	  	</div>
 	</div>
 	<div class="tab-pane fade" id="coll_pattern_source">
 		<div class="panel panel-default">
@@ -101,7 +168,7 @@
 			    		<div class="form-group">
 				     		<label class="control-label">提取网址规则</label>
 				     		<div class="input-group">
-				       			<textarea class="form-control" name="config[url_rule]" rows="3" placeholder="默认获取全部a标签链接"></textarea>
+				       			<textarea class="form-control" name="config[url_rule]" rows="3" placeholder="默认获取a标签链接"></textarea>
 			      				<div class="input-group-addon iga-rt">
 			      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'config[url_rule]\']')">(*)</a>
 			      					<a href="javascript:;" title="{$Think.lang.tips_sign_match}" class="blk" onclick="cpMatch('[name=\'config[url_rule]\']')">{:cp_sign('match')}</a>
@@ -110,9 +177,9 @@
 				       		</div>
 						</div>
 						<div class="form-group">
-				     		<label class="control-label">拼接网址</label>
+				     		<label class="control-label">拼接成最终网址</label>
 				     		<div class="input-group">
-				       			<input type="text" class="form-control" name="config[url_merge]" placeholder="默认拼接所有{:cp_sign('match')}"/>
+				       			<input type="text" class="form-control" name="config[url_merge]" placeholder="默认拼接所有{:cp_sign('match')}标签"/>
 			      				<div class="input-group-addon iga-rt">
 			      					<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'config[url_rule]\']','[name=\'config[url_merge]\']')">{:cp_sign('match','N')}</a>
 			      				</div>
@@ -121,7 +188,7 @@
 						<div class="form-group">
 				     		<label class="control-label">可选操作</label>
 							<div class="checkbox" style="margin:0 0 0 2px;">
-								<label><input type="checkbox" name="config[url_op][]" value="not_complete">不自动补全网址</label>
+								<label><input type="checkbox" name="config[url_op][]" value="not_complete">关闭网址自动补全</label>
 							</div>
 						</div>
                     </div>
@@ -137,7 +204,7 @@
                     <div class="panel-body">
 			     		<div class="input-group" style="margin-bottom:7px;">
 			       			<span class="input-group-addon">必须包含</span>
-			       			<input type="text" name="config[url_must]" class="form-control" />
+			       			<input type="text" name="config[url_must]" class="form-control" placeholder="可模糊匹配" />
 		      				<div class="input-group-addon iga-rt">
 		      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'config[url_must]\']')">{$Think.lang.sign_wildcard}</a>
 								<span title="{$Think.lang.tips_regular}">正则</span>
@@ -145,7 +212,7 @@
 			       		</div>
 			     		<div class="input-group">
 			       			<span class="input-group-addon">不能包含</span>
-			       			<input type="text" name="config[url_ban]" class="form-control" />
+			       			<input type="text" name="config[url_ban]" class="form-control" placeholder="可模糊匹配" />
 		      				<div class="input-group-addon iga-rt">
 		      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'config[url_ban]\']')">{$Think.lang.sign_wildcard}</a>
 								<span title="{$Think.lang.tips_regular}">正则</span>
@@ -192,6 +259,96 @@
 						</div>
 					</div>
 	        	</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">
+		        	<a data-toggle="collapse" href="#coll_pattern_paging" aria-expanded="false">内容分页</a>
+		    	</h4>
+		    </div>
+		    <div id="coll_pattern_paging" class="panel-collapse collapse">
+		    	<div class="panel-body">
+		      		<div class="form-group">
+	       				<label class="control-label">开启分页</label>
+	       				<div class="input-group">
+	       					<label class="radio-inline"><input type="radio" name="config[paging][open]" value="1"> 是</label>
+	       					<label class="radio-inline"><input type="radio" name="config[paging][open]" value="0"> 否</label>
+	       				</div>
+		      		</div>
+		      		<div id="c_p_paging_open" style="display:none;">
+	       			<div class="form-group">
+	       				<label class="control-label">
+	       					分页内容字段
+      						<a href="javascript:;" class="glyphicon glyphicon-plus add-paging-field" title="添加"></a>
+	       				</label>
+	       				<div id="c_p_paging_fields"></div>
+	       			</div>
+	       			<div class="form-group">
+	       				<label class="control-label">获取分页区域</label>
+					    <div class="input-group">
+				   			<textarea name="config[paging][area]" class="form-control" rows="3" placeholder="默认整个页面"></textarea>
+							<div class="input-group-addon iga-rt">
+								<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'config[paging][area]\']')">{$Think.lang.sign_wildcard}</a>
+					      		<a href="javascript:;" title="{$Think.lang.tips_sign_match}" class="blk" onclick="cpMatch('[name=\'config[paging][area]\']',{only:1})">{:cp_sign('match')}</a>
+								<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+							</div>
+				   		</div>
+						<p class="help-block"><b>{:cp_sign('match')}</b>标签可返回匹配的数据，否则返回完全匹配的数据</p>
+					</div>
+					<div class="form-group">
+			     		<label class="control-label">分页区域补全网址</label>
+						<div class="input-group">
+	       					<label class="radio-inline"><input type="radio" name="config[paging][url_complete]" value="1"> 是</label>
+	       					<label class="radio-inline"><input type="radio" name="config[paging][url_complete]" value="0"> 否</label>
+	       				</div>
+					</div>
+				    <div class="form-group">
+	       				<label class="control-label">分页链接规则</label>
+						<div class="input-group">
+				   			<textarea name="config[paging][url_rule]" class="form-control" rows="3" placeholder="必须填写规则"></textarea>
+							<div class="input-group-addon iga-rt">
+								<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'config[paging][url_rule]\']')">{$Think.lang.sign_wildcard}</a>
+					      		<a href="javascript:;" title="{$Think.lang.tips_sign_match}" class="blk" onclick="cpMatch('[name=\'config[paging][url_rule]\']')">{:cp_sign('match')}</a>
+								<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+							</div>
+				   		</div>
+					</div>
+	       			<div class="form-group">
+			     		<label class="control-label">拼接成最终分页链接</label>
+			     		<div class="input-group">
+			       			<input type="text" class="form-control" name="config[paging][url_merge]" placeholder="分页链接规则中无{:cp_sign('match')}时默认获取完全匹配的值，有{:cp_sign('match')}时默认拼接所有{:cp_sign('match')}标签"/>
+		      				<div class="input-group-addon iga-rt">
+		      					<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'config[paging][url_rule]\']','[name=\'config[paging][url_merge]\']')">{:cp_sign('match','N')}</a>
+		      				</div>
+			       		</div>
+					</div>
+					<div class="form-group">
+	       				<label class="control-label">分页网址过滤</label>
+						<div class="input-group" style="margin-bottom:7px;">
+			       			<span class="input-group-addon">必须包含</span>
+			       			<input type="text" name="config[paging][url_must]" class="form-control" placeholder="选填，可模糊匹配" />
+		      				<div class="input-group-addon iga-rt">
+		      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'config[paging][url_must]\']')">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
+		      				</div>
+			       		</div>
+			     		<div class="input-group">
+			       			<span class="input-group-addon">不能包含</span>
+			       			<input type="text" name="config[paging][url_ban]" class="form-control" placeholder="选填，可模糊匹配" />
+		      				<div class="input-group-addon iga-rt">
+		      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'config[paging][url_ban]\']')">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
+		      				</div>
+			       		</div>
+					</div>
+	       			<div class="form-group">
+	       				<label class="control-label">最大分页数</label>
+	       				<input type="number" class="form-control" name="config[paging][max]" value="10">
+			       		<p class="help-block">填0表示不限制会自动循环抓取到最后一页，为防止出现无限循环的情况，最好设置一个数值</p>
+	       			</div>
+	       			</div>
+		    	</div>
 			</div>
 		</div>
 	</div>
