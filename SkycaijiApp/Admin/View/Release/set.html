@@ -5,6 +5,7 @@
 <block name="content">
 <form id="form_rele" class="form-item" method="post" ajax-submit="true" action="{:U('Release/set')}">
 	<input type="hidden" name="task_id" value="{$taskData['id']}" />
+	<input type="hidden" name="release_id" value="" />
 	<div class="form-group">
 		<div class="input-group">
 			<label class="input-group-addon">{$Think.lang.rele_module}</label>
@@ -14,6 +15,7 @@
 			    <option value="{$rele_module}">{:L('rele_module_'.$rele_module)}</option>
 			    </foreach>
 			</select>
+			<div class="input-group-btn"><button class="btn btn-default" type="button" id="btn_import_release">导入配置</button></div>
 		</div>
 	</div>
 	<div class="rele-module" id="rele_module_cms" module="cms" style="display:none;">

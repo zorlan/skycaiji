@@ -37,7 +37,9 @@
 	                	<a href="javascript:;" class="caiji" item-id="{$item['id']}">{$Think.lang.caiji}</a>
 	                </td>
 	                <td>
-	                	<a href="{:U('Task/edit?id='.$item['id'])}">{$Think.lang.edit}</a>
+	                	<a href="{:U('Collector/set?task_id='.$item['id'])}">规则</a>
+	                	&nbsp;
+	                	<a href="{:U('Release/set?task_id='.$item['id'])}">发布</a>
 	                	&nbsp;
 						<a href="javascript:;" class="delete" item-id="{$item['id']}">{$Think.lang.delete}</a>
 	                </td>

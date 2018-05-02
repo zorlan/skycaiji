@@ -40,7 +40,7 @@
 		    <div class="form-group">
 		        <label>{$Think.lang.set_caiji_interval}（单位：分钟）</label>
 		        <input type="number" name="interval" class="form-control" value="{$caijiConfig['interval']}">
-		        <p class="help-block">可轮询目标的数据更新且有效减轻服务器压力，留空或0表示不限制</p>
+		        <p class="help-block">可轮询目标的数据更新且有效减轻服务器压力，强烈建议设置时间！留空或0表示不限制（采集量大会造成服务器过载）</p>
 		    </div>
 		    <div class="form-group">
 		        <label>{$Think.lang.set_caiji_timeout}（单位：分钟）</label>
@@ -50,7 +50,7 @@
 		    <div class="form-group">
 		        <label>页面抓取间隔（单位：秒）</label>
 		        <input type="number" name="html_interval" class="form-control" value="{$caijiConfig['html_interval']}">
-		        <p class="help-block">可防止抓取页面太快造成对方服务器响应超时或宕机，留空或0表示不限制</p>
+		        <p class="help-block">可防止页面抓取频率太快造成目标网站响应超时或宕机，留空或0表示不限制</p>
 		    </div>
 		    <div class="form-group">
 		        <label>图片本地化</label>

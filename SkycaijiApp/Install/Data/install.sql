@@ -66,7 +66,7 @@ CREATE TABLE `skycaiji_config` (
 
 /*Data for the table `skycaiji_config` */
 
-insert  into `skycaiji_config`(`cname`,`ctype`,`dateline`,`data`) values ('version',0,0,'1.0'),('caiji',2,0,'a:6:{s:4:\"auto\";i:0;s:3:\"run\";s:0:\"\";s:3:\"num\";i:10;s:8:\"interval\";i:60;s:7:\"timeout\";i:60;s:12:\"download_img\";i:0;}'),('site',2,0,'a:1:{s:10:\"verifycode\";i:1;}');
+insert  into `skycaiji_config`(`cname`,`ctype`,`dateline`,`data`) values ('version',0,0,'1.2'),('caiji',2,0,'a:6:{s:4:\"auto\";i:0;s:3:\"run\";s:0:\"\";s:3:\"num\";i:10;s:8:\"interval\";i:60;s:7:\"timeout\";i:60;s:12:\"download_img\";i:0;}'),('site',2,0,'a:3:{s:10:"verifycode";i:1;s:8:"hidehome";i:0;s:5:"login";a:3:{s:5:"limit";i:1;s:6:"failed";i:20;s:4:"time";i:1;}}');
 
 /*Table structure for table `skycaiji_release` */
 

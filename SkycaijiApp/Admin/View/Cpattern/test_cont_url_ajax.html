@@ -2,13 +2,15 @@
 	<div class="form-group">
 	  	<div class="input-group">
 	  		<div class="input-group-btn">
-		    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><em style="font-style:normal">测试内容页</em> <span class="caret"></span></button>
+		    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><em style="font-style:normal">抓取字段</em> <span class="caret"></span></button>
 		        <ul class="dropdown-menu">
-		        	<li><a href="javascript:;" data-test="get_fields">测试内容页</a></li>
-		        	<li><a href="javascript:;" data-test="get_paging_urls">测试分页抓取</a></li>
+		        	<li><a href="javascript:;" data-test="get_fields">抓取字段</a></li>
+		        	<li><a href="javascript:;" data-test="get_paging_urls">抓取分页</a></li>
+		        	<li><a href="javascript:;" data-test="get_relation_urls">抓取关联页</a></li>
+		        	<li><a href="javascript:;" data-test="get_html">抓取源码</a></li>
 		        </ul>
 		    </div>
-	  		<input type="text" class="form-control" name="url" value="{$cont_url}" />
+	  		<input type="text" class="form-control" name="url" value="{$cont_url}" placeholder="输入内容页网址" />
 	 		<div class="input-group-btn"><button type="button" class="btn btn-default test-sub">确定</button></div>
 	  	</div>
 	</div>
@@ -17,18 +19,23 @@
 </div>
 <script type="text/javascript">
 function win_test_view(id){
-	$('#win_test_view').remove();
-	var html='<div id="win_test_view" style="width:auto;border:1px solid #ccc;overflow-x:scroll;padding:10px;">'+$('#'+id).val()+'</div>';
+	$('#win_test_view').remove();//删除旧的
+	var html=$('#'+id).val();
+	html=html.replace(/<script[^<>]*>[\s\S]*?<\/script>/ig,'');//去掉脚本代码
+	html=html.replace(/<meta[^<>]*charset[^<>]*>/i,'');//去掉编码
+	var html='<div id="win_test_view" style="width:auto;border:1px solid #ccc;overflow-x:scroll;padding:10px;">'+html+'</div>';
 	$('#'+id).after(html);
 }
 //下拉选择
-$('#win_test_cont_url button.dropdown-toggle').bind('click',function(){
-	var curObj=$(this);
-	$(this).siblings('.dropdown-menu').find('li a').bind('click',function(){
-		curObj.attr('data-test',$(this).attr('data-test'));
-		curObj.find('em').eq(0).text($(this).text());
-	});
+$('#win_test_cont_url .dropdown-menu a[data-test]').bind('click',function(){
+	var btnObj=$(this).parents('.dropdown-menu').eq(0).siblings('button.dropdown-toggle').eq(0);
+	btnObj.attr('data-test',$(this).attr('data-test'));
+	btnObj.find('em').eq(0).text($(this).text());
 });
+
+<if condition="!empty($test)">
+$('#win_test_cont_url .dropdown-menu a[data-test="{$test}"]').trigger('click');
+</if>
 
 //测试按钮
 $('#win_test_cont_url button.test-sub').bind('click',function(){
@@ -38,41 +45,61 @@ $('#win_test_cont_url button.test-sub').bind('click',function(){
 	}else{
 		$('#win_test_cont_url .vals').html('<img src="'+window.site_config.pub+'/images/loading.gif">');
 		var testOp=$('#win_test_cont_url button.dropdown-toggle').attr('data-test');
-		testOp=testOp?testOp:'get_fields';//默认获取内容页
-		
+		testOp=testOp?testOp:'get_fields';//默认获取字段
 		var url="{:U('Collector/test?op=_op_&coll_id='.$collData['id'].'&cont_url=_url_')}";
 		url=url.replace('_op_',testOp).replace('_url_',encodeURIComponent(cont_url));
-		$.ajax({
-			type:'get',
-			url:url,
-			success:function(data){
-				if(data.status==1){
-					var html='';
-					
-					if(testOp=='get_paging_urls'){
-						html='<div class="page-header"><b>成功抓取到分页链接</b></div><ul>';
-						for(var i in data.info){
-							html+='<li>'+data.info[i]+'</li>';
-						}
-						html+='</ul>';
-					}else{
-						for(var i in data.info){
-							var browse='';
-							var eleId=generateUUID();
-							if((/<[^<>]*>/).test(data.info[i])){
-								//检测到html代码
-								browse='<a href="javascript:;" onclick="win_test_view(\''+eleId+'\')">预览</a>';
-							}
-							html+='<label>'+i+'：</label>'+browse+'<textarea id="'+eleId+'" class="form-control">'+data.info[i]+'</textarea><br>';
-						}
-					}
+		if(testOp=='get_html'){
+			//获取源码，防止源代码输出错误
+			$.ajax({
+				type:'get',
+				url:url,
+				dataType:'html',
+				success:function(data){
+					var eleId=generateUUID();
+					data=data.replace(/\</g,'&lt;').replace(/\>/g,'&gt;');//编码
+					html='<label>源码：</label><a href="javascript:;" onclick="win_test_view(\''+eleId+'\')">预览</a><textarea id="'
+						+eleId+'" class="form-control" rows="20">'+data+'</textarea>';
 					$('#win_test_cont_url .vals').html(html);
-				}else{
-					$('#win_test_cont_url .vals').html(data.info);
 				}
-			},
-			dataType:'json'
-		});
+			});
+		}else{
+			$.ajax({
+				type:'get',
+				url:url,
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){
+						var html='';
+						if(testOp=='get_paging_urls'){
+							html='<div class="page-header"><b>成功抓取到分页链接</b></div><ul>';
+							for(var i in data.info){
+								html+='<li>'+data.info[i]+'</li>';
+							}
+							html+='</ul>';
+						}else if(testOp=='get_fields'){
+							for(var i in data.info){
+								var browse='';
+								var eleId=generateUUID();
+								if((/<[^<>]*>/).test(data.info[i])){
+									//检测到html代码
+									browse='<a href="javascript:;" onclick="win_test_view(\''+eleId+'\')">预览</a>';
+								}
+								html+='<label>'+i+'：</label>'+browse+'<textarea id="'+eleId+'" class="form-control">'+data.info[i]+'</textarea><br>';
+							}
+						}else if(testOp=='get_relation_urls'){
+							html='<div class="page-header"><b>关联页网址</b></div><ul>';
+							for(var i in data.info){
+								html+='<li>'+i+'：'+data.info[i]+'</li>';
+							}
+							html+='</ul>';
+						}
+						$('#win_test_cont_url .vals').html(html);
+					}else{
+						$('#win_test_cont_url .vals').html(data.info);
+					}
+				}
+			});
+		}
 	}
 });
 if($('#win_test_cont_url input[name="url"]').val().length>0){

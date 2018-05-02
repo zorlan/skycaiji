@@ -4,7 +4,13 @@
 	<li><a href="#coll_pattern_link" data-toggle="tab">内容页网址</a></li>
 	<li><a href="#coll_pattern_field" data-toggle="tab">获取内容</a></li>
 	<if condition="!empty($collData)">
-	<li class="nav-save2store"><a href="{:U('Collector/save2store?coll_id='.$collData['id'])}" title="云端存储，下载规则更方便！" onclick="windowModal('保存到云端',$(this).attr('href'));return false;">保存到云端</a></li>
+	<li class="dropdown nav-save2store">
+	    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">保存规则 <span class="caret"></span></a>
+	    <ul class="dropdown-menu dropdown-menu-right">
+			<li><a href="{:U('Collector/save2store?coll_id='.$collData['id'])}" title="云端存储，下载规则更方便！" onclick="windowModal('保存到云端',$(this).attr('href'));return false;">上传至云端</a></li>
+    		<li><a href="{:U('Collector/export?coll_id='.$collData['id'])}" target="_blank">导出至本地</a></li>
+	    </ul>
+    </li>
 	</if>
 </ul>
 <div id="coll_tab_content" class="tab-content" style="margin-top:-1px">
@@ -25,6 +31,14 @@
 						<option value="custom">自定义</option>
 					</select>
 					<input type="text" class="form-control" name="config[charset_custom]" style="margin-top:10px;display:none;">
+				</div>
+	     		<div class="form-group">
+					<label class="control-label">自动补全网址</label>
+					<div class="input-group">
+       					<label class="radio-inline"><input type="radio" name="config[url_complete]" value="1"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_complete]" value="0"> 否</label>
+       				</div>
+       				<p class="help-block">将所有页面源码中的相对地址转换成绝对地址（包含超链接、图片、JS链接等）</p>
 				</div>
 			</div>
 		</div>
@@ -125,11 +139,41 @@
 	    </div>
 	</div>
 	<div class="tab-pane fade" id="coll_pattern_link">
-		<div class="panel panel-default">
-			<div style="padding:10px;">
-    		<if condition="!empty($collData)">
-			<a href="{:U('Collector/test?op=source_urls&coll_id='.$collData['id'])}" target="_blank" onclick="windowModal('测试',$(this).attr('href'),{lg:1});return false;" class="btn btn-default btn-block" style="margin-bottom:10px;">测试（需先保存设置）</a>
-			</if>
+		<div class="panel panel-default" id="panel_coll_pattern_level_url">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">
+		        	<a data-toggle="collapse" href="#coll_pattern_level_url" aria-expanded="false">多级网址获取</a>
+		      	</h4>
+	    	</div>
+	    	<div id="coll_pattern_level_url" class="panel-collapse collapse">
+	      		<div class="panel-body">
+      				<div class="h-title">
+      					<span class="is-loading"></span>
+     					<label class="control-label">多级网址规则</label>
+      					<a href="javascript:;" class="glyphicon glyphicon-plus add-level-url" title="添加"></a>
+      				</div>
+		   			<div class="table-responsive">
+		            	<table id="c_p_level_urls" class="table table-bordered table-hover">
+		                   <thead>
+		                       <tr>
+		                           <th>级别</th>
+		                           <th>名称</th>
+		                           <th>操作</th>
+		                       </tr>
+		                   </thead>
+		                   <tbody>
+		                   </tbody>
+		            	</table>
+		        	</div>
+	      		</div>
+	    	</div>
+	  	</div>
+	
+		<div class="panel panel-default" id="panel_coll_pattern_cont_url">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">内容页网址获取</h4>
+	    	</div>
+			<div class="panel-body">
     		<!-- coll_pattern_link -->
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -168,28 +212,23 @@
 			    		<div class="form-group">
 				     		<label class="control-label">提取网址规则</label>
 				     		<div class="input-group">
-				       			<textarea class="form-control" name="config[url_rule]" rows="3" placeholder="默认获取a标签链接"></textarea>
+				       			<textarea class="form-control" name="config[url_rule]" rows="3" placeholder="默认获取a标签链接，{$Think.lang.tips_match_url}"></textarea>
 			      				<div class="input-group-addon iga-rt">
-			      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'config[url_rule]\']')">(*)</a>
+			      					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'config[url_rule]\']')">{$Think.lang.sign_wildcard}</a>
+									<span title="{$Think.lang.tips_regular}">正则</span>
 			      					<a href="javascript:;" title="{$Think.lang.tips_sign_match}" class="blk" onclick="cpMatch('[name=\'config[url_rule]\']')">{:cp_sign('match')}</a>
-									<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+			      					<a href="javascript:;" title="{$Think.lang.tips_sign_group}" class="blk" onclick="cpMatch('[name=\'config[url_rule]\']',{group:1})">捕获组</a>
 			      				</div>
 				       		</div>
 						</div>
 						<div class="form-group">
 				     		<label class="control-label">拼接成最终网址</label>
 				     		<div class="input-group">
-				       			<input type="text" class="form-control" name="config[url_merge]" placeholder="默认拼接所有{:cp_sign('match')}标签"/>
+				       			<input type="text" class="form-control" name="config[url_merge]" placeholder="默认拼接所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn_url}"/>
 			      				<div class="input-group-addon iga-rt">
 			      					<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'config[url_rule]\']','[name=\'config[url_merge]\']')">{:cp_sign('match','N')}</a>
 			      				</div>
 				       		</div>
-						</div>
-						<div class="form-group">
-				     		<label class="control-label">可选操作</label>
-							<div class="checkbox" style="margin:0 0 0 2px;">
-								<label><input type="checkbox" name="config[url_op][]" value="not_complete">关闭网址自动补全</label>
-							</div>
 						</div>
                     </div>
                 </div>
@@ -223,14 +262,56 @@
             </div>
     		<!-- end coll_pattern_link -->
 			</div>
-		</div>		
+		</div>
+		
+		<div class="panel panel-default">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">
+		        	<a data-toggle="collapse" href="#coll_pattern_relation_url" aria-expanded="false">关联页网址获取</a>
+		      	</h4>
+	    	</div>
+	    	<div id="coll_pattern_relation_url" class="panel-collapse collapse">
+	      		<div class="panel-body">
+	      			<div class="h-title">
+      					<span class="is-loading"></span>
+     					<label class="control-label">关联页规则</label>
+      					<a href="javascript:;" class="glyphicon glyphicon-plus add-relation-url" title="添加"></a>
+      				</div>
+		   			<div class="table-responsive">
+		            	<table id="c_p_relation_urls" class="table table-bordered table-hover">
+		                   <thead>
+		                       <tr>
+		                           <th>名称</th>
+		                           <th>从页面中提取</th>
+		                           <th>操作</th>
+		                       </tr>
+		                   </thead>
+		                   <tbody>
+		                   </tbody>
+		            	</table>
+	            	</div>
+	      		</div>
+	    	</div>
+	  	</div>
+		
+   		<if condition="!empty($collData)">
+		<div class="form-group">
+			<div class="dropdown">
+				<button class="btn btn-default btn-block dropdown-toggle" type="button" id="dropdownMenuTestUrl" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+			    	测试（需先保存设置）
+			    	<span class="caret"></span>
+			  	</button>
+			  	<ul class="dropdown-menu" style="width:100%;text-align:center;" aria-labelledby="dropdownMenuTestUrl">
+			    	<li><a href="{:U('Collector/test?op=source_urls&coll_id='.$collData['id'])}" target="_blank" onclick="windowModal('测试',$(this).attr('href'),{lg:1});return false;">测试抓取内容页网址</a></li>
+			    	<li><a href="{:U('Collector/test?op=cont_url&coll_id='.$collData['id'])}&test=get_relation_urls" target="_blank" onclick="windowModal('测试',$(this).attr('href'),{lg:1});return false;">测试抓取关联页网址</a></li>
+			  	</ul>
+			</div>
+		</div>
+		</if>
 	</div>
 	<div class="tab-pane fade" id="coll_pattern_field">
 		<div class="panel panel-default">
 			<div class="panel-body">
-	        	<if condition="!empty($collData)">
-				<a href="{:U('Collector/test?op=cont_url&coll_id='.$collData['id'])}" target="_blank" onclick="windowModal('测试',$(this).attr('href'),{lg:1});return false;" class="btn btn-default btn-block" style="margin-bottom:10px;">测试（需先保存设置）</a>
-				</if>
 	     		<div class="h-title">
 	     			<label class="control-label">字段列表</label>
 	      			<a href="javascript:;" class="glyphicon glyphicon-plus add-field" title="添加"></a>
@@ -241,6 +322,7 @@
 	                   <thead>
 	                       <tr>
 	                           <th>字段</th>
+	                           <th>数据源</th>
 	                           <th>获取方式</th>
 	                           <th>操作</th>
 	                       </tr>
@@ -249,17 +331,24 @@
 	                   </tbody>
 	            	</table>
 	        	</div>
-	        	<div id="coll_pattern_process">
-		     		<div class="h-title">
-		     			<label class="control-label">数据处理（通用）</label>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">
+		        	<a data-toggle="collapse" href="#coll_pattern_process" aria-expanded="false">数据处理（通用）</a>
+		    	</h4>
+		    </div>
+		    <div id="coll_pattern_process" class="panel-collapse collapse">
+		    	<div class="panel-body">
+		    		<div class="h-title">
+		     			<label class="control-label">通用数据处理</label>
 		      			<a href="javascript:;" class="glyphicon glyphicon-plus add-process" title="添加"></a>
 		      		</div>
-		   			<div class="form-group">
-						<div class="panel-group c-p-process-accordion">
-						</div>
+		    		<div class="panel-group c-p-process-accordion">
 					</div>
-	        	</div>
-			</div>
+		    	</div>
+		    </div>
 		</div>
 		<div class="panel panel-default">
 			<div class="panel-heading">
@@ -287,37 +376,32 @@
 	       			<div class="form-group">
 	       				<label class="control-label">获取分页区域</label>
 					    <div class="input-group">
-				   			<textarea name="config[paging][area]" class="form-control" rows="3" placeholder="默认整个页面"></textarea>
+				   			<textarea name="config[paging][area]" class="form-control" rows="3" placeholder="默认整个页面，{$Think.lang.tips_match_only}"></textarea>
 							<div class="input-group-addon iga-rt">
-								<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'config[paging][area]\']')">{$Think.lang.sign_wildcard}</a>
-					      		<a href="javascript:;" title="{$Think.lang.tips_sign_match}" class="blk" onclick="cpMatch('[name=\'config[paging][area]\']',{only:1})">{:cp_sign('match')}</a>
-								<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+								<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'config[paging][area]\']')">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
+					      		<a href="javascript:;" title="{$Think.lang.tips_sign_match_only}" class="blk" onclick="cpMatch('[name=\'config[paging][area]\']',{only:1})">{:cp_sign('match')}</a>
+					      		<a href="javascript:;" title="{$Think.lang.tips_sign_group_only}" class="blk" onclick="cpMatch('[name=\'config[paging][area]\']',{only:1,group:1})">捕获组</a>
 							</div>
 				   		</div>
 						<p class="help-block"><b>{:cp_sign('match')}</b>标签可返回匹配的数据，否则返回完全匹配的数据</p>
 					</div>
-					<div class="form-group">
-			     		<label class="control-label">分页区域补全网址</label>
-						<div class="input-group">
-	       					<label class="radio-inline"><input type="radio" name="config[paging][url_complete]" value="1"> 是</label>
-	       					<label class="radio-inline"><input type="radio" name="config[paging][url_complete]" value="0"> 否</label>
-	       				</div>
-					</div>
 				    <div class="form-group">
 	       				<label class="control-label">分页链接规则</label>
 						<div class="input-group">
-				   			<textarea name="config[paging][url_rule]" class="form-control" rows="3" placeholder="必须填写规则"></textarea>
+				   			<textarea name="config[paging][url_rule]" class="form-control" rows="3" placeholder="必须填写规则，{$Think.lang.tips_match_url}"></textarea>
 							<div class="input-group-addon iga-rt">
-								<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'config[paging][url_rule]\']')">{$Think.lang.sign_wildcard}</a>
+								<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'config[paging][url_rule]\']')">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
 					      		<a href="javascript:;" title="{$Think.lang.tips_sign_match}" class="blk" onclick="cpMatch('[name=\'config[paging][url_rule]\']')">{:cp_sign('match')}</a>
-								<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+					      		<a href="javascript:;" title="{$Think.lang.tips_sign_group}" class="blk" onclick="cpMatch('[name=\'config[paging][url_rule]\']',{group:1})">捕获组</a>
 							</div>
 				   		</div>
 					</div>
 	       			<div class="form-group">
 			     		<label class="control-label">拼接成最终分页链接</label>
 			     		<div class="input-group">
-			       			<input type="text" class="form-control" name="config[paging][url_merge]" placeholder="分页链接规则中无{:cp_sign('match')}时默认获取完全匹配的值，有{:cp_sign('match')}时默认拼接所有{:cp_sign('match')}标签"/>
+			       			<input type="text" class="form-control" name="config[paging][url_merge]" placeholder="“分页链接规则”中无{:cp_sign('match')}时默认获取完全匹配的值，有{:cp_sign('match')}时默认拼接所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn_url}"/>
 		      				<div class="input-group-addon iga-rt">
 		      					<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'config[paging][url_rule]\']','[name=\'config[paging][url_merge]\']')">{:cp_sign('match','N')}</a>
 		      				</div>
@@ -351,6 +435,11 @@
 		    	</div>
 			</div>
 		</div>
+       	<if condition="!empty($collData)">
+		<div class="form-group">
+			<a href="{:U('Collector/test?op=cont_url&coll_id='.$collData['id'])}" target="_blank" onclick="windowModal('测试',$(this).attr('href'),{lg:1});return false;" class="btn btn-default btn-block" style="margin-bottom:10px;">测试（需先保存设置）</a>
+		</div>
+		</if>
 	</div>
 </div>
 <link href="__PUBLIC__/css/jquery.datetimepicker.css" rel="stylesheet">

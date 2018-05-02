@@ -1,5 +1,5 @@
 <style type="text/css">
-#test_source_urls .cont_urls{padding:5px;}
+#test_source_urls .source_url{padding:5px;}
 #test_source_urls p{margin:0;}
 </style>
 <div id="test_source_urls">
@@ -7,48 +7,34 @@
 	没有起始页网址
 <else/>
 	<foreach name="source_urls" item="source_url">
-	<div class="cont_urls" url="{$source_url}">
-		<p>正在采集页面：{$source_url}</p>
+	<div class="source_url" url="{$source_url}">
+		<p><b>抓取起始页面：</b>{$source_url}</p>
 		<p class="cont_urls_num"></p>
 		<div class="cont_urls_list">
-			<img src="__PUBLIC__/images/load1.gif" />
 		</div>
 	</div>
 	</foreach>
 </if>
 </div>
 <script type="text/javascript">
+'use strict';//严格模式
+var max_num=5;//测试时最多显示数量
+var url_ajax_requests=new Array();//ajax对象
 $(document).ready(function(){
-	$('#test_source_urls .cont_urls').each(function(){
+	$('#test_source_urls .source_url').each(function(index){
+		//起始页开始测试
 		var obj=$(this);
 		var source_url=$(this).attr('url');
-		if(source_url){
-			var url="{:U('Collector/test?op=cont_urls&coll_id='.$collData['id'].'&source_url=_url_')}";
-			url=url.replace('_url_',encodeURIComponent(source_url)); 
-			$.ajax({
-				type:'get',
-				url:url,
-				success:function(data){
-					var test_cont_url="{:U('Collector/test?op=cont_url&coll_id='.$collData['id'])}&cont_url=_url_";
-					if(data.status==1){
-						//网址列表
-						var list='<ul style="list-style-type:square;padding-left:15px;white-space:normal;overflow-x:scroll;">';
-						for(var i in data.info){
-							list+='<li><a href="'+(test_cont_url.replace('_url_',encodeURIComponent(data.info[i])))+'" target="_test_cont">测试</a> '+data.info[i]+'</li>';
-						}
-						list+='</ul>';
-						obj.find('.cont_urls_list').html(list).hide();
-						
-						obj.find('.cont_urls_num').html('获取到'+data.info.length+'条网址 <a href="javascript:;" status="0">[展开]</a>');
-					}else{
-						//错误信息
-						obj.find('.cont_urls_list').html('<span style="color:red">'+data.info+'</span>');
-					}
-				},
-				dataType:'json'
-			});
-		}
 		
+		<if condition="!empty($config['level_urls'])">
+		//有多级
+		if(index<max_num){
+			//测试前几页
+			get_cont_urls(source_url,obj,1);
+		}
+		<else />
+		get_cont_urls(source_url,obj,0);
+		</if>
 	});
 	//展开收起
 	$('#test_source_urls').on('click','.cont_urls_num a',function(){
@@ -63,5 +49,70 @@ $(document).ready(function(){
 			$(this).parent().siblings('.cont_urls_list').show();
 		}
 	});
+
+	//获取网址
+	function get_cont_urls(source_url,curObj,level){
+		if(source_url){
+			curObj.children('.cont_urls_list').html('<img src="'+window.site_config.pub+'/images/load1.gif">').show();
+			
+			var url="{:U('Collector/test?op=cont_urls&coll_id='.$collData['id'].'&source_url=_url_&level=_level_')}";
+			url=url.replace('_url_',encodeURIComponent(source_url)).replace('_level_',level);
+			var url_ajax_request=$.ajax({
+				type:'get',
+				url:url,
+				async:true,
+				success:function(data){
+					if(data.status==1){
+						//内容网址列表
+						var urls=data.info.urls;
+						var list='<ul style="list-style-type:'+(level>0?'decimal':'square')+';padding-left:15px;white-space:normal;overflow-x:scroll;">';
+						if(level>0){
+							//抓取级别网址
+							for(var i in urls){
+								if(i<max_num){
+									//测试前几页
+									list+='<li class="source_url" url="'+urls[i]+'"><p><b>抓取第'+level+'级页面 “'+data.info.levelName+'”：</b>'+urls[i]+'</p><p class="cont_urls_num"></p><div class="cont_urls_list"></div></li>';
+								}
+							}
+							list+='</ul>';
+							
+							curObj.children('.cont_urls_list').html(list).show();
+							curObj.children('.cont_urls_num').html('获取到'+urls.length+'条网址'+(urls.length>max_num?'（只测试前'+max_num+'条）':'')+' <a href="javascript:;" status="1">[收起]</a>');
+
+							curObj.children('.cont_urls_list').find('.source_url').each(function(){
+								var obj=$(this);
+								get_cont_urls(obj.attr('url'),obj,data.info.nextLevel);//抓取下一级或内容页
+							});
+							
+						}else{
+							//无级别，显示测试网址
+							var test_cont_url="{:U('Collector/test?op=cont_url&coll_id='.$collData['id'])}&cont_url=_url_";
+							for(var i in urls){
+								list+='<li><a href="'+(test_cont_url.replace('_url_',encodeURIComponent(urls[i])))+'" target="_test_cont">测试</a> '+urls[i]+'</li>';
+							}
+							list+='</ul>';
+							
+							//没有下一级
+							curObj.children('.cont_urls_list').html(list).hide();
+							curObj.children('.cont_urls_num').html('获取到'+urls.length+'条网址 <a href="javascript:;" status="0">[展开]</a>');
+						}
+					}else{
+						//错误信息
+						curObj.children('.cont_urls_list').html('<span style="color:red">'+data.info+'</span>').show();
+					}
+				},
+				dataType:'json'
+			});
+			window.url_ajax_requests.push(url_ajax_request);
+		}
+	}
+});
+$('#myModal').on('hide.bs.modal', function (e) {
+	if(window.url_ajax_requests){
+		//退出时清除所有ajax请求
+		for(var i in window.url_ajax_requests){
+			window.url_ajax_requests[i].abort();//终止ajax
+		}
+	}
 });
 </script>

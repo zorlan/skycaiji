@@ -39,8 +39,8 @@
 		</a>
 		<ul class="treeview-menu">
 			<li><a href="{:U('Admin/Setting/caiji')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_caiji}</a></li>
-			<li><a href="{:U('Admin/Setting/email')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_email}</a></li>
 			<li><a href="{:U('Admin/Setting/site')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_site}</a></li>
+			<li><a href="{:U('Admin/Setting/email')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_email}</a></li>
 		</ul>
 	</li>
    	<li class="treeview{$curMenu['task']}{$curMenu['taskgroup']}{$curMenu['collector']}{$curMenu['release']}">
@@ -59,7 +59,7 @@
 				<i class="fa fa-angle-left pull-right"></i>
 				</span>
 				</a>
-				<ul class="treeview-menu">
+				<ul class="treeview-menu" style="display:none;">
 					<li><a href="{:U('Taskgroup/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup_list}</a></li>
 					<li><a href="{:U('Taskgroup/add')}"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup_add}</a></li>
 				</ul>
@@ -75,7 +75,17 @@
 		</a>
 		<ul class="treeview-menu">
 			<li><a href="{:U('Admin/Store/index')}"><i class="fa fa-circle-o"></i> 云平台</a></li>
-			<li><a href="{:U('Admin/Mystore/index')}"><i class="fa fa-circle-o"></i> 已下载</a></li>
+			<li class="treeview menu-open">
+				<a href="#"><i class="fa fa-circle-o"></i> 已下载
+				<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+				</span>
+				</a>
+				<ul class="treeview-menu" style="display:block;">
+					<li><a href="{:U('Admin/Mystore/Collect')}"><i class="fa fa-circle-o"></i> 采集规则</a></li>
+					<li><a href="{:U('Admin/Mystore/ReleaseApp')}"><i class="fa fa-circle-o"></i> 发布应用</a></li>
+				</ul>
+			</li>
 		</ul>
 	</li>
 	<li class="treeview{$curMenu['collected']}">
@@ -100,7 +110,7 @@
 			<li><a href="{:U('Admin/User/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.user_list}</a></li>
 		</ul>
 	</li>
-	<li class="treeview{$curMenu['develop']}">
+	<li class="treeview{$curMenu['develop']}{$curMenu['tool']}">
 		<a href="#">
 			<i class="fa fa-wrench"></i> <span>开发工具</span>
 			<span class="pull-right-container">
@@ -109,6 +119,7 @@
 		</a>
 		<ul class="treeview-menu">
 			<li><a href="{:U('Admin/Develop/releaseCms')}"><i class="fa fa-circle-o"></i> CMS发布应用</a></li>
+			<li><a href="{:U('Admin/Tool/logs')}"><i class="fa fa-circle-o"></i> 错误日志</a></li>
 		</ul>
 	</li>
 	<li class="treeview">

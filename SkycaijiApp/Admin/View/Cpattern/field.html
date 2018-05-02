@@ -4,6 +4,14 @@
    		<div class="input-group">
    			<span class="input-group-addon" style="background:#f4f4f4;">字段名称</span>
 			<input type="text" name="field[name]" class="form-control" />
+   			<div class="input-group-btn c-p-field-source" title="选择数据源">
+	   			<select name="field[source]" class="form-control slt-field-source">
+					<optgroup label="选择数据源">
+						<option value="">默认页</option>
+						<option value="source_url">起始页</option>
+					</optgroup>
+				</select>
+			</div>
    		</div>
 	</div>
 	<div class="form-group">
@@ -31,18 +39,19 @@
 				<div class="form-group">
 					<label>规则</label>
 					<div class="input-group">
-			   			<textarea name="field[rule]" class="form-control" rows="3">{$field['rule']}</textarea>
+			   			<textarea name="field[rule]" class="form-control" rows="3" placeholder="{$Think.lang.tips_match}">{$field['rule']}</textarea>
 						<div class="input-group-addon iga-rt">
-							<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'field[rule]\']')">{$Think.lang.sign_wildcard}</a>
+							<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'field[rule]\']')">{$Think.lang.sign_wildcard}</a>
+							<span title="{$Think.lang.tips_regular}">正则</span>
 				      		<a href="javascript:;" title="{$Think.lang.tips_sign_match}" class="blk" onclick="cpMatch('[name=\'field[rule]\']')">{:cp_sign('match')}</a>
-							<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+				      		<a href="javascript:;" title="{$Think.lang.tips_sign_group}" class="blk" onclick="cpMatch('[name=\'field[rule]\']',{group:1})">捕获组</a>
 						</div>
 			   		</div>
 		   		</div>
 				<div class="form-group">
 			   		<label>拼接成最终内容</label>
 					<div class="input-group">
-			   			<textarea name="field[rule_merge]" class="form-control" rows="2" placeholder="默认拼接所有{:cp_sign('match')}标签">{$field['rule_merge']}</textarea>
+			   			<textarea name="field[rule_merge]" class="form-control" rows="2" placeholder="默认拼接所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn}">{$field['rule_merge']}</textarea>
 						<div class="input-group-addon iga-rt">
 				      		<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'field[rule]\']','[name=\'field[rule_merge]\']')">{:cp_sign('match','N')}</a>
 				      	</div>
@@ -147,7 +156,7 @@
 				<div class="form-group">
 					<label>提取规则</label>
 					<input type="text" name="field[json]" class="form-control" />
-					<p class="help-block">直接输入键名，子元素用：[a][b][c]或a.b.c</p>
+					<p class="help-block">直接输入键名，子元素用：[a][b][c]或a.b.c，通配符*</p>
 				</div>
 				<div class="form-group">
 					<label>结果是数组则转换为</label>
@@ -184,11 +193,12 @@
 				</div>
 				<div class="c-p-field-extract-module" extract-module="rule" style="display:none;">
 					<div class="input-group">
-			   			<textarea name="field[extract_rule]" class="form-control" rows="3" placeholder="规则">{$field['extract_rule']}</textarea>
+			   			<textarea name="field[extract_rule]" class="form-control" rows="3" placeholder="{$Think.lang.tips_match_only}">{$field['extract_rule']}</textarea>
 						<div class="input-group-addon iga-rt">
-							<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk" onclick="cpWildcard('[name=\'field[extract_rule]\']')">{$Think.lang.sign_wildcard}</a>
-				      		<a href="javascript:;" title="{$Think.lang.tips_sign_match}" class="blk" onclick="cpMatch('[name=\'field[extract_rule]\']',{only:1})">{:cp_sign('match')}</a>
-							<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+							<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'field[extract_rule]\']')">{$Think.lang.sign_wildcard}</a>
+							<span title="{$Think.lang.tips_regular}">正则</span>
+				      		<a href="javascript:;" title="{$Think.lang.tips_sign_match_only}" class="blk" onclick="cpMatch('[name=\'field[extract_rule]\']',{only:1})">{:cp_sign('match')}</a>
+				      		<a href="javascript:;" title="{$Think.lang.tips_sign_group_only}" class="blk" onclick="cpMatch('[name=\'field[extract_rule]\']',{only:1,group:1})">捕获组</a>
 						</div>
 			   		</div>
 					<p class="help-block"><b>{:cp_sign('match')}</b>标签可返回匹配的数据，否则返回完全匹配的数据</p>
@@ -221,7 +231,7 @@
 					<div class="form-group">
 						<label>提取规则</label>
 						<input type="text" name="field[extract_json]" class="form-control" />
-						<p class="help-block">直接输入键名，子元素用：[a][b][c]或a.b.c</p>
+						<p class="help-block">直接输入键名，子元素用：[a][b][c]或a.b.c，通配符*</p>
 					</div>
 					<div class="form-group">
 						<label>结果是数组则转换为</label>

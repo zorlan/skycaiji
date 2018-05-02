@@ -21,6 +21,21 @@
 		        	<label><input type="radio" name="verifycode" value="0">{$Think.lang.no}</label>
 		        </div>
 		    </div>
+		    <div class="form-group">
+		        <label>登录限制</label>
+		        <div class="radio">
+		        	<label><input type="radio" name="login[limit]" value="1">{$Think.lang.yes}</label>
+		        	<label><input type="radio" name="login[limit]" value="0">{$Think.lang.no}</label>
+		        </div>
+		        <div class="input-group" id="login_limit" style="display:none;">
+		        	<span class="input-group-addon">登录失败</span>
+		        	<input type="number" name="login[failed]" class="form-control" value="{$siteConfig['login']['failed']}">
+		        	<span class="input-group-addon">次，将被锁定</span>
+			       	<input type="number" name="login[time]" class="form-control" value="{$siteConfig['login']['time']}">
+			       	<span class="input-group-addon">小时</span>
+		        	
+			    </div>
+		    </div>
 		   	<div class="form-group">
 				<button type="submit" class="btn btn-primary">{$Think.lang.save}</button>
 			</div>
@@ -28,8 +43,17 @@
 	</div>
 </div>
 <script type="text/javascript">
+$('#form_set [name="login[limit]"]').bind('click',function(){
+	if($(this).val()==1){
+		$('#login_limit').show();
+	}else{
+		$('#login_limit').hide();
+	}
+});
+
 $('#form_set [name="verifycode"][value="{$siteConfig['verifycode']|intval}"]').attr('checked', 'checked');
 $('#form_set [name="hidehome"][value="{$siteConfig['hidehome']|intval}"]').attr('checked', 'checked');
+$('#form_set [name="login[limit]"][value="{$siteConfig['login']['limit']|intval}"]').attr('checked', 'checked').trigger('click');
 
 </script>
 </block>

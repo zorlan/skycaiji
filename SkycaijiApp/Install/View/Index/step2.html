@@ -59,7 +59,10 @@
 					</tr>
 					<tr>
 						<td>密码</td>
-						<td><input name="user_pwd" type="password" class="form-control" value=""></td>
+						<td>
+							<input name="user_pwd" type="password" class="form-control" value="">
+							<div class="input-group-addon" id="pwd_status" style="display:none;"></div>
+						</td>
 					</tr>
 					<tr>
 						<td>确认密码</td>
@@ -106,6 +109,24 @@ $('#form_db').bind('submit',function(){
 		}
 	});
 	return false;
+});
+/*判断密码强弱*/
+$('#form_db input[name="user_pwd"]').bind('keyup',function(){
+	var pwd=$(this).val();
+	if(pwd.length>=6){
+		$('#pwd_status').show().parents('td').addClass('input-group');
+		if((/^.{6,7}$/i).test(pwd)){
+			$('#pwd_status').html('<b style="color:red;">极弱</b>');
+		}else if((/^.{8,9}$/i).test(pwd)){
+			$('#pwd_status').html('<b style="color:red;">弱</b>');
+		}else if((/^.{10,13}$/i).test(pwd)){
+			$('#pwd_status').html('<b style="color:orange;">中</b>');
+		}else if((/^.{14,}$/i).test(pwd)){
+			$('#pwd_status').html('<b style="color:green;">强</b>');
+		}
+	}else{
+		$('#pwd_status').hide().parents('td').removeClass('input-group');
+	}
 });
 </script>
 </block>

@@ -30,8 +30,14 @@ abstract class BaseCms extends ReleaseBaseEvent {
 			$release['config']['cms']['path']=$cmsPath;
 		}
 		if(!empty($release)){
-			//通过发布设置加载配置
+			//通过已入库的发布设置加载配置
 			$releConfig=$release['config'];
+			if(strpos($releConfig['cms']['path'], '@')!==false){
+				//路径中指定了cms
+				list($cmsPath,$cmsPathName)=explode('@', $releConfig['cms']['path']);//指定程序名
+				$releConfig['cms']['path']=$cmsPath;//换成有效的路径
+				$releConfig['cms']['name']=$cmsPathName;//重新设置cms
+			}
 			$cmsDb=$this->cmsDb($releConfig['cms']['name'], $releConfig['cms']['path']);
 			$this->releConfig=$releConfig;//发布数据库配置
 			$this->release=$release;
@@ -39,7 +45,8 @@ abstract class BaseCms extends ReleaseBaseEvent {
 		}else{
 			E('发布错误：配置加载失败！');
 		}
-		if(empty($cmsDb)){
+		if(empty($cmsDb)||empty($cmsDb['db_name'])){
+			//数据库不为空情况下需判断db_name
 			E('发布错误：没有数据库配置');
 		}
 		$cmsDb['db_type']=empty($cmsDb['db_type'])?'mysql':strtolower($cmsDb['db_type']);
@@ -75,7 +82,6 @@ abstract class BaseCms extends ReleaseBaseEvent {
 			//不转码
 			$dbCharset=null;
 		}
-		
 		//转换cms参数
 		$cmsParams=array();
 		foreach ($this->releConfig['cms_app']['param'] as $cmsParam=>$paramVal){
