@@ -89,6 +89,7 @@
 .datatable td .dropdown{display:inline;}
 .datatable .chk{text-align:center;}
 .datatable .url{max-width:260px;overflow:hidden;}
+.datatable .desc{max-width:400px;white-space:normal;overflow:hidden;word-wrap:break-word;word-break:break-all;}
 .datatable .sort input{height:auto;padding:0 5px;}
 .datatable .bg0{background:#fcfcfc}
 .datatable tr,.datatable td{white-space:nowrap;}
@@ -157,6 +158,8 @@ table.datatable thead .sorting_desc:after {
 .coll-tab > li:nth-child(3).active > a{background:#f5f5f5;}
 /*请求头信息*/
 .c-p-request-headers .delete-request-header{margin-top:8px;}
+/*post参数*/
+.c-p-url-posts .delete-url-post{margin-top:8px;}
 /*参数标签样式*/
 .param-label{
 	font-size:16px;
@@ -311,8 +314,10 @@ table.datatable thead .sorting_desc:after {
 .nav-check-update{float:right!important;}
 .nav-check-update img{width:14px;}
 /*设置*/
-
+.proxy-ip-box .h-title .glyphicon{font-size:80%;}
 .proxy-ip-list .delete-proxy-ip{margin-top:8px;}
+.proxy-ip-list .p-ip .form-control{min-width:150px;}
+.proxy-ip-list .p-ip-info{vertical-align:middle;color:#999;}
 /**/
 
 .skin-black .nav-tabs-color li.active,.skin-black-light .nav-tabs-color li.active{border-top-color:#5A6E82!important;}

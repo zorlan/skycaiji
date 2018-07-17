@@ -2,9 +2,8 @@
 /* diy发布设置
  */
 namespace Release\Diy;
-use Think\Controller;
-use Think\Hook;
 use Admin\Event\ReleaseBaseEvent;
+use Admin\Model\DbCommonModel;
 abstract class BaseDiy extends ReleaseBaseEvent{
 	public $release;//发布对象数据
 	public $releConfig;//发布配置
@@ -32,7 +31,7 @@ abstract class BaseDiy extends ReleaseBaseEvent{
 		}
 		//实例化数据库
 		try {
-			$this->db=M('',null,$this->connection);
+			$this->db=new DbCommonModel('',null,$this->connection);
 		}catch (\Exception $ex){
 			E('发布错误：'.$ex->getMessage());
 		}

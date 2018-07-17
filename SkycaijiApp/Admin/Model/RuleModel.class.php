@@ -9,4 +9,4 @@
  |--------------------------------------------------------------------------
  */
 
-namespace Admin\Model; use Think\Model; class RuleModel extends BaseModel{ } ?>
+namespace Admin\Model; class RuleModel extends BaseModel{ } ?>

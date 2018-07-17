@@ -19,9 +19,9 @@
 			<span class="input-group-addon" style="background:#f4f4f4;">获取方式</span>
 			<select name="field[module]" class="form-control">
 				<option value="rule">{$Think.lang.field_module_rule}</option>
-				<option value="auto">{$Think.lang.field_module_auto}</option>
 				<option value="xpath">{$Think.lang.field_module_xpath}</option>
 				<option value="json">{$Think.lang.field_module_json}</option>
+				<option value="auto">{$Think.lang.field_module_auto}</option>
 				<optgroup label="数据生成">
 					<option value="words">{$Think.lang.field_module_words}</option>
 					<option value="num">{$Think.lang.field_module_num}</option>
@@ -59,8 +59,9 @@
 			   	</div>
 		   		<div class="checkbox"><label><input type="checkbox" name="field[rule_multi]" value="1" {$field[rule_multi]?'checked="checked"':''}"> 允许匹配多个元素</label></div>
 		   		<div class="input-group" style="display:none;" id="c_p_field_rule_multi_str">
-					<div class="input-group-addon">分隔字符串</div>
-				    <input type="text" name="field[rule_multi_str]" class="form-control" placeholder="多个元素之间分隔符">
+					<div class="input-group-addon" style="border-right:0;"><label class="radio-inline"><input type="radio" name="field[rule_multi_type]" value="">拼接为文本</label></div>
+				    <input type="text" style="border-left-style:dashed;" name="field[rule_multi_str]" class="form-control" placeholder="多个元素之间分隔符">
+					<div class="input-group-addon"><label class="radio-inline"><input type="radio" name="field[rule_multi_type]" value="loop">循环入库</label></div>
 		   		</div>
 			</div>
 			<div class="c-p-field-module" module="auto" style="display:none;">
@@ -111,8 +112,9 @@
 				<input type="text" class="form-control" name="field[xpath_attr_custom]" style="margin-top:10px;display:none;">
 				<div class="checkbox"><label><input type="checkbox" name="field[xpath_multi]" value="1" {$field[xpath_multi]?'checked="checked"':''}> 允许匹配多个节点</label></div>
 				<div class="input-group" style="display:none;" id="c_p_field_xpath_multi_str">
-					<div class="input-group-addon">分隔字符串</div>
-				    <input type="text" name="field[xpath_multi_str]" class="form-control" placeholder="多个节点之间分隔符">
+		   			<div class="input-group-addon" style="border-right:0;"><label class="radio-inline"><input type="radio" name="field[xpath_multi_type]" value="">拼接为文本</label></div>
+				    <input type="text" style="border-left-style:dashed;" name="field[xpath_multi_str]" class="form-control" placeholder="多个节点之间分隔符">
+					<div class="input-group-addon"><label class="radio-inline"><input type="radio" name="field[xpath_multi_type]" value="loop">循环入库</label></div>
 		   		</div>
 			</div>
 			<div class="c-p-field-module" module="words" style="display:none;">

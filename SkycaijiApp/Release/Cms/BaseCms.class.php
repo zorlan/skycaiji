@@ -4,8 +4,8 @@
  * 类名必须驼峰命名法不能用下划线
  */
 namespace Release\Cms;
-use Think\Controller;
 use Admin\Event\ReleaseBaseEvent;
+use Admin\Model\DbCommonModel;
 abstract class BaseCms extends ReleaseBaseEvent {
 	public $release;//发布对象数据
 	public $releConfig;//发布配置
@@ -20,7 +20,7 @@ abstract class BaseCms extends ReleaseBaseEvent {
 		C('TMPL_EXCEPTION_FILE',APP_PATH.'Public/release_exception.tpl');//定义cms错误模板，ajax出错时方便显示
 	}
 	public function init($cmsPath=null,$release=null){
-		$cmsDb=null;//cms程序数据库配置
+		$cmsDb=array();//cms程序数据库配置
 		if(empty($release)){
 			$release=array();
 		}
@@ -54,7 +54,7 @@ abstract class BaseCms extends ReleaseBaseEvent {
 		$this->cmsDb=$cmsDb;//cms程序配置
 		//实例化数据库
 		try {
-			$this->db=M('',$cmsDb['db_prefix'],$cmsDb);
+			$this->db=new DbCommonModel('',$cmsDb['db_prefix'],$cmsDb);
 		}catch (\Exception $ex){
 			E('发布错误：'.$ex->getMessage());
 		}
@@ -186,10 +186,11 @@ abstract class BaseCms extends ReleaseBaseEvent {
 		}
 		return $cmsDb;
 	}
+	/*引入文件必须用include，include_once在多个实例化后会失效*/
 	public function cms_db_discuz($cmsPath){
 		$dbFile=realpath($cmsPath.'/config/config_global.php');
 		//转换成thinkphp数据库配置
-		include_once $dbFile;//导入本地cms配置文件
+		include $dbFile;//导入本地cms配置文件
 		$cmsDb=array(
 			'db_type'  => 'mysql',
 			'db_user'  => $_config['db'][$_config['server']['id']]['dbuser'],
@@ -233,7 +234,7 @@ abstract class BaseCms extends ReleaseBaseEvent {
 	public function cms_db_empirecms($cmsPath){
 		$dbFile=realpath($cmsPath.'/e/config/config.php');
 		define('InEmpireCMS', true);//必须定义才能引入配置
-		include_once $dbFile;
+		include $dbFile;
 		$cmsDb=array(
 			'db_type'  => 'mysql',
 			'db_user'  => $ecms_config['db']['dbusername'],
@@ -248,7 +249,7 @@ abstract class BaseCms extends ReleaseBaseEvent {
 	}
 	public function cms_db_dedecms($cmsPath){
 		$dbFile=realpath($cmsPath.'/data/common.inc.php');
-		include_once $dbFile;
+		include $dbFile;
 		$cmsDb=array(
 			'db_type'  => 'mysql',
 			'db_user'  => $cfg_dbuser,
@@ -263,7 +264,7 @@ abstract class BaseCms extends ReleaseBaseEvent {
 	}
 	public function cms_db_phpcms($cmsPath){
 		$dbFile=realpath($cmsPath.'/caches/configs/database.php');
-		$config=include_once $dbFile;
+		$config=include $dbFile;
 		$cmsDb=array(
 			'db_type'  => 'mysql',
 			'db_user'  => $config['default']['username'],

@@ -5,11 +5,14 @@
 		    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><em style="font-style:normal">抓取字段</em> <span class="caret"></span></button>
 		        <ul class="dropdown-menu">
 		        	<li><a href="javascript:;" data-test="get_fields">抓取字段</a></li>
+		        	<li><a href="javascript:;" data-test="get_html">抓取源码</a></li>
 		        	<li><a href="javascript:;" data-test="get_paging_urls">抓取分页</a></li>
 		        	<li><a href="javascript:;" data-test="get_relation_urls">抓取关联页</a></li>
-		        	<li><a href="javascript:;" data-test="get_html">抓取源码</a></li>
 		        </ul>
 		    </div>
+	  		<if condition="!empty($url_post)">
+	  		<div class="input-group-addon" style="color:green;">POST模式</div>
+	  		</if>
 	  		<input type="text" class="form-control" name="url" value="{$cont_url}" placeholder="输入内容页网址" />
 	 		<div class="input-group-btn"><button type="button" class="btn btn-default test-sub">确定</button></div>
 	  	</div>
@@ -78,13 +81,24 @@ $('#win_test_cont_url button.test-sub').bind('click',function(){
 							html+='</ul>';
 						}else if(testOp=='get_fields'){
 							for(var i in data.info){
-								var browse='';
-								var eleId=generateUUID();
-								if((/<[^<>]*>/).test(data.info[i])){
-									//检测到html代码
-									browse='<a href="javascript:;" onclick="win_test_view(\''+eleId+'\')">预览</a>';
+								if(data.info.length>1){
+									html+='<div class="panel panel-default"><div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" aria-expanded="false">'
+										+'第'+(parseInt(i)+1)+'条数据</a></h4></div><div class="panel-collapse collapse in"><div class="panel-body">';
 								}
-								html+='<label>'+i+'：</label>'+browse+'<textarea id="'+eleId+'" class="form-control">'+data.info[i]+'</textarea><br>';
+								
+								var vals=data.info[i];//每条数据
+								for(var f in vals){
+									var browse='';
+									var eleId=generateUUID();
+									if((/<[^<>]*>/).test(vals[f])){
+										//检测到html代码
+										browse='<a href="javascript:;" onclick="win_test_view(\''+eleId+'\')">预览</a>';
+									}
+									html+='<label>'+f+'：</label>'+browse+'<textarea id="'+eleId+'" class="form-control">'+vals[f]+'</textarea><br>';
+								}
+								if(data.info.length>1){
+									html+='</div></div></div>';
+								}
 							}
 						}else if(testOp=='get_relation_urls'){
 							html='<div class="page-header"><b>关联页网址</b></div><ul>';

@@ -2,7 +2,7 @@
 <div class="panel panel-default" style="margin-bottom:10px;">
 	<div class="panel-heading">
 	    <div class="panel-title">
-	        <a data-toggle="collapse" href="#db_table_{$table}" class="collapsed" data-parent="#db_table_bind">{$table}表绑定数据</a>
+	        <a data-toggle="collapse" href="#db_table_{$table}" class="collapsed" data-parent="#db_table_bind_list">{$table}表绑定数据</a>
 			<div style="float:right;font-size:14px;">
 				<a href="javascript:;" class="glyphicon glyphicon-arrow-up"></a>
 				<a href="javascript:;" class="glyphicon glyphicon-arrow-down"></a>
@@ -10,7 +10,7 @@
 			</div>
 		</div>
 	</div>
-	<div id="db_table_{$table}" class="panel-collapse collapse in">
+	<div id="db_table_name_{$table}" class="panel-collapse collapse in">
 	    <div class="panel-body table-responsive table-db-table-bind">
 			<table class="table table-hover">
 			<thead>
@@ -50,6 +50,7 @@
 </div>
 </foreach>
 <if condition="!empty($field_values)">
+<div id="db_table_bind_values">
 <script type="text/javascript">
 (function(){
 	//载入表数据
@@ -65,5 +66,9 @@
 		}
 	}
 })();
+$(document).ready(function(){
+	$('#db_table_bind_values').remove();//删除元素，否则不能上下换位
+});
 </script>
+</div>
 </if>

@@ -8,6 +8,7 @@
     <p class="login-box-msg"><a href="http://www.skycaiji.com">SkyCaiji</a> V{:constant('SKYCAIJI_VERSION')} 后台管理</p>
 
 	<form action="{:U('Admin/index/login')}" ajax-submit="true" method="post">
+		{:html_usertoken()}
 		<input type="hidden" name="sublogin" value="1" />
 		<if condition="!empty($_GET['serverinfo'])">
 		<input type="hidden" name="serverinfo" value="1" />

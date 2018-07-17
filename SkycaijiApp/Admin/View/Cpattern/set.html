@@ -40,6 +40,14 @@
        				</div>
        				<p class="help-block">将所有页面源码中的相对地址转换成绝对地址（包含超链接、图片、JS链接等）</p>
 				</div>
+	     		<div class="form-group">
+					<label class="control-label">倒序采集</label>
+					<div class="input-group">
+       					<label class="radio-inline"><input type="radio" name="config[url_reverse]" value="1"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_reverse]" value="0"> 否</label>
+       				</div>
+       				<p class="help-block">以相反的顺序采集内容页网址</p>
+				</div>
 			</div>
 		</div>
 		<div class="panel panel-default">
@@ -260,6 +268,41 @@
                     </div>
                 </div>
             </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" href="#coll_pattern_link_post" class="collapsed" aria-expanded="false">POST模式</a>
+                    </h4>
+                </div>
+                <div id="coll_pattern_link_post" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                    <div class="panel-body">
+			     		<div class="form-group">
+							<label class="control-label">开启POST</label>
+							<div class="input-group">
+		       					<label class="radio-inline"><input type="radio" name="config[url_post]" value="1"> 是</label>
+		       					<label class="radio-inline"><input type="radio" name="config[url_post]" value="0"> 否</label>
+		       				</div>
+		       				<p class="help-block">开启后内容页网址中的get参数将以post形式提交</p>
+						</div>
+						<div class="form-group">
+							<label class="control-label">附加参数 <a href="javascript:;" class="glyphicon glyphicon-plus add-url-post" title="添加"></a></label>
+							<div class="table-responsive">
+				            	<table class="table table-hover c-p-url-posts">
+				                   <thead>
+				                       <tr>
+				                           <th class="col-xs-4">名称</th>
+				                           <th class="col-xs-6">值</th>
+				                           <th class="col-xs-2">删除</th>
+				                       </tr>
+				                   </thead>
+				                   <tbody>
+				                   </tbody>
+								</table>
+				        	</div>
+						</div>
+                    </div>
+                </div>
+            </div>
     		<!-- end coll_pattern_link -->
 			</div>
 		</div>
@@ -318,19 +361,23 @@
 	      			<a href="javascript:;" onclick="c_pattern.add_default_fields()" style="float:right;font-weight:normal;">添加默认</a>
 	      		</div>
 	   			<div class="table-responsive">
-	            	<table class="table table-bordered table-hover c-p-field-list">
+	            	<table class="table table-bordered table-hover c-p-field-list" style="margin-bottom:10px;">
 	                   <thead>
 	                       <tr>
 	                           <th>字段</th>
 	                           <th>数据源</th>
 	                           <th>获取方式</th>
 	                           <th>操作</th>
+	                           <th title="把字段作为标题进行排重，默认无">
+							      <label class="radio-inline"><input type="radio" name="config[field_title]" value=""><b>标题排重</b></label>
+							   </th>
 	                       </tr>
 	                   </thead>
 	                   <tbody>
 	                   </tbody>
 	            	</table>
 	        	</div>
+	        	<p id="c_p_field_loop_tips" class="help-block" style="margin-bottom:0px;display:none;">开启循环入库后，将以第一个循环字段的数量为准，后面的循环字段会映射第一个循环字段的索引并自动获取相应位置的值入库，非循环字段则以当前值入库；如开启了分页，分页内容也会循环入库</p>
 			</div>
 		</div>
 		<div class="panel panel-default">
@@ -437,7 +484,16 @@
 		</div>
        	<if condition="!empty($collData)">
 		<div class="form-group">
-			<a href="{:U('Collector/test?op=cont_url&coll_id='.$collData['id'])}" target="_blank" onclick="windowModal('测试',$(this).attr('href'),{lg:1});return false;" class="btn btn-default btn-block" style="margin-bottom:10px;">测试（需先保存设置）</a>
+			<div class="dropdown">
+				<button class="btn btn-default btn-block dropdown-toggle" type="button" id="dropdownMenuTestUrl" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+			    	测试（需先保存设置）
+			    	<span class="caret"></span>
+			  	</button>
+			  	<ul class="dropdown-menu" style="width:100%;text-align:center;" aria-labelledby="dropdownMenuTestUrl">
+			    	<li><a href="{:U('Collector/test?op=cont_url&coll_id='.$collData['id'])}" target="_blank" onclick="windowModal('测试抓取',$(this).attr('href'),{lg:1});return false;">测试抓取数据</a></li>
+			    	<li><a href="{:U('Collector/test?op=match&coll_id='.$collData['id'])}" target="_blank" onclick="windowModal('模拟匹配',$(this).attr('href'),{lg:1});return false;">模拟匹配数据</a></li>
+			  	</ul>
+			</div>
 		</div>
 		</if>
 	</div>

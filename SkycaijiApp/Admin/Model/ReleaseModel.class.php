@@ -9,4 +9,4 @@
  |--------------------------------------------------------------------------
  */
 
-namespace Admin\Model; use Think\Model; class ReleaseModel extends BaseModel{ public function getByTaskid($taskId){ static $dataList=array(); if(empty($taskId)){ return null; } if(!isset($dataList[$taskId])){ $dataList[$taskId]=$this->where(array('task_id'=>$taskId))->find(); } return $dataList[$taskId]; } } ?>
+namespace Admin\Model; class ReleaseModel extends BaseModel{ public function getByTaskid($taskId){ static $dataList=array(); if(empty($taskId)){ return null; } if(!isset($dataList[$taskId])){ $dataList[$taskId]=$this->where(array('task_id'=>$taskId))->find(); } return $dataList[$taskId]; } } ?>

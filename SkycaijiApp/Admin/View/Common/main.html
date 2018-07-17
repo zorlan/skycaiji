@@ -1,6 +1,6 @@
 <include file="Common:header" />
 <header class="main-header">
-  	<a href="{:U('Admin/Base/index')}" class="logo">
+  	<a href="{:U('Admin/Backstage/index')}" class="logo">
     	蓝天采集器
   	</a>
   	<nav class="navbar navbar-static-top" role="navigation">
@@ -120,6 +120,17 @@
 		<ul class="treeview-menu">
 			<li><a href="{:U('Admin/Develop/releaseCms')}"><i class="fa fa-circle-o"></i> CMS发布应用</a></li>
 			<li><a href="{:U('Admin/Tool/logs')}"><i class="fa fa-circle-o"></i> 错误日志</a></li>
+			<li class="treeview">
+				<a href="#"><i class="fa fa-circle-o"></i> 校验
+				<span class="pull-right-container">
+				<i class="fa fa-angle-left pull-right"></i>
+				</span>
+				</a>
+				<ul class="treeview-menu" style="display:none;">
+					<li><a href="{:U('Admin/Tool/checkfile')}"><i class="fa fa-circle-o"></i> 文件</a></li>
+					<li><a href="{:U('Admin/Tool/checkdb')}"><i class="fa fa-circle-o"></i> 数据库</a></li>
+				</ul>
+			</li>
 		</ul>
 	</li>
 	<li class="treeview">
@@ -146,7 +157,7 @@
 	<section class="content-header">
 	<h1>{$GLOBALS['content_header']}</h1>
 	<ol class="breadcrumb">
-		<li><a href="{:U('Admin/Base/index')}"><i class="fa fa-dashboard"></i> {$Think.lang.admincp}</a></li>
+		<li><a href="{:U('Admin/Backstage/index')}"><i class="fa fa-dashboard"></i> {$Think.lang.admincp}</a></li>
 		{$GLOBALS['breadcrumb']}
 	</ol>
 	</section>

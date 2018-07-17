@@ -29,7 +29,7 @@
 				<tr>
 					<td class="chk"><input type="checkbox" name="ids[]" value="{$item['id']}" /></td>
 					<td class="url"><a href="{$item['url']}" target="_blank">{$item['url']}</a></td>
-					<td>
+					<td class="desc">
 						<if condition="!empty($item['error'])">
 							失败：{$item['error']}
 						<else />
@@ -72,6 +72,7 @@
 			    <option value="100">100条</option>
 			    <option value="200">200条</option>
 			    <option value="500">500条</option>
+			    <option value="1000">1000条</option>
 		    </select>
 	    </div>
 		<div class="form-group form-group-sm">

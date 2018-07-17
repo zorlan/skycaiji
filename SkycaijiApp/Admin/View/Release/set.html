@@ -22,7 +22,7 @@
 		<ul id="cms_tab" class="nav nav-tabs">
 			<li class="active"><a href="#cms_tab_detect" data-toggle="tab">检测CMS程序</a></li>
 			<li><a href="#cms_tab_bind" data-toggle="tab">数据绑定</a></li>
-			<li style="float:right"><a href="{:U('Develop/releaseCms')}">开发CMS发布应用</a></li>
+			<li style="float:right"><a href="{:U('Develop/releaseCms')}">开发应用</a></li>
 		</ul>
 		<div id="cms_tab_content" class="tab-content" style="margin-top:-1px">
 			<div class="tab-pane fade in active" id="cms_tab_detect">
@@ -40,7 +40,12 @@
 					<div class="panel-body">
 						<div class="form-group" id="cms_info">
 							<div class="input-group">
-								<label class="input-group-addon"><b>{$Think.lang.rele_cms_path}</b></label>
+								<div class="input-group-addon">
+									<a href="javascript:;" onclick="modal('CMS路径',$(this).text());" class="glyphicon glyphicon-info-sign" style="width:16px;overflow:hidden;">
+									注意是CMS程序在硬盘中的路径并非网址URL，蓝天采集器所在路径为：{:C('ROOTPATH')}
+									</a>
+									<b>{$Think.lang.rele_cms_path}</b>
+								</div>
 								<input type="text" name="cms[path]" class="form-control" value="{$config['cms']['path']}" />
 								<span class="input-group-btn"><button class="btn btn-default btn-cms-bind" type="button">开始绑定</button></span>
 							</div>
@@ -65,6 +70,7 @@
 					    	<label>{$Think.lang.rele_db_type}</label>
 					    	<select name="db[type]" class="form-control">
 								<option value="mysql">mysql</option>
+								<option value="oracle">oracle</option>
 							</select>
 					    </div>
 					    <div class="form-group">
@@ -110,10 +116,14 @@
 			    		<div class="form-group">
 				     		<div class="input-group db-table-list">
 				     		</div>
+			     			<div class="db-table-binding" style="margin-top:15px;"></div>
 			     		</div>
 			     		<div class="form-group">
-							<div class="panel-group db-table-bind" id="db_table_bind"></div>
-							<p class="help-block">如需绑定自增主键，选择“自定义内容”输入“auto_id@表名”，例如“auto_id@table123”，注意：表是按顺序插入数据，前面的表不能绑定后面表的自增主键</p>
+							<div class="panel-group" id="db_table_bind_list"></div>
+							<if condition="$releData['config']['db']['type'] eq 'oracle'">
+							<p class="help-block">Oracel表的自增主键需绑定序列号才能获取自增值，自增字段选择“自定义内容”输入“sequence@序列号”，例如“sequence@seq_123”</p>
+							</if>
+							<p class="help-block">如需获取表的自增主键值，选择“自定义内容”输入“auto_id@表名”，例如“auto_id@table123”，注意：表是按顺序插入数据，前面的表不能获取后面表的自增主键值</p>
 						</div>
 					</if>
 					</div>
@@ -137,13 +147,27 @@
 				</div>
 				<div class="form-group">
 					<label>文件格式</label>
-					<div class="input-group">
-						<label class="radio-inline">
-						  <input type="radio" name="file[type]" value="xlsx"> Excel2007(.xlsx格式)
-						</label>
-						<label class="radio-inline">
-						  <input type="radio" name="file[type]" value="xls"> Excel2003(.xls格式)
-						</label>
+					<div class="row">
+						<div class="col-sm-4" style="padding-top:7px;">
+							<label class="radio-inline">
+							  <input type="radio" name="file[type]" value="xlsx"> Excel2007(.xlsx格式)
+							</label>
+						</div>
+						<div class="col-sm-4" style="padding-top:7px;">
+							<label class="radio-inline">
+							  <input type="radio" name="file[type]" value="xls"> Excel2003(.xls格式)
+							</label>
+						</div>
+						<div class="col-sm-4">
+							<div class="input-group">
+								<div class="input-group-addon" style="border:0;padding-left:0;">
+									<label class="radio-inline">
+										<input type="radio" name="file[type]" value="txt"> txt文本，字段分隔符
+									</label>
+								</div>
+								<input type="text" class="form-control" name="file[txt_implode]" placeholder="默认制表符" />
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -155,7 +179,7 @@
 				<div class="form-group">
 					<label>api地址</label>
 					<div class="input-group">
-						<div class="input-group-addon">{$api_url}</div>
+						<div class="input-group-addon">{:C('ROOTURL')}/api_task/{$releData['task_id']}/</div>
 						<input type="text" class="form-control" name="api[url]" />
 						<div class="input-group-btn">
 							<button type="button" class="btn btn-default btn-api-rand-url">随机字符串</button>
@@ -163,10 +187,18 @@
 					</div>
 					<p class="help-block">
 						请务必输入一个复杂的字符串以防止他人破解api下载数据！
+						<br />
 						<if condition="!empty($releData['config']['api']['url'])">
-						<a href="{$api_url}{$releData['config']['api']['url']}" target="_blank">{$api_url}{$releData['config']['api']['url']}</a>
+						动态网址：<a href="{:C('ROOTURL')}/admin/api/task?id={$releData['task_id']}&apiurl={$releData['config']['api']['url']}" target="_blank">{:C('ROOTURL')}/admin/api/task?id={$releData['task_id']}&apiurl={$releData['config']['api']['url']}</a>
+						<br />
+						伪静态网址：<a href="{:C('ROOTURL')}/api_task/{$releData['task_id']}/{$releData['config']['api']['url']}" target="_blank">{:C('ROOTURL')}/api_task/{$releData['task_id']}/{$releData['config']['api']['url']}</a>
 						</if>
 					</p>
+				</div>
+				<div class="form-group">
+					<label>数据缓存时间（分钟）</label>
+					<input type="number" class="form-control" name="api[cache_time]" />
+					<p class="help-block">留空或0表示实时抓取</p>
 				</div>
 			</div>
 		</div>
@@ -184,7 +216,10 @@
 						<div class="form-group">
 							<label>插件名</label>
 							<input type="text" class="form-control" name="diy[app]" />
-							<p class="help-block">请在网站根目录/SkycaijiApp/Release/Diy目录中创建<b></b>插件，可参考目录中的DemoDiy.class.php文件</p>
+							<p class="help-block">
+								自定义插件适用于自研网站的数据发布或开发其他任何发布功能<br>
+								请在网站根目录/SkycaijiApp/Release/Diy目录中创建<b></b>插件，可参考目录中的DemoDiy.class.php文件
+							</p>
 						</div>
 					</div>
 				</div>

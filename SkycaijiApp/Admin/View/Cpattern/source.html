@@ -6,13 +6,13 @@
 #form_source .source-params textarea{vertical-align:middle}
 </style>
 <form id="form_source" method="post" action="{:U('Cpattern/source')}">
+<input type="hidden" name="sub" value="1" />
 <input type="hidden" name="source[type]" value="custom" />
 <input type="hidden" name="source[uid]" value="{$source['uid']}" />
 <ul class="nav nav-tabs">
-    <li class="active"><a href="#tab_custom" data-toggle="tab" source-type="custom">手工指定</a>
-    </li>
-    <li class=""><a href="#tab_batch" data-toggle="tab" source-type="batch">批量生成</a>
-    </li>
+    <li class="active"><a href="#tab_custom" data-toggle="tab" source-type="custom">手工指定</a></li>
+    <li class=""><a href="#tab_batch" data-toggle="tab" source-type="batch">批量生成</a></li>
+    <li class=""><a href="#tab_large" data-toggle="tab" source-type="large">大量网址</a></li>
 </ul>
 
 <div class="tab-content">
@@ -61,9 +61,13 @@
        		</div>
 		</div>
 		<div class="form-group form-group-sm">
-  			<button type="button" class="btn btn-primary btn-block" onclick="c_pattern.source_op('add_sub',{'preview':1})">预览</button>
+  			<button type="button" class="btn btn-default btn-block" onclick="c_pattern.source_op('add_sub',{'preview':1})">预览</button>
   		</div>
        	<textarea class="form-control disabled" rows="5" id="source_preview" readonly="readonly"></textarea>
+    </div>
+    <div class="tab-pane fade" id="tab_large" style="padding:10px 0;">
+    	<p>大量网址，一行一条(http://或https://开头)</p>
+        <textarea name="source[large_urls]" class="form-control" rows="5"></textarea>
     </div>
 </div>
 
