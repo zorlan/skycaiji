@@ -1,0 +1,151 @@
+<div id="win_test_cont_url">
+	<div class="form-group">
+	  	<div class="input-group">
+	  		<div class="input-group-btn">
+		    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><em style="font-style:normal">抓取字段</em> <span class="caret"></span></button>
+		        <ul class="dropdown-menu">
+		        	<li><a href="javascript:;" data-test="get_fields">抓取字段</a></li>
+		        	<li><a href="javascript:;" data-test="get_html">抓取源码</a></li>
+		        	<li><a href="javascript:;" data-test="elements">分析元素</a></li>
+		        	<li><a href="javascript:;" data-test="get_paging_urls">抓取分页</a></li>
+		        	<li><a href="javascript:;" data-test="get_relation_urls">抓取关联页</a></li>
+		        </ul>
+		    </div>
+	  		{if condition="!empty($url_post)"}
+	  		<div class="input-group-addon" style="color:green;">POST模式</div>
+	  		{/if}
+	  		<input type="text" class="form-control" name="url" value="{$cont_url}" placeholder="输入内容页网址" />
+	 		<div class="input-group-btn"><button type="button" class="btn btn-default test-sub">确定</button></div>
+	  	</div>
+	</div>
+	<div class="vals">
+	</div>
+</div>
+<script type="text/javascript">
+function win_test_view(id){
+	$('#ifm_test_view').remove();//删除旧的
+	var html=$('#'+id).val();
+	html=html.replace(/<script[^<>]*>[\s\S]*?<\/script>/ig,'');//去掉脚本代码
+	html=html.replace(/<meta[^<>]*charset[^<>]*>/i,'');//去掉编码
+	var ifm='<iframe id="ifm_test_view" style="width:100%;border:1px solid #ccc;"></iframe>';
+	$('#'+id).after(ifm);
+	$('#ifm_test_view').bind('load',function(){
+		if($("#ifm_test_view").contents().find('body').html().length<=0){
+			//火狐浏览器需要重新赋值
+		    $("#ifm_test_view").contents().find('body').html(html);
+		}
+		var iframeObj = document.getElementById('ifm_test_view');
+		var height=(iframeObj.Document?iframeObj.Document.body.scrollHeight:iframeObj.contentDocument.body.offsetHeight);
+		$('#ifm_test_view').attr('height',height+'px');
+	});
+    $("#ifm_test_view").contents().find('body').html(html);
+}
+
+function test_elements(id){
+	//分析元素
+	var cont_url=$('#win_test_cont_url input[name="url"]').val();
+	var url="{:url('Cpattern/test?op=_op_&coll_id='.$collData['id'].'&cont_url=_url_')}";
+	url=url.replace('_op_','elements').replace('_url_',encodeURIComponent(cont_url));
+	window.open(url,'_blank');
+}
+//下拉选择
+$('#win_test_cont_url .dropdown-menu a[data-test]').bind('click',function(){
+	var btnObj=$(this).parents('.dropdown-menu').eq(0).siblings('button.dropdown-toggle').eq(0);
+	btnObj.attr('data-test',$(this).attr('data-test'));
+	btnObj.find('em').eq(0).text($(this).text());
+});
+
+{if condition="!empty($test)"}
+$('#win_test_cont_url .dropdown-menu a[data-test="{$test}"]').trigger('click');
+{/if}
+
+//测试按钮
+$('#win_test_cont_url button.test-sub').bind('click',function(){
+	var cont_url=$('#win_test_cont_url input[name="url"]').val();
+	if(!cont_url){
+		toastr.error('请输入网址');
+	}else{
+		$('#win_test_cont_url .vals').html('<img src="'+window.site_config.pub+'/static/images/loading.gif">');
+		var testOp=$('#win_test_cont_url button.dropdown-toggle').attr('data-test');
+		testOp=testOp?testOp:'get_fields';//默认获取字段
+		var url="{:url('Cpattern/test?op=_op_&coll_id='.$collData['id'].'&cont_url=_url_')}";
+		url=url.replace('_op_',testOp).replace('_url_',encodeURIComponent(cont_url));
+		if(testOp=='elements'){
+			test_elements();
+			$('#win_test_cont_url .vals').html('页面效果所见即所得，点击元素可获取xpath值');
+		}else if(testOp=='get_html'){
+			//获取源码，防止源代码输出错误
+			$.ajax({
+				type:'get',
+				url:url,
+				dataType:'html',
+				success:function(data){
+					if(htmlIsJson(data)){
+						//AJAX错误提示
+						data=eval('(' + data + ')'); 
+						$('#win_test_cont_url .vals').html(data.msg);
+					}else{
+						var eleId=generateUUID();
+						data=data.replace(/\</g,'&lt;').replace(/\>/g,'&gt;');//编码
+						html='<label>源码：</label><a href="javascript:;" onclick="test_elements()">分析元素</a><textarea id="'
+							+eleId+'" class="form-control" rows="20">'+data+'</textarea>';
+						$('#win_test_cont_url .vals').html(html);
+					}
+				}
+			});
+		}else{
+			$.ajax({
+				type:'get',
+				url:url,
+				dataType:'json',
+				success:function(data){
+					if(data.code==1){
+						var html='';
+						if(testOp=='get_paging_urls'){
+							html='<div class="page-header"><b>成功抓取到分页链接</b></div><ul>';
+							for(var i in data.data){
+								html+='<li>'+data.data[i]+'</li>';
+							}
+							html+='</ul>';
+						}else if(testOp=='get_fields'){
+							for(var i in data.data){
+								if(data.data.length>1){
+									html+='<div class="panel panel-default"><div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" aria-expanded="false">'
+										+'第'+(parseInt(i)+1)+'条数据</a></h4></div><div class="panel-collapse collapse in"><div class="panel-body">';
+								}
+								
+								var vals=data.data[i];//每条数据
+								for(var f in vals){
+									var browse='';
+									var eleId=generateUUID();
+									if((/<[^<>]*>/).test(vals[f])){
+										//检测到html代码
+										browse='<a href="javascript:;" onclick="win_test_view(\''+eleId+'\')">预览</a>';
+									}
+									html+='<label>'+f+'：</label>'+browse+'<textarea id="'+eleId+'" class="form-control">'+vals[f]+'</textarea><br>';
+								}
+								if(data.data.length>1){
+									html+='</div></div></div>';
+								}
+							}
+						}else if(testOp=='get_relation_urls'){
+							html='<div class="page-header"><b>关联页网址</b></div><ul>';
+							for(var i in data.data){
+								html+='<li>'+i+'：'+data.data[i]+'</li>';
+							}
+							html+='</ul>';
+						}
+						$('#win_test_cont_url .vals').html(html);
+					}else{
+						$('#win_test_cont_url .vals').html(data.msg);
+					}
+				}
+			});
+		}
+	}
+});
+if($('#win_test_cont_url input[name="url"]').val().length>0){
+	//有网址自动触发
+	$('#win_test_cont_url button').trigger("click");
+}
+</script>

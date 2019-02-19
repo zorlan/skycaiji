@@ -1,0 +1,19 @@
+/*
+ |--------------------------------------------------------------------------
+ | SkyCaiji (蓝天采集器)
+ |--------------------------------------------------------------------------
+ | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ |--------------------------------------------------------------------------
+ | 使用协议  http://www.skycaiji.com/licenses
+ |--------------------------------------------------------------------------
+ */
+function ProxyClass(){}
+ProxyClass.prototype={constructor:ProxyClass,init:function(proxyConfig){var $_o=this;$('#btn_sub').bind('click',function(){var ip_list=new Array();var user_list=new Array();var pwd_list=new Array();$('[data-name="ip_list[]"]').each(function(){ip_list.push($(this).val())});$('[data-name="user_list[]"]').each(function(){user_list.push($(this).val())});$('[data-name="pwd_list[]"]').each(function(){pwd_list.push($(this).val())});if(ip_list){$('[name="ip_list"]').val(JSON.stringify(ip_list))}
+if(user_list){$('[name="user_list"]').val(JSON.stringify(user_list))}
+if(pwd_list){$('[name="pwd_list"]').val(JSON.stringify(pwd_list))}});$('[name="open"]').bind('click',function(){if($(this).val()==1){$('#proxy_open').show()}else{$('#proxy_open').hide()}});$('#add_proxy_ip').bind('click',function(){$_o.add(!0,'','','')});$('#batch_proxy_ip').bind('click',function(){windowModal('批量添加',ulink('Setting/proxyBatch'))});$('#clear_proxy_ip').bind('click',function(){confirmRight('确定清空所有代理？',function(){$('#proxy_ip_table tbody').html('')})});$('#proxy_ip_table').on('click','.delete-proxy-ip',function(){$(this).parents('tr').eq(0).remove()});$('[name="use"]').bind('click',function(){$('[id^="proxy_use_"]').hide();$('#proxy_use_'+$(this).val()).show()});if(proxyConfig){$('[name="open"][value="'+parseInt(proxyConfig.open)+'"]').trigger('click');$('[name="random"][value="'+parseInt(proxyConfig.random)+'"]').prop('checked','checked');$('[name="failed"]').val(parseInt(proxyConfig.failed));$('[name="use"][value="'+proxyConfig.use+'"]').trigger('click');$('[name="use_num"]').val(parseInt(proxyConfig.use_num));$('[name="use_time"]').val(parseInt(proxyConfig.use_time));if(proxyConfig.ip_list){var html='';for(var i in proxyConfig.ip_list){var ip=proxyConfig.ip_list[i];html+=$_o.add(!1,ip.ip,ip.user,ip.pwd,{invalid:ip.invalid,failed:ip.failed})}
+$('#proxy_ip_table tbody').append(html)}}},add:function(is_append,ip,user,pwd,info){var infoStr='';if(info){if(info.invalid>0){infoStr+='无效的 &nbsp;'}
+if(info.failed>0){infoStr+='失败'+info.failed+'次'}}
+var html='<tr><td'+(infoStr?'':' colspan="2" ')+' class="p-ip"><input type="text" data-name="ip_list[]" class="form-control" value="'+htmlspecialchars(ip)+'" /></td>'+(infoStr?('<td class="p-ip-info">'+infoStr+'</td>'):'')+'<td><input type="text" data-name="user_list[]" class="form-control" value="'+htmlspecialchars(user?user:'')+'" /></td>'+'<td><input type="text" data-name="pwd_list[]" class="form-control" value="'+htmlspecialchars(pwd?pwd:'')+'" /></td>'+'<td><a href="javascript:;" class="glyphicon glyphicon-remove delete-proxy-ip"></a></td></tr>';if(!is_append){return html}else{$('#proxy_ip_table tbody').append(html)}},batch:function(){var $_o=this;$('#win_form_proxy_batch .format a').bind('click',function(){var fmt_val=$('#win_form_proxy_batch input[name="format"]').val();$('#win_form_proxy_batch input[name="format"]').val(fmt_val+$(this).text())});$('#win_form_proxy_batch').bind('submit',function(){$.ajax({type:'POST',dataType:'json',url:$(this).attr('action'),data:$(this).serialize(),success:function(data){if(data.code==1){if(data.data){var html='';for(var i in data.data){var ip=data.data[i];html+=$_o.add(!1,ip.ip,ip.user,ip.pwd)}
+$('#proxy_ip_table tbody').append(html)}}else{toastr.error(data.msg)}
+$('#myModal').modal('hide')},error:function(data){$_o.find('button[type="submit"]').removeAttr('disabled');toastr.error(data)}});return!1})}}
+var proxyClass=new ProxyClass()

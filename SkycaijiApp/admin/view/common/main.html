@@ -1,0 +1,176 @@
+{include file="common:header_public" /}
+{block name="cssjs"}{/block}
+</head>
+<body class="skin-blue" data-spy="scroll" data-target="#scrollspy">
+<script type="text/javascript">admincpInit();</script>
+<div class="wrapper">
+<header class="main-header">
+  	<a href="{:url('Admin/Backstage/index')}" class="logo">
+    	蓝天采集器
+  	</a>
+  	<nav class="navbar navbar-static-top" role="navigation">
+		<a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+	    	<span class="sr-only"> </span>
+	    	<span class="icon-bar"></span>
+	    	<span class="icon-bar"></span>
+	    	<span class="icon-bar"></span>
+	    </a>
+		<div class="navbar-custom-menu">
+		<ul class="nav navbar-nav">
+			<li class="dropdown user user-menu">
+        		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            		<span class="glyphicon glyphicon-user"></span>
+              		<span>{$GLOBALS['user']['username']}</span>
+            	</a>
+            	<ul class="dropdown-menu">
+            		<li><a href="{:url('User/edit?uid='.$GLOBALS['user']['uid'])}">{$Think.lang.user_edit}</a></li>
+				  	<li><a href="{:url('Admin/Index/logout')}">{$Think.lang.logout}</a></li>
+          		</ul>
+			</li>
+		</ul>
+		</div>
+	</nav>
+</header>
+{php}$curMenu=array(strtolower(request()->controller())=>' menu-open cur-menu');{/php}
+<aside class="main-sidebar">
+<section class="sidebar">
+<ul class="sidebar-menu" data-widget="tree">
+	<li class="treeview{$curMenu['setting']}">
+		<a href="#">
+			<i class="fa fa-cog"></i> <span>{$Think.lang.setting}</span>
+			<span class="pull-right-container">
+				<i class="fa fa-angle-left pull-right"></i>
+			</span>
+		</a>
+		<ul class="treeview-menu">
+			<li><a href="{:url('Admin/Setting/caiji')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_caiji}</a></li>
+			<li><a href="{:url('Admin/Setting/site')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_site}</a></li>
+			<li><a href="{:url('Admin/Setting/email')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_email}</a></li>
+		</ul>
+	</li>
+   	<li class="treeview{$curMenu['task']}{$curMenu['taskgroup']}{$curMenu['collector']}{$curMenu['release']}">
+       	<a href="#">
+       		<i class="fa fa-tasks"></i> <span>{$Think.lang.task}</span>
+      		<span class="pull-right-container">
+       			<i class="fa fa-angle-left pull-right"></i>
+      		</span>
+       	</a>
+		<ul class="treeview-menu">
+			<li><a href="{:url('Admin/Task/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.task_list}</a></li>
+			<li><a href="{:url('Admin/Task/add')}"><i class="fa fa-circle-o"></i> {$Think.lang.task_add}</a></li>
+			<li class="treeview">
+				<a href="#"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup}
+				<span class="pull-right-container">
+				<i class="fa fa-angle-left pull-right"></i>
+				</span>
+				</a>
+				<ul class="treeview-menu" style="display:none;">
+					<li><a href="{:url('Taskgroup/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup_list}</a></li>
+					<li><a href="{:url('Taskgroup/add')}"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup_add}</a></li>
+				</ul>
+			</li>
+		</ul>
+    </li>
+	<li class="treeview{$curMenu['store']}{$curMenu['mystore']}">
+		<a href="#">
+			<i class="fa fa-cloud"></i> <span>云端</span>
+			<span class="pull-right-container">
+				<i class="fa fa-angle-left pull-right"></i>
+			</span>
+		</a>
+		<ul class="treeview-menu">
+			<li><a href="{:url('Admin/Store/index')}"><i class="fa fa-circle-o"></i> 云平台</a></li>
+			<li class="treeview menu-open">
+				<a href="#"><i class="fa fa-circle-o"></i> 已下载
+				<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+				</span>
+				</a>
+				<ul class="treeview-menu" style="display:block;">
+					<li><a href="{:url('Admin/Mystore/Collect')}"><i class="fa fa-circle-o"></i> 采集规则</a></li>
+					<li><a href="{:url('Admin/Mystore/ReleaseApp')}"><i class="fa fa-circle-o"></i> 发布插件</a></li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+	<li class="treeview{$curMenu['collected']}">
+		<a href="#">
+			<i class="fa fa-database"></i> <span>{$Think.lang.collected}</span>
+			<span class="pull-right-container">
+				<i class="fa fa-angle-left pull-right"></i>
+			</span>
+		</a>
+		<ul class="treeview-menu">
+			<li><a href="{:url('Admin/Collected/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.collected_list}</a></li>
+		</ul>
+	</li>
+	<li class="treeview{$curMenu['user']}">
+		<a href="#">
+			<i class="fa fa-user"></i> <span>{$Think.lang.user}</span>
+			<span class="pull-right-container">
+				<i class="fa fa-angle-left pull-right"></i>
+			</span>
+		</a>
+		<ul class="treeview-menu">
+			<li><a href="{:url('Admin/User/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.user_list}</a></li>
+		</ul>
+	</li>
+	<li class="treeview{$curMenu['develop']}{$curMenu['tool']}">
+		<a href="#">
+			<i class="fa fa-wrench"></i> <span>工具&amp;开发</span>
+			<span class="pull-right-container">
+				<i class="fa fa-angle-left pull-right"></i>
+			</span>
+		</a>
+		<ul class="treeview-menu">
+			<li><a href="{:url('Admin/Develop/releaseCms')}"><i class="fa fa-circle-o"></i> CMS发布插件</a></li>
+			<li><a href="{:url('Admin/Tool/fileManager')}"><i class="fa fa-circle-o"></i> 文件管理</a></li>
+			<li><a href="{:url('Admin/Tool/json_tree')}" target="_blank"><i class="fa fa-circle-o"></i> JSON解析</a></li>
+			<li><a href="{:url('Admin/Tool/logs')}"><i class="fa fa-circle-o"></i> 错误日志</a></li>
+			<li class="treeview">
+				<a href="#"><i class="fa fa-circle-o"></i> 校验
+				<span class="pull-right-container">
+				<i class="fa fa-angle-left pull-right"></i>
+				</span>
+				</a>
+				<ul class="treeview-menu" style="display:none;">
+					<li><a href="{:url('Admin/Tool/checkfile')}"><i class="fa fa-circle-o"></i> 文件</a></li>
+					<li><a href="{:url('Admin/Tool/checkdb')}"><i class="fa fa-circle-o"></i> 数据库</a></li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+	<li class="treeview">
+		<a href="#">
+			<i class="fa fa-dashboard"></i> <span>{$Think.lang.admincp_style}</span>
+			<span class="pull-right-container">
+				<i class="fa fa-angle-left pull-right"></i>
+			</span>
+		</a>
+		<ul class="treeview-menu treeview-config">
+			<li>
+				<div class="checkbox"><label><input id="chk_sidebar_mini" type="checkbox"> {$Think.lang.admincp_sidebar_mini}</label></div>
+			</li>
+			<li>
+				<div>{$Think.lang.admincp_skins}</div>
+				<div id="sidebar_skins"></div>
+			</li>
+		</ul>
+	</li>
+</ul>
+</section>
+</aside>
+<div class="content-wrapper">
+	<section class="content-header">
+	<h1>{$GLOBALS['content_header']}</h1>
+	<ol class="breadcrumb">
+		<li><a href="{:url('Admin/Backstage/index')}"><i class="fa fa-dashboard"></i> {$Think.lang.admincp}</a></li>
+		{$GLOBALS['breadcrumb']}
+	</ol>
+	</section>
+	<section class="content">
+	{block name="content"}
+	{/block}
+	</section>
+</div>
+{include file="common:footer" /}

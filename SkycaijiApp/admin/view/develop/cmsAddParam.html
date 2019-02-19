@@ -1,0 +1,55 @@
+<form id="win_form_param" method="post" action="{:url('Develop/cmsAddParam')}">
+	<input type="hidden" name="objid" value="{$objid}" />
+	<div class="form-group">
+		<label>变量名（英文）</label>
+		<input type="text" name="param[key]" class="form-control" autocomplete="off" />
+		<p class="help-block">变量名在代码中调用，必须符合php的变量命名规范</p>
+	</div>
+	<div class="form-group">
+        <label>必填</label>
+        <div class="input-group">
+        	<label class="radio-inline"><input type="radio" name="param[require]" value="1">是</label>
+        	<label class="radio-inline"><input type="radio" name="param[require]" value="0">否</label>
+        </div>
+    </div>
+	<div class="form-group">
+		<label>参数名称（中文）</label>
+		<input type="text" name="param[name]" class="form-control" autocomplete="off" />
+		<p class="help-block">在前端页面中显示，供用户操作</p>
+	</div>
+	<div class="form-group">
+		<label>参数类型</label>
+		<select name="param[type]" class="form-control">
+			<option value="">请选择</option>
+			{foreach name="typeList" item="tval" key="tkey"}
+			<option value="{$tkey}">{$tval}</option>
+			{/foreach}
+		</select>
+		<p class="help-block">在前端页面中显示，供用户操作</p>
+	</div>
+	<div class="form-group param-type-select" data-select="select_val" style="display:none;">
+		<label>选项值</label>
+  		<textarea class="form-control" name="param[select_val]" rows="3" placeholder=""></textarea>
+		<p class="help-block">
+			一行一个，直接输入值或键值对形式输入<br/>例如：<br/>
+			a=好评<br/>
+			b=中评<br/>
+			c=差评<br/>
+		</p>
+  	</div>
+	<div class="form-group param-type-select" data-select="select_func" style="display:none;">
+		<label>函数名</label>
+		<input type="text" name="param[select_func]" class="form-control" />
+		<p class="help-block">函数名必须以“param_option_”开头</p>
+	</div>
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+<script type="text/javascript">
+developClass.init_cms_param();
+
+{if condition="!empty($param)"}
+developClass.load_cms_param({$param|json_encode});
+{/if}
+</script>

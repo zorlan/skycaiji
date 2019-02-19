@@ -1,0 +1,262 @@
+<form id="form_field" method="post" action="{:url('Cpattern/field')}">
+<input type="hidden" name="objid" value="{$objid}" />
+	<div class="form-group">
+   		<div class="input-group">
+   			<span class="input-group-addon" style="background:#f4f4f4;">字段名称</span>
+			<input type="text" name="field[name]" class="form-control" />
+   			<div class="input-group-btn c-p-field-source" title="选择数据源">
+	   			<select name="field[source]" class="form-control slt-field-source">
+					<optgroup label="选择数据源">
+						<option value="">默认页</option>
+						<option value="source_url">起始页</option>
+					</optgroup>
+				</select>
+			</div>
+   		</div>
+	</div>
+	<div class="form-group">
+		<div class="input-group" style="margin-bottom:10px;">
+			<span class="input-group-addon" style="background:#f4f4f4;">获取方式</span>
+			<select name="field[module]" class="form-control">
+				<option value="rule">{$Think.lang.field_module_rule}</option>
+				<option value="xpath">{$Think.lang.field_module_xpath}</option>
+				<option value="json">{$Think.lang.field_module_json}</option>
+				<option value="auto">{$Think.lang.field_module_auto}</option>
+				<optgroup label="数据生成">
+					<option value="words">{$Think.lang.field_module_words}</option>
+					<option value="num">{$Think.lang.field_module_num}</option>
+					<option value="time">{$Think.lang.field_module_time}</option>
+					<option value="list">{$Think.lang.field_module_list}</option>
+				</optgroup>
+				<optgroup label="字段">
+					<option value="extract">字段提取内容</option>
+					<option value="merge">{$Think.lang.field_module_merge}</option>
+				</optgroup>
+			</select>
+		</div>
+		<div id="c_p_field_module">
+			<div class="c-p-field-module" module="rule">
+				<div class="form-group">
+					<label>规则</label>
+					<div class="input-group">
+			   			<textarea name="field[rule]" class="form-control" rows="3" placeholder="{$Think.lang.tips_match}">{$field['rule']}</textarea>
+						<div class="input-group-addon iga-rt">
+							<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'field[rule]\']')">{$Think.lang.sign_wildcard}</a>
+							<span title="{$Think.lang.tips_regular}">正则</span>
+				      		<a href="javascript:;" title="{$Think.lang.tips_sign_match}" class="blk" onclick="cpMatch('[name=\'field[rule]\']')">{:cp_sign('match')}</a>
+				      		<a href="javascript:;" title="{$Think.lang.tips_sign_group}" class="blk" onclick="cpMatch('[name=\'field[rule]\']',{group:1})">捕获组</a>
+						</div>
+			   		</div>
+		   		</div>
+				<div class="form-group">
+			   		<label>拼接成最终内容</label>
+					<div class="input-group">
+			   			<textarea name="field[rule_merge]" class="form-control" rows="2" placeholder="默认拼接所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn}">{$field['rule_merge']}</textarea>
+						<div class="input-group-addon iga-rt">
+				      		<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'field[rule]\']','[name=\'field[rule_merge]\']')">{:cp_sign('match','N')}</a>
+				      	</div>
+			   		</div>
+			   	</div>
+		   		<div class="checkbox"><label><input type="checkbox" name="field[rule_multi]" value="1" {$field['rule_multi']?'checked="checked"':''}"> 允许匹配多个元素</label></div>
+		   		<div class="input-group" style="display:none;" id="c_p_field_rule_multi_str">
+					<div class="input-group-addon" style="border-right:0;"><label class="radio-inline"><input type="radio" name="field[rule_multi_type]" value="">拼接为文本</label></div>
+				    <input type="text" style="border-left-style:dashed;" name="field[rule_multi_str]" class="form-control" placeholder="多个元素之间分隔符">
+					<div class="input-group-addon"><label class="radio-inline"><input type="radio" name="field[rule_multi_type]" value="loop">循环入库</label></div>
+		   		</div>
+			</div>
+			<div class="c-p-field-module" module="auto" style="display:none;">
+				<div class="form-group" style="text-align:center;">
+					<p>自动提取页面中的内容：</p>
+				    <label class="radio-inline">
+				        <input type="radio" name="field[auto]" value="title">标题
+				    </label>
+				    <label class="radio-inline">
+				        <input type="radio" name="field[auto]" value="content">正文
+				    </label>
+				    <label class="radio-inline">
+				        <input type="radio" name="field[auto]" value="keywords">keywords
+				    </label>
+				    <label class="radio-inline">
+				        <input type="radio" name="field[auto]" value="description">description
+				    </label>
+				    <label class="radio-inline">
+				        <input type="radio" name="field[auto]" value="url">页面网址
+				    </label>
+				</div>
+			</div>
+			<div class="c-p-field-module" module="xpath" style="display:none;">
+				<div class="form-group">
+					<label>规则：</label>
+					<textarea name="field[xpath]" class="form-control" rows="3">{$field['xpath']}</textarea>
+				</div>
+				<div class="form-group">
+					<label>属性：</label>
+					<select name="field[xpath_attr]" class="form-control">
+						<option value="">无</option>
+						<option value="innerHtml">innerHtml</option>
+						<option value="outerHtml">outerHtml</option>
+						<option value="text">text</option>
+						<option value="value">value</option>
+						<option value="id">id</option>
+						<option value="class">class</option>
+						<option value="name">name</option>
+						<option value="href">href</option>
+						<option value="src">src</option>
+						<option value="style">style</option>
+						<option value="width">width</option>
+						<option value="height">height</option>
+						<option value="alt">alt</option>
+						<option value="custom">自定义</option>
+					</select>
+				</div>
+				<input type="text" class="form-control" name="field[xpath_attr_custom]" style="margin-top:10px;display:none;">
+				<div class="checkbox"><label><input type="checkbox" name="field[xpath_multi]" value="1" {$field['xpath_multi']?'checked="checked"':''}> 允许匹配多个节点</label></div>
+				<div class="input-group" style="display:none;" id="c_p_field_xpath_multi_str">
+		   			<div class="input-group-addon" style="border-right:0;"><label class="radio-inline"><input type="radio" name="field[xpath_multi_type]" value="">拼接为文本</label></div>
+				    <input type="text" style="border-left-style:dashed;" name="field[xpath_multi_str]" class="form-control" placeholder="多个节点之间分隔符">
+					<div class="input-group-addon"><label class="radio-inline"><input type="radio" name="field[xpath_multi_type]" value="loop">循环入库</label></div>
+		   		</div>
+			</div>
+			<div class="c-p-field-module" module="words" style="display:none;">
+				<textarea name="field[words]" class="form-control" rows="3">{$field['words']}</textarea>
+			</div>
+			<div class="c-p-field-module" module="num" style="display:none;">
+				<div class="input-group col-sm-8" style="margin:0 auto;">
+					<div class="input-group-addon">范围</div>
+					<input type="number" name="field[num_start]" class="form-control" value="{$field['num_start']?intval($field['num_start']):1}" />
+					<div class="input-group-addon">到</div>
+					<input type="number" name="field[num_end]" class="form-control" value="{$field['num_end']?intval($field['num_end']):100}" />
+		   		</div>
+			</div>
+			<div class="c-p-field-module" module="time" style="display:none;">
+				<div class="input-group" style="margin-bottom:7px;">
+					<div class="input-group-addon">格式</div>
+					<input type="text" name="field[time_format]" class="form-control" />
+				</div>
+				<p class="help-block" id="c_p_field_time_format_list">
+					标签：<a href="javascript:;">[年]</a> &nbsp; <a href="javascript:;">[月]</a> &nbsp; <a href="javascript:;">[日]</a> &nbsp;
+						<a href="javascript:;">[时]</a> &nbsp; <a href="javascript:;">[分]</a> &nbsp; <a href="javascript:;">[秒]</a>
+				</p>
+				<div class="input-group">	
+					<div class="input-group-addon">范围随机</div>
+					<input type="text" name="field[time_start]" class="form-control" placeholder="默认当前时间" />
+					<div class="input-group-addon">到</div>
+					<input type="text" name="field[time_end]" class="form-control" placeholder="默认当前时间" />
+		   			<div class="input-group-btn"><button type="button" class="btn btn-default" onclick="$(this).parent().siblings('input:text').val('');">清空</button></div>
+		   		</div>
+				<div class="checkbox"><label><input type="checkbox" name="field[time_stamp]" value="1" {$field['time_stamp']?'checked="checked"':''}> 转换成时间戳</label></div>
+			</div>
+			<div class="c-p-field-module" module="list" style="display:none;">
+				<textarea name="field[list]" class="form-control" rows="3">{$field['list']}</textarea>
+				<p class="help-block">一行一条数据，从列表中随机抽取</p>
+			</div>
+			<div class="c-p-field-module" module="merge" style="display:none;">
+				<textarea name="field[merge]" class="form-control" rows="3">{$field['merge']}</textarea>
+				<div id="c_p_field_merge_list" style="margin-top:5px;"></div>
+			</div>
+			<div class="c-p-field-module" module="json" style="display:none;">
+				<div class="form-group">
+					<label>提取规则</label>
+					<input type="text" name="field[json]" class="form-control" />
+					<p class="help-block">直接输入键名，子元素用：[a][b][c]或a.b.c，通配符*</p>
+				</div>
+				<div class="form-group">
+					<label>结果是数组则转换为</label>
+					<select name="field[json_arr]" class="form-control">
+						<option value="implode">字符串</option>
+						<option value="jsonencode">json编码</option>
+						<option value="serialize">序列化</option>
+					</select>
+					<textarea name="field[json_arr_implode]" class="form-control" rows="1" placeholder="输入分隔符" style="margin-top:5px;">{$field['json_arr_implode']}</textarea>
+				</div>
+			</div>
+			<div class="c-p-field-module" module="extract" style="display:none;">
+				<div class="form-group">
+					<div class="input-group">
+						<div class="input-group-addon">选择字段</div>
+						<select name="field[extract]" class="form-control">
+							<option value="">请选择</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="input-group">
+						<div class="input-group-addon">提取内容</div>
+						<select name="field[extract_module]" class="form-control">
+							<option value="">请选择</option>
+							<option value="cover">第一张图片</option>
+							<option value="phone">电话</option>
+							<option value="email">邮箱</option>
+							<option value="rule">规则匹配</option>
+							<option value="xpath">xpath匹配</option>
+							<option value="json">json提取</option>
+						</select>
+					</div>
+				</div>
+				<div class="c-p-field-extract-module" extract-module="rule" style="display:none;">
+					<div class="input-group">
+			   			<textarea name="field[extract_rule]" class="form-control" rows="3" placeholder="{$Think.lang.tips_match_only}">{$field['extract_rule']}</textarea>
+						<div class="input-group-addon iga-rt">
+							<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'field[extract_rule]\']')">{$Think.lang.sign_wildcard}</a>
+							<span title="{$Think.lang.tips_regular}">正则</span>
+				      		<a href="javascript:;" title="{$Think.lang.tips_sign_match_only}" class="blk" onclick="cpMatch('[name=\'field[extract_rule]\']',{only:1})">{:cp_sign('match')}</a>
+				      		<a href="javascript:;" title="{$Think.lang.tips_sign_group_only}" class="blk" onclick="cpMatch('[name=\'field[extract_rule]\']',{only:1,group:1})">捕获组</a>
+						</div>
+			   		</div>
+					<p class="help-block"><b>{:cp_sign('match')}</b>标签可获取匹配的数据，否则获取完全匹配的数据</p>
+				</div>
+				<div class="c-p-field-extract-module" extract-module="xpath" style="display:none;">
+					<textarea name="field[extract_xpath]" class="form-control" rows="2" placeholder="xpath规则">{$field['extract_xpath']}</textarea>
+					<div class="input-group" style="margin-top:10px;">
+						<div class="input-group-addon">属性</div>
+			   			<select name="field[extract_xpath_attr]" class="form-control">
+							<option value="">无</option>
+							<option value="innerHtml">innerHtml</option>
+							<option value="outerHtml">outerHtml</option>
+							<option value="text">text</option>
+							<option value="value">value</option>
+							<option value="id">id</option>
+							<option value="class">class</option>
+							<option value="name">name</option>
+							<option value="href">href</option>
+							<option value="src">src</option>
+							<option value="style">style</option>
+							<option value="width">width</option>
+							<option value="height">height</option>
+							<option value="alt">alt</option>
+							<option value="custom">自定义</option>
+						</select>
+			   		</div>
+					<input type="text" class="form-control" name="field[extract_xpath_attr_custom]" placeholder="自定义属性" style="margin-top:10px;display:none;">
+				</div>
+				<div class="c-p-field-extract-module" extract-module="json" style="display:none;">
+					<div class="form-group">
+						<label>提取规则</label>
+						<input type="text" name="field[extract_json]" class="form-control" />
+						<p class="help-block">直接输入键名，子元素用：[a][b][c]或a.b.c，通配符*</p>
+					</div>
+					<div class="form-group">
+						<label>结果是数组则转换为</label>
+						<select name="field[extract_json_arr]" class="form-control">
+							<option value="implode">字符串</option>
+							<option value="jsonencode">json编码</option>
+							<option value="serialize">序列化</option>
+						</select>
+						<textarea name="field[extract_json_arr_implode]" class="form-control" rows="1" placeholder="输入分隔符" style="margin-top:5px;">{$field['extract_json_arr_implode']}</textarea>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+
+<script type="text/javascript">
+{if condition="$field"}
+c_pattern.field_op('init',{field:{$field|json_encode}});
+{else /}
+c_pattern.field_op('init');
+{/if}
+</script>

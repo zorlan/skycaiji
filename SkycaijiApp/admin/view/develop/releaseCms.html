@@ -1,0 +1,87 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/develop.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="box box-default">
+	<div class="box-body">
+		<form id="form_cms" method="post" ajax-submit="true" action="{:url('Admin/Develop/releaseCms')}">
+		    {if condition="$config['is_edit']"}
+		    {if $is_old_plugin}
+		    <div class="alert alert-error">
+		    	{:lang('release_upgrade')}
+		    </div>
+		    {else/}
+		    <div class="alert alert-warning">
+		    	<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+		    	请在 {$config['app_file']} 文件中编辑代码
+		    </div>
+		    {/if}
+		    <input type="hidden" name="edit" value="1" />
+		    <input type="hidden" name="app" value="{$config['app']}" />
+		    {/if}
+		    
+		    <div class="form-group">
+		        <label>插件名称</label>
+		        <input type="text" name="name" class="form-control">
+		        <p class="help-block">精简描述该插件</p>
+		    </div>
+		   	<div class="form-group">
+		        <label>CMS程序</label>
+		        <select name="cms_name" class="form-control">
+		        	<option value="">请选择</option>
+		        	<option value="wordpress">wordpress</option>
+		        	<option value="discuz">discuz</option>
+		        	<option value="dedecms">dedecms</option>
+		        	<option value="phpcms">phpcms</option>
+		        	<option value="empirecms">帝国CMS</option>
+		        	<option value="custom">自定义</option>
+		        </select>
+		        <div id="cms_name_custom" style="display:none;">
+		        	<input type="text" name="cms_name_custom" class="form-control">
+		        	<p class="help-block">自定义时请输入CMS程序的英文全称</p>
+		        </div>
+		    </div>
+		    <div class="form-group">
+		        <label>插件功能标识</label>
+		        <input type="text" name="identifier" class="form-control">
+		        <p class="help-block">表示该插件的作用，只能输入字母或数字</p>
+		    </div>
+		    <div class="form-group">
+		        <label>作者版权</label>
+		        <input type="text" name="copyright" class="form-control">
+		        <p class="help-block">版权归属能有效区分他人开发的插件，只能输入字母或数字</p>
+		    </div>
+		    <div class="form-group">
+		    	<div class="h-title">
+	     			<label class="control-label">参数</label>
+	      			<a href="javascript:;" id="add_param" class="glyphicon glyphicon-plus" title="添加"></a>
+	      		</div>
+		    </div>
+		    <div class="form-group">
+    			<div class="table-responsive">
+	            	<table class="table table-hover" id="param_list" style="margin-bottom:0;">
+	                   <thead>
+	                       <tr>
+	                           <th class="col-xs-2">变量名（英文）</th>
+	                           <th class="col-xs-2">必填</th>
+	                           <th class="col-xs-2">参数名（中文）</th>
+	                           <th class="col-xs-2">参数类型</th>
+	                           <th class="col-xs-2">删除</th>
+	                       </tr>
+	                   </thead>
+	                   <tbody>
+	                   </tbody>
+					</table>
+	        	</div>
+      		</div>
+		   	<div class="form-group">
+				<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+developClass.release_cms({$config|json_encode});
+</script>
+{/block}

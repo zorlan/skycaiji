@@ -1,0 +1,68 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/proxy.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="nav-tabs-custom">
+	<ul class="nav nav-tabs">
+    	<li><a href="{:url('Setting/Caiji')}">采集设置</a></li>
+    	<li><a href="{:url('Setting/page_render')}">页面渲染设置</a></li>
+    	<li><a href="{:url('Setting/Proxy')}">代理设置</a></li>
+    	<li class="active"><a href="{:url('Setting/Translate')}">翻译设置</a></li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane active" style="padding:0px 5px;">
+		<form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('Admin/Setting/Translate')}">
+      		<div class="form-group">
+		        <label>开启翻译</label>
+		        <div class="input-group">
+		        	<label class="radio-inline"><input type="radio" name="open" value="1">{$Think.lang.yes}</label>
+		        	<label class="radio-inline"><input type="radio" name="open" value="0">{$Think.lang.no}</label>
+		        </div>
+		        <p class="help-block">开启后采集器中的翻译功能才会生效</p>
+		    </div>
+			<div class="form-group">
+		    	<label>翻译API接口</label>
+		        <select name="api" class="form-control">
+		        	<option value="">--请选择--</option>
+		        	<option value="baidu">百度翻译</option>
+		        	<option value="youdao">有道翻译</option>
+		        </select>
+		        <p class="help-block">百度支持所有语种；有道支持：日文、英文、韩文、法文、俄文、葡萄牙文、西班牙文</p>
+	    	</div>
+		    <div class="form-group" id="api_baidu" style="display:none;">
+		        <label>百度翻译API &nbsp;<a href="https://www.baidu.com/s?wd=%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91api" class="small" target="_blank">申请</a></label>
+		        <div class="input-group">
+		        	<span class="input-group-addon">APPID</span>
+		        	<input type="text" name="baidu[appid]" class="form-control" value="{$transConfig['baidu']['appid']}">
+		        	<span class="input-group-addon">密钥</span>
+			       	<input type="text" name="baidu[key]" class="form-control" value="{$transConfig['baidu']['key']}">
+			    </div>
+		    </div>
+		    <div class="form-group" id="api_youdao" style="display:none;">
+		        <label>有道翻译API &nbsp;<a href="https://www.baidu.com/s?wd=%E6%9C%89%E9%81%93%E7%BF%BB%E8%AF%91api" class="small" target="_blank">申请</a></label>
+		        <div class="input-group">
+		        	<span class="input-group-addon">应用ID</span>
+		        	<input type="text" name="youdao[appkey]" class="form-control" value="{$transConfig['youdao']['appkey']}">
+		        	<span class="input-group-addon">应用密钥</span>
+			       	<input type="text" name="youdao[key]" class="form-control" value="{$transConfig['youdao']['key']}">
+			    </div>
+		    </div>
+		   	<div class="form-group">
+				<button type="submit" id="btn_sub" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+			</div>
+		</form>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+$('#form_set [name="api"]').bind('change',function(){
+	$('[id^="api_"]').hide();
+	$('#api_'+$(this).val()).show();
+});
+{if condition="!empty($transConfig)"}
+$('#form_set [name="open"][value="{$transConfig["open"]|intval}"]').prop('checked',true);
+$('#form_set [name="api"]').val("{$transConfig['api']}").trigger("change");
+{/if}
+</script>
+{/block}

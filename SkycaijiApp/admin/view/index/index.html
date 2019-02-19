@@ -1,0 +1,47 @@
+{include file="common:header_public" /}
+</head>
+<body class="hold-transition login-page">
+<div class="login-box">
+  <div class="login-logo">
+    <a href="{:url('Admin/index/index')}">蓝天采集器</a>
+  </div>
+  <div class="login-box-body">
+    <p class="login-box-msg"><a href="http://www.skycaiji.com">SkyCaiji</a> V{:constant('SKYCAIJI_VERSION')} 后台管理</p>
+
+	<form action="{:url('Admin/index/login')}" ajax-submit="true" method="post">
+		{:html_usertoken()}
+		<input type="hidden" name="sublogin" value="1" />
+		{if condition="input('?serverinfo')"}
+		<input type="hidden" name="serverinfo" value="1" />
+		{/if}
+    	<div class="form-group has-feedback">
+        	<input type="text" name="username" class="form-control" placeholder="{$Think.lang.user_username}">
+        	<span class="glyphicon glyphicon-user form-control-feedback"></span>
+    	</div>
+      	<div class="form-group has-feedback">
+        	<input type="password" name="password" class="form-control" placeholder="{$Think.lang.user_password}">
+        	<span class="glyphicon glyphicon-lock form-control-feedback"></span>
+      	</div>
+		{if condition="$GLOBALS['config']['site']['verifycode']"}	
+		<div class="form-group">
+			<div class="input-group">
+				<input type="text" name="verifycode" class="form-control" placeholder="{$Think.lang.verifycode}" />
+				<div class="input-group-btn"><img src="{:url('Admin/Index/verify')}" class="verify-img" onclick="refreshVerify(this)" /></div>
+			</div>
+		</div>
+		{/if}
+		<div class="input-group-lg">
+    		<div style="float:left;">
+    			<div class="checkbox" style="margin:0 0 15px 0;"><label><input name="auto" type="checkbox" checked="checked"> {$Think.lang.login_auto}</label></div>
+    		</div>
+    		<div style="float:right;">
+    			<a href="{:url('Admin/Index/find_password')}">{$Think.lang.find_password}</a>
+    		</div>
+    	</div>
+	  	<div class="from-group" style="clear:both;">
+	  		<button type="submit" class="btn btn-primary btn-block">{$Think.lang.login}</button>
+	  	</div>
+	</form>
+  </div>
+</div>
+{include file="common:footer_public" /}

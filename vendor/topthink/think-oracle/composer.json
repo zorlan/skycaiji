@@ -1,0 +1,21 @@
+{
+    "name": "topthink/think-oracle",
+    "description": "Oracle driver for thinkphp5",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "liu21st",
+            "email": "liu21st@gmail.com"
+        }
+    ],
+    "require": {
+	"topthink/framework": "~5.0.17"
+    },
+    "autoload": {
+        "psr-4": {
+            "think\\oracle\\": "src"
+        },
+        "files": [
+        ]
+    }
+}

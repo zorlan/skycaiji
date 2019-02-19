@@ -1,0 +1,48 @@
+{extend name="common:main" /}
+{block name="cssjs"}{/block}
+{block name="content"}
+<div class="box box-default">
+	<div class="box-body">
+		<form id="form_check" action="{:url('Tool/checkfile')}" method="post" style="text-align:center;padding:50px 0;">
+       		<input type="hidden" name="sub" value="1" />
+       		<h1>校验文件完整性</h1>
+       		<p class="lead">可检测程序文件是否有缺失、被修改、版本不一致等</p>
+       		<p><button type="submit" class="btn btn-lg btn-success">开始校验</button></p>
+		</form>
+		<ul id="error_files" style="display:none;word-wrap:break-word;"></ul>
+	</div>
+</div>
+		
+<script type="text/javascript">
+$('#form_check').bind('submit',function(){
+	var $_o=$(this);
+	$_o.find('button[type="submit"]').attr('disabled',true).html('正在校验...');
+	$.ajax({
+		type: 'POST',
+		dataType: 'json',
+		url:$(this).attr('action'),
+		data: $(this).serialize(),
+		success: function (data) {
+			if(data.code==1){
+				toastr.success('程序文件全部完整！');
+			}else{
+				if(data.data.files){
+					toastr.error('文件不完整！');
+					var html='';
+					for(var i in data.data.files){
+						html+='<li>'+data.data.files[i]+'</li>';
+					}
+					$('#error_files').html(html).show();
+				}else{
+					toastr.error(data.msg);
+				}
+			}
+		},
+		complete:function(){
+			$_o.find('button[type="submit"]').removeAttr('disabled').html('开始校验');
+		}
+	});
+	return false;
+});
+</script>
+{/block}

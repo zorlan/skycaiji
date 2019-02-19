@@ -1,0 +1,52 @@
+<div id="win_test_match">
+	<form method="post" action="{:url('Cpattern/test')}">
+	<input type="hidden" name="coll_id" value="{$collData['id']}" />
+	<input type="hidden" name="op" value="match" />
+	<div class="form-group">
+		<label>输入网址或内容</label>
+		<textarea rows="5" class="form-control" name="content"></textarea>
+		<p class="help-block">网址必须以http://或https://开头</p>
+	</div>
+	<div class="form-group">
+		<label>方式</label>
+		<select class="form-control" name="type">
+			<option value="rule">规则匹配</option>
+			<option value="xpath">XPath匹配</option>
+			<option value="json">JSON提取</option>
+		</select>
+	</div>
+	<div class="form-group">
+		<label>输入规则</label>
+		<textarea class="form-control" name="match"></textarea>
+		<p class="help-block">输入所选方式的规则</p>
+	</div>
+	<div class="form-group">
+		<button type="submit" class="btn btn-default btn-block">开始测试</button>
+	</div>
+	</form>
+	
+	<div class="form-group test-match-val" style="display:none;">
+		<label>匹配结果</label>
+		<textarea rows="3" class="form-control"></textarea>
+	</div>
+</div>
+
+<script type="text/javascript">
+$('#win_test_match form').bind('submit',function(){
+	$.ajax({
+		type:'post',
+		url:$(this).attr('action'),
+		dataType:'json',
+		data:$(this).serialize(),
+		success:function(data){
+			if(data.code==1){
+				$('#win_test_match .test-match-val').show().find('textarea').val(data.msg);
+			}else{
+				toastr.error(data.msg);
+			}
+		}
+	});
+	return false;
+});
+
+</script>

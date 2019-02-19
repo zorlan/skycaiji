@@ -1,0 +1,8 @@
+<span class="input-group-btn"><button class="btn btn-default" type="button" onclick="window.location.reload()">重载</button></span>
+<select class="form-control">
+<option value="">请选择</option>
+{foreach name="tables" item="table"}
+<option value="{$table}">{$table}</option>
+{/foreach}
+</select>
+<span class="input-group-btn"><button class="btn btn-default btn-db-table-bind" type="button">绑定数据</button></span>

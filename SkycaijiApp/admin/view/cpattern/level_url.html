@@ -1,0 +1,98 @@
+<form id="form_level_url" method="post" action="{:url('Cpattern/level_url')}">
+	<input type="hidden" name="objid" value="{$objid}" />
+	<div class="form-group">
+   		<label class="control-label">多级名称</label>
+   		<input type="text" class="form-control" name="level_url[name]" placeholder=""/>
+	</div>
+	<div class="form-group">
+		<label class="control-label">获取网址区域</label>
+		<div class="input-group">
+	   		<textarea name="level_url[area]" class="form-control" rows="3" data-placeholder-json="请输入json规则，默认获取所有字符" data-placeholder-xpath="请输入xpath规则，默认获取整个页面" placeholder="默认整个页面，{$Think.lang.tips_match_only}"></textarea>
+			<div class="input-group-addon iga-rt iga-rt1">
+				<select name="level_url[area_module]" data-rule-input="level_url[area]" class="slt">
+	     			<option value="">正则</option>
+	     			<option value="xpath">xpath</option>
+	     			<option value="json">json</option>
+	     		</select>
+	     		<ul data-rule-op="level_url[area_module]" class="op">
+					<li data-module="" style="display:block;">
+						<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'level_url[area]\']')">{$Think.lang.sign_wildcard}</a>
+		    			<a href="javascript:;" title="{$Think.lang.tips_sign_match_only}" onclick="cpMatch('[name=\'level_url[area]\']',{only:1})">{:cp_sign('match')}</a>
+		    			<a href="javascript:;" title="{$Think.lang.tips_sign_group_only}" class="blk" onclick="cpMatch('[name=\'level_url[area]\']',{only:1,group:1})">捕获组</a>
+					</li>
+					<li data-module="xpath">xpath语法</li>
+					<li data-module="json">格式 a.b.c<br>通配符 *</li>
+				</ul>
+			</div>
+	   	</div>
+	   	<p class="help-block" data-rule-set="level_url[area_module]">
+			<span data-module=""><b>{:cp_sign('match')}</b>标签可获取匹配的数据，否则获取完全匹配的数据</span>
+			<span data-module="xpath" style="display:none;">获取匹配节点的html代码</span>
+			<span data-module="json" style="display:none;">获取匹配的json字符串</span>
+		</p>
+	</div>
+	<div class="form-group">
+    	<label class="control-label">提取网址规则</label>
+    	<div class="input-group">
+    		<textarea class="form-control" name="level_url[url_rule]" rows="3" data-placeholder-xpath="请输入xpath规则，默认获取所有链接" data-placeholder-json="请输入json规则" placeholder="默认获取所有链接并自动保存为[内容]标签以供拼接调用；{$Think.lang.tips_match_url}"></textarea>
+    		<div class="input-group-addon iga-rt iga-rt1">
+				<select name="level_url[url_rule_module]" data-rule-input="level_url[url_rule]" class="slt">
+	     			<option value="">正则</option>
+	     			<option value="xpath">xpath</option>
+	     			<option value="json">json</option>
+	     		</select>
+	     		<ul data-rule-op="level_url[url_rule_module]" class="op">
+	     			<li data-module="" style="display:block;">
+	    				<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'level_url[url_rule]\']')">{$Think.lang.sign_wildcard}</a>
+	    				<a href="javascript:;" title="{$Think.lang.tips_sign_match}" onclick="cpMatch('[name=\'level_url[url_rule]\']')">{:cp_sign('match')}</a>
+	    				<a href="javascript:;" title="{$Think.lang.tips_sign_group}" class="blk" onclick="cpMatch('[name=\'level_url[url_rule]\']',{group:1})">捕获组</a>
+	    			</li>
+			      	<li data-module="xpath">xpath语法</li>
+					<li data-module="json">格式 a.b.c<br>通配符 *</li>
+	    		</ul>
+    		</div>
+    	</div>
+      	<p class="help-block" data-rule-set="level_url[url_rule_module]">
+			<span data-module="xpath" style="display:none;">XPATH匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+			<span data-module="json" style="display:none;">JSON匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+		</p>
+	</div>
+	<div class="form-group">
+    	<label class="control-label">拼接成最终网址</label>
+    	<div class="input-group">
+      		<input type="text" class="form-control" name="level_url[url_merge]" placeholder="默认拼接所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn_url}"/>
+    		<div class="input-group-addon iga-rt">
+    			<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'level_url[url_rule]\']','[name=\'level_url[url_merge]\']',{def:1})">{:cp_sign('match','N')}</a>
+    		</div>
+      	</div>
+	</div>
+	<div class="form-group">
+      	<label class="control-label">结果网址过滤</label>
+		<div class="input-group" style="margin-bottom:7px;">
+	       	<span class="input-group-addon">必须包含</span>
+	       	<input type="text" name="level_url[url_must]" class="form-control" placeholder="可模糊匹配" />
+      		<div class="input-group-addon iga-rt">
+      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'level_url[url_must]\']')">{$Think.lang.sign_wildcard}</a>
+				<span title="{$Think.lang.tips_regular}">正则</span>
+      		</div>
+	    </div>
+	    <div class="input-group">
+	    	<span class="input-group-addon">不能包含</span>
+	    	<input type="text" name="level_url[url_ban]" class="form-control" placeholder="可模糊匹配" />
+      		<div class="input-group-addon iga-rt">
+      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'level_url[url_ban]\']')">{$Think.lang.sign_wildcard}</a>
+				<span title="{$Think.lang.tips_regular}">正则</span>
+      		</div>
+		</div>
+	</div>
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+<script type="text/javascript">
+{if condition="$level_url"}
+c_pattern.level_url_op('init',{level_url:{$level_url|json_encode}});
+{else /}
+c_pattern.level_url_op('init');
+{/if}
+</script>

@@ -1,0 +1,22 @@
+<div class="steps-bar">
+	<div class="step {if condition="request()->controller()=='Task'"}current{/if}">
+		<div class="each">
+			<a href="{:url('Task/edit?id='.$taskData['id'])}" class="round">1</a>
+			<div class="bar"></div>
+		</div>
+		<div class="info"><a href="{:url('Task/edit?id='.$taskData['id'])}">{$Think.lang.task_set_task}</a></div>
+	</div>
+	<div class="step {if condition="request()->controller()=='Collector'"}current{/if}">
+		<div class="each">
+			<a href="{:url('Collector/set?task_id='.$taskData['id'])}" class="round">2</a>
+			<div class="bar"></div>
+		</div>
+		<div class="info"><a href="{:url('Collector/set?task_id='.$taskData['id'])}">{$Think.lang.task_set_collector}</a></div>
+	</div>
+	<div class="step {if condition="request()->controller()=='Release'"}current{/if}">
+		<div class="each">
+			<a href="{:url('Release/set?task_id='.$taskData['id'])}" class="round">3</a>
+		</div>
+		<div class="info"><a href="{:url('Release/set?task_id='.$taskData['id'])}">{$Think.lang.task_set_release}</a></div>
+	</div>
+</div>

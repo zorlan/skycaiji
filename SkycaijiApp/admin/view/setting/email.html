@@ -1,0 +1,62 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+{/block}
+{block name="content"}
+<div class="box box-default">
+	<div class="box-body">
+		<form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('Admin/Setting/email')}">
+			<input type="hidden" name="is_test" value="" />
+		   	<div class="form-group">
+		        <label>{$Think.lang.set_email_sender}</label>
+				<input type="text" name="sender" class="form-control" value="{$emailConfig['sender']}">
+		    </div>
+		   	<div class="form-group">
+		        <label>{$Think.lang.set_email_email}</label>
+				<input type="text" name="email" class="form-control" value="{$emailConfig['email']}">
+		    </div>
+		   	<div class="form-group">
+		        <label>{$Think.lang.set_email_pwd}</label>
+				<input type="password" name="pwd" class="form-control" value="{$emailConfig['pwd']}">
+		    </div>
+		   	<div class="form-group">
+		        <label>{$Think.lang.set_email_smtp}</label>
+				<input type="text" name="smtp" class="form-control" value="{$emailConfig['smtp']}">
+		    </div>
+		   	<div class="form-group">
+		        <label>{$Think.lang.set_email_port}</label>
+				<input type="text" name="port" class="form-control" value="{$emailConfig['port']}">
+				<p class="help-block">{$Think.lang.set_email_port_tips}</p>
+		    </div>
+		   	<div class="form-group">
+		        <label>{$Think.lang.set_email_type}</label>
+		        <div class="radio">
+		        	<label><input type="radio" name="type" value="tls">tls</label>
+		        	<label><input type="radio" name="type" value="ssl">ssl</label>
+		        </div>
+		    </div>
+		   	<div class="form-group">
+		   		<button type="button" id="btn_test" class="btn btn-default">{$Think.lang.test}</button>
+		   	</div>
+		   	<div class="form-group">
+				<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+$('#form_set [name="type"]').each(function(){
+	if($(this).val()=="{$emailConfig['type']}"){
+		$(this).attr('checked', 'checked');
+	}
+});
+
+$('#btn_test').bind('click',function(){
+	$('#form_set [name="is_test"]').val(1);
+	$('#form_set').submit();
+});
+$('#form_set button[type="submit"]').bind('click',function(){
+	$('#form_set [name="is_test"]').val(0);
+});
+
+</script>
+{/block}

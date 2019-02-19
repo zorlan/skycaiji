@@ -1,0 +1,25 @@
+{if condition="!empty($cmsApps)"}
+{php}$sltedCmsApp=array($cmsApp=>' selected="selected"');{/php}
+<div class="form-group">
+	<div class="input-group">
+		<label class="input-group-addon"><b>CMS插件</b></label>
+		<select name="cms[app]" class="form-control">
+		<option value="">请选择</option>
+		{foreach name="cmsApps" item="cmsAppV"}
+		<option value="{$cmsAppV['app']}"{$sltedCmsApp[$cmsAppV['app']]}>{$cmsAppV['name']}</option>
+		{/foreach}
+		</select>
+	</div>
+</div>
+{if condition="!empty($releCms)"}
+<div class="box box-primary">
+<div class="box-body">
+{php}echo $releCms->tplBind();{/php}
+</div>
+</div>
+{else /}
+{$cmsError}
+{/if}
+{else /}
+没有“{$cmsName}”相关的发布插件，在<a href="http://www.skycaiji.com/store/cms?q={$cmsName|rawurlencode}" onclick="windowStore('CMS发布插件',$(this).attr('href'));return false;">云平台</a>中查找
+{/if}

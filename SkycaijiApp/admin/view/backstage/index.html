@@ -1,0 +1,120 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/index.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="row">
+	<div class="col-md-3 col-sm-6 col-xs-12">
+	  <div class="info-box">
+	    <span class="info-box-icon bg-aqua"><i class="icon ion-ios-pulse"></i></span>
+	    <div class="info-box-content">
+	      <span class="info-box-text">今日采集</span>
+	      <span class="info-box-number">{$runInfo['today_success']|intval}<small>条成功</small></span>
+	      <span class="info-box-number">{$runInfo['today_error']|intval}<small>条失败</small></span>
+	    </div>
+	  </div>
+	</div>
+	<div class="col-md-3 col-sm-6 col-xs-12">
+	  <div class="info-box">
+	    <span class="info-box-icon bg-red"><i class="icon ion-stats-bars"></i></span>
+	    <div class="info-box-content">
+	      <span class="info-box-text">已采集数据</span>
+	      <span class="info-box-number">{$runInfo['total_success']|intval}<small>条成功</small></span>
+	      <span class="info-box-number">{$runInfo['total_error']|intval}<small>条失败</small></span>
+	    </div>
+	  </div>
+	</div>
+	<div class="clearfix visible-sm-block"></div>
+	<div class="col-md-3 col-sm-6 col-xs-12">
+	     <div class="info-box">
+	       <span class="info-box-icon bg-green"><i class="icon ion-ios-settings-strong"></i></span>
+	       <div class="info-box-content">
+	         <span class="info-box-text">任务</span>
+	      	<span class="info-box-number">{$runInfo['task_auto']|intval}<small>个自动任务</small></span>
+	      	<span class="info-box-number">{$runInfo['task_other']|intval}<small>个手动任务</small></span>
+	       </div>
+	     </div>
+	</div>
+	<div class="col-md-3 col-sm-6 col-xs-12">
+		<div class="info-box">
+            <span class="info-box-icon bg-yellow"><i class="icon ion-load-b"></i></span>
+            <div class="info-box-content">
+            	<span class="info-box-text">自动采集</span>
+            	<span class="info-box-number" style="margin-top:7px;">{$runInfo['auto_status']}</span>
+            </div>
+		</div>
+	</div>
+</div>
+<div class="box box-default">
+	<div class="box-body">
+		<div class="row">
+		    <div class="col-sm-6">
+			<table class="table table-bordered table-striped" style="margin-bottom:0;">
+		      <tbody>
+		        <tr>
+		          <th style="width:90px;">检测更新</th>
+		          <td>
+		          	<div id="upgrade_check"></div>
+		          	<textarea id="upgrade_error" rows="5" class="form-control" style="display:none;margin-top:10px;"></textarea>
+		          </td>
+		        </tr>
+		        {if condition="$upgradeDb"}
+		        <tr>
+		          <th>升级数据库</th>
+		          <td><a href="javascript:;" id="upgrade_db">点击升级数据库</a></td>
+		        </tr>
+		        {/if}
+		        <tr>
+		          <th>当前版本</th>
+		          <td>SkyCaiji V{$serverInfo['version']}</td>
+		        </tr>
+		        {if condition="isset($serverInfo['caiji'])"}
+		        <tr>
+		          <th>采集状态</th>
+		          <td>{$serverInfo['caiji']}</td>
+		        </tr>
+		        {/if}
+		        <tr>
+		          <th>社区论坛</th>
+		          <td><a href="http://bbs.skycaiji.com" target="_blank">SkyCaiji交流社区</a></td>
+		        </tr>
+		        <tr>
+		          <th>清除缓存</th>
+		          <td><a href="javascript:;" id="op_clean">清除缓存</a></td>
+		        </tr>
+		      </tbody>
+		    </table>
+		    </div>
+		    <div class="col-sm-6">
+			<table class="table table-bordered table-striped" style="margin-bottom:0;">
+		      <tbody>
+		        <tr>
+		          <th style="width:90px;">操作系统</th>
+		          <td>{$serverInfo['os']}</td>
+		        </tr>
+		        <tr>
+		          <th>运行环境</th>
+		          <td>{$serverInfo['server']}</td>
+		        </tr>
+		        <tr>
+		          <th>数据库</th>
+		          <td>{$serverInfo['db']}</td>
+		        </tr>
+		        <tr>
+		          <th>PHP版本</th>
+		          <td>{$serverInfo['php']}</td>
+		        </tr>
+		        <tr>
+		          <th>上传限制</th>
+		          <td>{$serverInfo['upload_max']}</td>
+		        </tr>
+		      </tbody>
+		    </table>
+		    </div>
+		</div>
+	</div>
+</div>
+<div id="skycaiji_admin_index">
+
+</div>
+{/block}

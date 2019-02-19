@@ -1,0 +1,132 @@
+{extend name="common:main" /}
+{block name="cssjs"}{/block}
+{block name="content"}
+<div class="install-wrapper">
+	<form id="form_db" method="post" action="{:url('Install/Index/step2')}">
+		<div class="table-responsive">
+			<table class="table table-noborder">
+				<colgroup>
+			    	<col class="col-xs-1">
+			    	<col class="col-xs-7">
+			    </colgroup>
+				<thead>
+					<tr>
+						<th colspan="3">MYSQL数据库连接</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>数据库主机</td>
+						<td><input name="db_host" class="form-control" value="localhost"></td>
+					</tr>
+					<tr>
+						<td>数据库端口</td>
+						<td><input name="db_port" class="form-control" value="3306"></td>
+					</tr>
+					<tr>
+						<td>数据库名称</td>
+						<td><input name="db_name" class="form-control" value="SkyCaiji"></td>
+					</tr>
+					<tr>
+						<td>用户名</td>
+						<td><input name="db_user" class="form-control" value=""></td>
+					</tr>
+					<tr>
+						<td>密码</td>
+						<td><input name="db_pwd" type="password" class="form-control" value=""></td>
+					</tr>
+					<tr>
+						<td>表前缀</td>
+						<td><input name="db_prefix" class="form-control" value="skycaiji_"></td>
+					</tr>
+				</tbody>
+			</table>
+			
+			<table class="table table-noborder">
+				<colgroup>
+			    	<col class="col-xs-1">
+			    	<col class="col-xs-7">
+			    </colgroup>
+				<thead>
+					<tr>
+						<th colspan="3">创始人账号</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>用户名</td>
+						<td><input name="user_name" class="form-control" value="admin"></td>
+					</tr>
+					<tr>
+						<td>密码</td>
+						<td>
+							<input name="user_pwd" type="password" class="form-control" value="">
+							<div class="input-group-addon" id="pwd_status" style="display:none;"></div>
+						</td>
+					</tr>
+					<tr>
+						<td>确认密码</td>
+						<td><input name="user_repwd" type="password" class="form-control" value=""></td>
+					</tr>
+					<tr>
+						<td>邮箱</td>
+						<td>
+							<input name="user_email" class="form-control" value="">
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<a href="{:url('Install/Index/step1')}" class="btn btn-primary">上一步</a>&nbsp;
+		<button type="submit" class="btn btn-success">下一步</button>
+	</form>
+</div>
+<script type="text/javascript">
+$('#form_db').bind('submit',function(){
+	var $_o=$(this);
+	$_o.find('button[type="submit"]').attr('disabled',true);
+	$.ajax({
+		type: 'POST',
+		dataType: 'json',
+		url:$(this).attr('action'),
+		data: $(this).serialize(),
+		success: function (data) {
+			if(data.code==1){
+				//成功
+				if(data.data.has_data){
+					confirmRight('存在数据是否覆盖？',function(){
+						window.location.href=ulink('Install/Index/step3?overwrite=1');
+					},function(){
+						window.location.href=ulink('Install/Index/step3');
+					});
+				}else{
+					window.location.href=ulink('Install/Index/step3');
+				}
+			}else{
+				toastr.error(data.msg);
+			}
+			$_o.find('button[type="submit"]').removeAttr('disabled');
+		}
+	});
+	return false;
+});
+/*判断密码强弱*/
+$('#form_db input[name="user_pwd"]').bind('keyup',function(){
+	var pwd=$(this).val();
+	if(pwd.length>=6){
+		$('#pwd_status').show().parents('td').addClass('input-group');
+		if((/^.{6,7}$/i).test(pwd)){
+			$('#pwd_status').html('<b style="color:red;">极弱</b>');
+		}else if((/^.{8,9}$/i).test(pwd)){
+			$('#pwd_status').html('<b style="color:red;">弱</b>');
+		}else if((/^.{10,13}$/i).test(pwd)){
+			$('#pwd_status').html('<b style="color:orange;">中</b>');
+		}else if((/^.{14,}$/i).test(pwd)){
+			$('#pwd_status').html('<b style="color:green;">强</b>');
+		}
+	}else{
+		$('#pwd_status').hide().parents('td').removeClass('input-group');
+	}
+});
+</script>
+{/block}

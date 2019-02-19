@@ -1,0 +1,46 @@
+{php}
+$_WP['title']=$msg;
+{/php}
+{extend name="common:main" /}
+{block name="cssjs"}
+{/block}
+{block name="content"}
+<style type="text/css">
+.content-wrapper{background:#fff;}
+.breadcrumb{display:none!important;}
+.msg_title{
+    line-height:30px;
+    margin-left:20px;
+    color:#2E99D4;
+    margin-top:10px;
+    font:16px "microsoft yahei",Arial,Verdana;
+    font-weight:bold;
+}
+.msg_message{
+    line-height:30px;
+    margin-left:20px;
+    color:#5C5C5C;
+    font:14px "microsoft yahei",Arial,Verdana;
+}
+</style>
+
+<div style="text-align:center;padding:50px 0;">
+	<img src="__PUBLIC__/static/images/success.jpg" />
+	<p class="msg_title">{$msg}</p>
+	<p class="msg_message">{:lang('return_home',array('url'=>$url,'time'=>'<span id="tmv" style="color:red;font-weight:bold;"></span>'))}</p>
+</div>
+
+<script type="text/javascript">
+var waitTm={$wait?$wait:'3'};
+function goHome(){
+	if(waitTm>=1){
+		document.getElementById('tmv').innerHTML=waitTm;
+		waitTm--;
+        setTimeout("goHome()",1000);
+	}else{
+		window.location.href="{$url}";
+	}
+}
+goHome();
+</script>
+{/block}

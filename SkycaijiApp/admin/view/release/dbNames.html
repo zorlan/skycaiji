@@ -1,0 +1,17 @@
+<div class="input-group" id="win_db_names">
+	<select class="form-control">
+		<option value="">请选择</option>
+		{foreach name="dbNames" item="dbName"}
+		<option value="{$dbName}">{$dbName}</option>
+		{/foreach}
+	</select>
+	<div class="input-group-btn">
+		<button class="btn btn-default" type="button">确定</button>
+	</div>
+</div>
+<script type="text/javascript">
+$('#win_db_names button').bind('click',function(){
+	$(releaseClass.formid).find('[name="db[name]"]').val($('#win_db_names select').val());//赋值
+	$('#myModal').modal('hide');//隐藏
+});
+</script>

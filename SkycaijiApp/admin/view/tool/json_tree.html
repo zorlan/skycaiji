@@ -1,0 +1,119 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<style type="text/css">
+#json_tree{width:100%;overflow:hidden;}
+#json_tree ul{list-style:none;margin:0px;padding:0px;padding-left:20px;}
+#json_tree li{padding:0;margin:0;}
+#json_tree .tree{cursor:pointer;margin-left:-16px;margin-right:2px;}
+
+#json_tree .node{color:#7F007F;}
+#json_tree .val{}
+
+</style>
+{/block}
+{block name="content"}
+<div class="box box-default">
+	<div class="box-body">
+		<div class="form-group">
+			<div class="input-group">
+				<textarea id="txt_json" rows="2" class="form-control" placeholder="输入网址或json字符串，网址必须以http://或https://开头"></textarea>
+				<a href="javascript:;" class="input-group-addon" id="btn_tree">确定</a>
+			</div>
+		</div>
+		<div id="json_tree"></div>
+	</div>
+</div>
+<script type="text/javascript">
+
+$(document).ready(function(){
+	$('#btn_tree').bind('click',function(){
+		var data=$('#txt_json').val();
+		
+		if(htmlIsJson(data)){
+			//是json字符串
+			data=JSON.parse(data);
+			if(data){
+				var html='<ul>';
+				for(var i in data){
+					html+=toolJsonTree(i,data[i]);
+				}
+				html+='</ul>';
+				$('#json_tree').html(html);
+			}
+		}else if((/^\w+\:\/\//).test(data)){
+			//是网址
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url:ulink('Tool/json_tree'),
+				data: {'url':data},
+				success: function (data) {
+					data=data.data.json;
+					if(data){
+						data=JSON.parse(data);
+						
+						var html='<ul>';
+						for(var i in data){
+							html+=toolJsonTree(i,data[i]);
+						}
+						html+='</ul>';
+						$('#json_tree').html(html);
+					}
+				}
+			});
+		}else{
+			toastr.error('请输入网址或json字符串！');
+		}
+	});
+	
+	$('#json_tree').on('click','.tree',function(){
+		if($(this).hasClass('glyphicon-triangle-bottom')){
+			$(this).removeClass('glyphicon-triangle-bottom');
+			$(this).addClass('glyphicon-triangle-right');
+			var hasSub=false;
+			$(this).siblings('ul').children('li').each(function(){
+				var subTree=$(this).find('.tree').eq(0);
+				if(subTree.length>0){
+					subTree.removeClass('glyphicon-triangle-bottom').addClass('glyphicon-triangle-right').siblings('ul').hide();
+					hasSub=true;
+				}
+			});
+			if(!hasSub){
+				$(this).siblings('ul').hide();
+			}
+		}else{
+			$(this).removeClass('glyphicon-triangle-right');
+			$(this).addClass('glyphicon-triangle-bottom');
+			$(this).siblings('ul').show();
+			$(this).siblings('ul').children('li').each(function(){
+				$(this).find('.tree').eq(0).removeClass('glyphicon-triangle-right').addClass('glyphicon-triangle-bottom').siblings('ul').show();
+			});
+		}
+	});
+});
+
+function toolJsonTree(node,list){
+	var html='<li>';
+	var isList=false;//是列表
+	if(list){
+		if(typeof(list)=='object' && !$.isEmptyObject(list)){
+			isList=true;
+		}
+	}
+	if(isList){
+		html+='<span class="glyphicon glyphicon-triangle-bottom tree"></span><span class="node">'+node+'</span><ul>';
+		for(var i in list){
+			html+=toolJsonTree(i,list[i]);
+		}
+		html+='</ul>';
+	}else{
+		html+='<span class="node">'+node+'</span>: <span class="val">'+list+'</span>';
+	}
+	html+='</li>';
+	
+	return html;
+}
+
+
+</script>
+{/block}

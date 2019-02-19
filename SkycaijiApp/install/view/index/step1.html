@@ -1,0 +1,94 @@
+{extend name="common:main" /}
+{block name="cssjs"}{/block}
+{block name="content"}
+<div class="install-wrapper">
+	<div class="table-responsive">
+		<table class="table">
+			<colgroup>
+				<col class="col-xs-4">
+				<col class="col-xs-4">
+				<col class="col-xs-4">
+			</colgroup>
+			<thead>
+				<tr>
+					<th>系统环境</th>
+					<th>当前配置</th>
+					<th>最低要求</th>
+				</tr>
+			</thead>
+			<tbody>
+				{foreach $serverInfoList as $v}
+				<tr>
+					<td>{$v[0]}</td>
+					<td>
+						{$v[3]?'<span class="glyphicon glyphicon-ok"></span>':''}
+						{$v[2]}
+					</td>
+					<td>{$v[1]}</td>
+				</tr>
+				{/foreach}
+			</tbody>
+		</table>
+		<table class="table">
+			<colgroup>
+				<col class="col-xs-4">
+				<col class="col-xs-4">
+				<col class="col-xs-4">
+			</colgroup>
+			<thead>
+				<tr>
+					<th colspan="3">PHP模块</th>
+				</tr>
+			</thead>
+			<tbody>
+				{foreach $phpModuleList as $v}
+				<tr>
+					<td>{$v[0]}</td>
+					<td>{$v[1]?'<span class="glyphicon glyphicon-ok"></span> 开启':'<span class="glyphicon glyphicon-remove"></span> 不支持'}</td>
+					<td></td>
+				</tr>
+				{/foreach}
+			</tbody>
+		</table>
+		<table class="table">
+			<colgroup>
+				<col class="col-xs-4">
+				<col class="col-xs-4">
+				<col class="col-xs-4">
+			</colgroup>
+			<thead>
+				<tr>
+					<th>目录、文件权限</th>
+					<th>可写</th>
+					<th>可读</th>
+				</tr>
+			</thead>
+			<tbody>
+				{foreach $pathFileList as $v}
+				<tr>
+					<td>{$v[0]}</td>
+					<td>{$v[1]?'<span class="glyphicon glyphicon-ok"></span> 可写':'<span class="glyphicon glyphicon-remove"></span> 不可写'}</td>
+					<td>{$v[2]?'<span class="glyphicon glyphicon-ok"></span> 可读':'<span class="glyphicon glyphicon-remove"></span> 不可读'}
+					</td>
+				</tr>
+				{/foreach}
+			</tbody>
+		</table>
+	</div>
+	<a href="{:url('Install/Index/index')}" class="btn btn-primary">上一步</a>&nbsp;
+	<a href="{:url('Install/Index/step2')}" class="btn btn-success" onclick="return nextStep();">下一步</a>
+</div>
+<script type="text/javascript">
+function nextStep(){
+	var errorNum=$('.install-wrapper .table').find('.glyphicon-remove').length;
+	if(errorNum>0){
+		if(confirm('检测出错误，是否继续？')){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	return true;
+}
+</script>
+{/block}

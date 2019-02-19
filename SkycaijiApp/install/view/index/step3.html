@@ -1,0 +1,13 @@
+{extend name="common:main" /}
+{block name="cssjs"} {/block}
+{block name="content"}
+<div class="install-wrapper">
+	<div class="jumbotron" id="installing" style="text-align:left;"></div>
+</div>
+<script type="text/javascript">
+function echo_msg(msg){
+	$('#installing').append('<p>'+msg+'</p>');
+}
+</script>
+
+{/block}

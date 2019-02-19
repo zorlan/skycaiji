@@ -1,0 +1,49 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+{/block}
+{block name="content"}
+<div class="box box-default">
+	<div class="box-body">
+		<form id="form_user" method="post" ajax-submit="true" role="form" action="{:url('Admin/User/add')}">
+		   	{:html_usertoken()}
+		   	<div class="form-group">
+		       	<label>{$Think.lang.user_groupid}</label>
+				<select name="groupid" class="form-control">
+		       	{foreach name="subGroupList" item="group"}
+		           	<option value="{$group['id']}">{$group['name']}</option>
+		       	{/foreach}
+		        </select>
+			</div>
+		    <div class="form-group">
+		        <label>{$Think.lang.user_username}</label>
+		        <input type="text" name="username" class="form-control" value="{$user['username']}">
+		    </div>
+		    <div class="form-group">
+		        <label>{$Think.lang.user_password}</label>
+		        <input type="password" name="password" class="form-control" value="{$user['password']}">
+		    </div>
+		    <div class="form-group">
+		        <label>{$Think.lang.user_repassword}</label>
+		        <input type="password" name="repassword" class="form-control" value="">
+		    </div>
+		    <div class="form-group">
+		        <label>{$Think.lang.user_email}</label>
+		        <input type="text" name="email" class="form-control" value="{$user['email']}">
+		        <p class="help-block">{$Think.lang.user_email_tips}</p>
+		    </div>
+		    {if condition="$GLOBALS['config']['site']['verifycode']"}	
+			<div class="form-group">
+				<label>{$Think.lang.verifycode}</label>
+				<div class="input-group">
+					<input type="text" name="verifycode" class="form-control" />
+					<div class="input-group-btn"><img src="{:url('Admin/Index/verify')}" class="verify-img" onclick="refreshVerify(this)" /></div>
+				</div>
+			</div>
+			{/if}
+		   	<div class="form-group">
+				<button type="submit" class="btn btn-primary btn-block">{$Think.lang.submit}</button>
+			</div>
+		</form>
+	</div>
+</div>
+{/block}

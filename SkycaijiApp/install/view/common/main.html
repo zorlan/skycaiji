@@ -1,0 +1,21 @@
+{include file="common:header" /}
+{block name="cssjs"}{/block}
+</head>
+<body>
+    <div class="container">
+	{php}$curStep=request()->action();$curStep=array($curStep=>' class="active"');{/php}
+	<div class="header clearfix">
+	  <h3 class="text-muted">蓝天采集器 V{:constant('SKYCAIJI_VERSION')}</h3>
+	  <nav>
+	    <ul class="nav nav-pills pull-right">
+	      <li role="presentation"{$curStep['index']}><a href="{:url('Install/Index/index')}">安装协议</a></li>
+	      <li role="presentation"{$curStep['step1']}><a href="#">环境检测</a></li>
+	      <li role="presentation"{$curStep['step2']}{$curStep['step3']}><a href="#">数据安装</a></li>
+	    </ul>
+	  </nav>
+	</div>  
+	{block name="content"}
+	{/block}
+	</div>
+</body>
+</html>

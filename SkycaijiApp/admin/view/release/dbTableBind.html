@@ -1,0 +1,74 @@
+{foreach name="tables" item="table"}
+<div class="panel panel-default" style="margin-bottom:10px;">
+	<div class="panel-heading">
+	    <div class="panel-title">
+	        <a data-toggle="collapse" href="#db_table_name_{$table}" class="collapsed" data-parent="#db_table_bind_list">{$table}表绑定数据</a>
+			<div style="float:right;font-size:14px;">
+				<a href="javascript:;" class="glyphicon glyphicon-arrow-up"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-arrow-down"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-remove"></a>
+			</div>
+		</div>
+	</div>
+	<div id="db_table_name_{$table}" class="panel-collapse collapse in">
+	    <div class="panel-body table-responsive table-db-table-bind">
+			<table class="table table-hover">
+			<thead>
+			<tr>
+				<th>数据库字段</th>
+				<th>类型</th>
+				<th>绑定数据</th>
+			</tr>
+			</thead>
+			<tbody>
+				{foreach name="fields[$table]" item="field"}
+				<tr>
+					<td>
+						{$field['name']}
+					</td>
+					<td>
+						{$field['type']}
+						{$field['primary']?' &nbsp; 主键':''}
+						{$field['autoinc']?' &nbsp; 自增':''}
+					</td>
+					<td>
+						<select name="db_table[field][{$table}][{$field['name']}]" class="form-control">
+							<option value="">不选择</option>
+							{foreach name="collFields" item="collField"}
+							<option value="field:{$collField}">采集字段：{$collField}</option>
+							{/foreach}
+							<option value="custom:">自定义内容</option>
+						</select>
+						<input class="form-control" style="display:none;" name="db_table[custom][{$table}][{$field['name']}]" />
+					</td>
+				</tr>
+				{/foreach}
+			</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{/foreach}
+{if condition="!empty($field_values)"}
+<div id="db_table_bind_values">
+<script type="text/javascript">
+(function(){
+	//载入表数据
+	var field_values={$field_values|json_encode};
+	if(field_values){
+		for(var table in field_values){
+			for(var field in field_values[table]['field']){
+				$(releaseClass.formid).find('[name="db_table[field]['+table+']['+field+']"]').val(field_values[table]['field'][field]).trigger('change');
+			}
+			for(var field in field_values[table]['custom']){
+				$(releaseClass.formid).find('[name="db_table[custom]['+table+']['+field+']"]').val(field_values[table]['custom'][field]).trigger('change');
+			}
+		}
+	}
+})();
+$(document).ready(function(){
+	$('#db_table_bind_values').remove();//删除元素，否则不能上下换位
+});
+</script>
+</div>
+{/if}

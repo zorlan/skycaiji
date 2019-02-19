@@ -1,0 +1,110 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/collected.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="box">
+	<div class="box-body">
+		<div class="alert alert-warning alert-dismissible">
+        	<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        	已采集网址可防止重复采集，如无必要，请勿删除！
+        </div>
+		<form id="form_list" method="post" ajax-submit="true" action="{:url('Collected/op')}">
+		<div class="table-responsive">
+		<table id="list_table" class="table table-bordered table-hover datatable">
+			<thead>
+				<tr>
+					<th width="60" class="chk">{$Think.lang.select}</th>
+					<th class="url">源网址</th>
+					<th>已发布至</th>
+					<th>发布方式</th>
+					<th>任务名</th>
+					<th>添加时间</th>
+					<th>{$Think.lang.op}</th>
+				</tr>
+			</thead>
+			<tbody>
+			{foreach name="dataList" item="item"}
+				<tr>
+					<td class="chk"><input type="checkbox" name="ids[]" value="{$item['id']}" /></td>
+					<td class="url"><a href="{$item['url']}" target="_blank">{$item['url']}</a></td>
+					<td class="desc">
+						{if condition="!empty($item['error'])"}
+							失败：{$item['error']}
+						{else /}
+							{$item['target']} {$item['desc']?$item['desc']:''}
+						{/if}
+					</td>
+					<td>{:lang('collected_rele_'.$item['release'])}</td>
+					<td><a href="{:url('Admin/Task/edit?id='.$item['task_id'])}" target="_blank">{$taskList[$item['task_id']]}</a></td>
+					<td>{:date('Y-m-d H:i:s',$item['addtime'])}</td>
+					<td><a href="javascript:;" url="{:url('Collected/op?op=delete&id='.$item['id'])}" class="delete">删除</a></td>
+				</tr>
+			{/foreach}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td class="chk"><label><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" />全部</label></td>
+					<td colspan="4">
+						<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
+					</td>
+				</tr>
+    			{if condition="!empty($pagenav)"}
+				<tr>
+					<td colspan="5">{$pagenav}</td>
+				</tr>
+				{/if}
+			</tfoot>
+		</table>
+		</div>
+		</form>
+	</div>
+	<!-- /.box-body -->
+</div>
+<!-- /.box -->
+<div class="list-footer">
+	<form id="form_search" method="post" action="{:url('Collected/list')}" class="form-inline">
+		<div class="form-group form-group-sm">
+			<label>每页显示</label>
+		    <select name="num" class="form-control">
+			    <option value="50">50条</option>
+			    <option value="100">100条</option>
+			    <option value="200">200条</option>
+			    <option value="500">500条</option>
+			    <option value="1000">1000条</option>
+		    </select>
+	    </div>
+		<div class="form-group form-group-sm">
+			<label>发布方式</label>
+		    <select name="release" class="form-control">
+			    <option value="">全部</option>
+				{foreach name="Think.config.release_modules" item="rele_module"}
+			    <option value="{$rele_module}">{:lang('collected_rele_'.$rele_module)}</option>
+			    {/foreach}
+		    </select>
+	    </div>
+		<div class="form-group form-group-sm">
+			<label>网址</label>
+        	<input type="text" name="url" class="form-control" value="{$search['url']}" placeholder="模糊搜索，默认全部">
+	    </div>
+		<div class="form-group form-group-sm">
+			<label>任务名</label>
+        	<input type="text" name="task_name" class="form-control" value="{$search['task_name']}" placeholder="模糊搜索，默认全部">
+	    </div>
+		<div class="form-group form-group-sm">
+		    <select name="status" class="form-control">
+			    <option value="">全部</option>
+			    <option value="1">发布成功</option>
+			    <option value="2">发布失败</option>
+		    </select>
+	    </div>
+        <button type="submit" class="btn btn-default btn-sm">{$Think.lang.search}</button>
+	</form>
+</div>
+<script type="text/javascript">
+$('#form_search select[name="num"]').val("{$search['num']|intval}");
+$('#form_search select[name="release"]').val("{$search['release']}");
+$('#form_search select[name="status"]').val("{$search['status']}");
+collectedClass.init_list();
+</script>
+{/block}

@@ -1,0 +1,145 @@
+{extend name="common:main" /}
+{block name="cssjs"}{/block}
+{block name="content"}
+<div class="box box-default">
+	<div class="box-body">
+		<form id="form_check" action="{:url('Tool/checkdb')}" method="post" style="text-align:center;padding:50px 0;">
+       		<input type="hidden" name="sub" value="1" />
+       		<h1>校验数据库一致性</h1>
+       		<p class="lead">数据库不一致可能导致程序运行错误、功能缺失、系统紊乱等</p>
+       		<p><button type="submit" class="btn btn-lg btn-success">开始校验</button></p>
+		</form>
+		<div id="error_box" style="display:none;">
+			<div id="error_fields" style="display:none;">
+			<h3>请检查您数据库中的字段是否与以下字段一致</h3>
+			<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th>表名</th>
+					<th>字段名</th>
+					<th>数据类型</th>
+					<th>默认值</th>
+					<th>主键？</th>
+					<th>非空？</th>
+					<th>自增？</th>
+				</tr>
+			</thead>
+			<tbody>
+				
+			</tbody>
+			</table>
+			</div>
+			<div id="error_indexes" style="display:none;">
+			<h3>请检查您数据库中的索引是否与以下索引一致</h3>
+			<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th>表名</th>
+					<th>索引名</th>
+					<th>索引字段</th>
+					<th>索引类型</th>
+				</tr>
+			</thead>
+			<tbody>
+			
+			</tbody>
+			</table>
+			</div>
+			<a href="javascript:;" class="btn btn-lg btn-primary" id="repair_db">一键修复数据库</a>
+			<p id="error_info"></p>
+		</div>
+	</div>
+</div>
+		
+<script type="text/javascript">
+$('#form_check').bind('submit',function(){
+	var $_o=$(this);
+	$_o.find('button[type="submit"]').attr('disabled',true).html('正在校验...');
+	$.ajax({
+		type: 'POST',
+		dataType: 'json',
+		url:$(this).attr('action'),
+		data: $(this).serialize(),
+		success: function (data) {
+			if(data.code==1){
+				toastr.success('数据库全部一致！');
+				$('#error_box').hide();
+				$('#error_fields tbody').html('');
+				$('#error_indexes tbody').html('');
+			}else{
+				if(data.data.fields||data.data.indexes){
+					toastr.error('数据库不一致！');
+					$('#error_box').show();
+					if(data.data.fields){
+						var html='';
+						for(var table in data.data.fields){
+							var fields=data.data.fields[table];
+							
+							for(var fi in fields){
+								var field=fields[fi];
+								html+='<tr><td>'+table+'</td><td>'+field['name']+'</td><td>'+field['type']+'</td><td>'
+									+field['default']+'</td><td>'+field['primary']+'</td><td>'+field['notnull']+'</td><td>'+field['autoinc']+'</td></tr>';
+							}
+						}
+						$('#error_fields').show();
+						$('#error_fields tbody').html(html);
+					}else{
+						$('#error_fields').hide();
+						$('#error_fields tbody').html('');
+					}
+
+					if(data.data.indexes){
+						var html='';
+						var ix_types={'primary':'主键索引','index':'普通索引','unique':'唯一索引','fulltext':'全文索引'};
+						for(var table in data.data.indexes){
+							var indexes=data.data.indexes[table];
+							
+							for(var iname in indexes){
+								var iindex=indexes[iname];
+								html+='<tr><td>'+table+'</td><td>'+iname+'</td><td>'+iindex.field+'</td><td>'+iindex.type+' '+ix_types[iindex.type]+'</td></tr>';
+							}
+						}
+						$('#error_indexes').show();
+						$('#error_indexes tbody').html(html);
+					}else{
+						$('#error_indexes').hide();
+						$('#error_indexes tbody').html('');
+					}
+				}else{
+					toastr.error(data.msg);
+				}
+			}
+		},
+		complete:function(){
+			$_o.find('button[type="submit"]').removeAttr('disabled').html('开始校验');
+		}
+	});
+	return false;
+});
+
+$('#repair_db').bind('click',function(){
+	var $_o=$(this);
+	$_o.attr('disabled',true).html('正在修复...');
+	$.ajax({
+		type: 'POST',
+		dataType: 'json',
+		url:"{:url('Tool/checkdb')}",
+		data:{repair:1},
+		success: function (data) {
+			if(data.code==1){
+				$_o.html(data.msg?data.msg:'修复成功！');
+			}else{
+				$_o.html('操作失败');
+				if(data.msg){
+					$('#error_info').html(data.msg);
+				}
+			}
+		},
+		complete:function(){
+			$_o.removeAttr('disabled');
+		}
+	});
+	return false;
+});
+</script>
+{/block}

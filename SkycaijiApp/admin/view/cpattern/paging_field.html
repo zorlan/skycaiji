@@ -1,0 +1,27 @@
+<form id="form_paging_field" method="post" action="{:url('Cpattern/paging_field')}">
+<input type="hidden" name="objid" value="{$objid}" />
+<div class="form-group">
+	<div class="input-group">
+		<span class="input-group-addon">选择字段</span>
+		<select class="form-control" name="paging_field[field]">
+		</select>
+	</div>
+</div>
+<div class="form-group">
+	<div class="input-group">
+		<span class="input-group-addon">分页分隔符</span>
+		<input type="text" name="paging_field[delimiter]" class="form-control" placeholder="选填，内容多页之间插入字符" />
+	</div>
+</div>
+<div class="form-group form-group-sm">
+	<button type="submit" class="btn btn-primary btn-block">确定</button>
+</div>
+</form>
+
+<script type="text/javascript">
+{if condition="$pagingField"}
+c_pattern.paging_field_op('init',{paging_field:{$pagingField|json_encode}});
+{else /}
+c_pattern.paging_field_op('init');
+{/if}
+</script>

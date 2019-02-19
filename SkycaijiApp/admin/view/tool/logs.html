@@ -1,0 +1,35 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+
+{/block}
+{block name="content"}
+<div class="box box-default">
+	<div class="box-body">
+		{if condition="empty($logList)"}
+		无日志
+		{else /}
+		<ul id="log_list">
+			{foreach name="logList" item="logs" key="path"}
+			<li>
+				<label>{$path}</label>
+				<ul class="row">
+					{foreach name="logs" item="log"}
+					<li class="col-sm-4"><a href="javascript:;" data-file="{$log['file']}">{$log['name']}</a></li>
+					{/foreach}
+				</ul>
+			</li>
+			{/foreach}
+		</ul>
+		{/if}
+	</div>
+</div>
+
+<script type="text/javascript">
+$('#log_list a[data-file]').bind('click',function(){
+	var file=$(this).attr('data-file');
+	var url=ulink('Tool/log?file=_file_',{_file_:file});
+	windowIframe('日志：'+file,url,{lg:1});
+});
+
+</script>
+{/block}

@@ -1,0 +1,27 @@
+<div class="list-footer">
+	<form id="form_search_task" method="post" action="{:url('Task/list')}" class="form-inline">
+		<input type="hidden" name="show" value="list" /> 
+        <div class="form-group form-group-sm">
+			<label>{$Think.lang.task_tg}</label>
+			{$tgSelect}
+	    </div>
+		<div class="form-group form-group-sm">
+			<label>{$Think.lang.task_module}</label>
+		    <select name="module" class="form-control">
+		       	<option value="">{$Think.lang.all}</option>
+	        	{foreach name="Think.config.allow_coll_modules" item="cmodule"}
+	           	<option value="{$cmodule}">{:lang('task_module_'.$cmodule)}</option>
+	        	{/foreach}
+		    </select>
+	    </div>
+		<div class="form-group form-group-sm">
+			<label>{$Think.lang.task_name}</label>
+        	<input type="text" name="name" class="form-control" value="{$search['name']}">
+        </div>
+        <button type="submit" class="btn btn-default btn-sm">{$Think.lang.search}</button>
+	</form>
+</div>
+<script type="text/javascript">
+$('#form_search_task [name="tg_id"]').val("{$search['tg_id']}");
+$('#form_search_task [name="module"]').val("{$search['module']}");
+</script>

@@ -1,0 +1,16 @@
+language: php
+
+php:
+  - 5.5
+  - 5.4
+
+before_script:
+  - curl -s http://getcomposer.org/installer | php
+  - php composer.phar install --dev --no-interaction
+
+script:
+  - mkdir -p build/logs
+  - ./vendor/bin/phpunit
+
+after_script:
+  - php vendor/bin/coveralls -v

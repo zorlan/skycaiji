@@ -1,0 +1,33 @@
+<form id="form_item" method="post" ajax-submit="true" role="form" action="{:url('Taskgroup/'.($tgData?'edit':'add'))}">
+<input type="hidden" name="referer" value="{$_SERVER['HTTP_REFERER']}" />
+{if condition="$tgData"}
+<input type="hidden" name="id" value="{$tgData['id']}" />
+{/if}
+   	<div class="form-group">
+       	<label>{$Think.lang.taskgroup_name}</label>
+		<input type="text" class="form-control" name="name" value="{$tgData['name']}">
+	</div>
+   	<div class="form-group">
+       	<label>{$Think.lang.taskgroup_parent_id}</label>
+		<select name="parent_id" class="form-control">
+           	<option value="0">{$Think.lang.none}</option>
+			{foreach name="parentTgList" item="tgName" key="tgId"}
+           	<option value="{$tgId}">{$tgName}</option>
+			{/foreach}
+        </select>
+	</div>
+   	<div class="form-group">
+       	<label>{$Think.lang.taskgroup_sort}</label>
+		<input type="text" class="form-control" name="sort" style="width:100px;" autocomplete="off" value="{$tgData['sort']|intval}">
+		<p class="help-block">{$Think.lang.taskgroup_sort_help}</p>
+	</div>
+	<button type="submit" class="btn btn-primary">{$Think.lang.submit}</button>
+</form>
+<script type="text/javascript">
+{if condition="$tgData['parent_id']"}
+$('#form_item select[name="parent_id"]').val("{$tgData['parent_id']}");
+{/if}
+{if condition="input('parent_id')"}
+$('#form_item select[name="parent_id"]').val("{:input('parent_id')}");
+{/if}
+</script>

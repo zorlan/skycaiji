@@ -1,0 +1,81 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+{/block}
+{block name="content"}
+<div class="nav-tabs-custom">
+	<ul class="nav nav-tabs">
+    	<li><a href="{:url('Setting/Caiji')}">采集设置</a></li>
+    	<li class="active"><a href="{:url('Setting/page_render')}">页面渲染设置</a></li>
+    	<li><a href="{:url('Setting/Proxy')}">代理设置</a></li>
+    	<li><a href="{:url('Setting/Translate')}">翻译设置</a></li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane active" style="padding:0px 5px;">
+		{if !empty($config['tool'])}
+			{if $toolIsOpen}
+			<div class="alert alert-success" role="alert">渲染工具正在运行</div>
+			{else}
+			<div class="alert alert-warning" role="alert">渲染工具服务器未开启，请检查配置是否正确！确认无误后点击保存</div>
+			{/if}
+		{/if}
+		<form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('Admin/Setting/page_render')}">
+			<input type="hidden" name="is_test" value="" />
+			<div class="form-group">
+	        	<label>渲染工具</label>
+				<select name="tool" class="form-control">
+		        	<option value="">无</option>
+		        	<option value="chrome">谷歌浏览器</option>
+		    	</select>
+		    </div>
+		    <div id="render_tool_chrome" style="display:none;">
+				<p class="help-block">请在服务器中安装chrome，PHP版本建议切换至PHP5.5及以上</p>
+				<div class="form-group">
+		        	<label>chrome文件路径或者环境变量名</label>
+					<input type="text" class="form-control" name="chrome[filename]" placeholder="默认环境变量名chrome" value="{$config['chrome']['filename']}" />
+					<p class="help-block">chrome可执行文件在服务器中的绝对路径或者在系统中的环境变量名称</p>
+			    </div>
+			    <div class="form-group">
+			        <label>chrome服务器</label>
+			        <div class="input-group">
+			        	<span class="input-group-addon">地址</span>
+			        	<input type="text" name="chrome[host]" class="form-control" placeholder="默认127.0.0.1" value="{$config['chrome']['host']}" />
+			        	<span class="input-group-addon">端口</span>
+				       	<input type="text" name="chrome[port]" class="form-control" placeholder="默认9222" value="{$config['chrome']['port']}" />
+				    </div>
+			    </div>
+			</div>
+			<div class="form-group">
+	        	<label>渲染超时（秒）</label>
+				<input type="number" class="form-control" name="timeout" value="{:isset($config['timeout'])?$config['timeout']:60}" />
+		    	<p class="help-block">超过设定的值未完成渲染的页面将跳过采集</p>
+		    </div>
+		    <p class="help-block">配置完成后请在任务的采集器设置中开启“页面渲染”</p>
+		   	<div class="form-group">
+				<button type="submit" id="btn_sub" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+			</div>
+		</form>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+$('#form_set [name="tool"]').bind('change',function(){
+	var tool=$(this).val();
+	$('[id^="render_tool_"]').hide();
+	if(tool){
+		$('#render_tool_'+tool).show();
+	}
+});
+
+$('#btn_test').bind('click',function(){
+	$('#form_set [name="is_test"]').val(1);
+	$('#form_set').submit();
+});
+$('#form_set button[type="submit"]').bind('click',function(){
+	$('#form_set [name="is_test"]').val(0);
+});
+
+{if !empty($config)}
+$('#form_set [name="tool"]').val("{$config['tool']}").trigger('change');
+{/if}
+</script>
+{/block}

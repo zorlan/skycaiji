@@ -1,0 +1,18 @@
+<div class="form-group">
+<table class="table">
+<thead>
+<tr>
+	<th>参数设置</th>
+	<th>绑定数据</th>
+</tr>
+</thead>
+<tbody>
+	{foreach $paramTags as $pkey=>$ptag}
+	<tr>
+		<td>{$_params[$pkey]['require']?'<em>*</em> ':''}{$_params[$pkey]['name']}</td>
+		<td>{$ptag}</td>
+	</tr>
+	{/foreach}
+</tbody>
+</table>
+</div>

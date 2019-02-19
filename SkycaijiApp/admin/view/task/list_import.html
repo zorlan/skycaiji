@@ -1,0 +1,25 @@
+{if condition="!empty($taskList)"}
+<div id="window_tasks">
+	<ul class="row" id="task_list">
+	{foreach name="taskList" item="task"}
+	<li class="col-xs-4" style="padding:0;">
+		<a href="javascript:;" data-id="{$task['id']}">{$task['name']}</a>
+	</li>
+	{/foreach}
+	</ul>
+	{$pagenav}
+	<script type="text/javascript">
+	$('#window_tasks #task_list li a').bind('click',function(){
+		var id=$(this).attr('data-id');
+		var name=$(this).text();
+		import_task(id,name);
+	});
+	$('#window_tasks .pagination a').bind('click',function(){
+		windowModal('导入任务',$(this).attr('href'));
+		return false;
+	});
+	</script>
+</div>
+{else /}
+	没有任务
+{/if}

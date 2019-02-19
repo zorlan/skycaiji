@@ -1,0 +1,70 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+{/block}
+{block name="content"}
+<div class="box">
+	<div class="box-body">
+		<div class="table-responsive">
+		<table id="list_table" class="table table-bordered table-hover datatable">
+			<thead>
+	            <tr>
+					<th width="80">UID</th>
+	                <th>{$Think.lang.user_username}</th>
+	                <th>{$Think.lang.user_groupid}</th>
+	                <th>{$Think.lang.user_email}</th>
+	                <th>{$Think.lang.op}</th>
+	            </tr>
+			</thead>
+			<tbody>
+			{foreach name="userList" item="user"}
+				<tr>
+	                <td>{$user['uid']}</td>
+	                <td><a href="{:url('User/edit?uid='.$user['uid'])}">{$user['username']}</a></td>
+	                <td>{$groupList[$user['groupid']]['name']}</td>
+	                <td>{$user['email']}</td>
+	                <td>
+	                	<a href="{:url('User/edit?uid='.$user['uid'])}">{$Think.lang.edit}</a>
+	                	&nbsp;
+						<a href="javascript:;" url="{:url('User/delete?uid='.$user['uid'])}" class="delete">{$Think.lang.delete}</a>
+	                </td>
+	            </tr>
+			{/foreach}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="5">
+						<a href="{:url('User/add')}" class="btn btn-success">{$Think.lang.user_add}</a>
+					</td>
+				</tr>
+    			{if condition="!empty($pagenav)"}
+				<tr>
+					<td colspan="5">{$pagenav}</td>
+				</tr>
+				{/if}
+			</tfoot>
+		</table>
+		</div>
+	</div>
+	<!-- /.box-body -->
+</div>
+<!-- /.box -->
+<script type="text/javascript">
+//单个删除
+$('#list_table .delete').bind('click',function(){
+	var obj=$(this);
+	confirmRight('{$Think.lang.confirm_delete}',function(){
+		$.ajax({
+             type: "GET",
+             url: obj.attr('url'),
+             dataType: "json",
+             success: function(data){
+            	data.code==1?toastr.success(data.msg):toastr.error(data.msg);
+            	if(data.code==1){
+             		obj.parents('tr').remove();
+            	}
+             }
+         });
+	});
+});
+</script>
+{/block}

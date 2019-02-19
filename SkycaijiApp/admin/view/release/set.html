@@ -1,0 +1,338 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/release.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<form id="form_rele" class="form-item" method="post" ajax-submit="true" action="{:url('Release/set')}">
+	<input type="hidden" name="task_id" value="{$taskData['id']}" />
+	<input type="hidden" name="release_id" value="" />
+	<div class="form-group">
+		<div class="input-group">
+			<label class="input-group-addon">{$Think.lang.rele_module}</label>
+		    <select name="module" class="form-control">
+				<option value="">{$Think.lang.select_first}</option>
+				{foreach name="Think.config.release_modules" item="rele_module"}
+			    <option value="{$rele_module}">{:lang('rele_module_'.$rele_module)}</option>
+			    {/foreach}
+			</select>
+			<div class="input-group-btn"><button class="btn btn-default" type="button" id="btn_import_release">导入配置</button></div>
+		</div>
+	</div>
+	<div class="rele-module" id="rele_module_cms" module="cms" style="display:none;">
+		<ul id="cms_tab" class="nav nav-tabs">
+			<li class="active"><a href="#cms_tab_detect" data-toggle="tab">检测CMS程序</a></li>
+			<li><a href="#cms_tab_bind" data-toggle="tab">数据绑定</a></li>
+			<li style="float:right"><a href="{:url('Develop/releaseCms')}">开发插件</a></li>
+		</ul>
+		<div id="cms_tab_content" class="tab-content" style="margin-top:-1px">
+			<div class="tab-pane fade in active" id="cms_tab_detect">
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<div class="form-group">
+							<button type="button" class="btn btn-default btn-cms-detect">{$Think.lang.rele_btn_detect}</button>
+						</div>
+						<div class="form-group" id="cms_list"></div>
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="cms_tab_bind">
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<div class="form-group" id="cms_info">
+							<div class="input-group">
+								<div class="input-group-addon">
+									<a href="javascript:;" onclick="modal('CMS路径',$(this).text());" class="glyphicon glyphicon-info-sign" style="width:16px;overflow:hidden;">
+									注意是CMS程序在硬盘中的路径并非网址URL，蓝天采集器所在路径为：{:config('root_path')}
+									</a>
+									<b>{$Think.lang.rele_cms_path}</b>
+								</div>
+								<input type="text" name="cms[path]" class="form-control" value="{$config['cms']['path']}" />
+								<span class="input-group-btn"><button class="btn btn-default btn-cms-bind" type="button">开始绑定</button></span>
+							</div>
+						</div>
+						<div class="form-group" id="cms_bind">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="rele-module" module="db" style="display:none;">
+		<ul id="db_tab" class="nav nav-tabs">
+			<li class="active"><a href="#db_tab_config" data-toggle="tab">数据库配置</a></li>
+			<li><a href="#db_tab_table" data-toggle="tab">数据表</a></li>
+		</ul>
+		<div id="db_tab_content" class="tab-content" style="margin-top:-1px">
+			<div class="tab-pane fade in active" id="db_tab_config">
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<div class="form-group">
+					    	<label>{$Think.lang.rele_db_type}</label>
+					    	<select name="db[type]" class="form-control">
+								<option value="mysql">mysql</option>
+								<option value="oracle">oracle</option>
+								<option value="sqlsrv">sql server</option>
+							</select>
+					    </div>
+					    <div class="form-group">
+					    	<label>{$Think.lang.rele_db_host}</label>
+					    	<input name="db[host]" class="form-control" value="{$config['db']['host']?$config['db']['host']:'localhost'}">
+					    </div>
+					    <div class="form-group">
+					    	<label>{$Think.lang.rele_db_port}</label>
+					    	<input name="db[port]" class="form-control" value="{$config['db']['port']?$config['db']['port']:3306}">
+					    </div>
+					    <div class="form-group">
+					    	<label>{$Think.lang.rele_db_charset}</label>
+					    	<input name="db[charset]" class="form-control" value="{$config['db']['charset']}">
+					    </div>
+					    <div class="form-group">
+					    	<label>{$Think.lang.rele_db_name}</label>
+					    	<div class="input-group">	
+					    		<input name="db[name]" class="form-control" value="{$config['db']['name']}">
+	   							<div class="input-group-btn"><button type="button" class="btn btn-default btn-db-names">选择数据库</button></div>
+	   						</div>
+					    </div>
+					    <div class="form-group">
+					    	<label>{$Think.lang.rele_db_user}</label>
+					    	<input name="db[user]" class="form-control" value="{$config['db']['user']}">
+					    </div>
+					    <div class="form-group">
+					    	<label>{$Think.lang.rele_db_pwd}</label>
+					    	<input type="password" name="db[pwd]" class="form-control" value="{$config['db']['pwd']}">
+					    </div>
+					    <div class="form-group">
+					   		<button type="button" class="btn btn-default btn-db-connect">测试连接到数据库</button>
+					    	<div class="rele-db-error"></div>
+					    </div>
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="db_tab_table">
+				<div class="panel panel-default">
+			    	<div class="panel-body">
+			    	{if condition="empty($releData['config']['db'])"}
+			    		请先保存“数据库配置”
+			    	{else /}
+			    		<div class="form-group">
+				     		<div class="input-group db-table-list">
+				     		</div>
+			     			<div class="db-table-binding" style="margin-top:15px;"></div>
+			     		</div>
+			     		<div class="form-group">
+							<div class="panel-group" id="db_table_bind_list"></div>
+							{if condition="$releData['config']['db']['type'] eq 'oracle'"}
+							<p class="help-block">Oracel表的自增主键需绑定序列号才能获取自增值，自增字段选择“自定义内容”输入“sequence@序列号”，例如“sequence@seq_123”</p>
+							{/if}
+							<p class="help-block">如需获取表的自增主键值，选择“自定义内容”输入“auto_id@表名”，例如“auto_id@table123”，注意：表是按顺序插入数据，前面的表不能获取后面表的自增主键值</p>
+						</div>
+					{/if}
+					</div>
+			    </div>
+			</div>
+		</div>
+	</div>
+	<div class="rele-module" id="rele_module_file" module="file" style="display:none;">
+		<div class="box box-default">
+			<div class="box-body">
+				<div class="form-group">
+					<label>文件存放目录</label>
+					<div class="input-group">
+						<div class="input-group-addon">{:config('root_path')}\data\</div>
+						<input type="text" class="form-control" name="file[path]" />
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-default btn-file-rand-path">随机目录</button>
+						</div>
+					</div>
+					<p class="help-block">请务必输入一个复杂的目录以防止他人破解目录下载数据！</p>
+				</div>
+				<div class="form-group">
+					<label>文件格式</label>
+					<div class="row">
+						<div class="col-sm-4" style="padding-top:7px;">
+							<label class="radio-inline">
+							  <input type="radio" name="file[type]" value="xlsx"> Excel2007(.xlsx格式)
+							</label>
+						</div>
+						<div class="col-sm-4" style="padding-top:7px;">
+							<label class="radio-inline">
+							  <input type="radio" name="file[type]" value="xls"> Excel2003(.xls格式)
+							</label>
+						</div>
+						<div class="col-sm-4">
+							<div class="input-group">
+								<div class="input-group-addon" style="border:0;padding-left:0;">
+									<label class="radio-inline">
+										<input type="radio" name="file[type]" value="txt"> txt文本，字段分隔符
+									</label>
+								</div>
+								<input type="text" class="form-control" name="file[txt_implode]" placeholder="默认制表符" />
+							</div>
+						</div>
+					</div>
+				</div>
+				{if !empty($collFields)}
+				<div class="form-group">
+					<label>隐藏采集字段</label>
+					<div>
+					{foreach $collFields as $v}
+					<label class="checkbox-inline"><input type="checkbox" name="file[hide_fields][]" value="{$v}" />{$v}</label>
+					{/foreach}
+					</div>
+					<p class="help-block">勾选的字段不写入文件</p>
+				</div>
+				{/if}
+			</div>
+		</div>
+	</div>
+	<div class="rele-module" id="rele_module_api" module="api" style="display:none;">
+		<div class="box box-default">
+			<div class="box-body">
+				<div class="form-group">
+					<label>api地址</label>
+					<div class="input-group">
+						<div class="input-group-addon">{:config('root_website')}/api_task/{$releData['task_id']}/</div>
+						<input type="text" class="form-control" name="api[url]" />
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-default btn-api-rand-url">随机字符串</button>
+						</div>
+					</div>
+					<p class="help-block">
+						请务必输入一个复杂的字符串以防止他人破解api下载数据！
+						<br />
+						{if condition="!empty($releData['config']['api']['url'])"}
+						API网址：<a href="{$apiRootUrl}/api_task/{$releData['task_id']}/{$releData['config']['api']['url']}" target="_blank">{$apiRootUrl}/api_task/{$releData['task_id']}/{$releData['config']['api']['url']}</a>
+						{/if}
+					</p>
+				</div>
+				<div class="form-group">
+					<label>数据缓存时间（分钟）</label>
+					<input type="number" class="form-control" name="api[cache_time]" />
+					<p class="help-block">留空或0表示实时抓取</p>
+				</div>
+				
+				{if !empty($collFields)}
+				<div class="form-group">
+					<label>隐藏采集字段</label>
+					<div>
+					{foreach $collFields as $v}
+					<label class="checkbox-inline"><input type="checkbox" name="api[hide_fields][]" value="{$v}" />{$v}</label>
+					{/foreach}
+					</div>
+					<p class="help-block">勾选的字段不显示，默认显示所有字段</p>
+				</div>
+				{/if}
+			</div>
+		</div>
+	</div>
+	<div class="rele-module" id="rele_module_diy" module="diy" style="display:none;">
+		<input type="hidden" name="diy[type]" value="app">
+		<ul id="diy_tab" class="nav nav-tabs">
+			<li class="active"><a href="#diy_tab_app" data-toggle="tab" data-type="app">使用插件</a></li>
+			<li><a href="#diy_tab_code" data-toggle="tab" data-type="code">使用代码</a></li>
+		</ul>
+		<div id="diy_tab_content" class="tab-content" style="margin-top:-1px">
+			<div class="tab-pane fade in active" id="diy_tab_app">
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<div class="form-group">
+							<label>插件名</label>
+							<input type="text" class="form-control" name="diy[app]" />
+							<p class="help-block">
+								自定义插件适用于任何网站的数据发布或开发其他发布功能<br>
+								请在网站根目录/plugin/release/diy目录中创建<b></b>插件，可参考目录中的Demo.php文件
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="diy_tab_code">
+				<div class="panel panel-default">
+					<div class="panel-body">
+{if condition="!config('OPEN_DIY_CODE')"}
+	出于安全考虑，如需开启该功能，请在根目录配置文件"data/config.php"中添加设置
+	<b>'OPEN_DIY_CODE'=>TRUE</b>
+{else /}
+						<div class="form-group">
+							<div class="table-responsive">
+							<table>
+							<thead>
+								<tr>
+									<th>数据库类型</th>
+									<th>服务器</th>
+									<th>库名称</th>
+									<th>用户名</th>
+									<th>密码</th>
+									<th>端口</th>
+									<th>表前缀</th>
+									<th>编码</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>
+										<select name="diy[db_type]" class="form-control">
+											<option value="mysql">mysql/mysqli</option>
+											<option value="sqlserver">mssql/sqlsrv</option>
+											<option value="oracle">oracle</option>
+											<option value="mongo">mongo</option>
+											<option value="sqlite">sqlite</option>
+											<option value="ibase">ibase</option>
+											<option value="pgsql">pgsql</option>
+											<option value="PDO">PDO</option>
+										</select>
+									</td>
+									<td><input type="text" name="diy[db_host]" value="localhost" class="form-control" /></td>
+									<td><input type="text" name="diy[db_name]" class="form-control" /></td>
+									<td><input type="text" name="diy[db_user]" class="form-control" /></td>
+									<td><input type="text" name="diy[db_pwd]" class="form-control" /></td>
+									<td><input type="text" name="diy[db_port]" value="3306" class="form-control" /></td>
+									<td><input type="text" name="diy[db_prefix]" class="form-control" /></td>
+									<td><input type="text" name="diy[db_charset]" value="utf8" class="form-control" /></td>
+								</tr>
+							</tbody>
+							</table>
+							</div>
+						</div>
+						<div class="form-group">
+							<label>PHP代码</label>
+							<textarea name="diy[code]" class="form-control" rows="5"></textarea>
+							<div class="help-block">
+								可用变量：$fields = 采集到的字段数据列表，$url = 采集的页面网址，$this->db() = 数据库操作， 可参考thinkphp5的数据库操作
+								<br>获取字段值必须使用 $this->get_field_val($field);方法(可处理图片本地化等)，否则使用$field['value']调用字段原始值
+		
+		<p style="border-top:dashed 1px #ccc;padding-top:10px;margin-top:10px;">
+		必须以数组形式返回：
+		<br>* id（必填）表示入库返回的自增id或状态
+		<br>target（可选）记录入库的数据位置（发布的网址等）
+		<br>desc（可选）记录入库的数据位置附加信息
+		<br>error（可选）入库的错误信息
+		<br>return array('id'=>0,'target'=>'','desc'=>'','error'=>'');
+		</p>
+		入库的信息可在“已采集数据”中查看
+							</div>
+						</div>
+{/if}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	{if condition="!empty($releData['config'])"}
+	<a href="{:url('Release/test?id='.$releData['id'])}" target="_blank" onclick="windowIframe('测试',$(this).attr('href'),{lg:1});return false;" class="btn btn-default btn-block" style="margin-bottom:10px;">测试发布（需先保存设置）</a>
+	{/if}
+	<div class="form-group">
+		<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+	</div>
+</form>
+{if condition="$taskData"}
+{include file="task:stepsbar" /}
+{/if}
+<script type="text/javascript">
+var releaseClass=new ReleaseClass('form_rele',{$releData["id"]|intval});
+releaseClass.init();
+{if condition="!empty($releData)"}
+releaseClass.load({$releData|json_encode});
+{/if}
+</script>
+{/block}

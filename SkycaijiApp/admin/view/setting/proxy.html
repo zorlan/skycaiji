@@ -1,0 +1,81 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/proxy.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="nav-tabs-custom">
+	<ul class="nav nav-tabs">
+    	<li><a href="{:url('Setting/Caiji')}">采集设置</a></li>
+    	<li><a href="{:url('Setting/page_render')}">页面渲染设置</a></li>
+    	<li class="active"><a href="{:url('Setting/Proxy')}">代理设置</a></li>
+    	<li><a href="{:url('Setting/Translate')}">翻译设置</a></li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane active" style="padding:0px 5px;">
+		<form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('Admin/Setting/proxy')}">
+			<input type="hidden" name="ip_list" value="" />
+			<input type="hidden" name="user_list" value="" />
+			<input type="hidden" name="pwd_list" value="" />
+      		<div class="form-group">
+		        <label>开启代理</label>
+		        <div class="input-group">
+		        	<label class="radio-inline"><input type="radio" name="open" value="1">{$Think.lang.yes}</label>
+		        	<label class="radio-inline"><input type="radio" name="open" value="0">{$Think.lang.no}</label>
+		        </div>
+		    </div>
+		    <div id="proxy_open" class="proxy-ip-box" style="display:none;">
+			    <div class="form-group">
+		        	<label>失败多少次屏蔽该IP</label>
+					<input type="number" class="form-control" name="failed" />
+					<p class="help-block">留空或0表示不屏蔽</p>
+			    </div>
+			    <div class="form-group">
+		        	<label>IP使用策略</label>
+					<div class="input-group">
+			        	<label class="radio-inline"><input type="radio" name="use" value="" checked="checked">无（默认循环使用）</label>
+			        	<label class="radio-inline"><input type="radio" name="use" value="num">按次数使用</label>
+			        	<label class="radio-inline"><input type="radio" name="use" value="time">按时长使用</label>
+			        </div>
+			    </div>
+			    <div id="proxy_use_num" class="form-group" style="display:none;">
+		        	<label>每个IP使用多少次</label>
+					<input type="number" class="form-control" name="use_num" />
+			    </div>
+			    <div id="proxy_use_time" class="form-group" style="display:none;">
+		        	<label>每个IP使用多少分钟</label>
+					<input type="number" class="form-control" name="use_time" />
+			    </div>
+	     		<div class="h-title">
+	     			<label class="control-label">代理IP</label>
+	      			&nbsp;<a href="javascript:;" id="add_proxy_ip" class="glyphicon glyphicon-plus" title="添加">添加</a>
+	      			&nbsp;<a href="javascript:;" id="batch_proxy_ip" class="glyphicon glyphicon-th" title="批量添加">批量</a>
+	      			&nbsp;<a href="javascript:;" id="clear_proxy_ip" class="glyphicon glyphicon-trash" title="清空">清空</a>
+	      		</div>
+			    <div class="form-group">
+	    			<div class="table-responsive proxy-ip-list">
+		            	<table class="table table-hover" id="proxy_ip_table" style="margin-bottom:0;">
+		                   <thead>
+		                       <tr>
+		                           <th class="col-xs-5" colspan="2">IP（可带端口）</th>
+		                           <th class="col-xs-3">用户名（选填）</th>
+		                           <th class="col-xs-3">密码（选填）</th>
+		                           <th class="col-xs-1">删除</th>
+		                       </tr>
+		                   </thead>
+		                   <tbody>
+		                   </tbody>
+						</table>
+		        	</div>
+	      		</div>
+      		</div>
+		   	<div class="form-group">
+				<button type="submit" id="btn_sub" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+			</div>
+		</form>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+proxyClass.init({$proxyConfig|json_encode});
+</script>
+{/block}

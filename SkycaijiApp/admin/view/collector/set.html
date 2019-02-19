@@ -1,0 +1,23 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/collector.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<form id="form_coll" class="form-item" method="post" ajax-submit="true" role="form" action="{:url('Collector/set')}">
+	<input type="hidden" name="task_id" value="{$taskData['id']}" />
+	<input type="hidden" name="module" value="{$taskData['module']}" />
+	<input type="hidden" name="tab_link" value="{:input('tab_link')}" />
+	<input type="hidden" name="effective" value="" />
+   	{if condition="$taskData['module']=='pattern'"}
+		{include file="cpattern:set" /}
+   	{elseif condition="$taskData['module']=='weixin'" /}
+   	
+	{/if}
+	<div class="form-group">
+		<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+	</div>
+	{if condition="$taskData"}
+	{include file="task:stepsbar" /}
+	{/if}
+</form>
+{/block}

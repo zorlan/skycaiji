@@ -1,0 +1,22 @@
+{if condition="$op=='move'"}
+<form id="form_op" method="post" ajax-submit="true" role="form" action="{:url('Taskgroup/op')}">
+<input type="hidden" name="id" value="{$tgData['id']}" />
+<input type="hidden" name="op" value="{$op}" />
+<input type="hidden" name="referer" value="{$_SERVER['HTTP_REFERER']}" />
+<div class="form-group">
+	<label>{$Think.lang.taskgroup_parent_id}</label>
+	<select name="parent_id" class="form-control">
+		<option value="0">{$Think.lang.none}</option>
+		{foreach name="parentTgList" item="tgName" key="tgId"}
+        <option value="{$tgId}">{$tgName}</option>
+		{/foreach}
+	</select>
+</div>
+<button type="submit" class="btn btn-primary">{$Think.lang.submit}</button>
+</form>
+{/if}
+<script type="text/javascript">
+{if condition="$tgData['parent_id']"}
+$('#form_op select[name="parent_id"]').val("{$tgData['parent_id']}");
+{/if}
+</script>

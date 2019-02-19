@@ -1,0 +1,58 @@
+<form id="form_relation_url" method="post" action="{:url('Cpattern/relation_url')}">
+	<input type="hidden" name="objid" value="{$objid}" />
+	<div class="form-group">
+   		<label class="control-label">关联页名称</label>
+   		<input type="text" class="form-control" name="relation_url[name]" placeholder=""/>
+	</div>
+	<div class="form-group">
+   		<label class="control-label">从页面中提取</label>
+		<select name="relation_url[page]" class="form-control">
+			<option value="">默认内容页</option>
+		</select>
+	</div>
+	<div class="form-group">
+   		<label class="control-label">提取网址规则</label>
+   		<div class="input-group">
+    		<textarea class="form-control" name="relation_url[url_rule]" rows="3" data-placeholder-xpath="请输入xpath规则" data-placeholder-json="请输入json规则" placeholder="必须填写规则，{$Think.lang.tips_match_url}"></textarea>
+ 			<div class="input-group-addon iga-rt iga-rt1">
+				<select name="relation_url[url_rule_module]" data-rule-input="relation_url[url_rule]" class="slt">
+	     			<option value="">正则</option>
+	     			<option value="xpath">xpath</option>
+	     			<option value="json">json</option>
+	     		</select>
+	     		<ul data-rule-op="relation_url[url_rule_module]" class="op">
+	     			<li data-module="" style="display:block;">
+	 					<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'relation_url[url_rule]\']')">{$Think.lang.sign_wildcard}</a>
+	 					<a href="javascript:;" title="{$Think.lang.tips_sign_match}" onclick="cpMatch('[name=\'relation_url[url_rule]\']')">{:cp_sign('match')}</a>
+	 					<a href="javascript:;" title="{$Think.lang.tips_sign_group}" class="blk" onclick="cpMatch('[name=\'relation_url[url_rule]\']',{group:1})">捕获组</a>
+ 					</li>
+			      	<li data-module="xpath">xpath语法</li>
+					<li data-module="json">格式 a.b.c<br>通配符 *</li>
+	    		</ul>
+    		</div>
+    	</div>
+    	<p class="help-block" data-rule-set="relation_url[url_rule_module]">
+			<span data-module="xpath" style="display:none;">XPATH匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+			<span data-module="json" style="display:none;">JSON匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+		</p>
+	</div>
+	<div class="form-group">
+  		<label class="control-label">拼接成最终网址</label>
+  		<div class="input-group">
+    		<input type="text" class="form-control" name="relation_url[url_merge]" placeholder="默认拼接所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn_url}"/>
+  			<div class="input-group-addon iga-rt">
+  				<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'relation_url[url_rule]\']','[name=\'relation_url[url_merge]\']',{def:1})">{:cp_sign('match','N')}</a>
+  			</div>
+    	</div>
+	</div>
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+<script type="text/javascript">
+{if condition="$relation_url"}
+c_pattern.relation_url_op('init',{relation_url:{$relation_url|json_encode}});
+{else /}
+c_pattern.relation_url_op('init');
+{/if}
+</script>

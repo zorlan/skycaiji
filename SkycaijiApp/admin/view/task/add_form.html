@@ -1,0 +1,156 @@
+<form id="form_item" method="post" enctype="multipart/form-data" action="{:url('Task/'.($taskData?'edit':'add'))}">
+<div class="box box-default">
+<div class="box-body">	
+	{if condition="$taskData"}
+	<input type="hidden" name="id" value="{$taskData['id']}" />
+	{/if}
+	<input type="hidden" name="task_id" value="" />
+	<input type="hidden" name="rule_id" value="" />
+    <div class="form-group">
+        <label>{$Think.lang.task_name}</label>
+		{if condition="$taskData"}
+        <input name="name" class="form-control" value="{$taskData['name']}">
+        {else/}
+		<div class="input-group">
+        	<input name="name" class="form-control" value="">
+        	<div class="input-group-btn"><button class="btn btn-default" onclick="windowModal('复制一个任务的所有设置','{:url("Task/list?show=import")}');" type="button" id="btn_import_task">导入任务</button></div>
+   		</div>
+        {/if}
+    </div>
+    <div class="form-group">
+        <label>{$Think.lang.task_tg}</label>
+        {$tgSelect}
+    </div>
+    <div class="form-group">
+        <label>{$Think.lang.task_module}</label>
+        <div class="input-group" style="width:100%;">
+	        <select name="module" class="form-control">
+	        	{foreach name="Think.config.allow_coll_modules" item="cmodule"}
+	           	<option value="{$cmodule}">{:lang('task_module_'.$cmodule)}</option>
+	        	{/foreach}
+	        </select>
+	        <div class="input-group-btn dropdown">
+			  <button class="btn btn-default dropdown-toggle" type="button" id="btn_import_rule" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			   	导入规则
+			  	<span class="caret"></span>
+			  </button>
+			  <ul class="dropdown-menu dropdown-menu-right dropdown-import-rule" aria-labelledby="btn_import_rule">
+			  	<li><a href="javascript:;" onclick="windowModal('导入规则会覆盖该任务的采集器设置，且不可恢复','{:url("Mystore/collect?tpl=task")}');">已下载规则</a></li>
+			  	<li><a href="javascript:;" onclick="windowModal('导入规则会覆盖该任务的采集器设置，且不可恢复','{:url("Collector/list?module=pattern&tpl=task")}');">其它任务的规则</a></li>
+			  	<li role="separator" class="divider"></li>
+			  	<li style="padding-left:20px;padding-bottom:5px;"><input type="file" name="rule_file" /></li>
+			  </ul>
+			</div>
+		</div>
+    </div>
+    <div class="form-group">
+        <label>{$Think.lang.task_auto}</label>
+        <div class="input-group">
+        	<label class="radio-inline"><input type="radio" name="auto" value="1">{$Think.lang.yes}</label>
+        	<label class="radio-inline"><input type="radio" name="auto" value="0">{$Think.lang.no}</label>
+        </div>
+    </div>
+   	<div class="form-group">
+       	<label>{$Think.lang.task_sort}</label>
+		<input type="text" class="form-control" name="sort" autocomplete="off" value="{$taskData['sort']|intval}" />
+		<p class="help-block">{$Think.lang.task_sort_help}</p>
+	</div>
+</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<h4 class="panel-title">
+			<a data-toggle="collapse" href="#task_config" aria-expanded="false">更多设置</a>
+    	</h4>
+   	</div>
+    <div id="task_config" class="panel-collapse collapse">
+    	<div class="panel-body">
+		    <p class="help-block">以下选项受<a href="{:url('Setting/caiji')}">采集设置</a>影响</p>
+		    <div class="form-group">
+		        <label>每次采集数量</label>
+		        <input type="number" name="config[num]" class="form-control" value="{$taskData['config']['num']}">
+		        <p class="help-block">该任务每次采集的数据量，不能超过采集设置中的“每次采集数量”</p>
+		    </div>
+		    <div class="form-group">
+		        <label>使用代理</label>
+		        <div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="config[proxy]" value="">默认</label>
+			        <label class="radio-inline"><input type="radio" name="config[proxy]" value="y">是</label>
+					<label class="radio-inline"><input type="radio" name="config[proxy]" value="n">否</label>
+		        </div>
+		    </div>
+		    
+		    <div class="form-group">
+		        <label>图片本地化</label>
+		        <div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="config[download_img]" value="">默认</label>
+			        <label class="radio-inline"><input type="radio" name="config[download_img]" value="y">是</label>
+					<label class="radio-inline"><input type="radio" name="config[download_img]" value="n">否</label>
+		        </div>
+		    </div>
+		    <div class="form-group">
+	        	<label>图片保存目录（绝对路径）</label>
+	        	<input type="text" name="config[img_path]" class="form-control" placeholder="默认设置" value="{$taskData['config']['img_path']}">
+		    </div>
+		    <div class="form-group">
+	        	<label>图片链接地址（绝对地址）</label>
+	        	<input type="text" name="config[img_url]" class="form-control" placeholder="默认设置">
+		    </div>
+    	</div>
+    </div>
+</div>
+<div class="form-group">
+	<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+</div>
+</form>
+
+<script type="text/javascript">
+{if condition="!empty($taskData)"}
+	$('#form_item select[name="tg_id"]').val("{$taskData['tg_id']|intval}");
+	$('#form_item select[name="auto"]').val("{$taskData['auto']|intval}");
+	$('#form_item select[name="module"]').val("{$taskData['module']}");
+	$('#form_item input[name="auto"][value="{$taskData["auto"]|intval}"]').prop('checked','checked');
+	$('#form_item [name="config[download_img]"][value="{$taskData["config"]["download_img"]}"]').prop('checked','checked');
+	$('#form_item [name="config[proxy]"][value="{$taskData["config"]["proxy"]}"]').prop('checked','checked');
+	
+	var task_config={:json_encode($taskData["config"])};
+	for(var i in task_config){
+		if(task_config[i]){
+			$('#task_config').addClass('in');
+			break;
+		}
+	}
+
+	$('#form_item [name="config[img_url]"]').val(task_config.img_url);
+	
+{/if}
+//模块显示导入
+$('#form_item select[name="module"]').bind('change',function(){
+	if($(this).val()!='pattern'){
+		$('#btn_import_rule').parents('.input-group-btn').hide();
+	}else{
+		$('#btn_import_rule').parents('.input-group-btn').show();
+	}
+});
+//导入本地规则
+$('#form_item [name="rule_file"]').bind('change',function(){
+	import_rule('file',$(this).val());
+	$(this).parents('.dropdown').removeClass('open');
+});
+//导入规则
+function import_rule(ruleId,ruleName){
+	$('#form_item input[name="rule_id"]').val(ruleId);
+	$('#btn_import_rule').text('导入规则：'+ruleName);
+	if(ruleId!='file'){
+		//不是文件规则
+		$('#form_item [name="rule_file"]').val('');
+	}
+	$('#myModal').modal('hide');
+}
+//导入任务
+function import_task(id,name){
+	$('#form_item input[name="task_id"]').val(id);
+	$('#btn_import_task').text('导入任务：'+name);
+	$('#myModal').modal('hide');
+}
+</script>
