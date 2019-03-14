@@ -29,13 +29,10 @@ class Mystore extends BaseController {
 		$type='collect';
 		$module=input('module');
 		$page=max(1,input('p/d',0));
-		$pageParams=array();
-		$pageParams['type']=$type;
 		$cond=array('type'=>$type);
 		
 		if(!empty($module)){
 			$cond=array('module'=>$module);
-			$pageParams['module']=$module;
 		}
 		
 		$sortBy=input('sort','desc');
@@ -48,7 +45,7 @@ class Mystore extends BaseController {
 		
 		$limit=20;
 		$count=$mrule->where($cond)->count();
-		$ruleList=$mrule->where($cond)->order($orderBy)->paginate($limit,false,array('query'=>$pageParams));
+		$ruleList = $mrule->where($cond)->order($orderBy)->paginate($limit,false,paginate_auto_config());
 		
 		$pagenav = $ruleList->render();
 		$this->assign('pagenav',$pagenav);
@@ -58,7 +55,7 @@ class Mystore extends BaseController {
 		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Mystore/index'),'title'=>'已下载'),lang('rule_'.$type)));
 		
 		$this->assign('ruleList',$ruleList);
-		
+
 		$tpl=input('tpl');
 		$tpl='rules'.(!empty($tpl)?('_'.$tpl):'');
 		
@@ -120,7 +117,6 @@ class Mystore extends BaseController {
 	}
 	public function releaseAppAction(){
 		$page=max(1,input('p/d',0));
-		$pageParams=array();
 		$cond=array();
 		
 		$sortBy=input('sort','desc');
@@ -133,7 +129,7 @@ class Mystore extends BaseController {
 		$mapp=model('ReleaseApp');
 		$limit=20;
 		$count=$mapp->where($cond)->count();
-		$appList=$mapp->where($cond)->order($orderBy)->paginate($limit,false,array('query'=>$pageParams));
+		$appList=$mapp->where($cond)->order($orderBy)->paginate($limit,false,paginate_auto_config());
 		
 		$pagenav = $appList->render();
 		$this->assign('pagenav',$pagenav);

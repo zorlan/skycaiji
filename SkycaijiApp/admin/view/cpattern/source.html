@@ -13,6 +13,7 @@
     <li class="active"><a href="#tab_custom" data-toggle="tab" source-type="custom">手工指定</a></li>
     <li class=""><a href="#tab_batch" data-toggle="tab" source-type="batch">批量生成</a></li>
     <li class=""><a href="#tab_large" data-toggle="tab" source-type="large">大量网址</a></li>
+    <li class=""><a href="#tab_api" data-toggle="tab" source-type="api">API动态获取</a></li>
 </ul>
 
 <div class="tab-content">
@@ -68,6 +69,14 @@
     <div class="tab-pane fade" id="tab_large" style="padding:10px 0;">
     	<p>大量网址，一行一条(http://或https://开头)</p>
         <textarea name="source[large_urls]" class="form-control" rows="5"></textarea>
+    </div>
+    <div class="tab-pane fade" id="tab_api" style="padding:10px 0;">
+    	<p>API接口网址</p>
+        <input name="source[api]" class="form-control" />
+        <p class="help-block">通过api接口动态获取网址</p>
+        <p>网址获取规则</p>
+        <input name="source[api_json]" class="form-control" placeholder="默认获取json根节点的值" />
+        <p class="help-block">json规则： a.b.c 通配符 *</p>
     </div>
 </div>
 

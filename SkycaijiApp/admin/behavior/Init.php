@@ -30,7 +30,7 @@ class Init{
 		/*自动登录*/
 		$muser=model('User');
 		$s_userid=session('user_id');
-		if(empty($s_userid)){
+		if(!IS_CLI&&empty($s_userid)){
 			
 			$login_history=cookie('login_history');
 			if(!empty($login_history)){
@@ -95,6 +95,18 @@ class Init{
 			$configList=$cacheConfig['list'];
 		}
 		$GLOBALS['config']=$configList;
+		
+		if(!empty($GLOBALS['config']['site']['closelog'])){
+			
+			\think\Log::init(array('type'=>'test','level'=>array()));
+		}
+		if(!empty($GLOBALS['config']['site']['dblong'])){
+			
+			$dbParams=config('database.params');
+			$dbParams[\PDO::ATTR_PERSISTENT]=true;
+			config('database.params',$dbParams);
+		}
+		
 		$GLOBALS['clientinfo']=clientinfo();
 		if(!empty($GLOBALS['clientinfo'])){
 			$GLOBALS['clientinfo']=base64_encode(json_encode($GLOBALS['clientinfo']));

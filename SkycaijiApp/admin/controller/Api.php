@@ -28,6 +28,18 @@ class Api extends BaseController{
 	}
 	/*执行采集*/
 	public function collectAction(){
+		if(input('?backstage')){
+			
+			if(!IS_CLI){
+				ignore_user_abort(true);
+				
+				if($GLOBALS['config']['caiji']['server']=='cli'){
+					
+					cli_command_exec('collect auto');
+					exit();
+				}
+			}
+		}
 		define('IS_COLLECTING', 1);
 		$mcache=CacheModel::getInstance();
 		if($mcache->getCache('auto_collecting')){
@@ -37,7 +49,7 @@ class Api extends BaseController{
 		$mcache->setCache('auto_collecting',1);
 		register_shutdown_function('remove_auto_collecting');
 		
-		if(!session('user_id')){
+		if(input('?backstage')||!session('user_id')){
 			
 			define('CLOSE_ECHO_MSG', true);
 		}

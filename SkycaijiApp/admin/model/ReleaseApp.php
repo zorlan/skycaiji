@@ -27,12 +27,12 @@ class ReleaseApp extends BaseModel{
 		
 		if(!empty($cmsData)){
 			
-			$this->allowField(true)->save($cms,array('module'=>'cms','app'=>$cms['app']));
+			$this->strict(false)->where(array('module'=>'cms','app'=>$cms['app']))->update($cms);
 			$success=true;
 		}else{
 			
 			$cms['addtime']=NOW_TIME;
-			$this->save($cms);
+			$this->isUpdate(false)->allowField(true)->save($cms);
 			$cms['id']=$this->id;
 			$success=$cms['id']>0?true:false;
 		}

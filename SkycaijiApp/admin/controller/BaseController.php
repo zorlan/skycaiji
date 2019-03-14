@@ -67,8 +67,10 @@ class BaseController extends \skycaiji\common\controller\BaseController{
 				}
 			}
 			echo '<p style="color:'.$color.';">'.$str.'</p>'.$end_str;
- 			ob_flush();
- 			flush();
+			if(ob_get_level()>0){
+				ob_flush();
+				flush();
+			}
 		}
 	}
 	/*保留旧的入口*/

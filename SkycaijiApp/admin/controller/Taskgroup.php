@@ -39,14 +39,14 @@ class Taskgroup extends BaseController {
     		
     		$count=$mtaskgroup->where($cond)->count();
 	    	if($count>0){
-    			$parentList=$mtaskgroup->where($cond)->order('sort desc')->paginate($limit,false,array('query'=>$search));
+    			$parentList=$mtaskgroup->where($cond)->order('sort desc')->paginate($limit,false,paginate_auto_config());
 	    	}
     	}else{
     		
 	    	$cond=array('parent_id'=>0);
 	    	$count=$mtaskgroup->where($cond)->count();
 	    	if($count>0){
-	    		$parentList=$mtaskgroup->where($cond)->order('sort desc')->paginate($limit,false,array('query'=>$search));
+	    		$parentList=$mtaskgroup->where($cond)->order('sort desc')->paginate($limit,false,paginate_auto_config());
 	    		$parentIds=array();
 	    		foreach ($parentList->all() as $item){
 	    			$parentIds[$item['id']]=$item['id'];
@@ -91,7 +91,7 @@ class Taskgroup extends BaseController {
     			$this->error($validate->getError());
     		}
 
-    		$mtaskgroup->allowField(true)->save($newData);
+    		$mtaskgroup->isUpdate(false)->allowField(true)->save($newData);
     		$tgid=$mtaskgroup->id;
     		if($tgid>0){
     			$this->success(lang('op_success'),input('referer','','trim')?input('referer','','trim'):('Taskgroup/edit?id='.$tgid));
@@ -148,7 +148,8 @@ class Taskgroup extends BaseController {
     			unset($newData['parent_id']);
     		}
     		unset($newData['id']);
-    		$result=$mtaskgroup->allowField(true)->save($newData,array('id'=>intval($tgData['id'])));
+    		
+    		$result=$mtaskgroup->strict(false)->where(array('id'=>intval($tgData['id'])))->update($newData);
     		if($result>=0){
     			$this->success(lang('op_success'),'Taskgroup/edit?id='.$tgData['id']);
     		}else{
@@ -199,8 +200,9 @@ class Taskgroup extends BaseController {
     			
     			$this->error(lang('tg_exist_sub'));
     		}else{
+    			
     			$mtaskgroup->where(array('id'=>$id))->delete();
-    			$mtask->save(array('tg_id'=>0),array('tg_id'=>$id));
+    			$mtask->strict(false)->where(array('tg_id'=>$id))->update(array('tg_id'=>0));
     			$this->success(lang('delete_success'));
     		}
     	}elseif($op=='move'){
@@ -219,7 +221,7 @@ class Taskgroup extends BaseController {
 
     			if($tgData['id']!=$parent_id){
     				
-    				$mtaskgroup->save(array('parent_id'=>$parent_id),array('id'=>intval($tgData['id'])));
+    				$mtaskgroup->strict(false)->where(array('id'=>intval($tgData['id'])))->update(array('parent_id'=>$parent_id));
     			}
     			$this->success(lang('op_success'),input('referer','','trim'));
     		}else{
@@ -243,7 +245,7 @@ class Taskgroup extends BaseController {
     			}
     			if($deleteIds){
     				$mtaskgroup->where(array('id'=>array('in',$deleteIds)))->delete();
-    				$mtask->save(array('tg_id'=>0),array('tg_id'=>array('in',$deleteIds)));
+    				$mtask->strict(false)->where(array('tg_id'=>array('in',$deleteIds)))->update(array('tg_id'=>0));
     			}
     		}
     		$this->success(lang($hasSub?'tg_deleteall_has_sub':'op_success'));

@@ -1,0 +1,99 @@
+<div id="win_bk_task_list_{$taskType}">
+{if $list}
+	{foreach $list as $task}
+	<div class="panel box box-default" style="margin-bottom:0;">
+		<div class="box-header with-border">
+			<h4 class="box-title">
+				<a data-toggle="collapse" data-parent="#win_bk_task_list_{$taskType}" href="#win_bk_t_list_{$task['id']}" class="collapsed">
+					{$task['name']}
+					{if $taskType}
+					({$cacheList[$task['id']]['collected_count']})
+					<small>{$cacheList[$task['id']]['enddate']} 结束 </small>
+					{else /}
+					<small style="color:inherit;"><span class="fa fa-refresh fa-spin"></span></small>
+					{/if}
+				</a>
+			</h4>
+			<a href="javascript:;" class="fa fa-remove pull-right" data-task-id="{$task['id']}" style="font-size:90%;color:#ccc" title="删除"></a>
+		</div>
+		<div id="win_bk_t_list_{$task['id']}" data-task-id="{$task['id']}" class="panel-collapse collapse">
+			<div class="box-body">
+				
+			</div>
+		</div>
+	</div>
+	{/foreach}
+	
+	{if $pagenav}
+	<div style="margin-top:15px;">{$pagenav}</div>
+	{/if}
+{else /}
+	无任务
+{/if}
+</div>
+
+<script type="text/javascript">
+'use strict';//严格模式
+//任务已采集数据
+function win_bk_task_collected(taskId,url){
+	$('#win_bk_t_list_'+taskId+' .box-body').html('<img src="'+window.site_config.pub+'/static/images/load1.gif" />');
+	$.ajax({
+		type: 'get',
+		dataType: 'html',
+		async:true,
+		url:(url?url:ulink('admin/backstage/backstageTask?op=collected&tid='+taskId)),
+		success: function (data){
+			$('#win_bk_t_list_'+taskId).html(data);
+		}
+	});
+}
+if(!window.interval_bk_tasks){
+	//定时器全局变量
+	window.interval_bk_tasks={};
+}
+
+$('#win_bk_task_list_0 a[data-parent="#win_bk_task_list_0"]').bind('click',function(){
+	var taskId=$($(this).attr('href')).attr('data-task-id');
+	win_bk_task_collected(taskId);//先读取一次
+	//正在采集自动刷新
+	if(window.interval_bk_tasks[taskId]){
+		//先停止
+		clearInterval(window.interval_bk_tasks[taskId]);
+	}
+	window.interval_bk_tasks[taskId]=setInterval(function(){
+		if($('#win_bk_t_list_'+taskId).is(":hidden")){
+			//元素不可见停止刷新
+			clearInterval(window.interval_bk_tasks[taskId]);
+		}else{
+			win_bk_task_collected(taskId);
+		}
+	},3000);
+});
+$('#win_bk_task_list_1 a[data-parent="#win_bk_task_list_1"]').bind('click',function(){
+	//已采集任务
+	var taskId=$($(this).attr('href')).attr('data-task-id');
+	win_bk_task_collected(taskId);
+});
+
+$('[id^="win_bk_task_list_"] .fa-remove').bind('click',function(){
+	//删除后台任务
+	var obj=$(this);
+	var taskId=$(this).attr('data-task-id');
+	$.ajax({
+		type: 'get',
+		dataType: 'json',
+		async:true,
+		url:ulink('admin/task/bkdelete?id='+taskId),
+		success: function (data){
+			obj.parents('.panel').remove();
+		}
+	});
+});
+
+$('#win_bk_task_list_{$taskType} .pagination').addClass('pagination-sm');
+$('#win_bk_task_list_{$taskType} .pagination a').bind('click',function(){
+	var op=$(this).parents('.tab-pane[data-op]').eq(0).attr('data-op');
+	win_bk_task_list(op,$(this).attr('href'));
+	return false;
+});
+</script>

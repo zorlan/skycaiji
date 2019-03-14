@@ -66,16 +66,22 @@ class Tool extends BaseController {
 	public function logsAction(){
 		$logPath=realpath(config('root_path').'/runtime/log');
 		$logList=array();
-		$paths=scandir($logPath);
-		foreach ($paths as $path){
-			if($path!='.'&&$path!='..'){
-				$pathFiles=scandir($logPath.'/'.$path);
-				foreach ($pathFiles as $pathFile){
-					if($pathFile!='.'&&$pathFile!='..'){
-						$logList[$path][]=array(
-							'name'=>$pathFile,
-							'file'=>realpath($logPath.'/'.$path.'/'.$pathFile),
-						);
+		if(!empty($logPath)){
+			$paths=scandir($logPath);
+			if(!empty($paths)){
+				foreach ($paths as $path){
+					if($path!='.'&&$path!='..'){
+						$pathFiles=scandir($logPath.'/'.$path);
+						if(!empty($pathFiles)){
+							foreach ($pathFiles as $pathFile){
+								if($pathFile!='.'&&$pathFile!='..'){
+									$logList[$path][]=array(
+										'name'=>$pathFile,
+										'file'=>realpath($logPath.'/'.$path.'/'.$pathFile),
+									);
+								}
+							}
+						}
 					}
 				}
 			}
@@ -93,7 +99,7 @@ class Tool extends BaseController {
 			$this->error('不是日志文件');
 		}
 		$log=file_get_contents($file);
-		exit($log);
+		exit('<pre>'.$log.'</pre>');
 	}
 	/*文件校验*/
 	public function checkfileAction(){
@@ -424,10 +430,11 @@ class Tool extends BaseController {
 				$json=get_html($url);
 			}
 			$this->success('','',array('json'=>$json));
+		}else{
+			$GLOBALS['content_header']='JSON解析';
+			$GLOBALS['breadcrumb']=breadcrumb(array('JSON解析'));
+			return $this->fetch();
 		}
-		$GLOBALS['content_header']='JSON解析';
-		$GLOBALS['breadcrumb']=breadcrumb(array('JSON解析'));
-		return $this->fetch();
 	}
 	
 }

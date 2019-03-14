@@ -1,0 +1,56 @@
+{if $list}
+<div class="table-responsive">
+<table class="table table-bordered table-hover datatable" style="margin-bottom:0;">
+<thead>
+	<tr>
+		<th>#</th>
+		<th>已发布至</th>
+		<th>发布方式</th>
+		<th>添加时间</th>
+		<th class="url">源网址</th>
+	</tr>
+</thead>
+<tbody>
+{php}$curIx=0;{/php}
+{foreach name="list" item="item"}
+	<tr>
+		<td>{php}$curIx++;{/php}{$curIx}</td>
+		<td class="desc">
+			{if condition="!empty($item['error'])"}
+				失败：{$item['error']}
+			{else /}
+				{$item['target']} {$item['desc']?$item['desc']:''}
+			{/if}
+		</td>
+		<td>{:lang('collected_rele_'.$item['release'])}</td>
+		<td>{:date('Y-m-d H:i:s',$item['addtime'])}</td>
+		<td class="url"><a href="{$item['url']}" target="_blank">{$item['url']}</a></td>
+	</tr>
+{/foreach}
+</tbody>
+</table>
+</div>
+{if $pagenav}
+<div class="box-body">{$pagenav}</div>
+{/if}
+{else /}
+<div class="box-body">无数据</div>
+{/if}
+
+<script type="text/javascript">
+'use strict';//严格模式
+$('[id^="win_bk_t_list_"] .pagination').addClass('pagination-sm');
+$('[id^="win_bk_t_list_"] .pagination a').bind('click',function(){
+	var taskId=$(this).parents('[id^="win_bk_t_list_"]').eq(0).attr('data-task-id');
+	if(window.interval_bk_tasks[taskId]){
+		//停止自动刷新
+		clearInterval(window.interval_bk_tasks[taskId]);
+	}
+	win_bk_task_collected(taskId,$(this).attr('href'));
+	return false;
+});
+{if $taskStatus}
+//正在采集任务已完成
+$('#win_bk_task_list_0').find('a[href="#win_bk_t_list_{$taskId}"]').find('small').text('已结束');
+{/if}
+</script>

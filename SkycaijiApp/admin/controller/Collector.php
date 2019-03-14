@@ -79,19 +79,16 @@ class Collector extends BaseController {
     public function listAction(){
     	$page=max(1,input('p/d',0));
     	$module=input('module');
-    	$pageParams=array();
     	$cond=array();
     	$taskCond=array();
     	if(!empty($module)){
     		$cond=array('module'=>$module);
-    		
-    		$pageParams['module']=$module;
     	}
-
+    	
     	$mcoll=model('Collector');
     	$limit=20;
     	$count=$mcoll->where($cond)->count();
-    	$collList=$mcoll->where($cond)->paginate($limit,false,array('query'=>$pageParams)); 
+    	$collList=$mcoll->where($cond)->paginate($limit,false,paginate_auto_config()); 
 
     	$pagenav = $collList->render();
     	$this->assign('pagenav',$pagenav);

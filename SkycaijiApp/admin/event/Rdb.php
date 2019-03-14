@@ -51,6 +51,7 @@ class Rdb extends Release{
 		$db_config=$this->get_db_config($this->config['db']);
 		$db_key=md5(serialize($db_config));
 		if(empty($this->db_conn_list[$db_key])){
+			
 			$mdb=new DbCommon($db_config);
 			$mdb=$mdb->db();
 			$this->db_conn_list[$db_key]=$mdb;
@@ -207,7 +208,8 @@ class Rdb extends Release{
     		'db_host'  => $config_db['host'],
     		'db_port'  => $config_db['port'],
     		'db_charset'  => $config_db['charset'],
-    		'db_name'  => $config_db['name']
+    		'db_name'  => $config_db['name'],
+    		
     	);
     	
     	if(strcasecmp($db_config['db_charset'], 'utf-8')===0){

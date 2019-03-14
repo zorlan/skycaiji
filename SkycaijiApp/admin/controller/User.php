@@ -18,7 +18,7 @@ class User extends BaseController {
     	$page=max(1,$page);
     	$limit=20;
     	$count=$muser->count();
-    	$userList=$muser->order('uid asc')->paginate($limit);
+    	$userList=$muser->order('uid asc')->paginate($limit,false,paginate_auto_config());
     	
     	$pagenav = $userList->render();
     	$this->assign('pagenav',$pagenav);
@@ -67,7 +67,7 @@ class User extends BaseController {
     			$this->error('您不能添加“'.$GLOBALS['user']['group']['name'].'”用户组');
     		}
     		$newData['regtime']=NOW_TIME;
-    		$muser->allowField(true)->save($newData);
+    		$muser->isUpdate(false)->allowField(true)->save($newData);
     		if($muser->uid>0){
     			$this->success(lang('op_success'),'User/list');
     		}else{
@@ -140,7 +140,7 @@ class User extends BaseController {
 	    		unset($newData['groupid']);
     		}
     		
-    		$muser->allowField(true)->save($newData,array('uid'=>$uid));
+    		$muser->strict(false)->where(array('uid'=>$uid))->update($newData);
     		$this->success(lang('op_success'),'User/list');
     		
     	}else{

@@ -951,7 +951,6 @@ class Cpattern extends Collector{
 		$base_url=$baseUrls[$urlMd5];
 		$domain_url=$domainUrls[$urlMd5];
 		
-		
 		$val='';
 		$field_func='field_module_'.$module;
 		if(method_exists($this, $field_func)){
@@ -1013,6 +1012,7 @@ class Cpattern extends Collector{
 				$val=$this->$field_func($field_params,$html);
 			}
 		}
+		
 		$vals=null;
 		if(is_array($val)){
 			
@@ -1148,17 +1148,6 @@ class Cpattern extends Collector{
 		}
 	}
 	
-	public function relation_match_url($html,$config){
-		if(empty($config['reg_url_module'])){
-			$url=$this->match_rule($html,$config['reg_url'],$config['url_merge']);
-		}elseif('json'==$config['reg_url_module']){
-			$url=$this->rule_module_json_data(array('json'=>$config['reg_url'],'json_arr'=>'jsonencode'),json_decode($html,true));
-		}elseif('xpath'==$config['reg_url_module']){
-			$url=$this->rule_module_xpath_data(array('xpath'=>$config['reg_url'],'xpath_attr'=>'href'),$html);
-		}
-		return $url;
-	}
-	
 	
 	public function match_rule($html,$rule,$merge,$multi=false,$multi_str=''){
 		$val='';
@@ -1209,35 +1198,59 @@ class Cpattern extends Collector{
 			
 			return '';
 		}
-		$page=$relation_url['page'];
-		$pass=false;
-		$depth_pages=array();
-		$depth=0;
-		while(!empty($page)){
+		if(empty($relation_url['page'])){
 			
-			if($page==$name){
-				
-				$pass=true;
-				break;
+			if(!isset($this->relation_url_list[$cont_url][$name])){
+				$relationUrl=$this->rule_match_urls($relation_url, $html);
+				$relationUrl=(is_array($relationUrl)&&!empty($relationUrl))?reset($relationUrl):'';
+				$this->relation_url_list[$cont_url][$name]=$relationUrl;
+			}else{
+				$relationUrl=$this->relation_url_list[$cont_url][$name];
 			}
-			if(empty($this->config['new_relation_urls'][$page])){
-				
-				$pass=true;
-				break;
-			}
-			$depth++;
-			$depth_pages[$depth]=$page;
-			$page=$this->config['new_relation_urls'][$page]['page'];
-		}
-		if($pass){
+		}else{
 			
-			return '';
-		}
-		$relationUrl=$this->relation_match_url($html,$relation_url);
-		$this->relation_url_list[$cont_url][$relation_url['page']]=$relationUrl;
-		if(!empty($depth_pages)){
+			$page=$relation_url['page'];
+			$pass=false;
+			$depth_pages=array();
+			$depth=0;
+			while(!empty($page)){
+				
+				if($page==$name){
+					
+					$pass=true;
+					break;
+				}
+				if(empty($this->config['new_relation_urls'][$page])){
+					
+					$pass=true;
+					break;
+				}
+				$depth++;
+				$depth_pages[$depth]=$page;
+				$page=$this->config['new_relation_urls'][$page]['page'];
+			}
+			if($pass){
+				
+				return '';
+			}
 			
 			krsort($depth_pages);
+			$contPage=reset($depth_pages);
+			$relationUrl='';
+			if(isset($contPage)){
+				
+				if(!isset($this->relation_url_list[$cont_url][$contPage])){
+					$relationUrl=$this->rule_match_urls($this->config['new_relation_urls'][$contPage], $html);
+					$relationUrl=(is_array($relationUrl)&&!empty($relationUrl))?reset($relationUrl):'';
+					$this->relation_url_list[$cont_url][$contPage]=$relationUrl;
+				}else{
+					$relationUrl=$this->relation_url_list[$cont_url][$contPage];
+				}
+			}
+			$depth_pages=array_slice($depth_pages, 1);
+			$depth_pages=is_array($depth_pages)?$depth_pages:array();
+			$depth_pages[]=$relation_url['name'];
+
 			foreach ($depth_pages as $page){
 				if(empty($relationUrl)){
 					
@@ -1250,13 +1263,16 @@ class Cpattern extends Collector{
 						
 						return '';
 					}
-					$relationUrl=$this->relation_match_url($relationHtml,$this->config['new_relation_urls'][$page]);
+					$relationUrl=$this->rule_match_urls($this->config['new_relation_urls'][$page],$relationHtml);
+					$relationUrl=(is_array($relationUrl)&&!empty($relationUrl))?reset($relationUrl):'';
+						
 					$this->relation_url_list[$cont_url][$page]=$relationUrl;
 				}else{
 					$relationUrl=$this->relation_url_list[$cont_url][$page];
 				}
 			}
 		}
+		
 
 
 
@@ -1431,9 +1447,11 @@ class Cpattern extends Collector{
 		$vals='';
 		if(!empty($field_params['xpath'])){
 			$dom=new \DOMDocument;
+			$libxml_previous_state = libxml_use_internal_errors(true);
 			@$dom->loadHTML('<meta http-equiv="Content-Type" content="text/html;charset=utf-8">'.$html);
 			
 			$dom->normalize();
+			
 			$xPath = new \DOMXPath($dom);
 			
 			$xpath_attr=strtolower($field_params['xpath_attr']);
@@ -1525,6 +1543,9 @@ class Cpattern extends Collector{
 					break;
 				}
 			}
+
+			libxml_clear_errors();
+			
 		}
 		return $vals;
 	}
@@ -2123,6 +2144,18 @@ class Cpattern extends Collector{
 							}
 						}
 					}
+					
+					
+					if(input('?backstage')){
+						
+						$backstageDate=CacheModel::getInstance('backstage_task')->db()->field('dateline')->where('cname',$this->collector['task_id'])->find();
+						if(empty($backstageDate)||$GLOBALS['backstage_task_runtime']<$backstageDate['dateline']){
+							
+							unset($GLOBALS['backstage_task_ids'][$this->collector['task_id']]);
+							exit('终止进程');
+						}
+					}
+					
 					if($mcacheCont->getCount($md5_cont_url)>0){
 						
 						$this->used_cont_urls[$md5_cont_url]=1;
@@ -2257,7 +2290,9 @@ class Cpattern extends Collector{
 	
 	/*采集,return false表示终止采集*/
 	public function collect($num=10){
-		define('IS_COLLECTING', 1);
+		if(!defined('IS_COLLECTING')){
+			define('IS_COLLECTING', 1);
+		}
 		@session_start();
 		\think\Session::pause();
 
@@ -2489,6 +2524,34 @@ class Cpattern extends Collector{
 				}
 			}
 			return $urls;
+		}if(preg_match('/\{json\:([^\}]*)\}/i',$url,$match)){
+			
+			$url=preg_replace('/\{json\:([^\}]*)\}/i','',$url);
+			$jsonRule=trim($match[1]);
+			if(is_null($jsonRule)||$jsonRule==''){
+				$jsonRule='*';
+			}
+			$jsonData=$this->get_html($url);
+			$jsonData=json_decode($jsonData,true);
+			if(!empty($jsonData)&&is_array($jsonData)){
+				
+				$urls=$this->rule_module_json_data(array('json'=>$jsonRule,'json_arr'=>'_original_'),$jsonData);
+				if(!is_array($urls)){
+					$urls=array($urls);
+				}
+				
+				foreach ($urls as $k=>$v){
+					if(!is_string($v)||!preg_match('/^\w+\:\/\//i', $v)){
+						
+						unset($urls[$k]);
+					}
+				}
+				if(!empty($urls)&&is_array($urls)){
+					$urls=array_unique($urls);
+					$urls=array_values($urls);
+				}
+				return $urls;
+			}
 		}elseif(preg_match('/[\r\n]/', $url)){
 			
 			if(preg_match_all('/^\w+\:\/\/[^\r\n]+/im',$url,$urls)){

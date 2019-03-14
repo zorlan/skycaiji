@@ -1,3 +1,13 @@
+<style type="text/css">
+#win_json_tree{width:100%;overflow:hidden;}
+#win_json_tree ul{list-style:none;margin:0px;padding:0px;padding-left:20px;}
+#win_json_tree li{padding:0;margin:0;}
+#win_json_tree .tree{cursor:pointer;margin-left:-16px;margin-right:2px;}
+
+#win_json_tree .node{color:#7F007F;}
+#win_json_tree .val{}
+</style>
+<script src="__PUBLIC__/static/js/admin/json_tree.js?{$Think.config.html_v}"></script>
 <div id="win_test_cont_url">
 	<div class="form-group">
 	  	<div class="input-group">
@@ -18,10 +28,42 @@
 	 		<div class="input-group-btn"><button type="button" class="btn btn-default test-sub">确定</button></div>
 	  	</div>
 	</div>
+	
+  	{if condition="!empty($input_urls)"}
+  	<div id="win_get_fields_input">
+  		<div class="panel panel-default">
+  			<div class="panel-heading">有字段绑定了以下数据源，请输入网址</div>
+  			<div class="panel-body">
+		  			{if condition="isset($input_urls['source_url'])"}
+			  	<div class="form-group">
+				  	<div class="input-group">
+				  		<div class="input-group-addon">起始页</div>
+						<input type="text" name="source_url" class="form-control" value="{$input_urls['source_url']}" />
+					</div>
+				</div>
+					{/if}
+					{if condition="is_array($input_urls['level_url'])"}
+						{foreach $input_urls['level_url'] as $level_url}
+			  	<div class="form-group">
+					<div class="input-group">
+						<div class="input-group-addon">多级页：{$level_url['name']}</div>
+						<input type="text" name="level_{$level_url['level']}" class="form-control" value="{$level_url['url']}" />
+					</div>	
+				</div>
+						{/foreach}
+					{/if}
+			</div>
+  		</div>
+  	</div>
+	{/if}
+	
 	<div class="vals">
 	</div>
+
 </div>
 <script type="text/javascript">
+'use strict';//严格模式
+//预览
 function win_test_view(id){
 	$('#ifm_test_view').remove();//删除旧的
 	var html=$('#'+id).val();
@@ -41,8 +83,8 @@ function win_test_view(id){
     $("#ifm_test_view").contents().find('body').html(html);
 }
 
+//分析元素
 function test_elements(id){
-	//分析元素
 	var cont_url=$('#win_test_cont_url input[name="url"]').val();
 	var url="{:url('Cpattern/test?op=_op_&coll_id='.$collData['id'].'&cont_url=_url_')}";
 	url=url.replace('_op_','elements').replace('_url_',encodeURIComponent(cont_url));
@@ -53,6 +95,12 @@ $('#win_test_cont_url .dropdown-menu a[data-test]').bind('click',function(){
 	var btnObj=$(this).parents('.dropdown-menu').eq(0).siblings('button.dropdown-toggle').eq(0);
 	btnObj.attr('data-test',$(this).attr('data-test'));
 	btnObj.find('em').eq(0).text($(this).text());
+	if($(this).attr('data-test')=='get_fields'){
+		//显示输入数据源网址
+		$('#win_get_fields_input').show();
+	}else{
+		$('#win_get_fields_input').hide();
+	}
 });
 
 {if condition="!empty($test)"}
@@ -72,7 +120,7 @@ $('#win_test_cont_url button.test-sub').bind('click',function(){
 		url=url.replace('_op_',testOp).replace('_url_',encodeURIComponent(cont_url));
 		if(testOp=='elements'){
 			test_elements();
-			$('#win_test_cont_url .vals').html('页面效果所见即所得，点击元素可获取xpath值');
+			$('#win_test_cont_url .vals').html('已过滤所有脚本代码，页面所见即所得！');
 		}else if(testOp=='get_html'){
 			//获取源码，防止源代码输出错误
 			$.ajax({
@@ -82,18 +130,36 @@ $('#win_test_cont_url button.test-sub').bind('click',function(){
 				success:function(data){
 					if(htmlIsJson(data)){
 						//AJAX错误提示
-						data=eval('(' + data + ')'); 
-						$('#win_test_cont_url .vals').html(data.msg);
+						var json=eval('(' + data + ')'); 
+						if(json.msg){
+							//json提示
+							$('#win_test_cont_url .vals').html(json.msg);
+						}else{
+							//json源码
+							var html='<label>源码：</label><textarea class="form-control" rows="5">'+data
+								+'</textarea><label style="margin-top:15px;">JSON解析：</label><div id="win_json_tree"></div>';
+							$('#win_test_cont_url .vals').html(html);
+							//加载json树形
+							jsonTree.treeId='#win_json_tree';
+							jsonTree.treeClass='.tree';
+							jsonTree.load(data);
+						}
 					}else{
 						var eleId=generateUUID();
 						data=data.replace(/\</g,'&lt;').replace(/\>/g,'&gt;');//编码
-						html='<label>源码：</label><a href="javascript:;" onclick="test_elements()">分析元素</a><textarea id="'
+						var html='<label>源码：</label><a href="javascript:;" onclick="test_elements()">分析元素</a><textarea id="'
 							+eleId+'" class="form-control" rows="20">'+data+'</textarea>';
 						$('#win_test_cont_url .vals').html(html);
 					}
 				}
 			});
 		}else{
+			if(testOp=='get_fields'){
+				$('#win_get_fields_input').find('input').each(function(){
+					//附加数据源网址
+					url+='&'+$(this).attr('name')+'='+encodeURIComponent($(this).val());
+				});
+			}
 			$.ajax({
 				type:'get',
 				url:url,
@@ -108,13 +174,33 @@ $('#win_test_cont_url button.test-sub').bind('click',function(){
 							}
 							html+='</ul>';
 						}else if(testOp=='get_fields'){
-							for(var i in data.data){
-								if(data.data.length>1){
-									html+='<div class="panel panel-default"><div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" aria-expanded="false">'
-										+'第'+(parseInt(i)+1)+'条数据</a></h4></div><div class="panel-collapse collapse in"><div class="panel-body">';
+							if(data.data.length>1){
+								//循环数据
+								html+='<div class="table-responsive"><table class="table table-bordered table-hover table-test-loop"><thead><tr><td></td>';
+								var fields=data.data[0];//第一条数据
+								for(var f in fields){
+									html+='<th>'+f+'</th>';
 								}
+								html+='</tr></thead><tbody>';
 								
-								var vals=data.data[i];//每条数据
+								var curNum=0;
+								for(var i in data.data){
+									curNum++;
+									var vals=data.data[i];//每条数据
+									html+='<tr><td>'+curNum+'</td>';
+									for(var f in vals){
+										if(vals[f]){
+											html+='<td><input type="text" value="'+(vals[f].replace(/"/g, '&quot;'))+'" /></td>';
+										}else{
+											html+='<td></td>';
+										}
+									}
+									html+='</tr>';
+								}
+								html+='</tbody>';
+							}else{
+								//一条数据
+								var vals=data.data[0];
 								for(var f in vals){
 									var browse='';
 									var eleId=generateUUID();
@@ -123,9 +209,6 @@ $('#win_test_cont_url button.test-sub').bind('click',function(){
 										browse='<a href="javascript:;" onclick="win_test_view(\''+eleId+'\')">预览</a>';
 									}
 									html+='<label>'+f+'：</label>'+browse+'<textarea id="'+eleId+'" class="form-control">'+vals[f]+'</textarea><br>';
-								}
-								if(data.data.length>1){
-									html+='</div></div></div>';
 								}
 							}
 						}else if(testOp=='get_relation_urls'){

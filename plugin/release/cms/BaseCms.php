@@ -53,6 +53,7 @@ abstract class BaseCms extends \skycaiji\admin\event\ReleaseBase{
 		}
 		$cmsDb['db_type']=empty($cmsDb['db_type'])?'mysql':strtolower($cmsDb['db_type']);
 		$cmsDb['db_port']=$cmsDb['db_port']>0?$cmsDb['db_port']:3306;//设置默认端口
+		$cmsDb['fields_strict']=false;//允许字段不存在
 		
 		$this->cmsDb=$cmsDb;//cms程序配置
 		//实例化数据库

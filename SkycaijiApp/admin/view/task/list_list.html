@@ -38,12 +38,14 @@
 	                		{$item['caijitime']?date('Y-m-d H:i',$item['caijitime']):lang('none')}
 	                	</label>
 	                	&nbsp;<a href="javascript:;" class="caiji" item-id="{$item['id']}">{$Think.lang.caiji}</a>
+	                	<span class="sep">|</span>
+	                	<a href="javascript:;" class="houtai" item-id="{$item['id']}">后台</a>
 	                </td>
 	                <td>
 	                	<a href="{:url('Collector/set?task_id='.$item['id'])}">规则</a>
-	                	&nbsp;
+	                	<span class="sep">|</span>
 	                	<a href="{:url('Release/set?task_id='.$item['id'])}">发布</a>
-	                	&nbsp;
+	                	<span class="sep">|</span>
 						<a href="javascript:;" class="delete" item-id="{$item['id']}">{$Think.lang.delete}</a>
 	                </td>
 	            </tr>
@@ -61,6 +63,8 @@
 	                		全选
 	                	</label>
 						&nbsp;<a href="javascript:;" class="caiji-batch">批量采集</a>
+						<span class="sep">|</span>
+						<a href="javascript:;" class="houtai-batch">批量后台</a>
 					</td>
 				</tr>
     			{if condition="!empty($pagenav)"}

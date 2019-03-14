@@ -12,6 +12,7 @@
 		var name=$(this).text();
 		import_rule('rule:'+id,name);
 	});
+	$('#window_rules .pagination').addClass('pagination-sm');
 	$('#window_rules .pagination a').bind('click',function(){
 		windowModal('导入规则',$(this).attr('href'));
 		return false;

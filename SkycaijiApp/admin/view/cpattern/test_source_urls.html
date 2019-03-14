@@ -1,19 +1,48 @@
 <style type="text/css">
 #test_source_urls .source_url{padding:5px;}
 #test_source_urls p{margin:0;}
+#test_source_urls ol{padding-left:15px;}
 </style>
 <div id="test_source_urls">
 {if condition="empty($source_urls)"}
 	没有起始页网址
 {else /}
-	{foreach name="source_urls" item="source_url"}
-	<div class="source_url" url="{$source_url}">
-		<p><b>抓取起始页面：</b>{$source_url}</p>
-		<p class="cont_urls_num"></p>
-		<div class="cont_urls_list">
+	{if condition="$config['source_is_url']"}
+		<b>起始页已设置为内容页网址</b>
+		{foreach $source_urls as $source=>$urls}
+		<div class="source_url">
+			<p>{$source}</p>
+			<ul style="padding-left:15px;white-space:normal;">
+			{if condition="empty($urls)"}
+				<li>无</li>
+			{elseif condition="is_array($urls)"}
+				{foreach $urls as $url}
+				<li>
+					[<a href="javascript:;" class="cont_ceshi" url="{$url}">测试</a>]
+					[<a href="javascript:;" class="cont_element" url="{$url}">元素</a>]
+					{$url}
+				</li>
+				{/foreach}
+			{else /}
+				<li>
+					[<a href="javascript:;" class="cont_ceshi" url="{$urls}">测试</a>]
+					[<a href="javascript:;" class="cont_element" url="{$urls}">元素</a>]
+					{$urls}
+				</li>
+			{/if}
+			</ul>
 		</div>
-	</div>
-	{/foreach}
+		{/foreach}
+	{else /}
+		{foreach name="source_urls" item="source_url"}
+		<div class="source_url" url="{$source_url}">
+			<p><b>抓取起始页面：</b>{$source_url}</p>
+			<p class="cont_urls_num"></p>
+			<div class="cont_urls_list">
+			</div>
+		</div>
+		{/foreach}
+	{/if}
 {/if}
 </div>
 <script type="text/javascript">
@@ -23,18 +52,51 @@ var url_ajax_requests=new Array();//ajax对象
 $(document).ready(function(){
 	$('#test_source_urls .source_url').each(function(index){
 		//起始页开始测试
-		var obj=$(this);
+	{if condition="!$config['source_is_url']"}
 		var source_url=$(this).attr('url');
-		
 		{if condition="!empty($config['level_urls'])"}
 		//有多级
 		if(index<max_num){
 			//测试前几页
-			get_cont_urls(source_url,obj,1);
+			get_cont_urls(source_url,$(this),1);
 		}
 		{else /}
-		get_cont_urls(source_url,obj,0);
+		get_cont_urls(source_url,$(this),0);
 		{/if}
+	{/if}
+
+		//测试
+		$('#test_source_urls').on('click','.cont_ceshi',function(){
+			var test_cont_url="{:url('Cpattern/test?op=cont_url&coll_id='.$collData['id'])}&cont_url=_url_";
+			test_cont_url=test_cont_url.replace('_url_',encodeURIComponent($(this).attr('url')));
+			var urls={};
+			$(this).parents('.source_url').each(function(){
+				var surl=$(this).attr('url');
+				if(surl){
+					if($(this).attr('level')){
+						//是级别
+						urls['level_'+$(this).attr('level')]=surl;
+					}else{
+						//是起始页
+						urls['source_url']=surl;
+					}
+				}
+			});
+			if(urls){
+				//加上多级和起始网址
+				for(var i in urls){
+					test_cont_url+='&'+i+'='+encodeURIComponent(urls[i]);
+				}
+			}
+			window.open(test_cont_url,'_test_cont');
+		});
+
+		//元素
+		$('#test_source_urls').on('click','.cont_element',function(){
+			var ele_cont_url="{:url('Cpattern/test?op=elements&coll_id='.$collData['id'])}&cont_url=_url_";
+			ele_cont_url=ele_cont_url.replace('_url_',encodeURIComponent($(this).attr('url')));
+			window.open(ele_cont_url,'_test_cont');
+		});
 	});
 	//展开收起
 	$('#test_source_urls').on('click','.cont_urls_num a',function(){
@@ -71,7 +133,7 @@ $(document).ready(function(){
 							for(var i in urls){
 								if(i<max_num){
 									//测试前几页
-									list+='<li class="source_url" url="'+urls[i]+'"><p><b>抓取第'+level+'级页面 “'+data.data.levelName+'”：</b>'+urls[i]+'</p><p class="cont_urls_num"></p><div class="cont_urls_list"></div></li>';
+									list+='<li class="source_url" url="'+urls[i]+'" level="'+level+'"><p><b>抓取第'+level+'级页面 “'+data.data.levelName+'”：</b>'+urls[i]+'</p><p class="cont_urls_num"></p><div class="cont_urls_list"></div></li>';
 								}
 							}
 							list+='</ul>';
@@ -86,11 +148,9 @@ $(document).ready(function(){
 							
 						}else{
 							//无级别，显示测试网址
-							var test_cont_url="{:url('Cpattern/test?op=cont_url&coll_id='.$collData['id'])}&cont_url=_url_";
-							var ele_cont_url="{:url('Cpattern/test?op=elements&coll_id='.$collData['id'])}&cont_url=_url_";
 							for(var i in urls){
-								list+='<li>[<a href="'+(test_cont_url.replace('_url_',encodeURIComponent(urls[i])))+'" target="_test_cont">测试</a>] '
-									+'[<a href="'+(ele_cont_url.replace('_url_',encodeURIComponent(urls[i])))+'" target="_test_cont">元素</a>] '+urls[i]+'</li>';
+								list+='<li>[<a href="javascript:;" class="cont_ceshi" url="'+urls[i]+'">测试</a>] '
+									+'[<a href="javascript:;" class="cont_element" url="'+urls[i]+'">元素</a>] '+urls[i]+'</li>';
 							}
 							list+='</ul>';
 							

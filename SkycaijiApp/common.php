@@ -10,7 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.0');
+define('SKYCAIJI_VERSION', '2.1');
 define('NOW_TIME', time());
 \think\Loader::addNamespace('plugin', realpath(ROOT_PATH.'plugin'));
 \think\Loader::addNamespace('util',realpath(APP_PATH.'extend/util'));
@@ -383,4 +383,29 @@ function clear_dir($path,$passFiles=null){
 function default_filter_func($str){
 	
 	return htmlspecialchars($str,ENT_QUOTES);
+}
+/*生成分页配置*/
+function paginate_auto_config($path='',$queryParamsOrAuto=true){
+	
+	if(empty($path)){
+		
+		$path=request()->pathinfo();
+	}
+	
+	if($queryParamsOrAuto==true){
+		
+		$params=input('param.');
+	}else{
+		
+		$params=is_array($queryParamsOrAuto)?$queryParamsOrAuto:array();
+	}
+	
+	$params[config('paginate.var_page')]='-_-PAGE-_-';
+	$params=http_build_query($params);
+	$path.=(strpos($path,'?')!==false?'&':'?').$params;
+	
+	$path=url($path);
+	$path=str_replace('-_-PAGE-_-', '[PAGE]', $path);
+	
+	return array('path'=>$path);
 }

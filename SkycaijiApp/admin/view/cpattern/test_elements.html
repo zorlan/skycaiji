@@ -15,43 +15,18 @@
 <div class="box box-default">
 	<div class="box-body">
 		<div class="form-group">
-			<div class="input-group">
-				<textarea id="txt_json" rows="2" class="form-control" placeholder="输入网址或json字符串，网址必须以http://或https://开头"></textarea>
-				<a href="javascript:;" class="input-group-addon" id="btn_tree">确定</a>
-			</div>
+			<textarea id="txt_json" rows="3" class="form-control">{$html}</textarea>
 		</div>
 		<div id="json_tree"></div>
 	</div>
 </div>
+
 <script type="text/javascript">
 'use strict';//严格模式
 $(document).ready(function(){
 	jsonTree.treeId='#json_tree';
 	jsonTree.treeClass='.tree';
-	
-	$('#btn_tree').bind('click',function(){
-		var data=$('#txt_json').val();
-		
-		if(htmlIsJson(data)){
-			//是json字符串
-			jsonTree.load(data);
-		}else if((/^\w+\:\/\//).test(data)){
-			//是网址
-			$.ajax({
-				type: 'POST',
-				dataType: 'json',
-				url:ulink('Tool/json_tree'),
-				data: {'url':data},
-				success: function (data) {
-					data=data.data.json;
-					jsonTree.load(data);
-				}
-			});
-		}else{
-			toastr.error('请输入网址或json字符串！');
-		}
-	});
-	
+	jsonTree.load($('#txt_json').val());
 });
 </script>
 {/block}

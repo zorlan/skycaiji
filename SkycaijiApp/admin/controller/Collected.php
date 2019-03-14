@@ -50,13 +50,14 @@ class Collected extends BaseController {
    				$cond['error']=array('<>','');
    			}
    		}
-   		
+   		$dataList=array();
+   		$taskList=array();
    		if(!$null_task){
 	   		$count=$mcollected->where($cond)->count();
 	   		$limit=$search['num'];
 	   		if($count>0){
 	   			
-	   			$dataList=$mcollected->where($cond)->order('id desc')->paginate($limit,false,array('query'=>$search));
+	   			$dataList=$mcollected->where($cond)->order('id desc')->paginate($limit,false,paginate_auto_config());
 	   			
 	   			$pagenav=$dataList->render();
 	   			$this->assign('pagenav',$pagenav);
@@ -74,16 +75,20 @@ class Collected extends BaseController {
 	   			if(!empty($taskIds)){
 	   				$taskList=model('Task')->where(array('id'=>array('in',$taskIds)))->column('name','id');
 	   			}
-	   			$this->assign('dataList',$dataList);
-	   			$this->assign('taskList',$taskList);
 	   		}
 	   		$GLOBALS['content_header']=lang('collected_list');
 	   		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Collected/list'),'title'=>lang('collected_list'))));
    		}
    		$this->assign('search',$search);
+		$this->assign('dataList',$dataList);
+	   	$this->assign('taskList',$taskList);
    		return $this->fetch();
 	}
-	
+	/*清理失败的数据*/
+	public function clearErrorAction(){
+		model('Collected')->where("`error` is not null and `error`<>''")->delete();
+		$this->success('清理完成','Admin/Collected/list');
+	}
 	/**
 	 * 操作
 	 */

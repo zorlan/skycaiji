@@ -168,11 +168,11 @@ return [
 
     'log'                    => [
         // 日志记录方式，内置 file socket 支持扩展
-        'type'  => 'File',
+        'type'  => '\util\Log',//使用自定义的日志驱动
         // 日志保存目录
         'path'  => LOG_PATH,
         // 日志记录级别
-        'level' => [],
+        'level' => ['error'],
     ],
 
     // +----------------------------------------------------------------------
@@ -243,12 +243,16 @@ return [
     
     
     /**********************************自定义配置*********************************************/
-	'html_v'=>'20190101',//css和js版本
+    'cli_cache_config'=>array('view_replace_str','root_path','app_path','plugin_path','root_url','root_website'),//cli模式下需要缓存的配置，否则会失效引起程序bug
+    
+	'html_v'=>'20190301',//css和js版本
+	
 	'root_path'=>realpath(ROOT_PATH),//根目录
 	'app_path'=>realpath(APP_PATH),//APP目录
 	'plugin_path'=>realpath(ROOT_PATH.'plugin'),//插件目录
 	'root_url'=>rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()),'\/\\'),//网址根目录
-	'root_website'=>(Request::instance()->isSsl()?'https':'http').'://'.trim($_SERVER['HTTP_HOST'],'\/\\').rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()),'\/\\'),//带域名网站根目录，去掉index.php，结尾不带/
+	'root_website'=>(Request::instance()->isSsl()?'https':'http').'://'.trim(Request::instance()->host(),'\/\\').rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()),'\/\\'),//带域名网站根目录，去掉index.php，结尾不带/
+	
 	'allow_coll_modules'=>array('pattern'),//允许的采集器模块
 	'release_modules'=>array('cms','db','file','api','diy'),//发布模块
 	'yzm_expire'=>1200, //邮箱验证码过期时间(秒)

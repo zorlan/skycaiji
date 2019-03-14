@@ -12,6 +12,7 @@
 /*发布设置:diy*/
 namespace skycaiji\admin\event;
 class Rdiy extends Release{
+	protected $rele_diy_list=array();
 	/**
 	 * 设置页面post过来的config
 	 * @param unknown $config
@@ -54,8 +55,14 @@ class Rdiy extends Release{
 			if(!empty($appName)){
 				if(model('ReleaseApp')->appFileExists($appName,'diy')){
 					
-					$releDiy=model('ReleaseApp')->appImportClass($appName,'diy');
-					$releDiy->init($this->release);
+					
+					$releDiy=md5($appName.'__diy__'.serialize($this->release));
+					if(!isset($this->rele_diy_list[$releDiy])){
+						
+						$this->rele_diy_list[$releDiy]=model('ReleaseApp')->appImportClass($appName,'diy');
+						$this->rele_diy_list[$releDiy]->init($this->release);
+					}
+					$releDiy=$this->rele_diy_list[$releDiy];
 				}elseif(model('ReleaseApp')->oldFileExists($appName,'diy')){
 					
 					$this->echo_msg(lang('release_upgrade'));

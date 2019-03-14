@@ -30,6 +30,11 @@ abstract class BaseDiy extends \skycaiji\admin\event\ReleaseBase{
 		if(empty($this->connection)){
 			exception('发布错误：没有数据库配置');
 		}
+		if(!isset($this->connection['fields_strict'])){
+			//默认允许字段不存在
+			$this->connection['fields_strict']=false;
+		}
+		
 		//实例化数据库
 		try {
 			$mdb=new DbCommon($this->connection);

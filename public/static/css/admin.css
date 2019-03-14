@@ -95,6 +95,7 @@
 .datatable .desc{max-width:400px;white-space:normal;overflow:hidden;word-wrap:break-word;word-break:break-all;}
 .datatable .sort input{height:auto;padding:0 5px;}
 .datatable .bg0{background:#fcfcfc}
+.datatable .sep{color:#999;font-size:90%;}
 .datatable tr,.datatable td{white-space:nowrap;}
 
 .datatable .store-info .has-update{display:inline;color:green;margin-left:5px;}
@@ -325,6 +326,10 @@ table.datatable thead .sorting_desc:after {
 .proxy-ip-list .p-ip .form-control{min-width:150px;}
 .proxy-ip-list .p-ip-info{vertical-align:middle;color:#999;}
 /**/
+.table-test-loop thead{background:#F5F5F5;}
+.table-test-loop input{border:0;overflow:hidden;}
+
+
 
 .skin-black .nav-tabs-color li.active,.skin-black-light .nav-tabs-color li.active{border-top-color:#5A6E82!important;}
 

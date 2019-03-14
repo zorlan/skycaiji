@@ -94,11 +94,16 @@ class Cpattern extends BaseController {
     			}else{
     				$this->error('请输入正确的网址');
     			}
+    		}elseif($source['type']=='api'){
+    			
+    			if(!preg_match('/^\w+\:\/\//i',$source['api'])){
+    				$this->error('请输入正确的api网址');
+    			}
+    			$urlFmt=$source['api'].'{json:'.$source['api_json'].'}';
     		}
     		
-    		if($urls){
-    			$urls=array_values($urls);
-    			
+    		if($urls||$urlFmt){
+    			$urls=$urls?array_values($urls):'';
     			$this->success('',null,array('uid'=>$source['uid'],'url'=>$urlFmt,'urls'=>$urls));
     		}else{
     			$this->error('未生成网址！');
@@ -109,7 +114,7 @@ class Cpattern extends BaseController {
     		if($url){
     			$source['uid']=input('uid','');
     			
-    			if(preg_match('/\{param\:(\w+)\,([^\}]*)\}/i', $url,$param)){
+    			if(preg_match('/\{param\:(\w+)\,([^\}]*)\}/i',$url,$param)){
     				
     				$source['url']= preg_replace('/\{param\:(\w+)\,([^\}]*)\}/i', cp_sign('match'), $url);
     				$source['type']='batch';
@@ -128,6 +133,11 @@ class Cpattern extends BaseController {
     					
     					$source['param_custom']=implode("\r\n", $param_val);
     				}
+    			}elseif(preg_match('/\{json\:([^\}]*)\}/i',$url,$json)){
+    				
+    				$source['type']='api';
+    				$source['api']=preg_replace('/\{json\:([^\}]*)\}/i','',$url);
+    				$source['api_json']=$json[1];
     			}elseif(preg_match('/[\r\n]/', $url)){
     				
     				$source['type']='large';
@@ -339,24 +349,32 @@ class Cpattern extends BaseController {
     	$taskData=model('Task')->getById($eCpattern->collector['task_id']);
 
     	model('Task')->loadConfig($taskData['config']);
-    
+
+    	$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Collector/set?task_id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),'测试'));
+    	
     	if('source_urls'==$op){
     		
     		$source_urls=array();
-    		foreach ( $eCpattern->config ['source_url'] as $k => $v ) {
+    		foreach ($eCpattern->config['source_url'] as $k => $v) {
     			if(empty($v)){
     				continue;
     			}
-    			$urls = $eCpattern->convert_source_url ( $v );
-    			if (is_array ( $urls )) {
-    				$source_urls = array_merge ( $source_urls, $urls );
-    			} else {
-    				$source_urls [] = $urls;
+    			$source_urls[$v] = $eCpattern->convert_source_url ( $v );
+    		}
+    		if(!$eCpattern->config['source_is_url']){
+    			
+    			$source_urls1=array();
+    			foreach ($source_urls as $k=>$v){
+    				if (is_array ( $v )) {
+    					$source_urls1 = array_merge ( $source_urls1, $v );
+    				} else {
+    					$source_urls1 [] = $v;
+    				}
     			}
+    			$source_urls=$source_urls1;
     		}
     		$eCpattern->assign('source_urls',$source_urls);
     		$eCpattern->assign('config',$eCpattern->config);
-    			
     		return $eCpattern->fetch('cpattern:test_source_urls');
     	}elseif('cont_urls'==$op){
     		
@@ -365,19 +383,38 @@ class Cpattern extends BaseController {
     		$curLevel=$curLevel>0?$curLevel:0;
     			
     		$levelData=$eCpattern->get_level_urls($source_url,$curLevel);
-    			
+    		
     		$eCpattern->success('',null,array('urls'=>$levelData['urls'],'levelName'=>$levelData['levelName'],'nextLevel'=>$levelData['nextLevel']));
     	}elseif('cont_url'==$op){
     		
     		$GLOBALS['content_header']='测试抓取';
-    		$GLOBALS['breadcrumb']=breadcrumb('测试抓取');
     		$cont_url=input('cont_url','','trim');
     		$test=input('test');
-    			
+    		
     		$url_post=$eCpattern->config['url_post'];
-    			
+    		
+    		$input_urls=array();
+    		foreach ($eCpattern->config['new_field_list'] as $field){
+    			if('source_url'==strtolower($field['field']['source'])){
+    				
+    				$input_urls['source_url']=input('source_url');
+    				$input_urls['source_url']=$input_urls['source_url']?$input_urls['source_url']:'';
+    			}elseif(preg_match('/level_url:/i', $field['field']['source'])){
+    				
+    				foreach($eCpattern->config['level_urls'] as $levIx=>$levVal){
+    					if($field['field']['source']==('level_url:'.$levVal['name'])){
+    						
+    						$level=$levIx+1;
+    						$input_urls['level_url'][$level]=array('level'=>$level,'name'=>$levVal['name'],'url'=>input('level_'.$level));
+    						break;
+    					}
+    				}
+    			}
+    		}
+
     		$eCpattern->assign('cont_url',$cont_url);
     		$eCpattern->assign('url_post',$url_post);
+    		$eCpattern->assign('input_urls',$input_urls);
     		$eCpattern->assign('test',$test);
     		if(request()->isAjax()){
     			return view('cpattern:test_cont_url_ajax');
@@ -393,13 +430,27 @@ class Cpattern extends BaseController {
     		}
     		$html='get_fields'==$op?'':$eCpattern->get_html($cont_url,false,$eCpattern->config['url_post']);
     		if('get_fields'==$op){
+    			
+    			if(input('?source_url')){
+    				
+    				$eCpattern->cur_source_url=input('source_url');
+    			}
+    			foreach (input('param.') as $k=>$v){
+    				
+    				if(preg_match('/^level_(\d+)$/',$k,$mLevel)){
+    					
+    					$mLevel=intval($mLevel[1])-1;
+    					$eCpattern->cur_level_urls[$eCpattern->config['level_urls'][$mLevel]['name']]=$v;
+    				}
+    			}
+    			
     			$val_list=$eCpattern->getFields($cont_url);
     
     			if(empty($eCpattern->first_loop_field)){
     				
     				$val_list=array($val_list);
     			}
-    
+
     			foreach ($val_list as $v_k=>$vals){
     				foreach ($vals as $k=>$v){
     					$vals[$k]=$v['value'];
@@ -437,7 +488,6 @@ class Cpattern extends BaseController {
     	}elseif('match'==$op){
     		
     		$GLOBALS['content_header']='模拟匹配';
-    		$GLOBALS['breadcrumb']=breadcrumb('模拟匹配');
     		if(request()->isPost()){
     			$type=strtolower(input('type'));
     			$content=input('content','','trim');
@@ -476,7 +526,8 @@ class Cpattern extends BaseController {
     					$val=$eCpattern->field_module_xpath(array('xpath'=>$match,'xpath_attr'=>''), $content);
     					break;
     				case 'json':
-    					$val=$eCpattern->field_module_json(array('json'=>$match), $content);
+    					$val=$eCpattern->field_module_json(array('json'=>$match,'json_arr_implode'=>"\r\n"), $content);
+    					$val=trim($val);
     					break;
     			}
     			if(empty($val)){
@@ -493,8 +544,6 @@ class Cpattern extends BaseController {
     		}
     	}elseif('elements'==$op){
     		
-    		ob_clean();
-    		header("Content-type:text/html;charset=utf-8");
     		$cont_url=input('cont_url','','trim');
     		if(!preg_match('/^\w+\:\/\//',$cont_url)){
     			
@@ -502,8 +551,12 @@ class Cpattern extends BaseController {
     		}
     		$html=$eCpattern->get_html($cont_url,false,$eCpattern->config['url_post']);
     		
-    		$html=preg_replace('/<script[^<>]*?>[\s\S]*?<\/script>/i', '', $html);
-    		$html=preg_replace('/<meta[^<>]*charset[^<>]*?>/i', '', $html);
+    		$jsonData=null;
+    		if(preg_match('/^\{[\s\S]*\}$/',$html)){
+    			
+    			$jsonData=json_decode($html,true);
+    			$jsonData=$jsonData?$jsonData:null;
+    		}
     		
     		
     		$publicUrl=config('root_website').'/public';
@@ -511,8 +564,23 @@ class Cpattern extends BaseController {
     			."\r\n".'<script src="%s/static/js/admin/cpattern_elements.js?%s"></script>'
     			."\r\n".'<link rel="stylesheet" href="%s/static/css/cpattern_elements.css?%s">';
     		$jscss=sprintf($jscss,$publicUrl,config('html_v'),$publicUrl,config('html_v'),$publicUrl,config('html_v'));
-    		$html.=$jscss;
-    		exit($html);
+    		
+    		if(empty($jsonData)){
+    			
+    			$html=preg_replace('/<script[^<>]*?>[\s\S]*?<\/script>/i', '', $html);
+    			$html=preg_replace('/<meta[^<>]*charset[^<>]*?>/i', '', $html);
+    			$html.=$jscss."\r\n".'<script>$(document).ready(function(){skycaijiCE.init();});</script>';
+    			ob_clean();
+    			header("Content-type:text/html;charset=utf-8");
+    			exit($html);
+    		}else{
+    			
+    			$GLOBALS['content_header']='分析元素';
+    			
+    			$eCpattern->assign('html',$html);
+    			$eCpattern->assign('jscss',$jscss);
+    			return $eCpattern->fetch('cpattern:test_elements');
+    		}
     	}
     }
     /*名称命名规范*/

@@ -19,4 +19,6 @@
 
 
 
-return [];
+return [
+	'skycaiji\admin\command\Collect'	
+];

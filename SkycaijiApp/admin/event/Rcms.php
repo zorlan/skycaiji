@@ -12,6 +12,7 @@
 /*发布设置:本地cms*/
 namespace skycaiji\admin\event;
 class Rcms extends Release{
+	protected $rele_cms_list=array();
 	/**
 	 * 设置页面post过来的config
 	 * @param unknown $config
@@ -60,8 +61,15 @@ class Rcms extends Release{
 			}
 		}
 		
-		$releCms=model('ReleaseApp')->appImportClass($this->config['cms']['app'],'cms');
-		$releCms->init(null,$this->release);
+		
+		$releCms=md5($this->config['cms']['app'].'__cms__'.serialize($this->release));
+		if(!isset($this->rele_cms_list[$releCms])){
+			
+			$this->rele_cms_list[$releCms]=model('ReleaseApp')->appImportClass($this->config['cms']['app'],'cms');
+			$this->rele_cms_list[$releCms]->init(null,$this->release);
+		}
+		$releCms=$this->rele_cms_list[$releCms];
+		
 		$addedNum=0;
 		
 		foreach ($collFieldsList as $collFieldsKey=>$collFields){

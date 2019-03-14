@@ -54,10 +54,11 @@ class Store extends BaseController {
 				
 				$newRule['store_id']=$store_id;
 				$newRule['addtime']=NOW_TIME;
-				$ruleId=$mrule->insert($newRule);
+				$mrule->isUpdate(false)->allowField(true)->save($newRule);
+				$ruleId=$mrule->id;
 			}else{
 				
-				$mrule->allowField(true)->save($newRule,array('id'=>$ruleData['id']));
+				$mrule->strict(false)->where(array('id'=>$ruleData['id']))->update($newRule);
 				$ruleId=$ruleData['id'];
 			}
 			$this->dispatchJump(true,$ruleId);

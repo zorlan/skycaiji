@@ -14,6 +14,7 @@
 		var name=$(this).text();
 		import_task(id,name);
 	});
+	$('#window_tasks .pagination').addClass('pagination-sm');
 	$('#window_tasks .pagination a').bind('click',function(){
 		windowModal('导入任务',$(this).attr('href'));
 		return false;

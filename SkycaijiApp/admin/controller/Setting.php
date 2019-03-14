@@ -19,6 +19,8 @@ class Setting extends BaseController {
     		$config=array();
     		$config['verifycode']=input('verifycode/d',0);
     		$config['hidehome']=input('hidehome/d',0);
+    		$config['closelog']=input('closelog/d',0);
+    		$config['dblong']=input('dblong/d',0);
     		$config['login']=input('login/a');
     		if($config['login']['limit']){
     			
@@ -47,6 +49,7 @@ class Setting extends BaseController {
     		$config=array();
     		$config['auto']=input('auto/d',0);
     		$config['run']=input('run');
+    		$config['server']=input('server');
     		$config['num']=input('num/d',0);
     		$config['interval']=input('interval/d',0);
     		$config['timeout']=input('timeout/d',0);
@@ -60,6 +63,12 @@ class Setting extends BaseController {
     		$config['img_interval']=input('img_interval/d',0);
     		$config['img_max']=input('img_max/d',0);
 
+    		if($config['server']=='cli'){
+    			
+    			if(!function_exists('proc_open')){
+    				$this->error('抱歉cli命令行模式需开启proc_open函数');
+    			}
+    		}
     		if(!empty($config['img_path'])){
     			
     			$checkImgPath=$mconfig->check_img_path($config['img_path']);
@@ -80,7 +89,7 @@ class Setting extends BaseController {
     			remove_auto_collecting();
     			if($config['run']=='backstage'){
     				
-    				@get_html(url('Admin/Index/backstage',array('autorun'=>1),false,true),null,array('timeout'=>1));
+    				@get_html(url('Admin/Index/backstage?autorun=1',null,false,true),null,array('timeout'=>3));
     			}
 			}
     		
@@ -147,7 +156,7 @@ class Setting extends BaseController {
     					
     					unset($newData['invalid']);
     					
-    					$mproxy->allowField(true)->save($newData,array('ip'=>$newData['ip']));
+    					$mproxy->strict(false)->where(array('ip'=>$newData['ip']))->update($newData);
     				}else{
     					
     					$mproxy->db()->insert($newData,true);
@@ -283,7 +292,8 @@ class Setting extends BaseController {
     			$config['tool']='';
     		}
     		if(empty($config['tool'])){
-    			$this->error('请选择渲染工具','');
+    			
+    			
     		}
     		
     		if($config['tool']=='chrome'){

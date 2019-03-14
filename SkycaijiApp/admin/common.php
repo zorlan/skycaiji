@@ -90,3 +90,63 @@ function is_collecting(){
 function remove_auto_collecting(){
 	\skycaiji\admin\model\CacheModel::getInstance()->db()->where('cname','auto_collecting')->delete();
 }
+
+/*cli命令行*/
+function cli_command_exec($paramStr){
+	
+	if(config('cli_cache_config')){
+		$cacheConfig=\skycaiji\admin\model\CacheModel::getInstance()->getCache('cli_cache_config','data');
+		$cliConfig=array();
+		foreach (config('cli_cache_config') as $key){
+			$cliConfig[$key]=config($key);
+		}
+		if(serialize($cacheConfig)!=serialize($cliConfig)){
+			
+			\skycaiji\admin\model\CacheModel::getInstance()->setCache('cli_cache_config',$cliConfig);
+		}
+	}
+	
+	static $php_ext_path=null;
+	
+	if(!isset($php_ext_path)){
+		$ini_all=ini_get_all();
+		$php_ext_path=$ini_all['extension_dir']['local_value'];
+	}
+	
+	if($php_ext_path){
+		$phpPath=preg_replace('/[\/\\\]ext[\/\\\]*$/i', '', $php_ext_path);
+		if(IS_WIN){
+			
+			$phpPath.=DIRECTORY_SEPARATOR.'php.exe';
+		}
+	}else{
+		$phpPath='php';
+	}
+	 
+	$commandStr=$phpPath;
+	if(IS_WIN){
+		$commandStr='"'.$commandStr.'"';
+	}
+	
+	$cliUser=strtolower($GLOBALS['user']['username']);
+	$cliUser=$cliUser.'_'.md5($cliUser.$GLOBALS['user']['password']);
+	
+	$paramStr.=' --cli_user '.base64_encode($cliUser);
+
+	$commandStr.=' '.config('root_path').DIRECTORY_SEPARATOR.'caiji '.$paramStr;
+
+	$descriptorspec = array(
+			0 => array('pipe', 'r'),  
+			1 => array('pipe', 'w'),  
+			2 => array('pipe', 'w')
+	);
+	$pipes=array();
+	$handle=proc_open($commandStr,$descriptorspec,$pipes);
+	$hdStatus=proc_get_status($handle);
+	fclose($pipes[0]);
+	fclose($pipes[1]);
+	fclose($pipes[2]);
+	
+    
+    exit();
+}

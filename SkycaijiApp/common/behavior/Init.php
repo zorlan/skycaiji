@@ -16,7 +16,7 @@ class Init{
 	
 	public function run(){
 		session_start();
-		if($_GET['m']&&$_GET['c']&&$_GET['a']){
+		if(isset($_GET['m'])&&isset($_GET['c'])&&isset($_GET['a'])){
 			
 			$tourl=config('root_website');
 			if(stripos($tourl, '/index.php')===false){

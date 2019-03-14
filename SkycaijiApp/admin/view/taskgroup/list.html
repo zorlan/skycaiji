@@ -126,9 +126,9 @@ $(document).ready(function(){
 		confirmRight('{$Think.lang.confirm_delete}',function(){
 			$.ajax({
 	        	type: "POST",
-	        	url: "{:url('Taskgroup/op?op=deleteall')}",
+	        	url: "{:url('Taskgroup/op')}",
 	        	dataType: "json",
-				data: $('#form_list').serialize(),
+				data:$('#form_list').serialize()+'&op=deleteall',
 	         	success: function(data){
 	            	data.code==1?toastr.success(data.msg):toastr.error(data.msg);
 					setTimeout("window.location.reload();",2500);

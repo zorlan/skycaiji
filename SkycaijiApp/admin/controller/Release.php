@@ -47,12 +47,12 @@ class Release extends BaseController{
 			
 			if(empty($releData)){
 				
-				$mrele->allowField(true)->save($newData);
+				$mrele->isUpdate(false)->allowField(true)->save($newData);
 				$releId=$mrele->id;
 			}else{
 				
 				$releId=$releData['id'];
-				$mrele->allowField(true)->save($newData,array('id'=>$releData['id']));
+				$mrele->strict(false)->where(array('id'=>$releData['id']))->update($newData);
 			}
 			if($releId>0){
 				$this->success(lang('op_success'),'Release/set?task_id='.$taskId);
@@ -92,11 +92,11 @@ class Release extends BaseController{
 		$page=max(1,input('p/d',0));
 		$mrele=model('Release');
 		$mtask=model('Task');
-    	$limit=10;
+    	$limit=20;
     	$cond=array();
     	$taskCond=array();
     	$count=$mrele->where($cond)->count();
-		$releList=$mrele->where($cond)->order('id desc')->paginate($limit);
+		$releList=$mrele->where($cond)->order('id desc')->paginate($limit,false,paginate_auto_config());
 
 		$pagenav = $releList->render();
 		$this->assign('pagenav',$pagenav);

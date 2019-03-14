@@ -64,13 +64,13 @@ class Proxyip extends BaseModel {
 				if(!empty($this->setting['use'])){
 					
 					if($this->setting['use']=='num'){
-						$this->where('1=1')->update(array('num'=>0));
+						$this->strict(false)->where('1=1')->update(array('num'=>0));
 					}elseif($this->setting['use']=='time'){
-						$this->where('1=1')->update(array('time'=>0));
+						$this->strict(false)->where('1=1')->update(array('time'=>0));
 					}
 				}else{
 					
-					$this->where('1=1')->update(array('num'=>0));
+					$this->strict(false)->where('1=1')->update(array('num'=>0));
 				}
 				$proxyipData=$this->where($cond)->find();
 			}
@@ -94,7 +94,7 @@ class Proxyip extends BaseModel {
 					
 					$upData['num']=$proxyipData['num']+1;
 				}
-				$this->allowField(true)->save($upData,array('ip'=>$proxyipData['ip']));
+				$this->strict(false)->where(array('ip'=>$proxyipData['ip']))->update($upData);
 			}
 			return $proxyipData;
 		}
@@ -115,7 +115,7 @@ class Proxyip extends BaseModel {
 			
 			$upData['invalid']=1;
 		}
-		$this->allowField(true)->save($upData,array('ip'=>$proxy_ip['ip']));
+		$this->strict(false)->where(array('ip'=>$proxy_ip['ip']))->update($upData);
 	}
 }
 

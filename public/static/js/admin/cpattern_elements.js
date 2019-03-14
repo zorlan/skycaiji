@@ -20,4 +20,4 @@ xpath=xpath.replace(/\/\//g,' ');xpath=xpath.replace(/\//g,'>');xpath=xpath.repl
 var $_o=this;xpath=xpath.split('/');var reg=/^((?!(html|body))\w)+$/;var ix=-1;for(var i=(xpath.length-1);i>=0;i--){if(reg.test(xpath[i])){ix=i;break}}
 var isShow=$(obj).text()=='显示'?true:!1;var bgColor=(isShow?'#C8ECE6':'');if(ix>-1){var parentXpath=xpath.slice(0,ix+1);parentXpath=parentXpath.join('/');var subXpath=xpath.slice(ix+1);subXpath=subXpath.join('/');var parentCsspath=$_o.xpath2csspath(parentXpath);var subCsspath=$_o.xpath2csspath(subXpath);if(subCsspath){var curIndex=-1;$(parentCsspath).each(function(){curIndex++;var curCsspath=parentCsspath+':eq('+curIndex+')>'+subCsspath;$(curCsspath).css({'background-color':bgColor})})}else{$(parentCsspath).css({'background-color':bgColor})}}else{var csspath=$_o.xpath2csspath(xpath.join('/'));$(csspath).css({'background-color':bgColor})}
 $(obj).text(isShow?'取消':'显示')},close:function(){$('#skycaiji_console').remove();$('*').css({'background-color':''})}}
-var skycaijiCE=null;$(document).ready(function(){skycaijiCE=new SkycaijiCpatternElement();skycaijiCE.init()})
+var skycaijiCE=new SkycaijiCpatternElement()

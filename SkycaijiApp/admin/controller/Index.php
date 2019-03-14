@@ -54,25 +54,17 @@ class Index extends BaseController{
 		}
 		$collectTime1=time();
 		try{
-			@get_html(url('Admin/Api/collect',null,false,true));
+			@get_html(url('Admin/Api/collect?backstage=1',null,false,true),null,array('timeout'=>3));
 		}catch(\Exception $ex){
 			
 		}
-		$collectTime2=time();
-		$minWaitTime=60;
-		$waitTime=0;
-		if($GLOBALS['config']['caiji']['interval']>0){
-			
-			$waitTime=60*$GLOBALS['config']['caiji']['interval']-($collectTime2-$collectTime1);
-		}
-		$waitTime=$waitTime>$minWaitTime?$waitTime:$minWaitTime;
-		sleep($waitTime);
-		sleep(10);
+		
+		sleep(20);
 		
 		if($GLOBALS['config']['caiji']['auto']){
 			
 			try{
-				@get_html(url('Admin/Index/backstage',array('autorun'=>1,'runtime'=>$runtime),false,true),null,array('timeout'=>5));
+				@get_html(url('Admin/Index/backstage?autorun=1&runtime='.$runtime,null,false,true),null,array('timeout'=>3));
 			}catch(\Exception $ex){
 			
 			}
@@ -82,7 +74,10 @@ class Index extends BaseController{
 	}
 	/*访问执行采集*/
 	public function caijiAction(){
-		@get_html(url('Admin/Api/collect',null,false,true),null,array('timeout'=>1));
+		if(empty($GLOBALS['config']['caiji']['auto'])){
+			$this->error('请先开启自动采集','Admin/Setting/caiji');
+		}
+		@get_html(url('Admin/Api/collect?backstage=1',null,false,true),null,array('timeout'=>3));
 		$waitTime=$GLOBALS['config']['caiji']['interval']*60;
 		$waitTime=$waitTime>0?$waitTime:3;
 		$this->success('正在采集...','Admin/Index/caiji',null,$waitTime);
@@ -296,7 +291,7 @@ class Index extends BaseController{
 						$this->error($check['msg']);
 					}
 					
-					$muser->save(array('password'=>pwd_encrypt($pwd)),array('username'=>$stepSession['user']['username']));
+					$muser->strict(false)->where(array('username'=>$stepSession['user']['username']))->update(array('password'=>pwd_encrypt($pwd)));
 					session($stepSname,null);
 					$this->success(lang('find_pwd_success'),'Admin/Index/index');
 				}else{

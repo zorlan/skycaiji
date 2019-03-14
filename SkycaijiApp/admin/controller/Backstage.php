@@ -110,6 +110,117 @@ class Backstage extends BaseController{
 		header('Content-Type:application/json;charset=utf-8');
 		exit($html);
 	}
+	/*后台任务操作*/
+	public function backstageTaskAction(){
+		$op=input('op');
+		$mcache=CacheModel::getInstance('backstage_task');
+		if(empty($op)){
+			
+			$count0=$mcache->db()->where('ctype',0)->count();
+			$count1=$mcache->db()->where('ctype',1)->count();
+			
+	    	$this->assign('count0',$count0);
+	    	$this->assign('count1',$count1);
+			return $this->fetch('bk_task');
+		}elseif('count'==$op){
+			
+			$count=$mcache->db()->where('ctype',0)->count();
+			$count=intval($count);
+			$this->success('','',array('count'=>$count));
+		}elseif('task0'==$op||'task1'==$op){
+			
+			$taskType=('task0'==$op)?0:1;
+			
+			$list=$mcache->db()->where('ctype',$taskType)->order('dateline desc')->paginate(10,false,paginate_auto_config());
+			$pagenav=$list->render();
+			$list=$list->all();
+			$cacheList=array();
+			if($list){
+				
+				foreach ($list as $k=>$v){
+					$v['cname']=intval($v['cname']);
+					if($taskType){
+						$v['endtime']=intval($v['data']);
+						$v['enddate']=date('Y-m-d H:i:s',$v['endtime']);
+					}
+					$cacheList[$v['cname']]=$v;
+				}
+				
+				$list=model('Task')->where('id','in',array_keys($cacheList))->column('*','id');
+
+				$nullIds=array();
+				
+				$list1=array();
+				foreach ($cacheList as $k=>$v){
+					if(!isset($list[$k])){
+						
+						$nullIds[$k]=$k;
+					}else{
+						
+						$list1[$k]=$list[$k];
+					}
+				}
+				$list=$list1;
+				
+				if(!empty($nullIds)&&is_array($nullIds)){
+					
+					$mcache->db()->where('cname','in',$nullIds)->delete();
+				}
+				
+				if($taskType&&is_array($cacheList)){
+					
+					foreach ($cacheList as $k=>$v){
+						$cond=array(
+							'task_id'=>$k,
+							'addtime'=>array('between',array($v['dateline'],$v['endtime']))
+						);
+						$cacheList[$k]['collected_count']=model('Collected')->where($cond)->count();
+					}
+				}
+			}
+
+			$count=$mcache->db()->where('ctype',$taskType)->count();
+
+			$this->assign('list',$list);
+			$this->assign('cacheList',$cacheList);
+			$this->assign('taskType',$taskType);
+			$this->assign('pagenav',$pagenav);
+			$html=$this->fetch('bk_task_list')->getContent();
+
+			$this->success('',null,array('html'=>$html,'count'=>$count));
+		}elseif('collected'==$op){
+			$taskId=input('tid/d');
+			if($taskId<=0){
+				$this->error('任务id错误');
+			}
+			$cache=$mcache->db()->where('cname',$taskId)->find();
+			if(empty($cache)){
+				$this->error('后台任务不存在');
+			}
+			
+			$cond=array('task_id'=>$taskId);
+			
+			$taskStatus=$cache['ctype'];
+			if(empty($taskStatus)){
+				
+				$cond['addtime']=array('>=',$cache['dateline']);
+			}else{
+				
+				$cond['addtime']=array('between',array($cache['dateline'],intval($cache['data'])));
+			}
+			
+			$list=model('Collected')->where($cond)->order('addtime desc')->paginate(10,false,paginate_auto_config());
+			$pagenav=$list->render();
+			$list=$list->all();
+			
+			$this->assign('list',$list);
+			$this->assign('pagenav',$pagenav);
+			$this->assign('taskStatus',$taskStatus);
+			$this->assign('taskId',$taskId);
+			return $this->fetch('bk_task_collected');
+		}
+	}
+	
 	/*生成js语言包文件*/
 	public function createJsLangAction(){
 		$langs=array();

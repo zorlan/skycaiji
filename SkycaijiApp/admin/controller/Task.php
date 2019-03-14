@@ -12,6 +12,7 @@
 namespace skycaiji\admin\controller;
 
 use think\Loader;
+use skycaiji\admin\model\CacheModel;
 
 class Task extends BaseController {
     public function indexAction(){
@@ -84,11 +85,11 @@ class Task extends BaseController {
 	    			
 	    			$cond['tg_id']=0;
 	    		}
-	    		$taskList=$mtask->where($cond)->order($orderBy)->paginate($limit,false,array('query'=>$search));
+	    		$taskList=$mtask->where($cond)->order($orderBy)->paginate($limit,false,paginate_auto_config());
 	    		$pagenav=$taskList->render();
 	    		$taskList=$taskList->all();
     		}else{
-	    		$taskList=$mtask->where($cond)->order($orderBy)->paginate($limit,false,array('query'=>$search));
+	    		$taskList=$mtask->where($cond)->order($orderBy)->paginate($limit,false,paginate_auto_config());
 	    		$pagenav=$taskList->render();
 	    		$taskList=$taskList->all();
 	    		if(!empty($taskList)){
@@ -113,7 +114,7 @@ class Task extends BaseController {
     		
     		$count=$mtask->count();
     		$limit=20;
-    		$taskList=$mtask->order('sort desc')->paginate($limit,false,array('query'=>array('show'=>$show)));
+    		$taskList=$mtask->order('sort desc')->paginate($limit,false,paginate_auto_config());
     		$pagenav=$taskList->render();
     		$taskList=$taskList->all();
     		$this->assign('taskList',$taskList);
@@ -128,7 +129,7 @@ class Task extends BaseController {
     public function openListAction(){
     	
     	$tgid=input('tg_id/d',0);
-    	$mtaskgroup=model('taskgroup');
+    	$mtaskgroup=model('Taskgroup');
     	$mtask=model('Task');
     	
     	$subTgList=$mtaskgroup->where(array('parent_id'=>$tgid))->order('sort desc')->column('*');
@@ -183,7 +184,7 @@ class Task extends BaseController {
     			}
     		}
     		
-    		$mtask->allowField(true)->save($newData);
+    		$mtask->isUpdate(false)->allowField(true)->save($newData);
     		$tid=$mtask->id;
     		if($tid>0){
     			$taskData=$mtask->getById($tid);
@@ -203,7 +204,7 @@ class Task extends BaseController {
     					$importRele['task_id']=$taskData['id'];
     					$importRele['addtime']=NOW_TIME;
     					unset($importRele['id']);
-						model('Release')->allowField(true)->save($importRele);
+						model('Release')->isUpdate(false)->allowField(true)->save($importRele);
     				}
     			}
     			
@@ -267,7 +268,7 @@ class Task extends BaseController {
     		}
     		unset($newData['id']);
     		
-    		if($mtask->allowField(true)->save($newData,array('id'=>intval($taskData['id'])))>=0){
+    		if($mtask->strict(false)->where(array('id'=>intval($taskData['id'])))->update($newData)>=0){
     			$taskData=$mtask->getById($taskData['id']);
     			/*导入规则*/
     			$ruleId=input('rule_id');
@@ -402,41 +403,50 @@ class Task extends BaseController {
     		$this->success(lang('delete_success'));
     	}elseif($op=='auto'){
     		$auto = min(1,input('auto/d',0));
-    		$mtask->save(array('auto'=>$auto),array('id'=>$taskData['id']));
+    		$mtask->strict(false)->where(array('id'=>$taskData['id']))->update(array('auto'=>$auto));
     		$this->success(lang('op_success'));
     	}elseif($op=='saveall'){
     		
     		$newsort=input('newsort/a');
 			if(is_array($newsort)&&count($newsort)>0){
 				foreach ($newsort as $key=>$val){
-					$mtask->save(array('sort'=>intval($val)),array('id'=>intval($key)));
+					$mtask->strict(false)->where('id',intval($key))->update(array('sort'=>intval($val)));
 				}
 			}
     		$this->success(lang('op_success'),'Task/list?show='.input('show'));
     	}
     }
+    /*删除后台任务*/
+    public function bkdeleteAction(){
+    	$taskId=input('id/d',0);
+    	$mcache=CacheModel::getInstance('backstage_task');
+    	$mcache->db()->where('cname',$taskId)->delete();
+    	$this->success();
+    }
     /*执行任务采集*/
     public function collectAction(){
+    	$taskId=input('id/d',0);
     	if(input('?backstage')){
     		
+    		if(!IS_CLI){
+    			ignore_user_abort(true);
+    			
+    			if($GLOBALS['config']['caiji']['server']=='cli'){
+    				
+    				cli_command_exec('collect task --task_id '.$taskId);
+    				exit();
+    			}
+    		}
     		ignore_user_abort(true);
-			define('CLOSE_ECHO_MSG',true);
+    		define('CLOSE_ECHO_MSG',true);
+    		$this->_backstage_task($taskId);
     	}else{
     		ignore_user_abort(false);
     	}
-    	$taskId=input('id/d',0);
     	$this->_collect($taskId);
     }
     /*批量执行任务采集*/
     public function collectBatchAction(){
-    	if(input('?backstage')){
-    		
-    		ignore_user_abort(true);
-			define('CLOSE_ECHO_MSG',true);
-    	}else{
-    		ignore_user_abort(false);
-    	}
-    	
     	$taskIds=input('ids');
     	if(empty($taskIds)){
     		$this->echo_msg('没有选中任务');
@@ -444,6 +454,23 @@ class Task extends BaseController {
     	}
     	$taskIds=explode(',', $taskIds);
     	$taskIds=array_map('intval', $taskIds);
+    	
+    	if(input('?backstage')){
+    		
+    		if(!IS_CLI){
+    			ignore_user_abort(true);
+    			
+    			if($GLOBALS['config']['caiji']['server']=='cli'){
+    				
+    				cli_command_exec('collect batch --task_ids '.implode(',',$taskIds));
+    				exit();
+    			}
+    		}
+    		ignore_user_abort(true);
+			define('CLOSE_ECHO_MSG',true);
+    	}else{
+    		ignore_user_abort(false);
+    	}
     	
     	if($GLOBALS['config']['caiji']['timeout']>0){
     		set_time_limit(60*$GLOBALS['config']['caiji']['timeout']);
@@ -469,7 +496,38 @@ class Task extends BaseController {
 
     	$this->echo_msg('所有任务采集完毕！','green');
     }
-    
+    /*将任务标记为后台运行*/
+    public function _backstage_task($taskId){
+    	$GLOBALS['backstage_task_runtime']=time();
+    	
+    	if(model('Task')->where('id',$taskId)->count()>0){
+    		
+    		$mcache=CacheModel::getInstance('backstage_task');
+    		$mcache->db()->strict(false)->insert(array(
+    				'cname'=>$taskId,
+    				'dateline'=>$GLOBALS['backstage_task_runtime'],
+    				'ctype'=>0,
+    				'data'=>''
+    		),true);
+    		
+    		if(!isset($GLOBALS['backstage_task_ids'])){
+    			$GLOBALS['backstage_task_ids']=array();
+    		}
+    		$GLOBALS['backstage_task_ids'][$taskId]=$taskId;
+    		
+    		static $registered=false;
+    		if(!$registered){
+    			register_shutdown_function(function(){
+    				
+    				if(!empty($GLOBALS['backstage_task_ids'])&&is_array($GLOBALS['backstage_task_ids'])){
+    					$mcache=\skycaiji\admin\model\CacheModel::getInstance('backstage_task');
+    					$mcache->db()->strict(false)->where('cname','in',$GLOBALS['backstage_task_ids'])->update(array('ctype'=>1,'data'=>time()));
+    				}
+    			});
+    			$registered=true;
+    		}
+    	}
+    }
     /*单个任务采集*/
     public function _collect($taskId){
     	static $setted_timeout=null;
@@ -516,7 +574,7 @@ class Task extends BaseController {
     		exit();
 		}
 		$releData=$releData->toArray();
-		$mtask->save(array('caijitime'=>NOW_TIME),array('id'=>$taskData['id']));
+		$mtask->strict(false)->where('id',$taskData['id'])->update(array('caijitime'=>NOW_TIME));
 		$acoll=controller('admin/C'.strtolower($collData['module']),'event');
 		$acoll->init($collData);
 		$arele=controller('admin/R'.strtolower($releData['module']),'event');
@@ -602,7 +660,7 @@ class Task extends BaseController {
     		$this->echo_msg('总共需采集'.$caijiNum.'条数据','black');
     	}
     	foreach ($taskList as $taskData){
-    		$mtask->where('id',$taskData['id'])->update(array('caijitime'=>time()));
+    		$mtask->strict(false)->where('id',$taskData['id'])->update(array('caijitime'=>time()));
     		$collData=$mcoll->where(array('task_id'=>$taskData['id'],'module'=>$taskData['module']))->find();
     		$releData=$mrele->where(array('task_id'=>$taskData['id']))->find();
     		if(empty($collData)||empty($releData)){
@@ -617,6 +675,11 @@ class Task extends BaseController {
     			$this->echo_msg('任务：'.$taskData['name'].'，发布方式为API接口，跳过执行','orange');
     			continue;
     		}
+    		if(input('?backstage')){
+				
+    			$this->_backstage_task($taskData['id']);
+    		}
+    		
     		$taskData['config']=unserialize($taskData['config']);
     		
     		$mtask->loadConfig($taskData['config']);
@@ -661,7 +724,7 @@ class Task extends BaseController {
     				}
     			}while($field_list!='completed');
     		}
-    			
+    		
     		if(empty($all_field_list)){
     			$this->echo_msg('任务：'.$taskData['name'].' 没有采集到数据','orange');
     		}else{

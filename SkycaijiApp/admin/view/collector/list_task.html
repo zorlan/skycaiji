@@ -20,6 +20,7 @@
 		var name=$(this).text();
 		import_rule('collector:'+id,name);
 	});
+	$('#window_colls .pagination').addClass('pagination-sm');
 	$('#window_colls .pagination a').bind('click',function(){
 		windowModal('导入规则',$(this).attr('href'));
 		return false;

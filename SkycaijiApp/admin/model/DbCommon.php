@@ -30,7 +30,17 @@ class DbCommon{
     		'dsn'=>$config['db_dsn'],
     		'resultset_type'=>'array', 
     		'break_reconnect'=>true, 
+    		'params'=>array(),
     	);
+    	if(!empty($GLOBALS['config']['site']['dblong'])){
+    		
+    		$this->config['params'][\PDO::ATTR_PERSISTENT]=true;
+    	}
+    	
+    	if(isset($config['fields_strict'])){
+    		
+    		$this->config['fields_strict']=$config['fields_strict'];
+    	}
     	
     	if($this->config['type']=='mysqli'){
     		

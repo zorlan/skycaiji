@@ -16,14 +16,15 @@ class Collector extends BaseModel{
 	public function add_new($data){
 		$data['addtime']=NOW_TIME;
 		$data['uptime']=NOW_TIME;
-		$this->allowField(true)->save($data);
+		$this->isUpdate(false)->allowField(true)->save($data);
 		return $this->id;
 	}
 	
 	public function edit_by_id($id,$data){
 		unset($data['addtime']);
 		$data['uptime']=NOW_TIME;
-		$this->allowField(true)->save($data,array('id'=>$id));
+		
+		$this->strict(false)->where(array('id'=>$id))->update($data);
 	}
 	
 }
