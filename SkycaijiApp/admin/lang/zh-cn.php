@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -159,13 +159,19 @@ return array(
 	
 	'process_module_html'=>'html标签过滤',
 	'process_module_replace'=>'内容替换',
-	'process_module_filter'=>'过滤词',
+	'process_module_filter'=>'关键词过滤',
+	'process_module_if'=>'条件判断',
 	'process_module_translate'=>'翻译',
 	'process_module_tool'=>'工具箱',
 	'process_module_batch'=>'批量替换',
 	'process_module_substr'=>'截取字符串',
 	'process_module_func'=>'使用函数',
-
+		
+	'p_m_if_1'=>'满足条件采集',	
+	'p_m_if_2'=>'满足条件不采集',
+	'p_m_if_3'=>'不满足条件采集',
+	'p_m_if_4'=>'不满足条件不采集',
+		
 	'rele_set'=>'发布设置',
 	'rele_error_detect_null'=>'没有检测到本地CMS程序，您可以手动绑定数据',
 	'rele_error_empty_rele'=>'发布设置不存在',
@@ -296,6 +302,6 @@ return array(
 	'tips_match_url'=>'示例：&lt;a href=&quot;http://demo.com/[内容1]/[内容2]&quot;&gt;(*)&lt;/a&gt;',
 	'tips_matchn_url'=>'示例：http://www.demo.com/[内容1]-[内容2].html',
 		
-	'release_upgrade'=>'插件版本过低，请升级插件 <a href="http://www.skycaiji.com/manual/doc/release_upgrade" target="_blank">升级教程</a>',
+	'release_upgrade'=>'插件版本过低，请升级插件 <a href="https://www.skycaiji.com/manual/doc/release_upgrade" target="_blank">升级教程</a>',
 );
 ?>

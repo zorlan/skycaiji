@@ -1,0 +1,42 @@
+<form id="win_form_pack" method="post" action="{:url('Develop/appAddPack')}">
+	<input type="hidden" name="objid" value="{$objid}" />
+	<div class="form-group">
+		<label>名称</label>
+		<input type="text" name="pack[name]" class="form-control" autocomplete="off" />
+	</div>
+	<div class="form-group">
+		<label>类型</label>
+		<select name="pack[type]" class="form-control">
+			<option value="">请选择</option>
+			{foreach $packTypes as $k=>$v}
+			<option value="{$k}">{$v}</option>
+			{/foreach}
+		</select>
+		<p class="help-block type-nav" style="display:none;">显示在应用的管理界面中</p>
+	</div>
+	<div class="form-group">
+		<label>新窗口</label>
+		<div class="input-group">
+        	<label class="radio-inline"><input type="radio" name="pack[target]" value="1">是</label>
+        	<label class="radio-inline"><input type="radio" name="pack[target]" value="0">否</label>
+        </div>
+		<p class="help-block">是否在新窗口打开连接</p>
+	</div>
+	<div class="form-group">
+		<label>链接</label>
+		<input type="text" name="pack[nav_link]" class="form-control" autocomplete="off" placeholder="默认补全为应用绝对链接" />
+		<div class="help-block">
+			可使用参数：&#123;app&#125;当前应用的根网址，&#123;apps&#125;所有应用的根网址<br>
+		</div>
+	</div>
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+<script type="text/javascript">
+developClass.init_app_pack();
+
+{if condition="!empty($pack)"}
+developClass.load_app_pack({$pack|json_encode});
+{/if}
+</script>

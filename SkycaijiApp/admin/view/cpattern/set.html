@@ -14,7 +14,7 @@
 	{/if}
 </ul>
 <div id="coll_tab_content" class="tab-content" style="margin-top:-1px">
-	<div class="tab-pane fade in active" id="coll_pattern_coll">
+	<div class="tab-pane in active" id="coll_pattern_coll">
 		<div class="panel panel-default">
 			<div class="panel-body">
 	     		<div class="form-group">
@@ -33,20 +33,20 @@
 					<input type="text" class="form-control" name="config[charset_custom]" style="margin-top:10px;display:none;">
 				</div>
 	     		<div class="form-group">
-					<label class="control-label">页面渲染</label>
-					<div class="input-group">
-       					<label class="radio-inline"><input type="radio" name="config[page_render]" value="1"> 是</label>
-       					<label class="radio-inline"><input type="radio" name="config[page_render]" value="0"> 否</label>
-       				</div>
-       				<p class="help-block">需先配置<a href="{:url('Setting/page_render')}">页面渲染</a>，可自动加载ajax内容</p>
-				</div>
-	     		<div class="form-group">
 					<label class="control-label">自动补全网址</label>
 					<div class="input-group">
        					<label class="radio-inline"><input type="radio" name="config[url_complete]" value="1"> 是</label>
        					<label class="radio-inline"><input type="radio" name="config[url_complete]" value="0"> 否</label>
        				</div>
        				<p class="help-block">将所有页面源码中的相对地址转换成绝对地址（包含超链接、图片、JS链接等）</p>
+				</div>
+	     		<div class="form-group">
+					<label class="control-label">网址不排重</label>
+					<div class="input-group">
+       					<label class="radio-inline"><input type="radio" name="config[url_repeat]" value="1"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_repeat]" value="0"> 否</label>
+       				</div>
+       				<p class="help-block">默认将已采集网址排重过滤，选择“是”允许重复采集</p>
 				</div>
 	     		<div class="form-group">
 					<label class="control-label">倒序采集</label>
@@ -57,12 +57,12 @@
        				<p class="help-block">以相反的顺序采集内容页网址</p>
 				</div>
 	     		<div class="form-group">
-					<label class="control-label">网址不排重</label>
+					<label class="control-label">页面渲染</label>
 					<div class="input-group">
-       					<label class="radio-inline"><input type="radio" name="config[url_repeat]" value="1"> 是</label>
-       					<label class="radio-inline"><input type="radio" name="config[url_repeat]" value="0"> 否</label>
+       					<label class="radio-inline"><input type="radio" name="config[page_render]" value="1"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="config[page_render]" value="0"> 否</label>
        				</div>
-       				<p class="help-block">默认将已采集网址排重过滤，选择“是”允许重复采集</p>
+       				<p class="help-block">需先配置<a href="{:url('Setting/page_render')}">页面渲染</a>，可自动加载ajax内容</p>
 				</div>
 			</div>
 		</div>
@@ -134,7 +134,7 @@
 	    	</div>
 	  	</div>
 	</div>
-	<div class="tab-pane fade" id="coll_pattern_source">
+	<div class="tab-pane" id="coll_pattern_source">
 		<div class="panel panel-default">
 	    	<div class="panel-body">
 	     		<div class="form-group">
@@ -162,7 +162,7 @@
 			</div>
 	    </div>
 	</div>
-	<div class="tab-pane fade" id="coll_pattern_link">
+	<div class="tab-pane" id="coll_pattern_link">
 		<div class="panel panel-default" id="panel_coll_pattern_level_url">
 			<div class="panel-heading">
 		    	<h4 class="panel-title">
@@ -394,7 +394,7 @@
 		</div>
 		{/if}
 	</div>
-	<div class="tab-pane fade" id="coll_pattern_field">
+	<div class="tab-pane" id="coll_pattern_field">
 		<div class="panel panel-default">
 			<div class="panel-body">
 	     		<div class="h-title">
@@ -461,6 +461,7 @@
       						<a href="javascript:;" class="glyphicon glyphicon-plus add-paging-field" title="添加"></a>
 	       				</label>
 	       				<div id="c_p_paging_fields"></div>
+	       				<p class="help-block">只有选中的字段才会在分页中获取到内容</p>
 	       			</div>
 	       			<div class="form-group">
 	       				<label class="control-label">获取分页区域</label>

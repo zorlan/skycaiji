@@ -7,9 +7,12 @@
 {php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'倒序'));{/php}
 <div class="nav-tabs-custom">
 	<ul class="nav nav-tabs">
-    	<li class="active"><a href="{:url('Mystore/Collect')}">采集规则</a></li>
+    	<li class="active"><a href="{:url('Mystore/Rule')}">采集规则</a></li>
     	<li><a href="{:url('Mystore/ReleaseApp')}">发布插件</a></li>
-    	<li class="nav-check-update"><a href="javascript:;" onclick="check_rules_update()">检测更新</a></li>
+    	<li class="nav-check-update">
+    		<a href="javascript:;" onclick="check_rules_update()">检测更新</a>
+    		<input type="checkbox" id="auto_check" {:empty($GLOBALS['config']['store_auto_check_rule'])?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
+    	</li>
 	</ul>
 	<div class="tab-content">
 		<div class="tab-pane active">
@@ -20,9 +23,10 @@
 						<tr>
 							<th class="chk">{$Think.lang.select}</th>
 							<th class="sorting{$orderClass['name']}" data-order="name" title="名称{$orderSort['name']}">名称</th>
+							<th>采集模块</th>
 							<th class="sorting{$orderClass['addtime']}" data-order="addtime" title="添加时间{$orderSort['addtime']}">添加时间</th>
 							<th class="sorting{$orderClass['uptime']}" data-order="uptime" title="更新时间{$orderSort['uptime']}">更新时间</th>
-							<th>详细</th>
+							<th>平台</th>
 							<th>{$Think.lang.op}</th>
 						</tr>
 					</thead>
@@ -30,10 +34,19 @@
 					{foreach name="ruleList" item="rule"}
 						<tr data-rule-id="{$rule['id']}">
 							<td class="chk"><input type="checkbox" name="ids[]" value="{$rule['id']}" /></td>
-							<td><a href="http://www.skycaiji.com/collect/rule/detail?id={$rule['store_id']}" class="store-detail">{$rule['name']}</a></td>
+							<td>{$rule['name']}</td>
+							<td>{:lang('task_module_'.$rule['module'])}</td>
 							<td>{:date('Y-m-d H:i',$rule['addtime'])}</td>
 							<td>{:date('Y-m-d H:i',$rule['uptime'])}</td>
-							<td class="store-info"><a href="http://www.skycaiji.com/collect/rule/detail?id={$rule['store_id']}" class="store-detail">详细</a></td>
+							<td class="store-info">
+								<a href="{$rule['store_url']}" data-is-store-url="1" class="store-detail">
+									{if empty($rule['provider_id'])}
+										官方
+									{else /}
+										第三方
+									{/if}
+								</a>
+							</td>
 							<td><a href="javascript:;" url="{:url('Mystore/ruleOp?op=delete&id='.$rule['id'])}" class="delete">删除</a></td>
 						</tr>
 					{/foreach}
@@ -41,13 +54,13 @@
 					<tfoot>
 						<tr>
 							<td class="chk"><label><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" />全部</label></td>
-							<td colspan="5">
+							<td colspan="6">
 								<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
 							</td>
 						</tr>
 		    			{if condition="!empty($pagenav)"}
 						<tr>
-							<td colspan="5">{$pagenav}</td>
+							<td colspan="7">{$pagenav}</td>
 						</tr>
 						{/if}
 					</tfoot>

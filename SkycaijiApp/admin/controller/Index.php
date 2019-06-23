@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -34,13 +34,25 @@ class Index extends BaseController{
 			cache('caiji_auto_backstage_runtime',$runtime);
 		}else{
 			
-			$cahce_runtime=cache('caiji_auto_backstage_runtime');
-			$cahce_runtime=intval($cahce_runtime);
-			if($runtime<$cahce_runtime){
+			$cache_runtime=cache('caiji_auto_backstage_runtime');
+			$cache_runtime=intval($cache_runtime);
+			if($runtime<$cache_runtime){
 				
 				$this->error('终止旧进程');
 			}
 		}
+		
+		$curlCname='caiji_auto_curltime_'.$runtime;
+		if(input('?curltime')){
+			
+			$cacheCurl=cache($curlCname);
+			if(!empty($cacheCurl)&&$cacheCurl>input('curltime')){
+				
+				$this->error('终止过期进程');
+			}
+			cache($curlCname,input('curltime'));
+		}
+		
 		ignore_user_abort(true);
 		set_time_limit(0);
 		
@@ -52,19 +64,55 @@ class Index extends BaseController{
 			
 			$this->error('自动采集已停止');
 		}
-		$collectTime1=time();
 		try{
-			@get_html(url('Admin/Api/collect?backstage=1',null,false,true),null,array('timeout'=>3));
+			
+			$ch = curl_init ();
+			curl_setopt ( $ch, CURLOPT_URL, url('Admin/Api/collect?backstage=1',null,false,true) );
+			curl_setopt ( $ch, CURLOPT_TIMEOUT, 3 );
+			curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
+			curl_setopt ( $ch, CURLOPT_FOLLOWLOCATION, 1 );
+			curl_setopt ( $ch, CURLOPT_HEADER, 1 );
+			curl_setopt ( $ch, CURLOPT_NOBODY, 1 );
+			curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, FALSE );
+			curl_setopt ( $ch, CURLOPT_SSL_VERIFYHOST, FALSE );
+			curl_exec ( $ch );
+			curl_close ( $ch );
 		}catch(\Exception $ex){
 			
 		}
 		
-		sleep(20);
+		sleep(15);
 		
 		if($GLOBALS['config']['caiji']['auto']){
 			
 			try{
-				@get_html(url('Admin/Index/backstage?autorun=1&runtime='.$runtime,null,false,true),null,array('timeout'=>3));
+				
+				do {
+					
+					$curltime=time();
+					
+					$ch = curl_init ();
+					curl_setopt ( $ch, CURLOPT_URL, url('Admin/Index/backstage?autorun=1&runtime='.$runtime.'&curltime='.$curltime,null,false,true) );
+					curl_setopt ( $ch, CURLOPT_TIMEOUT, 2 );
+					curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
+					curl_setopt ( $ch, CURLOPT_FOLLOWLOCATION, 1 );
+					curl_setopt ( $ch, CURLOPT_HEADER, 1 );
+					curl_setopt ( $ch, CURLOPT_NOBODY, 1 );
+					curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, FALSE );
+					curl_setopt ( $ch, CURLOPT_SSL_VERIFYHOST, FALSE );
+					curl_exec ( $ch );
+					curl_close ( $ch );
+
+					sleep(1);
+					
+					$cacheCurl=cache($curlCname);
+					
+					$continue=false;
+					if(empty($cacheCurl)||$cacheCurl<$curltime){
+						
+						$continue=true;
+					}
+				}while($continue);
 			}catch(\Exception $ex){
 			
 			}
@@ -128,7 +176,7 @@ class Index extends BaseController{
 		
 				$muser=new \skycaiji\admin\model\User();
 				$userData=$muser->where('username',$username)->find();
-				if(empty($userData)||$userData['password']!=pwd_encrypt($pwd)){
+				if(empty($userData)||$userData['password']!=\skycaiji\admin\model\User::pwd_encrypt($pwd,$userData['salt'])){
 					
 					if(!empty($config_login['limit'])){
 						
@@ -160,13 +208,28 @@ class Index extends BaseController{
 					cookie('login_history',$username.'|'.md5($username.$userData['password']),array('expire'=>3600*24*15));
 				}
 				session('user_id',$userData['uid']);
+
+				$userGroup=model('Usergroup')->getById($userData['groupid']);
 				
-				$serverinfo=input('serverinfo');
+				if(model('Usergroup')->is_admin($userGroup)){
+					session('is_admin',true);
+				}else{
+					session('is_admin',null);
+				}
+				
+				$serverinfo=input('_serverinfo');
 				if(empty($serverinfo)){
-					$this->success(lang('user_login_in'),'Admin/Backstage/index');
+					$url=null;
+					if(input('?_referer')){
+						
+						$url=input('_referer','','trim');
+					}
+					$url=empty($url)?'Admin/Backstage/index':$url;
+					
+					$this->success(lang('user_login_in'),$url);
 				}else{
 					
-					$this->success(lang('user_login_in'),null,array('js'=>'window.parent.postMessage("login_success","http://www.skycaiji.com");'));
+					$this->success(lang('user_login_in'),null,array('js'=>'window.parent.postMessage("login_success","*");'));
 				}
 			}else{
 				$this->error(lang('user_error_sublogin'));
@@ -180,6 +243,7 @@ class Index extends BaseController{
 		\think\Cookie::delete('login_history');
 		unset($GLOBALS['user']);
 		session('user_id',null);
+		session('is_admin',null);
 		$this->success(lang('op_success'),'Admin/Index/index');
 	}
 	/*验证码*/
@@ -291,7 +355,10 @@ class Index extends BaseController{
 						$this->error($check['msg']);
 					}
 					
-					$muser->strict(false)->where(array('username'=>$stepSession['user']['username']))->update(array('password'=>pwd_encrypt($pwd)));
+					$salt=\skycaiji\admin\model\User::rand_salt();
+					$pwd=\skycaiji\admin\model\User::pwd_encrypt($pwd,$salt);
+					
+					$muser->strict(false)->where(array('username'=>$stepSession['user']['username']))->update(array('password'=>$pwd,'salt'=>$salt));
 					session($stepSname,null);
 					$this->success(lang('find_pwd_success'),'Admin/Index/index');
 				}else{
@@ -330,6 +397,11 @@ class Index extends BaseController{
 					}
 				}
 				
+				$newPwd='skycaiji123';
+				$newPwdEncrypt=\skycaiji\admin\model\User::pwd_encrypt($newPwd,$stepSession['user']['salt']);
+
+				$this->assign('newPwd',$newPwd);
+				$this->assign('newPwdEncrypt',$newPwdEncrypt);
 				$this->assign('emailStatus',$emailStatus);
 			}
 

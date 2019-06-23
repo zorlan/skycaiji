@@ -77,7 +77,7 @@
 			</li>
 		</ul>
     </li>
-	<li class="treeview{$curMenu['store']}{$curMenu['mystore']}">
+	<li class="treeview{$curMenu['store']}{$curMenu['mystore']}{$curMenu['provider']}">
 		<a href="#">
 			<i class="fa fa-cloud"></i> <span>云端</span>
 			<span class="pull-right-container">
@@ -86,6 +86,7 @@
 		</a>
 		<ul class="treeview-menu">
 			<li><a href="{:url('Admin/Store/index')}"><i class="fa fa-circle-o"></i> 云平台</a></li>
+			<li><a href="{:url('Admin/Provider/list')}"><i class="fa fa-circle-o"></i> 第三方</a></li>
 			<li class="treeview menu-open">
 				<a href="#"><i class="fa fa-circle-o"></i> 已下载
 				<span class="pull-right-container">
@@ -93,8 +94,9 @@
 				</span>
 				</a>
 				<ul class="treeview-menu" style="display:block;">
-					<li><a href="{:url('Admin/Mystore/Collect')}"><i class="fa fa-circle-o"></i> 采集规则</a></li>
+					<li><a href="{:url('Admin/Mystore/rule')}"><i class="fa fa-circle-o"></i> 采集规则</a></li>
 					<li><a href="{:url('Admin/Mystore/ReleaseApp')}"><i class="fa fa-circle-o"></i> 发布插件</a></li>
+					<li><a href="{:url('Admin/Mystore/app')}"><i class="fa fa-circle-o"></i> 应用程序</a></li>
 				</ul>
 			</li>
 		</ul>
@@ -129,14 +131,24 @@
 			</span>
 		</a>
 		<ul class="treeview-menu">
-			<li><a href="{:url('Admin/Develop/releaseCms')}"><i class="fa fa-circle-o"></i> CMS发布插件</a></li>
+			<li class="treeview">
+				<a href="#"><i class="fa fa-circle-o"></i> 开发
+				<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+				</span>
+				</a>
+				<ul class="treeview-menu" style="display:none;">
+					<li><a href="{:url('Admin/Develop/releaseCms')}"><i class="fa fa-circle-o"></i> CMS发布插件</a></li>
+					<li><a href="{:url('Admin/Develop/app')}"><i class="fa fa-circle-o"></i> 应用程序</a></li>
+				</ul>
+			</li>
 			<li><a href="{:url('Admin/Tool/fileManager')}"><i class="fa fa-circle-o"></i> 文件管理</a></li>
 			<li><a href="{:url('Admin/Tool/json_tree')}" target="_blank"><i class="fa fa-circle-o"></i> JSON解析</a></li>
 			<li><a href="{:url('Admin/Tool/logs')}"><i class="fa fa-circle-o"></i> 错误日志</a></li>
 			<li class="treeview">
 				<a href="#"><i class="fa fa-circle-o"></i> 校验
 				<span class="pull-right-container">
-				<i class="fa fa-angle-left pull-right"></i>
+					<i class="fa fa-angle-left pull-right"></i>
 				</span>
 				</a>
 				<ul class="treeview-menu" style="display:none;">
@@ -144,22 +156,21 @@
 					<li><a href="{:url('Admin/Tool/checkdb')}"><i class="fa fa-circle-o"></i> 数据库</a></li>
 				</ul>
 			</li>
-		</ul>
-	</li>
-	<li class="treeview">
-		<a href="#">
-			<i class="fa fa-dashboard"></i> <span>{$Think.lang.admincp_style}</span>
-			<span class="pull-right-container">
-				<i class="fa fa-angle-left pull-right"></i>
-			</span>
-		</a>
-		<ul class="treeview-menu treeview-config">
-			<li>
-				<div class="checkbox"><label><input id="chk_sidebar_mini" type="checkbox"> {$Think.lang.admincp_sidebar_mini}</label></div>
-			</li>
-			<li>
-				<div>{$Think.lang.admincp_skins}</div>
-				<div id="sidebar_skins"></div>
+			
+			<li class="treeview">
+				<a href="#" id="treeview_skins"><i class="fa fa-circle-o"></i> {$Think.lang.admincp_style}
+				<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+				</span>
+				</a>
+				<ul class="treeview-menu treeview-skins" style="display:none;">
+					<li>
+						<div class="checkbox"><label><input id="chk_sidebar_mini" type="checkbox"> {$Think.lang.admincp_sidebar_mini}</label></div>
+					</li>
+					<li>
+						<div id="sidebar_skins"></div>
+					</li>
+				</ul>
 			</li>
 		</ul>
 	</li>

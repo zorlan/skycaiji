@@ -1,0 +1,11 @@
+<textarea id="win_txt_agreement">{$agreement}</textarea>
+<script type="text/javascript">
+(function(){
+	modal('“{$name}({$app})”使用协议','<pre style="max-height:400px;">'+$('#win_txt_agreement').val()+'</pre>',{lg:1});
+	$('#myModal .modal-footer .close').addClass('btn btn-default').removeClass('close');
+	$('#myModal .modal-footer').prepend('<button type="button" class="btn btn-success btn-agreement" data-dismiss="modal">同意</button>');
+	$('#myModal .modal-footer .btn-agreement').bind('click',function(){
+		windowModal('正在安装...',"{:url('Admin/App/install?app='.$app)}");
+	});
+})();
+</script>

@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -22,12 +22,12 @@ class ReleaseApp extends BaseModel{
 		
 		$cms['module']='cms';
 		$cms['uptime']=$cms['uptime']>0?$cms['uptime']:NOW_TIME;
-		$cmsData=$this->where(array('module'=>'cms','app'=>$cms['app']))->find();
+		$cmsData=$this->where('app',$cms['app'])->find();
 		$success=false;
 		
 		if(!empty($cmsData)){
 			
-			$this->strict(false)->where(array('module'=>'cms','app'=>$cms['app']))->update($cms);
+			$this->strict(false)->where('app',$cms['app'])->update($cms);
 			$success=true;
 		}else{
 			

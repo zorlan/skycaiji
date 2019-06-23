@@ -1,8 +1,12 @@
 <IfModule mod_rewrite.c>
   Options +FollowSymlinks -Multiviews
-  RewriteEngine On
-
+  RewriteEngine on
+  
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteRule ^(.*)$ index.php/$1 [QSA,PT,L]
+  RewriteRule ^app/(\w+)/(.*)$ app/$1/index.php [QSA,PT,L,E=PATH_INFO:$2]
+  
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^(.*)$ index.php [QSA,PT,L,E=PATH_INFO:$1]
 </IfModule>

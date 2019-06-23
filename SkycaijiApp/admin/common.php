@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -149,4 +149,11 @@ function cli_command_exec($paramStr){
 	
     
     exit();
+}
+function is_official_url($url){
+	if(preg_match('/skycaiji\.com/i', $url)){
+		return true;
+	}else{
+		return false;
+	}
 }

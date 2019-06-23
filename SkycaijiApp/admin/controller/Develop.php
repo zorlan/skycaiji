@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -23,7 +23,18 @@ class Develop extends BaseController {
 		'select_func' => '选择函数返回值(select)'
 	);
 	
+	public static $packTypes=array(
+		'nav'=>'后台导航'
+	);
 	
+	public static $frameworks=array(
+		'thinkphp'=>array('6.0','5.1','5.0'),
+		'laravel'=>array('5.5','5.1'),
+	);
+	
+	public function pluginAction(){
+		$this->redirect('develop/releaseCms');
+	}
 	public function releaseCmsAction(){
 		$mapp=model('ReleaseApp');
 		if(request()->isPost()){
@@ -84,6 +95,7 @@ class Develop extends BaseController {
 			$appName=input('app');
 			$appName=ucfirst($appName);
 			$config=array();
+			
 			if($appName){
 				$cmsData=$mapp->where(array('module'=>'cms','app'=>$appName))->find();
 				
@@ -150,7 +162,7 @@ class Develop extends BaseController {
 				}
 			}
 			
-			$GLOBALS['content_header']='开发CMS发布插件 <small><a href="http://www.skycaiji.com/manual/doc/cms" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
+			$GLOBALS['content_header']='开发CMS发布插件 <small><a href="https://www.skycaiji.com/manual/doc/cms" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
 			$GLOBALS['breadcrumb']=breadcrumb(array('开发工具','开发CMS发布插件'));
 			$this->assign('config',$config);
 			$this->assign('is_old_plugin',$is_old_plugin);
@@ -208,6 +220,7 @@ class Develop extends BaseController {
 		
 		$mapp=model('ReleaseApp');
 		$cmsData=$mapp->where(array('module'=>'cms','app'=>$appData['app']))->find();
+		
 		if(!$is_edit&&!empty($cmsData)){
 			
 			$this->error('抱歉，已存在'.$appData['app'].'插件');
@@ -368,5 +381,440 @@ EOF;
 		}else{
 			$this->error('代码错误');
 		}
+	}
+	
+	
+	/*开发应用*/
+	public function appAction(){
+		$app=input('app');
+		$app=strtolower($app);
+		$mapp=model('App');
+		$appData=null;
+		if($app){
+			$appData=$mapp->getByApp($app);
+		}
+		if(request()->isPost()){
+			
+			$is_edit=input('edit');
+			if($is_edit&&empty($appData)){
+				$this->error('修改失败，该应用不存在！');
+			}
+			$framework=input('framework');
+			$frameworkVersion=input('framework_version/a');
+			$frameworkVersion=$frameworkVersion[$framework];
+			
+			$config=array(
+				'name'=>input('name'),
+				'version'=>input('version'),
+				'desc'=>input('desc','','trim'),
+				'author'=>input('author'),
+				'website'=>input('website','','trim'),
+				'phpv'=>input('phpv'),
+				'agreement'=>input('agreement','','trim')
+			);
+			
+			$install=input('install','','trim');
+			$uninstall=input('uninstall','','trim');
+			$upgrade=input('upgrade','','trim');
+				
+			if(!empty($framework)&&empty($frameworkVersion)){
+				$this->error('请选择框架版本');
+			}
+				
+			$packs=input('packs/a');
+			if(empty($config['name'])){
+				$this->error('请输入应用名称');
+			}
+			if(!$mapp->right_name($config['name'])){
+				$this->error('应用名称只能由汉字、字母、数字和下划线组成');
+			}
+			if(!$is_edit){
+				
+				if(!$mapp->right_app($app)){
+					$this->error('app标识不规范');
+				}
+				if($mapp->where('app',$app)->count()>0){
+					
+					$this->error('抱歉，已存在'.$app.'应用');
+				}
+			}
+			if(!$mapp->right_version($config['version'])){
+				$this->error('版本号格式错误');
+			}
+	
+			if(is_array($packs)){
+				foreach ($packs as $k=>$v){
+					
+					$v=json_decode(url_b64decode($v),true);
+					$packs[$k]=array(
+						'name'=>$v['name'],
+						'type'=>$v['type'],
+						'nav_link'=>$v['nav_link'],
+						'target'=>$v['target'],
+					);
+				}
+			}else{
+				$packs=array();
+			}
+			
+			$config['framework']=$framework;
+			$config['framework_version']=$frameworkVersion;
+			$config['packs']=$packs;
+			
+			$config=$mapp->clear_config($config);
+			
+			$provId=model('Provider')->getIdByUrl($config['website']);
+				
+			$tplAppPhp=file_get_contents(config('app_path').'/public/app/skycaiji_php.tpl');
+			
+			$tplParams=$config;
+			$tplParams['app']=$app;
+			$tplParams['install']=$install;
+			$tplParams['uninstall']=$uninstall;
+			$tplParams['upgrade']=$upgrade;
+			foreach ($tplParams as $k=>$v){
+				if(is_array($v)){
+					
+					$v=$this->_format_array($v,"\t");
+				}
+				$tplAppPhp=str_replace('{$'.$k.'}',$v, $tplAppPhp);
+			}
+			unset($tplParams);
+			
+			$tplAppPhp=preg_replace('/\{\$[^\{\}]+\}/', '', $tplAppPhp);
+			if(!$is_edit){
+				
+				
+				$createFiles = array (
+					'index.php'=>file_get_contents(config('app_path').'/public/app/index_php.tpl'),
+					$app.'.php'=>$tplAppPhp,
+				);
+	
+				foreach ($createFiles as $filename=>$filecode){
+					write_dir_file(config('apps_path')."/{$app}/{$filename}",$filecode);
+				}
+	
+				$mapp->isUpdate(false)->allowField(true)->save(array(
+					'app'=>$app,
+					'addtime'=>time(),
+					'uptime'=>time(),
+					'provider_id'=>$provId
+				));
+				if($mapp->id>0){
+					$mapp->set_config($app,$config);
+					$this->success('应用创建成功','Develop/app?app='.$app);
+				}else{
+					$this->success('应用创建失败');
+				}
+			}else{
+				
+				$appFilename=$mapp->app_class_file($app);
+	
+				$codeAppPhp=file_get_contents($appFilename);
+	
+				if(!empty($codeAppPhp)){
+					
+					$appClass=$mapp->app_class($app);
+					$appConfig=array();
+					if(is_object($appClass)){
+						$appConfig=is_array($appClass->config)?$appClass->config:array();
+					}
+					$appConfig=array_merge($appConfig,$config);
+						
+					$replaceVars=array('config'=>$appConfig,'install'=>$install,'uninstall'=>$uninstall,'upgrade'=>$upgrade);
+					$replaceVars=array_reverse($replaceVars);
+					foreach ($replaceVars as $reVar=>$reCont){
+						
+						$matchVar='/[a-z]+\s*\$'.$reVar.'\s*=(?:([^\'\"\r\n]+?;)|([\s\S]+?[\]\)\'\"]\s*;))/i';
+	
+						if(!preg_match($matchVar,$codeAppPhp)){
+							
+							$codeAppPhp=preg_replace('/class\s*\w+\s*extends\s*skycaiji\s*\{/i', "$0\r\n\tpublic \$".$reVar."='';", $codeAppPhp);
+						}
+						if(is_array($reCont)){
+							
+							$reCont=$this->_format_array($reCont);
+							$codeAppPhp=preg_replace($matchVar, 'public $'.$reVar.'='.$reCont.';', $codeAppPhp);
+						}else{
+							
+							preg_match_all($matchVar,$codeAppPhp,$asd);
+								
+							$codeAppPhp=preg_replace($matchVar, 'public $'.$reVar."='".addslashes($reCont)."';", $codeAppPhp);
+						}
+					}
+	
+					write_dir_file($appFilename, $codeAppPhp);
+				}else{
+					
+					write_dir_file($appFilename, $tplAppPhp);
+				}
+	
+				$mapp->strict(false)->where('id',$appData['id'])->update(array(
+					'uptime'=>time(),
+					'provider_id'=>$provId
+				));
+				if(version_compare($config['version'],$appData['config']['version'],'<=')===true){
+					
+					$mapp->set_config($app,$config);
+				}
+	
+				$this->success('修改成功','Develop/app?app='.$app);
+			}
+		}else{
+			$GLOBALS['content_header']='开发应用程序 <small><a href="https://www.skycaiji.com/manual/doc/app" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
+	
+			if($appData){
+				$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('App/manage?app='.$appData['app']),'title'=>$appData['config']['name']),'开发应用'));
+			}else{
+				$GLOBALS['breadcrumb']=breadcrumb(array('开发工具','应用程序'));
+			}
+				
+			$appClass=$mapp->app_class($app);
+			
+			if(is_object($appClass)){
+				if(version_compare($appClass->config['version'], $appData['config']['version'],'>')===true){
+					
+					$this->assign('newest_version',$appClass->config['version']);
+				}
+				
+				$appFrameworkPath=$appClass->appFrameworkPath();
+				if(is_dir($appFrameworkPath)){
+					
+					$this->assign('appFrameworkPath',$appFrameworkPath);
+				}
+				
+				$appData['app_class']=$mapp->get_class_vars($appClass);
+			}
+	
+			$this->assign('appData',$appData);
+			$this->assign('frameworks',self::$frameworks);
+			$this->assign('packTypes',self::$packTypes);
+			return $this->fetch();
+		}
+	}
+	
+	/*添加扩展*/
+	public function appAddPackAction(){
+		if(request()->isPost()){
+			$pack=input('pack/a','','trim');
+			$pack['name']=strip_tags($pack['name']);
+			$pack['type']=strip_tags($pack['type']);
+			$pack['target']=intval($pack['target']);
+			$pack=array_array_map('trim', $pack);
+			if(empty($pack['name'])){
+				$this->error('请输入名称');
+			}
+			if(!model('App')->right_name($pack['name'])){
+				$this->error('名称只能由汉字、字母、数字和下划线组成');
+			}
+				
+			if(empty($pack['type'])){
+				$this->error('请选择类型');
+			}
+			if(empty($pack['nav_link'])){
+				$this->error('请输入链接');
+			}
+			$pack['pack_json']=json_encode($pack);
+			$pack['type_name']=self::$packTypes[$pack['type']];
+			$this->success('',null,$pack);
+		}else{
+			$objid=input('objid');
+			$pack=input('pack','','url_b64decode');
+			$pack=$pack?json_decode($pack,true):'';
+	
+			$this->assign('objid',$objid);
+			$this->assign('pack',$pack);
+			$this->assign('packTypes',self::$packTypes);
+			return $this->fetch('appAddPack');
+		}
+	}
+	/*下载安装框架*/
+	public function installFrameworkAction(){
+		$app=input('app');
+		$op=input('op');
+	
+		if(empty($app)){
+			$this->error('应用app标识错误');
+		}
+		$mapp=model('App');
+		$appClass=$mapp->app_class($app);
+		if(!is_object($appClass)){
+			$this->error('应用配置错误');
+		}
+	
+		if(empty($appClass->config['framework'])){
+			$this->error('框架不能为空');
+		}
+	
+		if(empty($appClass->config['framework_version'])){
+			$this->error('框架版本错误');
+		}
+	
+		$appFrameworkPath=$appClass->appFrameworkPath();
+		if(is_dir($appFrameworkPath)){
+			$this->error('该应用已有框架，如需重新设置框架，请先删除：'.$appFrameworkPath);
+		}
+	
+		$eachSize=1024*100;
+		$fileUrl='https://www.skycaiji.com/download/framework/'.$appClass->config['framework'].'/'.$appClass->config['framework_version'].'.zip';
+
+		$filePath=RUNTIME_PATH.'/cache_framework/'.$appClass->config['framework'].$appClass->config['framework_version'].'/';
+	
+		if('files'==$op){
+			
+			$fileHeader=get_headers($fileUrl,true);
+			if(!preg_match('/\s+20\d\s+ok/i',$fileHeader[0])){
+				$this->error('文件获取失败');
+			}
+			$fileSize=$fileHeader['Content-Length'];
+			$list=array();
+			$count=ceil($fileSize/$eachSize);
+			for($i=0;$i<$count;$i++){
+				
+				$list[$i]=array('id'=>$i+1,'start'=>$i*$eachSize,'end'=>($i+1)*$eachSize);
+				if($list[$i]['end']>=$fileSize){
+					$list[$i]['end']=$fileSize;
+				}
+				$list[$i]['end']-=1;
+			}
+			$this->success(true,'',array('size'=>$fileSize,'list'=>$list));
+		}elseif('down'==$op){
+			$fileSize=input('size/d');
+			$startSize=input('start_size/d');
+			$endSize=input('end_size/d');
+			$id=input('id/d');
+				
+			$fileCont=file_get_contents($filePath.$id);
+				
+			if(!empty($fileCont)){
+				
+				$this->success();
+			}else{
+				$blockData=$this->_down_file($fileUrl,null,"{$startSize}-{$endSize}");
+				if(empty($blockData)){
+					
+					$this->error();
+				}else{
+					write_dir_file($filePath.$id, $blockData);
+					$this->success();
+				}
+			}
+		}elseif('install'==$op){
+			$fileSize=input('size/d');
+			$count=ceil($fileSize/$eachSize);
+			$is_end=true;
+			for($i=1;$i<=$count;$i++){
+				
+				if(!file_exists($filePath.$i)){
+					$is_end=false;
+					break;
+				}
+			}
+			if($is_end){
+				
+				$error='';
+				$allData='';
+				for($i=1;$i<=$count;$i++){
+					$allData.=file_get_contents($filePath.$i);
+				}
+				write_dir_file($filePath.'framework.zip', $allData);
+	
+				try {
+					$zipClass=new \ZipArchive();
+					if($zipClass->open($filePath.'framework.zip')===TRUE){
+						$zipClass->extractTo($appClass->appPath);
+						$zipClass->close();
+					}else{
+						$error='解压失败';
+					}
+				}catch(\Exception $ex){
+					$error='您的服务器不支持ZipArchive解压';
+				}
+				if(!empty($error)){
+					$error.='，请自行将文件'.$filePath.'framework.zip 解压到'.$appClass->appPath.'里';
+				}
+				if($error){
+					$this->error($error);
+				}else{
+					clear_dir($filePath);
+					$this->success('安装成功','Develop/app?app='.$app);
+				}
+			}
+			$this->error();
+		}
+	}
+	
+	public function _format_array($arr,$headStr=''){
+		if(is_array($arr)){
+			$arr=var_export($arr,true);
+		}
+		$arr=preg_replace_callback('/^\s*/m', function($matches) use ($headStr){
+			
+			$returnStr="\t";
+			for($i=0;$i<(strlen($matches[0])/2);$i++){
+				$returnStr.="\t";
+			}
+			return $headStr.$returnStr;
+		}, $arr);
+		$arr=preg_replace('/\s+array\s*\(/i', 'array(', $arr);
+		return $arr;
+	}
+	
+	public function _copy_files($fromPath,$toPath){
+		if(empty($fromPath)||empty($toPath)){
+			return false;
+		}
+		if(is_dir($fromPath)){
+			
+			$fileList=scandir($fromPath);
+			foreach( $fileList as $file ){
+				if('.'== $file || '..' == $file){
+					continue;
+				}
+				$fileName=$fromPath.'/'.$file;
+				if(!file_exists($fileName)){
+					continue;
+				}
+				$toFile=$toPath.'/'.$file;
+				if(is_dir( $fileName )){
+					mkdir($toFile,0777,true);
+					$this->_copy_files($fileName, $toFile);
+				}elseif(is_file($fileName)){
+					write_dir_file($toFile,file_get_contents($fileName));
+				}
+			}
+		}
+	}
+	/*获取内容*/
+	public function _down_file($url, $header=null,$size) {
+		$useragents=array(
+				"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
+		);
+		static $useragent;
+		if(empty($useragent)){
+			$useragent=$useragents[array_rand($useragents)];
+		}
+	
+		$ch = curl_init ();
+		curl_setopt ( $ch, CURLOPT_URL, $url );
+		curl_setopt ( $ch, CURLOPT_TIMEOUT, 100 );
+		curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
+		curl_setopt ( $ch, CURLOPT_FOLLOWLOCATION, 1 );
+		curl_setopt ( $ch, CURLOPT_HEADER, 0 );
+		curl_setopt ( $ch, CURLOPT_USERAGENT, $useragent);
+	
+		
+		curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, FALSE );
+		curl_setopt ( $ch, CURLOPT_SSL_VERIFYHOST, FALSE );
+	
+		if (! empty ( $header )) {
+			curl_setopt ( $ch, CURLOPT_HTTPHEADER, $header );
+		}
+		
+		curl_setopt($ch, CURLOPT_RANGE, $size);
+	
+		$bytes = curl_exec ( $ch );
+		curl_close ( $ch );
+		return $bytes;
 	}
 }

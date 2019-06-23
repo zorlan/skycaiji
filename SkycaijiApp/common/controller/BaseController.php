@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -35,7 +35,7 @@ class BaseController extends Controller {
 	public function dispatchJump($success=true,$message='',$url='',$ajax=false,$else=null) {
 		$success=$success?1:0;
 		
-		if(input('serverinfo')&&(true === $ajax || request()->isAjax() || input('ajax')==1)){
+		if(input('_serverinfo')&&(true === $ajax || request()->isAjax() || input('_ajax')==1)){
 			
 			$data=is_array($else)?$else:array();
 			$data['info']=$message;

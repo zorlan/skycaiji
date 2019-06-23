@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -115,11 +115,11 @@ class Rdb extends Release{
 					$table=strtolower($table);
 					foreach ($fields as $k=>$v){
 						
-						if(preg_match('/^auto_id\@([^\s]+)$/i', $v,$autoidTbName)){
+						$fields[$k]=preg_replace_callback('/auto_id\@([^\s\#]+)[\#]{0,1}/i',function($autoidTbName)use($autoidList){
 							$autoidTbName=trim($autoidTbName[1]);
 							$autoidTbName=strtolower($autoidTbName);
-							$fields[$k]=$autoidList[$autoidTbName];
-						}
+							return $autoidList[$autoidTbName];
+						},$v);
 					}
 					try {
 						if('oracle'==$db_config['db_type']){

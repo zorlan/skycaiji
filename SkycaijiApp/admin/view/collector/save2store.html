@@ -1,7 +1,7 @@
 {if condition="!empty($collData)"}
 <script src="__PUBLIC__/static/js/admin/store.js?{$Think.config.html_v}"></script>
 <div>
-	<form id="win_form_save2store" action="http://www.skycaiji.com/store/client/upload" method="post" target="myModalIframe">
+	<form id="win_form_save2store" action="https://www.skycaiji.com/store/client/upload" method="post" target="myModalIframe">
 	<input type="hidden" name="rule" value="{:base64_encode(serialize($collData))}" />
 	</form>
 	<script type="text/javascript">

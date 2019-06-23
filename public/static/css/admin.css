@@ -21,9 +21,9 @@
 
 
 .cur-menu .treeview-menu{display:block;}
-.treeview-config{color:#8aa4af;}
-.treeview-config li{padding:5px 15px 5px 15px;margin:0;font-size:14px;vertical-align:middle;overflow:hidden;}
-.treeview-config li .checkbox{margin:0;}
+.treeview-skins{color:#8aa4af;}
+.treeview-skins li{padding:5px 15px 5px 0px;margin:0;font-size:14px;vertical-align:middle;overflow:hidden;}
+.treeview-skins li .checkbox{margin:0;}
 
 .page-header{font-size:16px;margin:10px 0;overflow:hidden;}
 .page-header a{color:#333;}
@@ -33,24 +33,9 @@
 .navbar-custom-menu .dropdown-menu *{color:#333!important;}
 
 .login-box-msg *{color:#666!important;}
-@media (max-width: 767px){
-	.main-header .logo{
-	    width:140px;
-	    float: left;
-		text-align:left;
-	}
-	.main-header .navbar {
-		width:auto;
-		margin-left:140px;
-	}
-	.main-sidebar, .left-side {
-		padding-top:50px;
-	}
-	.content-wrapper .content{padding-top:8px;}
-}
 
 /*皮肤*/
-.skin-blue-light .treeview-config,.skin-black-light .treeview-config,.skin-red-light .treeview-config,.skin-yellow-light .treeview-config,.skin-purple-light .treeview-config,.skin-green-light .treeview-config{
+.skin-blue-light .treeview-skins,.skin-black-light .treeview-skins,.skin-red-light .treeview-skins,.skin-yellow-light .treeview-skins,.skin-purple-light .treeview-skins,.skin-green-light .treeview-skins{
 	color:#000;
 }
 
@@ -100,6 +85,10 @@
 
 .datatable .store-info .has-update{display:inline;color:green;margin-left:5px;}
 .datatable .store-info .has-update .glyphicon{margin-right:2px;top:2px;}
+
+.datatable .app-store-info{display:inline;}
+.datatable .app-store-info .has-update{display:inline;color:green;margin-left:5px;}
+.datatable .app-store-info .has-update .glyphicon{margin-right:2px;top:2px;}
 /*数据表排序*/
 table.datatable thead .sorting,
 table.datatable thead .sorting_asc,
@@ -164,6 +153,9 @@ table.datatable thead .sorting_desc:after {
 .c-p-request-headers .delete-request-header{margin-top:8px;}
 /*post参数*/
 .c-p-url-posts .delete-url-post{margin-top:8px;}
+/*数据处理*/
+.c-p-process-accordion .panel-heading .glyphicon{font-size:12px;}
+
 /*参数标签样式*/
 .param-label{
 	font-size:16px;
@@ -232,6 +224,9 @@ table.datatable thead .sorting_desc:after {
 .p-m-html-tags a{font-size:12px;font-weight:normal;cursor:pointer;margin-right:5px;}
 .p-m-html-tags a span{margin-right:2px;color:#999;}
 
+.p-m-if-time>.form-control{margin-left:2px;}
+.p-m-if-func{vertical-align:top;}
+.p-m-if-func>.form-control{padding:3px;margin:0 0 2px 2px;height:auto;text-align:center;}
 /*发布设置*/
 .rele-db-error{margin-top:10px;color:red;font-weight:bold;}
 .table-db-table-bind{padding:0;margin-bottom:0;border:0;}
@@ -318,7 +313,8 @@ table.datatable thead .sorting_desc:after {
 .nav-tabs-color li.active{border-top-color:#3c8dbc!important;}
 .nav-tabs-color{background:#F8F8F8!important;}
 
-.nav-check-update{float:right!important;}
+.nav-check-update{float:right!important;padding:10px 15px}
+.nav-check-update a{display:inline!important;padding:0!important;}
 .nav-check-update img{width:14px;}
 /*设置*/
 .proxy-ip-box .h-title .glyphicon{font-size:80%;}
@@ -327,9 +323,10 @@ table.datatable thead .sorting_desc:after {
 .proxy-ip-list .p-ip-info{vertical-align:middle;color:#999;}
 /**/
 .table-test-loop thead{background:#F5F5F5;}
-.table-test-loop input{border:0;overflow:hidden;}
+.table-test-loop input{border:0;overflow:hidden;width:100%;min-width:150px;}
 
 
+footer.footer-end{display:none;}
 
 .skin-black .nav-tabs-color li.active,.skin-black-light .nav-tabs-color li.active{border-top-color:#5A6E82!important;}
 
@@ -340,3 +337,28 @@ table.datatable thead .sorting_desc:after {
 .skin-yellow .nav-tabs-color li.active,.skin-yellow-light .nav-tabs-color li.active{border-top-color:#f39c12!important;}
 
 .skin-purple .nav-tabs-color li.active,.skin-purple-light .nav-tabs-color li.active{border-top-color:#605ca8!important;}
+
+@media (max-width: 767px){
+	.main-header .logo{
+	    width:140px;
+	    float: left;
+		text-align:left;
+	}
+	.main-header .navbar {
+		width:auto;
+		margin-left:140px;
+	}
+	.main-sidebar, .left-side {
+		padding-top:50px;
+	}
+	.content-wrapper .content{padding-top:8px;}
+}
+@media (max-width: 550px){
+	/*采集器tab*/
+	.coll-tab>li{margin-bottom:5px;width:33%;}
+	.coll-tab>li>a{padding:7px 0;border:solid 1px #ddd;text-align:center;}
+	.coll-tab>li:nth-child(3).active>a{background:#fff;}
+	.coll-tab>li.active>a{border-radius:3px;border-bottom-color:#ddd!important;}
+	.coll-tab .nav-save2store{float:left!important;}
+	.coll-tab .nav-save2store>a{color:#999;}
+}

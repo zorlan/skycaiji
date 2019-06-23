@@ -1,0 +1,156 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/develop.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="box box-default">
+	<div class="box-body">
+		<form id="form_app" method="post" ajax-submit="true" action="{:url('Admin/Develop/app')}">
+		    {if !empty($appData)}
+		    <input type="hidden" name="edit" value="1" />
+		    <input type="hidden" name="app" value="{$appData['app']}" />
+		    {/if}
+		    
+		    {if $newest_version}
+		    <div class="alert alert-warning" role="alert">
+        		检测到新版本{$newest_version}，<a href="javascript:;" id="newest_version">点击升级</a>
+     		</div>
+		    {/if}
+		    
+		    <div class="form-group">
+		        <label>app标识</label>
+		        {if !empty($appData)}
+		        <input type="text" value="{$appData['app']}" class="form-control" disabled="disabled">
+		        {else /}
+		        <input type="text" name="app" class="form-control">
+		        {/if}
+		        <p class="help-block">标识可由小写字母、下划线、数字组成，长度3个字符以上且以字母开头，建议加入自己的版权以区别他人的应用</p>
+		    </div>
+		    <div class="form-group">
+		        <label>PHP框架</label>
+		   		{if $appFrameworkPath}
+		    	<input type="hidden" name="framework" value="{$appData['config']['framework']}" />
+		   		<input type="hidden" name="framework_version[{$appData['config']['framework']}]" value="{$appData['config']['framework_version']}" />
+		        <input type="text" value="{$appData['config']['framework']}{$appData['config']['framework_version']}" class="form-control" disabled="disabled">
+		   		<p class="help-block">如需修改框架，请先删除：{$appFrameworkPath}</p>
+		   		{else /}
+		        <select name="framework" class="form-control">
+		   			<option value="">自定义</option>
+		   			{foreach $frameworks as $fmw=>$vers}
+		   			<option value="{$fmw}">{$fmw}</option>
+		   			{/foreach}
+		   		</select>
+		   		{foreach $frameworks as $fmw=>$vers}
+		        <div class="input-group" style="margin-top:5px;display:none;" id="framework_vers_{$fmw}">
+		        	{foreach $vers as $ver}
+		        	<label class="radio-inline"><input type="radio" name="framework_version[{$fmw}]" value="{$ver}"> {$ver}</label>
+		   			{/foreach}
+		        </div>
+		   		{/foreach}
+		   		<div class="help-block">
+		   			使用php框架开发该应用
+				   	{if !empty($appData['config']['framework'])&&empty($appFrameworkPath)}
+			   			<button id="install_framework" type="button" class="btn btn-xs btn-warning">安装框架{$appData['config']['framework']}{$appData['config']['framework_version']}</button> 注意安装框架将会初始化应用，如应用中存在项目文件请先备份以防丢失！
+			   			<div id="install_framework_error"></div>
+					{/if}
+		   		</div>
+		   		{/if}
+		   	</div>
+		    <div class="form-group">
+		        <label>名称</label>
+		        <input type="text" name="name" class="form-control">
+		        <p class="help-block">应用的中文名称</p>
+		    </div>
+		    <div class="form-group">
+		        <label>版本号</label>
+		        <input type="text" name="version" class="form-control">
+		        <p class="help-block">应用版本号标准格式：x.x或x.x.x（x为数字最多两位数）版本号高于旧版本时会提示升级</p>
+		    </div>
+		    <div class="form-group">
+		        <label>描述</label>
+		        <textarea name="desc" class="form-control"></textarea>
+		    	<p class="help-block">可以使用&lt;p&gt;&lt;br&gt;&lt;b&gt;&lt;i&gt;&lt;a&gt;标签</p>
+		    </div>
+		    <div class="form-group">
+		        <label>作者</label>
+		        <input type="text" name="author" class="form-control" placeholder="选填">
+		    </div>
+		    <div class="form-group">
+		        <label>平台网址</label>
+		        <input type="text" name="website" class="form-control" placeholder="选填">
+		        <p class="help-block">第三方平台网址，必须包含前缀http://或https://</p>
+		    </div>
+		    <div class="form-group">
+		        <label>PHP版本</label>
+		        <input type="text" name="phpv" class="form-control" placeholder="选填">
+		        <p class="help-block">运行该应用要求最低PHP版本，留空则无要求</p>
+		    </div>
+		    <div class="form-group">
+		        <label>协议</label>
+		        <textarea name="agreement" class="form-control" placeholder="选填"></textarea>
+		    	<p class="help-block">安装时提示协议</p>
+		    </div>
+		    
+		    <div class="form-group">
+            	<table class="table table-hover c-p-request-headers">
+                	<thead>
+                   		<tr>
+                           <th class="col-xs-2" style="padding-left:0;">程序操作</th>
+                           <th class="col-xs-10">相对于应用的链接（开头不加/）</th>
+                       </tr>
+                 	</thead>
+                 	<tbody>
+                   		<tr>
+                   			<td>安装</td>
+                   			<td>
+                   				<input type="text" name="install" value="" class="form-control" placeholder="必填：安装应用接口，没有填1">
+                   			</td>
+                   		</tr>
+                   		<tr>
+                   			<td>卸载</td>
+                   			<td>
+                   				<input type="text" name="uninstall" value="" class="form-control" placeholder="必填：卸载应用接口，没有填1">
+                   			</td>
+                   		</tr>
+                   		<tr>
+                   			<td>升级</td>
+                   			<td>
+                   				<input type="text" name="upgrade" value="" class="form-control" placeholder="必填：升级应用接口，没有填1">
+                   			</td>
+                   		</tr>
+                 	</tbody>
+				</table>
+      		</div>
+		    <div class="form-group">
+		    	<div class="h-title">
+	     			<label class="control-label">扩展</label>
+	      			<a href="javascript:;" id="add_pack" class="glyphicon glyphicon-plus" title="添加"></a>
+	      		</div>
+		    </div>
+		    <div class="form-group">
+    			<div class="table-responsive">
+	            	<table class="table table-hover" id="pack_list" style="margin-bottom:0;">
+	                   <thead>
+	                       <tr>
+	                           <th class="col-xs-2">名称</th>
+	                           <th class="col-xs-2">类型</th>
+	                           <th class="col-xs-2">链接</th>
+	                           <th class="col-xs-2">操作</th>
+	                       </tr>
+	                   </thead>
+	                   <tbody>
+	                   </tbody>
+					</table>
+	        	</div>
+      		</div>
+		   	<div class="form-group">
+				<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+developClass.packTypes={$packTypes|json_encode};
+developClass.app({$appData|json_encode});
+</script>
+{/block}

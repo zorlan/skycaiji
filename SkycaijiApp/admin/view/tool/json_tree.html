@@ -32,10 +32,7 @@ $(document).ready(function(){
 	$('#btn_tree').bind('click',function(){
 		var data=$('#txt_json').val();
 		
-		if(htmlIsJson(data)){
-			//是json字符串
-			jsonTree.load(data);
-		}else if((/^\w+\:\/\//).test(data)){
+		if((/^\w+\:\/\//).test(data)){
 			//是网址
 			$.ajax({
 				type: 'POST',
@@ -47,11 +44,26 @@ $(document).ready(function(){
 					jsonTree.load(data);
 				}
 			});
+		}else if(htmlIsJson(data)){
+			//是json字符串
+			jsonTree.load(data);
 		}else{
-			toastr.error('请输入网址或json字符串！');
+			//匹配jsonp格式
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url:ulink('Tool/json_tree'),
+				data: {'html':data},
+				success: function (data) {
+					if(data.data&&data.data.json){
+						jsonTree.load(data.data.json);
+					}else{
+						toastr.error('请输入网址或json字符串！');
+					}
+				}
+			});
 		}
 	});
-	
 });
 </script>
 {/block}

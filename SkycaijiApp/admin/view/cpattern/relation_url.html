@@ -11,6 +11,33 @@
 		</select>
 	</div>
 	<div class="form-group">
+		<label class="control-label">获取网址区域</label>
+		<div class="input-group">
+	   		<textarea name="relation_url[area]" class="form-control" rows="3" data-placeholder-json="请输入json规则，默认获取所有字符" data-placeholder-xpath="请输入xpath规则，默认获取整个页面" placeholder="默认整个页面，{$Think.lang.tips_match_only}"></textarea>
+			<div class="input-group-addon iga-rt iga-rt1">
+				<select name="relation_url[area_module]" data-rule-input="relation_url[area]" class="slt">
+	     			<option value="">正则</option>
+	     			<option value="xpath">xpath</option>
+	     			<option value="json">json</option>
+	     		</select>
+	     		<ul data-rule-op="relation_url[area_module]" class="op">
+					<li data-module="" style="display:block;">
+						<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'relation_url[area]\']')">{$Think.lang.sign_wildcard}</a>
+		    			<a href="javascript:;" title="{$Think.lang.tips_sign_match_only}" onclick="cpMatch('[name=\'relation_url[area]\']',{only:1})">{:cp_sign('match')}</a>
+		    			<a href="javascript:;" title="{$Think.lang.tips_sign_group_only}" class="blk" onclick="cpMatch('[name=\'relation_url[area]\']',{only:1,group:1})">捕获组</a>
+					</li>
+					<li data-module="xpath">xpath语法</li>
+					<li data-module="json">格式 a.b.c<br>通配符 *</li>
+				</ul>
+			</div>
+	   	</div>
+	   	<p class="help-block" data-rule-set="relation_url[area_module]">
+			<span data-module=""><b>{:cp_sign('match')}</b>标签可获取匹配的数据，否则获取完全匹配的数据</span>
+			<span data-module="xpath" style="display:none;">获取匹配节点的html代码</span>
+			<span data-module="json" style="display:none;">获取匹配的json字符串</span>
+		</p>
+	</div>
+	<div class="form-group">
    		<label class="control-label">提取网址规则</label>
    		<div class="input-group">
     		<textarea class="form-control" name="relation_url[url_rule]" rows="3" data-placeholder-xpath="请输入xpath规则" data-placeholder-json="请输入json规则" placeholder="必须填写规则，{$Think.lang.tips_match_url}"></textarea>

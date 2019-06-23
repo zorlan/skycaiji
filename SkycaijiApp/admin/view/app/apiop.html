@@ -1,0 +1,59 @@
+<script type="text/javascript">
+'use strict';
+function apiop_show_msg(msg,success){
+	$('#myModal').modal('hide');//隐藏
+	if(success){
+		toastr.success(msg);
+	}else{
+		toastr.error(msg);
+	}
+}
+(function(){
+	var apiName={'install':'安装','uninstall':'卸载','upgrade':'升级'};
+	var apiUrl='{$apiUrl}';
+	var op='{$op}';
+	$.ajax({
+		type:'get',
+		dataType:'json',
+		url:apiUrl,
+		success:function(data){
+			if(typeof(data)=='object'){
+				if(data.status==1){
+					//接口执行成功
+					$.ajax({
+						type:'get',
+						dataType:'json',
+						url:"{:url('App/'.$op.'?success=1&app='.$app)}",
+						success:function(data){
+							if(data.code){
+								//操作成功
+								apiop_show_msg(data.msg,true);
+								if(data.url){
+									setTimeout("window.location.href='"+data.url+"';",2500);
+								}else{
+									setTimeout("window.location.reload()",2500);
+								}
+							}else{
+								//失败
+								apiop_show_msg(data.msg,false);
+							}
+						},
+						error:function(){
+							apiop_show_msg(apiName[op]+'操作失败，请重试！',false);
+						}
+					});
+				}else{
+					//失败
+					var msg=data.info?data.info:(apiName[op]+'失败');
+					apiop_show_msg(msg,false);
+				}
+			}else{
+				apiop_show_msg('返回的不是JSON数据',false);
+			}
+		},
+		error:function(){
+			apiop_show_msg(apiName[op]+'接口运行失败！',false);
+		}
+	});
+})();
+</script>

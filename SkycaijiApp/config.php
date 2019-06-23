@@ -245,10 +245,11 @@ return [
     /**********************************自定义配置*********************************************/
     'cli_cache_config'=>array('view_replace_str','root_path','app_path','plugin_path','root_url','root_website'),//cli模式下需要缓存的配置，否则会失效引起程序bug
     
-	'html_v'=>'20190301',//css和js版本
+	'html_v'=>'20190601',//css和js版本
 	
 	'root_path'=>realpath(ROOT_PATH),//根目录
-	'app_path'=>realpath(APP_PATH),//APP目录
+	'app_path'=>realpath(APP_PATH),//skycaijiApp目录
+	'apps_path'=>realpath(ROOT_PATH.'app'),//应用程序目录
 	'plugin_path'=>realpath(ROOT_PATH.'plugin'),//插件目录
 	'root_url'=>rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()),'\/\\'),//网址根目录
 	'root_website'=>(Request::instance()->isSsl()?'https':'http').'://'.trim(Request::instance()->host(),'\/\\').rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()),'\/\\'),//带域名网站根目录，去掉index.php，结尾不带/
@@ -258,13 +259,17 @@ return [
 	'yzm_expire'=>1200, //邮箱验证码过期时间(秒)
 	
 	'allow_process_func'=>array(
-    	'strtotime'=>'日期转时间戳:strtotime',
-    	'strtolower'=>'全部小写:strtolower',
-    	'strtoupper'=>'全部大写:strtoupper',
-    	'ucfirst'=>'首字母大写:ucfirst',
-    	'ucwords'=>'每个单词首字母大写:ucwords',
-    	'base64_encode'=>'编码:base64_encode',
-    	'md5'=>'加密:md5',
+    	'strtotime'=>'日期转时间戳',
+    	'strtolower'=>'全部小写',
+    	'strtoupper'=>'全部大写',
+    	'ucfirst'=>'首字母大写',
+    	'ucwords'=>'每个单词首字母大写',
+    	'base64_encode'=>'编码',
+    	'md5'=>'加密',
     ),//数据处理允许的函数
+
+    'allow_process_if'=>array(
+    	'is_numeric'=>'是数字',
+    ),//数据处理>条件判断允许的函数
     /*******************************************************************************/
 ];

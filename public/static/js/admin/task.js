@@ -2,9 +2,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 'use strict';$(document).ready(function(){$('#task_folder').on('click','.taskgroup',function(){var trBox=$(this).parents('tr').eq(0);var tgid=trBox.attr('tgid');var tgLevel=trBox.attr('level');var url=ulink('Task/openList?tg_id=_tgid_');var loadingImg=tgLevel>0?'<img src="'+window.site_config.pub+'/static/images/load1.gif" class="img_loading" style="width:14px;">':'<img src="'+window.site_config.pub+'/static/images/loading.gif"> '+window.tpl_lang.task_loading;url=url.replace('_tgid_',tgid);var $_o=$(this);var opened=trBox.attr('opened');var childs=$('#task_folder tr[parent-tgid="'+tgid+'"]');childs.css('display',(1==opened?'none':'table-row'));childs.each(function(){var cTgid=$(this).attr('tgid');var cOpened=$(this).attr('opened');if(cTgid){if(1==opened){$('#task_folder tr[parent-tgid="'+cTgid+'"]').css('display','none')}else{$('#task_folder tr[parent-tgid="'+cTgid+'"]').css('display',1==cOpened?'table-row':'none')}}});if(1==opened){trBox.attr('opened',0);$_o.find('.glyphicon-minus').addClass('glyphicon-plus').removeClass('glyphicon-minus')}else{trBox.attr('opened',1);$_o.find('.glyphicon-plus').addClass('glyphicon-minus').removeClass('glyphicon-plus');if(trBox.attr('setted')!=1){$_o.parents('td').eq(0).append(loadingImg);$.ajax({type:"GET",url:url,dataType:"json",success:function(data){if(tgLevel>0){$_o.siblings('.img_loading').remove()}else{trBox.hide()}

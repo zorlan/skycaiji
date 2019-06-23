@@ -1,0 +1,69 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/provider.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="alert alert-warning alert-dismissible" style="padding-top:7px;padding-bottom:7px;line-height:20px;margin-bottom:10px;">
+	<button type="button" class="close" data-dismiss="alert" aria-hidden="true" style="top:0px;">×</button>
+	允许通过下列第三方平台下载规则、插件等，注意：任何第三方平台都可能存在安全隐患，请谨慎下载！
+</div>
+<div class="box box-default">
+	<div class="box-body">
+		<form id="form_list" method="post" ajax-submit="true" action="{:url('Provider/saveall')}">
+		<table id="list_table" class="table table-hover datatable">
+			<thead>
+				<tr>
+					<th width="80">排序</th>
+					<th>网址</th>
+					<th>标题</th>
+					<th>访问</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{foreach name="list" item="item"}
+				<tr data-id="{$item['id']}" data-url="{$item['url']}">
+					<td class="sort"><input type="text" name="newsort[{$item['id']}]" class="form-control" value="{$item['sort']}" autocomplete="off" /></td>
+					<td><a href="javascript:;" class="store">{$item['url']}</a></td>
+					<td>{$item['title']}</td>
+					<td><a href="javascript:;" class="enable" style="color:{$item['enable']?'green':'red'}">{$item['enable']?'允许':'拒绝'}</a></td>
+					<td>
+						<a href="javascript:;" class="comment">评价</a>
+						<span class="sep">|</span>
+						<a href="javascript:;" class="edit">编辑</a>
+						<span class="sep">|</span>
+						<a href="javascript:;" class="delete">删除</a>
+					</td>
+				</tr>
+			{/foreach}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="3">
+						<button type="submit" class="btn btn-default" id="btn_save">保存</button>
+						<a href="javascript:;" class="btn btn-primary" id="btn_add">添加</a>
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+		</form>
+		{$pagenav}
+	</div>
+</div>
+<div>
+	<form id="form_search" method="post" action="{:url('Provider/list')}" class="form-inline">
+		<div class="form-group form-group-sm">
+			<label>网址</label>
+        	<input type="text" name="url" class="form-control" placeholder="模糊搜索" />
+        </div>
+		<div class="form-group form-group-sm">
+			<label>标题</label>
+        	<input type="text" name="title" class="form-control"  placeholder="模糊搜索" />
+        </div>
+        <button type="submit" class="btn btn-default btn-sm">搜索</button>
+	</form>
+</div>
+<script type="text/javascript">
+providerClass.list_init();
+</script>
+{/block}

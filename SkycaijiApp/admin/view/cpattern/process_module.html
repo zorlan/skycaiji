@@ -56,14 +56,126 @@
 	</div>
 	<div class="c-p-process-module" module="filter">
 		<div class="form-group">
-			<label>一行一个过滤词</label>
+			<label>一行一个关键词</label>
 			<textarea data-process="filter:filter_list" rows="3" class="form-control"></textarea>
 		</div>
 		<div class="form-group">
-			<label>过滤词替换成</label>
+			<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="" /> 关键词替换成</label></div>
 			<input type="text" data-process="filter:filter_replace" class="form-control" value="" />
 		</div>
-		<div class="checkbox"><label><input type="checkbox" data-process="filter:filter_pass" value="1" /> 检测到过滤词将该字段值设为空</label></div>
+		<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="1" /> 检测到关键词将该字段值设为空</label></div>
+		<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="2" /> 检测到关键词不采集该条数据</label></div>
+		<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="3" /> 未检测到关键词将该字段值设为空</label></div>
+		<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="4" /> 未检测到关键词不采集该条数据</label></div>
+	</div>
+	<div class="c-p-process-module" module="if">
+		<section>
+		<div class="form-group">
+			<div class="input-group">
+				<span class="input-group-addon">条件判断</span>
+				<select data-process="if:if_type" class="form-control">
+					<option value="1">{$Think.lang.p_m_if_1}</option>
+					<option value="2">{$Think.lang.p_m_if_2}</option>
+					<option value="3">{$Think.lang.p_m_if_3}</option>
+					<option value="4">{$Think.lang.p_m_if_4}</option>
+				</select>
+				<div class="input-group-btn">
+		    		<button class="btn btn-default p-m-if-add" type="button"><span class="glyphicon glyphicon-plus" style="color:#3c8dbc"></span></button>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+    		<div class="table-responsive">
+            	<table class="table table-hover p-m-if-table">
+                   <thead>
+                       <tr>
+                           <th style="min-width:95px;">逻辑</th>
+                           <th style="min-width:150px;">条件</th>
+                           <th style="min-width:200px;">值</th>
+                           <th></th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                   <tr class="p-m-if-table-tpl" style="display:none;">
+                   	<td>
+                   		<select data-process="if:if_logic" data-is-array="1" class="form-control">
+                   			<option value="and">并且</option>
+                   			<option value="or">或者</option>
+                   		</select>
+                   	</td>
+                   	<td>
+                   		<select data-process="if:if_cond" data-is-array="1" class="form-control">
+                   			<option value="has">包含</option>
+                   			<option value="nhas">不包含</option>
+                   			<option value="eq">等于</option>
+                   			<option value="neq">不等于</option>
+                   			<option value="heq">恒等于</option>
+                   			<option value="nheq">不恒等于</option>
+                   			<option value="gt">大于</option>
+                   			<option value="egt">大于等于</option>
+                   			<option value="lt">小于</option>
+                   			<option value="elt">小于等于</option>
+                   			<option value="time_eq">时间等于</option>
+                   			<option value="time_egt">时间大于等于</option>
+                   			<option value="time_elt">时间小于等于</option>
+                   			<option value="regexp">正则表达式</option>
+                   			<option value="func">使用函数</option>
+                   		</select>
+                   	</td>
+                   	<td>
+                  		<input type="text" data-process="if:if_val" data-is-array="1" class="form-control" />
+                  		<div class="input-group-btn p-m-if-time" style="display:none;">
+					        <select class="form-control">
+                  				<option value="now">当前时间</option>
+								<option value="today">今天</option>
+								<option value="today +1 day">明天</option>
+								<option value="today +2 day">后天</option>
+								<option value="today -1 day">昨天</option>
+								<option value="today -2 day">前天</option>
+								<option value="-1 monday">本周一</option>
+								<option value="sunday">本周日</option>
+								<option value="today -1 week">上周今天</option>
+								<option value="-2 monday">上周一</option>
+								<option value="-1 sunday">上周日</option>
+								<option value="today +1 week">下周今天</option>
+								<option value="+1 monday">下周一</option>
+								<option value="+2 sunday">下周日</option>
+								<option value="today -1 month">上月今天</option>
+								<option value="first day of today -1 month">上月第一天</option>
+								<option value="last day of today -1 month">上月最后一天</option>
+								<option value="today +1 month">下月今天</option>
+								<option value="first day of today +1 month">下月第一天</option>
+								<option value="last day of today +1 month">下月最后一天</option>
+                  			</select>	
+                  		</div>
+                  		<div class="input-group-btn p-m-if-func" style="display:none;">
+	                   		<select class="form-control">
+								<option value="">--请选择--</option>
+								{foreach $Think.config.allow_process_if as $k=>$v}
+								<option value="{$k}">{$k}：{$v}</option>
+								{/foreach}
+								{if is_array($Think.config.EXTEND_PROCESS_IF)}
+								{foreach $Think.config.EXTEND_PROCESS_IF as $k=>$v}
+								<option value="{$k}">{$k}：{$v}</option>
+								{/foreach}
+								{/if}
+	                   		</select>
+					    	<a href="javascript:;" class="form-control"><span class="glyphicon glyphicon-info-sign"></span></a>
+					    	<span style="display:none;">
+					    		直接输入函数名（函数名开头可以加!取反），默认会传入字段值，如需传入多个参数，一行一个参数值，用###表示字段值
+					    		<br>出于安全考虑，如需扩展函数，请在根目录/data/config.php中添加配置：'EXTEND_PROCESS_IF'=&gt;array('PHP函数名'=&gt;'描述')
+					    	</span>
+                  		</div>
+                   	</td>
+                   	<td>
+                   		<a href="javascript:;" class="glyphicon glyphicon-remove p-m-if-del" style="margin-top:8px;"></a>
+                   	</td>
+                   </tr>
+                   </tbody>
+				</table>
+        	</div>
+		</div>
+		</section>
 	</div>
 	<div class="c-p-process-module" module="translate">
 		<div class="form-group">
@@ -106,7 +218,7 @@
 	<div class="c-p-process-module" module="tool">
 		<div class="checkbox">
 			<label><input type="checkbox" data-process="tool:tool_list" value="trim" />去除前后空格</label>
-			&nbsp; <label><input type="checkbox" data-process="tool:tool_list" value="format" />清除文本格式（去除html元素的style、width、height等）</label>
+			&nbsp; <label><input type="checkbox" data-process="tool:tool_list" value="format" />清除文本格式（去除html元素所有样式，如：id、class、style等）</label>
 			&nbsp; <label><input type="checkbox" data-process="tool:tool_list" value="is_img" />内容是图片链接</label>
 		</div>
 	</div>
@@ -133,11 +245,11 @@
 			<select data-process="func:func_name"  class="form-control">
 				<option value="">--请选择--</option>
 				{foreach $Think.config.allow_process_func as $k=>$v}
-				<option value="{$k}">{$v}</option>
+				<option value="{$k}">{$k}：{$v}</option>
 				{/foreach}
 				{if is_array($Think.config.EXTEND_PROCESS_FUNC)}
 				{foreach $Think.config.EXTEND_PROCESS_FUNC as $k=>$v}
-				<option value="{$k}">{$v}</option>
+				<option value="{$k}">{$k}：{$v}</option>
 				{/foreach}
 				{/if}
 			</select>
@@ -149,8 +261,8 @@
 				一行一个值，使用###表示当前字段的值，请按函数传参，否则运行出错！<a href="javascript:;" onclick="$(this).siblings('span').show();">扩展函数</a>
 				<span style="display:none;">
 					<br>
-					出于安全考虑，如需扩展函数，请在根目录/data/config.php中添加配置
-					'EXTEND_PROCESS_FUNC'=>array('PHP函数名'=>'描述')
+					出于安全考虑，如需扩展函数，请在根目录/data/config.php中添加配置：
+					'EXTEND_PROCESS_FUNC'=&gt;array('PHP函数名'=&gt;'描述')
 				</span>
 			</p>
 		</div>

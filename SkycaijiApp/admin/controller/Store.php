@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -21,15 +21,42 @@ class Store extends BaseController {
 		}
 	}
 	public function indexAction(){
+		$url=input('url','','strip_tags');
+		if(!empty($url)&&!is_official_url($url)){
+			
+			$provData=model('Provider')->where('url',$url)->find();
+			if(empty($provData)){
+				$this->error($url.' 平台未添加');
+			}
+			if(empty($provData['enable'])){
+				$this->error($url.' 已设置为拒绝访问');
+			}
+			$url=$provData['url'];
+			
+			$url.=strpos($url, '?')===false?'?':'&';
+			$url.='clientinfo='.urlencode($GLOBALS['clientinfo']);
+
+			$this->assign('provData',$provData);
+		}
+		if(empty($url)){
+			$url='https://www.skycaiji.com/store';
+		}
+		
+		if(!empty($url)){
+			
+		}
+
 		$GLOBALS['content_header']=lang('store');
 		$GLOBALS['breadcrumb']=breadcrumb(array(lang('store')));
 		
+		$this->assign('url',$url);
 		return $this->fetch();
 	}
 	/*安装规则*/
 	public function installRuleAction(){
 		$mrule=model('Rule');
 		$rule=json_decode(base64_decode(input('post.rule')),true);
+		
 		$store_id=intval($rule['store_id']);
 		if(empty($store_id)){
 			$this->dispatchJump(false,'规则id为空');
@@ -48,11 +75,12 @@ class Store extends BaseController {
 			$this->dispatchJump(false,'规则为空');
 		}
 		if($store_id>0){
-			$newRule=array('type'=>$rule['type'],'name'=>$rule['name'],'module'=>$rule['module'],'uptime'=>($rule['uptime']>0?$rule['uptime']:NOW_TIME),'config'=>$rule['config']);
-			$ruleData=$mrule->where(array('type'=>$rule['type'],'store_id'=>$store_id))->find();
+			$newRule=array('type'=>$rule['type'],'module'=>$rule['module'],'store_id'=>$store_id,'name'=>$rule['name'],'uptime'=>($rule['uptime']>0?$rule['uptime']:time()),'config'=>$rule['config']);
+			
+			$newRule['provider_id']=$this->_getStoreProvid($rule['store_url']);
+			$ruleData=$mrule->where(array('store_id'=>$newRule['store_id'],'provider_id'=>$newRule['provider_id']))->find();
 			if(empty($ruleData)){
 				
-				$newRule['store_id']=$store_id;
 				$newRule['addtime']=NOW_TIME;
 				$mrule->isUpdate(false)->allowField(true)->save($newRule);
 				$ruleId=$mrule->id;
@@ -66,66 +94,169 @@ class Store extends BaseController {
 			$this->dispatchJump(false,'id错误');
 		}
 	}
-	/*规则更新时间*/
-	public function ruleUpdateAction(){
-		$storeIds=input('store_ids');
-		$storeIdList=array('collect'=>array());
-		foreach (array_keys($storeIdList) as $type){
-			if(preg_match_all('/\b'.$type.'\_(\d+)/i', $storeIds,$typeIds)){
-				$storeIdList[$type]=$typeIds[1];
-			}
+	/*安装插件*/
+	public function installPluginAction(){
+		$plugin=json_decode(base64_decode(input('post.plugin')),true);
+		$plugin['code']=base64_decode($plugin['code']);
+		if(empty($plugin['app'])){
+			$this->dispatchJump(false,'标识错误');
 		}
-		$uptimeList=array('status'=>1,'data'=>array());
-		$mrule=model('Rule');
-		if(!empty($storeIdList)){
-			foreach ($storeIdList as $type=>$ids){
-				if(!empty($ids)){
-					$cond=array();
-					$cond['type']=$type;
-					$cond['store_id']=array('in',$ids);
-					$uptimeList['data'][$type]=$mrule->field('`id`,`type`,`store_id`,`uptime`')->where($cond)->column('uptime','store_id');
-				}
-			}
+		if(empty($plugin['name'])){
+			$this->dispatchJump(false,'名称错误');
 		}
-		return jsonp($uptimeList);
-	}
-	/*安装cms发布程序*/
-	public function installCmsAction(){
-		$cms=json_decode(base64_decode(input('post.cms')),true);
-		$cms['code']=base64_decode($cms['code']);
-		if(empty($cms['app'])){
-			$this->dispatchJump(false,'插件id错误');
+		if(empty($plugin['type'])){
+			$this->dispatchJump(false,'类型错误');
 		}
-		if(empty($cms['name'])){
-			$this->dispatchJump(false,'插件名错误');
+		if(empty($plugin['module'])){
+			$this->dispatchJump(false,'模块错误');
 		}
-		if(empty($cms['code'])){
+		if(empty($plugin['code'])){
 			$this->dispatchJump(false,'不是可用的程序');
 		}
-		if(!empty($cms['tpl'])){
+		if(!empty($plugin['tpl'])){
 			
-			$cms['tpl']=base64_decode($cms['tpl']);
+			$plugin['tpl']=base64_decode($plugin['tpl']);
 		}
 		
-		model('ReleaseApp')->addCms(array('app'=>$cms['app'],'name'=>$cms['name'],'desc'=>$cms['desc'],'uptime'=>$cms['uptime'])
-			,$cms['code'],$cms['tpl']);
+		$newData=array('app'=>$plugin['app'],'name'=>$plugin['name'],'desc'=>$plugin['desc'],'uptime'=>$plugin['uptime']);
 		
-		$this->dispatchJump(true);
+		
+		$newData['provider_id']=$this->_getStoreProvid($plugin['store_url']);
+		
+		if($plugin['type']=='release'){
+			model('ReleaseApp')->addCms($newData,$plugin['code'],$plugin['tpl']);
+			$this->dispatchJump(true);
+		}else{
+			$this->dispatchJump(false);
+		}
 	}
-	/*cms发布插件更新时间*/
-	public function cmsUpdateAction(){
+	/*安装应用程序*/
+	public function installAppAction(){
+		$app=json_decode(base64_decode(input('post.app')),true);
+		if(empty($app['app'])){
+			$this->dispatchJump(false,'app标识错误');
+		}
+		if(!preg_match('/^[\w\-]+$/',$app['app'])){
+			$this->dispatchJump(false,'app标识不规范');
+		}
+		if(empty($app['data'])){
+			$this->dispatchJump(false,'数据错误');
+		}
+		$app['data']=base64_decode($app['data']);
+	
+		$filePath=RUNTIME_PATH.'/cache_app_zip/'.$app['app'].'/';
+	
+		$complete=false;
+		if($app['block']>0){
+			
+			$app['no']=intval($app['no']);
+			write_dir_file($filePath.$app['no'],$app['data']);
+				
+			$blockComplete=true;
+			for($i=1;$i<=$app['block'];$i++){
+				if(!file_exists($filePath.$i)){
+					
+					$blockComplete=false;
+					break;
+				}
+			}
+			if($blockComplete){
+				
+				$data=null;
+				for($i=1;$i<=$app['block'];$i++){
+					$data.=file_get_contents($filePath.$i);
+				}
+				write_dir_file($filePath.$app['app'].'.zip',$data);
+				$complete=true;
+				unset($data);
+			}
+		}else{
+			
+			write_dir_file($filePath.$app['app'].'.zip',$app['data']);
+			$complete=true;
+		}
+		if($complete){
+			
+			$error='';
+			try {
+				$zipClass=new \ZipArchive();
+				if($zipClass->open($filePath.$app['app'].'.zip')===TRUE){
+					$zipClass->extractTo(config('apps_path').'/'.$app['app']);
+					$zipClass->close();
+				}else{
+					$error='解压失败';
+				}
+			}catch(\Exception $ex){
+				$error='您的服务器不支持ZipArchive解压';
+			}
+			
+			if($error){
+				$this->dispatchJump(false,$error);
+			}else{
+				clear_dir($filePath);
+				$this->dispatchJump(true);
+			}
+		}else{
+			$this->dispatchJump(true);
+		}
+	}
+	/*统一检测更新*/
+	public function updateAction(){
+		$storeIds=input('store_ids');
+		$storeIds=explode(',', $storeIds);
+		
 		$storeApps=input('store_apps');
-		if(preg_match_all('/\bcms\_(\w+)/i', $storeApps,$apps)){
-			$apps=$apps[1];
+		$storeApps=explode(',', $storeApps);
+		
+		$storeIdList=array();
+		foreach ($storeIds as $id){
+			if(preg_match('/^(\w+)_(\w+)$/',$id,$id)){
+				$storeIdList[$id[1]][$id[2]]=$id[2];
+			}
 		}
-		$uptimeList=array('status'=>1,'data'=>array());
-		if(!empty($apps)){
-			$cond=array();
-			$cond['module']='cms';
-			$cond['app']=array('in',$apps);
-			$uptimeList['data']=model('ReleaseApp')->where($cond)->column('uptime','app');
+		
+		$storeAppList=array();
+		foreach ($storeApps as $app){
+			if(preg_match('/^(\w+)_(\w+)$/',$app,$app)){
+				$storeAppList[$app[1]][$app[2]]=$app[2];
+			}
 		}
-		return jsonp($uptimeList);
+		
+		$provId=$this->_getStoreProvid(input('store_url'));
+		
+		$updateList=array('status'=>1,'data'=>array());
+		
+		if(!empty($storeIdList)){
+			foreach ($storeIdList as $type=>$ids){
+				$list=array();
+				$cond=array('store_id'=>array('in',$ids),'provider_id'=>$provId,'type'=>$type);
+				$list=model('Rule')->field('`id`,`store_id`,`uptime`')->where($cond)->column('uptime','store_id');
+				$list=is_array($list)?$list:array();
+				$updateList['data'][$type]=$list;
+			}
+		}
+		
+		if(!empty($storeAppList)){
+			foreach ($storeAppList as $type=>$apps){
+				if(empty($type)){
+					continue;
+				}
+				$list=array();
+				$cond=array('app'=>array('in',$apps),'provider_id'=>$provId);
+				if($type=='release'||$type=='cms'){
+					$list=model('ReleaseApp')->where($cond)->column('uptime','app');
+				}elseif($type=='app'){
+					foreach ($apps as $app){
+						
+						$appClass=model('App')->app_class($app,false);
+						$list[$app]=$appClass->config['version'];
+					}
+				}
+				$list=is_array($list)?$list:array();
+				$updateList['data'][$type]=$list;
+			}
+		}
+		return jsonp($updateList);
 	}
 	/*站点验证*/
 	public function siteCertificationAction(){
@@ -141,5 +272,14 @@ class Store extends BaseController {
 		}else{
 			$this->dispatchJump(false,'操作错误！');
 		}
+	}
+	/*获取平台域名Id*/
+	protected function _getStoreProvid($storeUrl=null){
+		$referer=request()->server('HTTP_REFERER');
+		if(!empty($referer)){
+			$storeUrl=$referer;
+		}
+    	$provId=model('Provider')->getIdByUrl($storeUrl);
+    	return $provId;
 	}
 }

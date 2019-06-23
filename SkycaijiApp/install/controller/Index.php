@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -31,15 +31,15 @@ class Index extends BaseController{
 	/*环境检测*/
 	public function step1Action(){
 		
-		$serverInfoList=array(
+		$serverDataList=array(
 			'os'=>array('操作系统','不限制',php_uname('s').' '.php_uname('r'),true),
 			'php'=>array('PHP版本','5.4',phpversion())
 		);
 		/*判断最低配置*/
-		if(version_compare($serverInfoList['php'][1],$serverInfoList['php'][2])<=0){
-			$serverInfoList['php'][3]=true;
+		if(version_compare($serverDataList['php'][1],$serverDataList['php'][2])<=0){
+			$serverDataList['php'][3]=true;
 		}else{
-			$serverInfoList['php'][3]=false;
+			$serverDataList['php'][3]=false;
 		}
 		 
 		/*php函数*/
@@ -52,7 +52,7 @@ class Index extends BaseController{
 		 
 		 
 		/*目录、文件*/
-		$pathFiles=array('./data','./data/config.php','./data/images','./data/program/upgrade','./data/program/backup','./plugin','./runtime');
+		$pathFiles=array('./data','./data/config.php','./data/images','./data/app','./data/program/upgrade','./data/program/backup','./app','./plugin','./runtime');
 		$pathFileList=array();
 		foreach ($pathFiles as $pathFile){
 			$filename=config('root_path').'/'.$pathFile;
@@ -73,7 +73,7 @@ class Index extends BaseController{
 			);
 		}
 		 
-		$this->assign('serverInfoList',$serverInfoList);
+		$this->assign('serverDataList',$serverDataList);
 		$this->assign('phpModuleList',$phpModuleList);
 		$this->assign('pathFileList',$pathFileList);
 		return $this->fetch();
@@ -226,9 +226,11 @@ class Index extends BaseController{
 					
 					$founderGid=$dbConn->table($dbConfig['db_prefix'].'usergroup')->where('founder',1)->value('id');
 					
+					$userSalt=\skycaiji\admin\model\User::rand_salt();
 					$dbConn->table($dbConfig['db_prefix'].'user')->insert(array(
 							'username'=>$installConfig['admin']['user_name'],
-							'password'=>pwd_encrypt($installConfig['admin']['user_pwd']),
+							'password'=>\skycaiji\admin\model\User::pwd_encrypt($installConfig['admin']['user_pwd'],$userSalt),
+							'salt'=>$userSalt,
 							'groupid'=>$founderGid,
 							'email'=>$installConfig['admin']['user_email'],
 							'regtime'=>time()

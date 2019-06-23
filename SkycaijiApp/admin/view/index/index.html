@@ -6,14 +6,18 @@
     <a href="{:url('Admin/index/index')}">蓝天采集器</a>
   </div>
   <div class="login-box-body">
-    <p class="login-box-msg"><a href="http://www.skycaiji.com">SkyCaiji</a> V{:constant('SKYCAIJI_VERSION')} 后台管理</p>
+    <p class="login-box-msg"><a href="https://www.skycaiji.com">SkyCaiji</a> V{:constant('SKYCAIJI_VERSION')} 后台管理</p>
 
 	<form action="{:url('Admin/index/login')}" ajax-submit="true" method="post">
 		{:html_usertoken()}
 		<input type="hidden" name="sublogin" value="1" />
-		{if condition="input('?serverinfo')"}
-		<input type="hidden" name="serverinfo" value="1" />
+		{if condition="input('?_serverinfo')"}
+		<input type="hidden" name="_serverinfo" value="1" />
 		{/if}
+		{if condition="input('?_referer')"}
+		<input type="hidden" name="_referer" value="{:input('_referer')}" />
+		{/if}
+		
     	<div class="form-group has-feedback">
         	<input type="text" name="username" class="form-control" placeholder="{$Think.lang.user_username}">
         	<span class="glyphicon glyphicon-user form-control-feedback"></span>

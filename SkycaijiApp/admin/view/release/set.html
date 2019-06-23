@@ -124,7 +124,7 @@
 							{if condition="$releData['config']['db']['type'] eq 'oracle'"}
 							<p class="help-block">Oracel表的自增主键需绑定序列号才能获取自增值，自增字段选择“自定义内容”输入“sequence@序列号”，例如“sequence@seq_123”</p>
 							{/if}
-							<p class="help-block">如需获取表的自增主键值，选择“自定义内容”输入“auto_id@表名”，例如“auto_id@table123”，注意：表是按顺序插入数据，前面的表不能获取后面表的自增主键值</p>
+							<p class="help-block">如需获取表的自增主键值，选择“自定义内容”输入“auto_id@表名”，例如“auto_id@table1”，如果要拼接内容则在表名结尾加#，例如“123auto_id@table1#456”<br>注意：表是按顺序插入数据，前面的表不能获取后面表的自增主键值</p>
 						</div>
 					{/if}
 					</div>

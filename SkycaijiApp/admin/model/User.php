@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -96,6 +96,24 @@ class User extends BaseModel{
 			$check['success']=true;
 		}
 		return $check;
+	}
+	/*获取随机盐*/
+	public static function rand_salt($len=20){
+		$salt="QWERTYUIOPASDFGHJKLZXCVBNM1234567890qwertyuiopasdfghjklzxcvbnm";
+		$salt=str_shuffle($salt);
+		if($len>=strlen($salt)){
+			return $salt;
+		}else{
+			return substr($salt,mt_rand(0,strlen($salt)-$len-1),$len);
+		}
+	}
+	/*密码加密*/
+	public static function pwd_encrypt($pwd,$salt=''){
+		$pwd=sha1($pwd);
+		if(!empty($salt)){
+			$pwd.=$salt;
+		}
+		return md5($pwd);
 	}
 
 	/*检测用户名正确且是否存在*/

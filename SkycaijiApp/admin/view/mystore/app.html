@@ -1,0 +1,102 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/store.js?{$Think.config.html_v}"></script>
+<script src="__PUBLIC__/static/js/admin/app.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="nav-tabs-custom">
+	<div class="tab-content">
+		<div class="tab-pane active">
+		    <div class="table-responsive">
+				<table id="app_list" class="table table-striped datatable">
+					<thead>
+						<tr>
+							<th>应用</th>
+							<th>作者</th>
+							<th>
+								操作
+								<span class="sep">|</span>
+    							<div class="checkbox-inline">
+    								<input type="checkbox" id="auto_check" {:empty($GLOBALS['config']['store_auto_check_app'])?'':'checked="checked"'} value="1" title="刷新页面时自动检测" style="margin-left:-17px;" />
+    								<a href="javascript:;" id="btn_check" style="color:#333;">检测更新</a>
+    							</div>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+					{foreach name="dbApps" item="item" key="app"}
+						<tr data-app="{$app}">
+							<td>
+								<div style="display:inline;" data-toggle="popover" data-content="{$item['config']['desc']|htmlspecialchars}" data-html="true" data-trigger="hover" data-placement="right">
+							    	{$item['config']['name']} {$item['config']['version']}&nbsp;<span style="color:#aaa;">({$app})</span>&nbsp;
+							    </div>
+							</td>
+							<td>
+								{$item['config']['author']}
+							</td>
+							<td>
+								<a href="{:url('App/manage?app='.$app)}" class="manager">管理</a>
+								<span class="sep">|</span>
+								{if $item['newest_version']}
+								<a href="javascript:;" class="upgrade" title="最新版本：{$item['newest_version']}"><b>升级</b></a>
+								<span class="sep">|</span>
+								{/if}
+								{if empty($item['config']['enable'])}
+								<a href="javascript:;" class="enable" data-enable="{$item['config']['enable']}">{$item['config']['enable']?'关闭':'<b>开启</b>'}</a>
+								<span class="sep">|</span>
+								{/if}
+								<a href="javascript:;" class="uninstall">卸载</a>
+								<span class="sep">|</span>
+								{if !empty($provList[$item['provider_id']])}
+								<a href="{$provList[$item['provider_id']]['url']}/client/app/detail?app={$app|urlencode}" data-is-store-url="1" class="store-detail" title="第三方平台">第三方</a>
+								{else/}
+								<a href="https://www.skycaiji.com/client/app/detail?app={$app|urlencode}" data-is-store-url="1" class="store-detail">平台</a>
+								{/if}
+								<div class="app-store-info"></div>
+							</td>
+						</tr>
+					{/foreach}
+					{if $pathApps}
+					<tr><td colspan="4"><b style="color:#666;">未安装的应用</b></td></tr>
+					{foreach name="pathApps" item="item" key="app"}
+						<tr data-app="{$app}" data-agreement="{$item['config']['agreement']?'1':''}">
+							<td>
+								<div style="display:inline;" data-toggle="popover" data-content="{$item['config']['desc']|htmlspecialchars}" data-html="true" data-trigger="hover" data-placement="right">
+							       {$item['config']['name']} v{$item['config']['version']}&nbsp;<span style="color:#aaa;">({$app})</span>&nbsp;
+							    </div>
+							</td>
+							<td>
+								{$item['config']['author']}
+							</td>
+							<td>
+								<a href="javascript:;" class="install">安装</a>
+								<span class="sep">|</span>
+								{if !empty($provList[$item['provider_id']])}
+								<a href="{$provList[$item['provider_id']]['url']}/client/app/detail?app={$app|urlencode}" data-is-store-url="1" class="store-detail" title="第三方平台">第三方</a>
+								{else/}
+								<a href="https://www.skycaiji.com/client/app/detail?app={$app|urlencode}" data-is-store-url="1" class="store-detail">平台</a>
+								{/if}
+								<div class="app-store-info"></div>
+							</td>
+						</tr>
+					{/foreach}
+					{/if}
+					</tbody>
+					<tfoot>
+						<tr>
+						</tr>
+						{if condition="!empty($pagenav)"}
+						<tr>
+							<td colspan="5">{$pagenav}</td>
+						</tr>
+						{/if}
+					</tfoot>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+appClass.init_list();
+</script>
+{/block}

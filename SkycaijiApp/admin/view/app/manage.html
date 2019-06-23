@@ -1,0 +1,68 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<link rel="stylesheet" href="__PUBLIC__/static/css/app.css?{$Think.config.html_v}" />
+<script src="__PUBLIC__/static/js/admin/app.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<ul class="manage-nav">
+	<li><a href="{:url('Admin/Mystore/app')}" class="glyphicon glyphicon-list" title="应用列表"></a></li>
+	<li{if !isset($navid)} class="active"{/if}><a href="{:url('App/manage?app='.$app)}">应用详细</a></li>
+	{foreach $navPacks as $k=>$v}
+	<li{$v['is_current']?' class="active"':''}><a href="{:url('App/manage?app='.$app.'&navid='.$k)}" data-url="{$v['nav_link']}"{if $v['target']} target="_blank"{/if}>{$v['name']}</a></li>
+	{/foreach}
+</ul>
+{if !isset($navid)}
+<dl class="dl-info" style="margin-left:20px;margin-top:5px;">
+	<dt>启用</dt>
+	<dd>
+		<a href="javascript:;" id="enable" data-app="{$appData['app']}" data-enable="{$appData['config']['enable']}">{$appData['config']['enable']?'已开启':'已关闭'}</a>
+	</dd>
+	<dt>名称</dt>
+	<dd>{$appData['config']['name']}</dd>
+	<dt>标识</dt>
+	<dd>{$appData['app']}</dd>
+	<dt>版本</dt>
+	<dd>
+		{$appData['config']['version']}
+		{if $newest_version}
+		&nbsp; <a href="javascript:;" id="newest_version" data-app="{$appData['app']}">新版本{$newest_version}</a>
+		{/if}
+	</dd>
+	<dt>框架</dt>
+	<dd>{$appData['config']['framework']?($appData['config']['framework'].$appData['config']['framework_version']):'自定义'}</dd>
+	{if !empty($appData['config']['phpv'])}
+	<dt>PHP</dt>
+	<dd>最低要求php{$appData['config']['phpv']}版本</dd>
+	{/if}
+	<dt>首页</dt>
+	<dd>
+		<a href="{$appUrl}" target="_blank">应用首页</a>
+	</dd>
+	{if !empty($appData['config']['author'])}
+	<dt>作者</dt>
+	<dd>{$appData['config']['author']}</dd>
+	{/if}
+	{if !empty($provData)}
+	<dt>平台</dt>
+	<dd><a href="{:url('admin/store/index?url='.urlencode($provData['url']))}">第三方平台</a></dd>
+	{elseif !empty($appData['config']['website'])}
+	<dt>网站</dt>
+	<dd><a href="{$appData['config']['website']}" target="_blank">作者网站</a></dd>
+	{/if}
+	{if $appData['config']['desc']}
+	<dt>描述</dt>
+	<dd>{$appData['config']['desc']}</dd>
+	{/if}
+	<dt>开发</dt>
+	<dd><a href="{:url('Develop/app?app='.$app)}" class="develop">开发应用</a></dd>
+</dl>
+{else /}
+<div class="manage-wrap">
+<div class="iframe-loading"><div class="loading">&nbsp;</div>页面加载中...</div>
+<iframe src="{$navPacks[$navid]['nav_link']}" id="iframe_main" class="iframe-main" width="100%" height="100%" frameborder="0" scrolling="yes"></iframe>
+</div>
+{/if}
+<script type="text/javascript">
+appClass.init_manage();
+</script>
+{/block}

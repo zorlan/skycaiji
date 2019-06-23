@@ -1,0 +1,25 @@
+@CHARSET "UTF-8";
+.content-wrapper .content-header{display:none;}
+.content-wrapper .content{padding:0;height:100%;overflow:hidden;position:relative;}
+.content-wrapper{background:#fdfdfd;}
+
+.manage-nav{margin:0;padding:0px;overflow:hidden;list-style:none;border-bottom:1px solid #ddd;background:#ecf0f5;}
+.manage-nav li{padding:8px 0px 8px 15px;margin:0;float:left;}
+.manage-nav .active{font-weight:bold;}
+.manage-nav .glyphicon-list{margin-top:1px;}
+
+.dl-info{}
+.dl-info dt{float:left;clear:left;width:60px;padding-top:10px;}
+.dl-info dd{margin-left:60px;padding-top:10px;}
+
+.iframe-main{
+	width: 100%;
+    height: 100%;
+	display:none;
+    border-top-width: 0px;
+    border-right-width: 0px;
+    border-bottom-width: 0px;
+    border-left-width: 0px;
+}
+.iframe-loading{position:absolute;left:20px;top:60px;line-height:32px;text-align:center;}
+.iframe-loading .loading{float:left;margin-right:5px;}

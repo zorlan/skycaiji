@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -19,7 +19,25 @@ class Init{
 		$curController=strtolower(request()->controller());
 		if('store'==$curController){
 			
-			header('Access-Control-Allow-Origin:http://www.skycaiji.com');
+			$httpOrigin=strtolower($_SERVER['HTTP_ORIGIN']);
+			$httpOrigin=rtrim($httpOrigin,'/');
+			
+			$allowOrigins=array('http://www.skycaiji.com','https://www.skycaiji.com');
+			
+			$allowOrigin='';
+			if(in_array($httpOrigin,$allowOrigins)){
+				
+				$allowOrigin=$httpOrigin;
+			}else{
+				
+				if(model('Provider')->where(array('domain'=>$httpOrigin,'enable'=>1))->count()>0){
+					
+					$allowOrigin=$httpOrigin;
+				}
+			}
+			
+			
+			header('Access-Control-Allow-Origin:'.$allowOrigin);
 			
 			header('Access-Control-Allow-Credentials:true');
 			
@@ -54,27 +72,39 @@ class Init{
 				$GLOBALS['user']['group']=model('Usergroup')->getById($GLOBALS['user']['groupid']);
 				if(!empty($GLOBALS['user']['group'])){
 					$GLOBALS['user']['group']=$GLOBALS['user']['group']->toArray();
+					if(model('Usergroup')->is_admin($GLOBALS['user']['group'])){
+						session('is_admin',true);
+					}else{
+						session('is_admin',null);
+					}
 				}
 			}
 		}
 		
-		/*用户未登录或者不是管理员用户*/
-		if(empty($GLOBALS['user'])||(empty($GLOBALS['user']['group']['founder'])&&empty($GLOBALS['user']['group']['admin']))){
+		if(!empty($GLOBALS['user'])&&session('is_admin')){
+			/*是管理员，进行下列操作*/
+			if('index'==$curController&&'index'==strtolower(request()->action())){
+				
+				$url=null;
+				if(input('?_referer')){
+					
+					$url=input('_referer','','trim');
+				}
+				$url=empty($url)?url('Admin/Backstage/index',null,null,true):$url;
+				
+				$baseContr=new BaseController();
+				$baseContr->success(lang('user_auto_login'),$url);
+			}
+			config('dispatch_error_tmpl','common:error_admin');
+			config('dispatch_success_tmpl','common:success_admin');
+		}else{
+			
 			if(!in_array($curController, array('index','api'))){
 				
 				$baseContr=new BaseController();
 				$baseContr->dispatchJump(false,lang('user_error_is_not_admin'),url('Admin/Index/index',null,null,true));
 				exit();
 			}
-		}else{
-			/*是管理员，进行下列操作*/
-			if('index'==$curController&&'index'==strtolower(request()->action())){
-				
-				$baseContr=new BaseController();
-				$baseContr->success(lang('user_auto_login'),url('Admin/Backstage/index',null,null,true));
-			}
-			config('dispatch_error_tmpl','common:error_admin');
-			config('dispatch_success_tmpl','common:success_admin');
 		}
 		/*通用操作,全局变量*/
 		$mconfig=model('Config');

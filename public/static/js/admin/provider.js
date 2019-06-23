@@ -1,0 +1,12 @@
+/*
+ |--------------------------------------------------------------------------
+ | SkyCaiji (蓝天采集器)
+ |--------------------------------------------------------------------------
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
+ |--------------------------------------------------------------------------
+ | 使用协议  https://www.skycaiji.com/licenses
+ |--------------------------------------------------------------------------
+ */
+'use strict';function ProviderClass(){}
+ProviderClass.prototype={constructor:ProviderClass,list_init:function(){$('#form_list').on('click','.delete',function(){var tr=$(this).parents('tr[data-id]');var id=tr.attr('data-id');confirmRight('确定删除？',function(){$.ajax({type:'GET',url:ulink('Provider/delete?id='+id),dataType:'json',success:function(data){if(data.code){tr.remove();toastr.success('删除成功')}else{toastr.error(data.msg)}}})})});$('#form_list').on('click','.comment',function(){var url=$(this).parents('tr[data-url]').attr('data-url');url='https://www.skycaiji.com/provider?url='+encodeURIComponent(url);windowStore('评价',url,{lg:1});return!1});$('#form_list').on('click','.edit',function(){var id=$(this).parents('tr[data-id]').attr('data-id');windowModal('编辑',ulink('provider/save?id='+id));return!1});$('#form_list').on('click','.store',function(){var url=$(this).parents('tr[data-url]').attr('data-url');window.location.href=ulink('Store/index?url='+encodeURIComponent(url));return!1});$('#form_list').on('click','.enable',function(){var obj=$(this);var id=$(this).parents('tr[data-id]').attr('data-id');var enable=($(this).text()=='允许')?0:1;$.ajax({type:'GET',url:ulink('Provider/enable?id='+id+'&enable='+enable),dataType:'json',success:function(data){if(data.code){obj.text(enable?'允许':'拒绝');obj.css('color',(enable?'green':'red'))}else{toastr.error(data.msg)}}})});$('#btn_add').bind('click',function(){windowModal('添加',ulink('provider/save'));return!1})},load:function(data){var fid='#win_form_provider';if(data){$(fid).find('[name="url"]').val(data.url);$(fid).find('[name="title"]').val(data.title);$(fid).find('[name="sort"]').val(data.sort);$(fid).find('[name="enable"][value="'+data.enable+'"]').prop('checked','checked')}}}
+var providerClass=new ProviderClass()

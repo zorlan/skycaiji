@@ -3,14 +3,14 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
 
-define('SKYCAIJI_VERSION', '2.1');
+define('SKYCAIJI_VERSION', '2.2');
 define('NOW_TIME', time());
 \think\Loader::addNamespace('plugin', realpath(ROOT_PATH.'plugin'));
 \think\Loader::addNamespace('util',realpath(APP_PATH.'extend/util'));
@@ -90,6 +90,7 @@ function breadcrumb($arr){
 /*多维数组array_map*/
 function array_array_map($callback, $arr1, array $_ = null){
 	if(is_array($arr1)){
+		$arr=array();
 		foreach ($arr1 as $k=>$v){
 			if(!is_array($v)){
 				$arr[$k]=call_user_func($callback, $v);
@@ -161,10 +162,6 @@ function send_mail($emailConfig,$to, $name, $subject = '', $body = '', $attachme
 	}
 	return $mail->Send() ? true : $mail->ErrorInfo;
 }
-/*密码加密*/
-function pwd_encrypt($pwd){
-	return md5(sha1($pwd));
-}
 
 /*客户端信息*/
 function clientinfo(){
@@ -182,6 +179,7 @@ function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$post_d
 		$options['useragent']='Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70 Safari/537.36';
 	}
 	$options['timeout']=$options['timeout']>0?$options['timeout']:30;
+	$options['verify']=false;
 
 	if(!preg_match('/^\w+\:\/\//', $url)){
 		

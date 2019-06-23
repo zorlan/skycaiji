@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -22,7 +22,7 @@ class Upgrade extends BaseController{
 	}
     /*检测更新*/
     public function newVersionAction(){
-    	$version=get_html('http://www.skycaiji.com/upgrade/program/version?v='.SKYCAIJI_VERSION,null,null,'utf-8');
+    	$version=get_html('https://www.skycaiji.com/upgrade/program/version?v='.SKYCAIJI_VERSION,null,null,'utf-8');
     	$version=json_decode($version,true);
     	$new_version=trim($version['new_version']);
     	$cur_version=$GLOBALS['config']['version'];
@@ -88,8 +88,8 @@ class Upgrade extends BaseController{
     			$this->success();
     		}
     	}
-    	$fileUrl='http://www.skycaiji.com/upgrade/program/getFile?filename='.rawurlencode(base64_encode($fileName));
-    	$result=\Requests::get($fileUrl,array(),array('timeout'=>100));
+    	$fileUrl='https://www.skycaiji.com/upgrade/program/getFile?filename='.rawurlencode(base64_encode($fileName));
+    	$result=\Requests::get($fileUrl,array(),array('timeout'=>100,'verify'=>false));
     	if(200==$result->status_code){
     		
     		$newFile=$result->body;
@@ -133,7 +133,7 @@ class Upgrade extends BaseController{
     	unset($md5Files);
     	
     	
-    	$newFileList=get_html('http://www.skycaiji.com/upgrade/program/files',null,array('timeout'=>100),'utf-8');
+    	$newFileList=get_html('https://www.skycaiji.com/upgrade/program/files',null,array('timeout'=>100),'utf-8');
     	$newFileList=json_decode($newFileList,true);
     	
     	$downFileList=array();

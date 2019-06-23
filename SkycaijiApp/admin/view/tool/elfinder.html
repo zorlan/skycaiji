@@ -10,7 +10,8 @@
 		<!-- Rename "main.default.js" to "main.js" and edit it if you need configure elFInder options or any things -->
 	</head>
 	<body>
-		<script data-main="{$elfinderUrl}/main.default.js" src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js"></script>
+		<script type="text/javascript">var elfinderPath="__PUBLIC__/elfinder/";</script>
+		<script data-main="__PUBLIC__/elfinder/main.default.js" src="__PUBLIC__/elfinder/require.js"></script>
 		<script>
 			define('elFinderConfig', {
 				// elFinder options (REQUIRED)

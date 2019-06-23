@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -317,7 +317,7 @@ class Setting extends BaseController {
     		}
     		$this->success(lang('op_success'),'Setting/page_render');
     	}else{
-    		$GLOBALS['content_header']='页面渲染设置 <small><a href="http://www.skycaiji.com/manual/doc/page_render" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
+    		$GLOBALS['content_header']='页面渲染设置 <small><a href="https://www.skycaiji.com/manual/doc/page_render" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
     		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Setting/page_render'),'title'=>'页面渲染设置')));
     		$config=$mconfig->getConfig('page_render','data');
     		$this->assign('config',$config);

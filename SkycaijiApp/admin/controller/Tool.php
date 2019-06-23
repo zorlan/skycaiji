@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -425,10 +425,21 @@ class Tool extends BaseController {
 	public function json_treeAction(){
 		if(request()->isPost()){
 			$url=input('url','','trim');
+			$html=input('html','','trim');
 			$json='';
+			$eCpattern=controller('admin/Cpattern','event');
 			if(!empty($url)){
-				$json=get_html($url);
+				
+				$html=get_html($url);
 			}
+			if(!empty($html)){
+				
+				if(preg_match($eCpattern::$jsonpRegExp,$html,$json)){
+					
+					$json=trim($json['json']).'}';
+				}
+			}
+			
 			$this->success('','',array('json'=>$json));
 		}else{
 			$GLOBALS['content_header']='JSON解析';
@@ -436,5 +447,4 @@ class Tool extends BaseController {
 			return $this->fetch();
 		}
 	}
-	
 }

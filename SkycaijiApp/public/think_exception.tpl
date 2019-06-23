@@ -440,7 +440,7 @@
     <?php } ?>
 
     <div class="copyright">
-        <span>蓝天采集器框架thinkphp<?php echo THINK_VERSION; ?></span>
+        <span><a href="https://www.skycaiji.com" style="color:#333;text-decoration:none;">蓝天采集器</a>框架thinkphp<?php echo THINK_VERSION; ?></span>
     </div>
     <?php if(\think\App::$debug) { ?>
     <script>

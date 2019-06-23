@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -49,7 +49,7 @@ class UpgradeDb extends BaseController{
 		}
 		$exists_index=false;
 		foreach ($indexs as $k=>$v){
-			if(strcasecmp($name,$v['key_name'])==0){
+			if(strcasecmp($name,$v['Key_name'])==0){
 				$exists_index=true;
 				break;
 			}
@@ -61,9 +61,10 @@ class UpgradeDb extends BaseController{
 		if(empty($name)){
 			return false;
 		}
+		
 		$exists_column=false;
 		foreach ($columns as $k=>$v){
-			if(strcasecmp($name,$v['field'])==0){
+			if(strcasecmp($name,$v['Field'])==0){
 				$exists_column=true;
 				break;
 			}
@@ -73,9 +74,9 @@ class UpgradeDb extends BaseController{
 	/*修改字段类型*/
 	public function modify_field_type($field,$type,$modifySql,$columns){
 		foreach ($columns as $v){
-			if(strcasecmp($field,$v['field'])==0){
+			if(strcasecmp($field,$v['Field'])==0){
 				
-				if(strcasecmp($type,$v['type'])!=0){
+				if(strcasecmp($type,$v['Type'])!=0){
 					
 					db()->execute($modifySql);
 				}
@@ -185,6 +186,73 @@ EOF;
 		
 		$columns_rule=db()->query("SHOW COLUMNS FROM `{$db_prefix}rule`");
 		$this->modify_field_type('config', 'mediumtext', "alter table `{$db_prefix}rule` modify column `config` mediumtext", $columns_rule);
+	}
+	public function upgrade_db_to_2_2(){
+		$db_prefix=config('database.prefix');
+		$provider_table=$db_prefix.'provider';
+		$exists=db()->query("show tables like '{$provider_table}'");
+		if(empty($exists)){
+			
+			$addTable=<<<EOF
+CREATE TABLE `{$provider_table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL DEFAULT '',
+  `url` varchar(255) NOT NULL DEFAULT '',
+  `domain` varchar(255) NOT NULL DEFAULT '',
+  `enable` tinyint(4) NOT NULL DEFAULT '0',
+  `sort` mediumint(9) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `domain` (`domain`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
+EOF;
+			db()->execute($addTable);
+		}
+		
+		
+		$app_table=$db_prefix.'app';
+		$exists=db()->query("show tables like '{$app_table}'");
+		if(empty($exists)){
+			
+			$addTable=<<<EOF
+CREATE TABLE `{$app_table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `app` varchar(100) NOT NULL,
+  `provider_id` int(11) NOT NULL DEFAULT '0',
+  `addtime` int(11) NOT NULL DEFAULT '0',
+  `uptime` int(11) NOT NULL DEFAULT '0',
+  `config` mediumtext,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
+EOF;
+			db()->execute($addTable);
+		}
+		
+		
+		
+		/*修改表*/
+		$columns_user=db()->query("SHOW COLUMNS FROM `{$db_prefix}user`");
+		if(!$this->check_exists_field('salt', $columns_user)){
+			
+			db()->execute("alter table `{$db_prefix}user` add `salt` varchar(50) NOT NULL DEFAULT ''");
+		}
+		
+		$columns_rule=db()->query("SHOW COLUMNS FROM `{$db_prefix}rule`");
+		if(!$this->check_exists_field('provider_id', $columns_rule)){
+			
+			db()->execute("alter table `{$db_prefix}rule` add `provider_id` int(11) NOT NULL DEFAULT '0'");
+		}
+
+		$columns_rapp=db()->query("SHOW COLUMNS FROM `{$db_prefix}release_app`");
+		if(!$this->check_exists_field('provider_id', $columns_rapp)){
+			
+			db()->execute("alter table `{$db_prefix}release_app` add `provider_id` int(11) NOT NULL DEFAULT '0'");
+		}
+		
+		$indexs_release_app=db()->query("SHOW INDEX FROM `{$db_prefix}release_app`");
+		if(!$this->check_exists_index('ix_app', $indexs_release_app)){
+			
+			db()->execute("ALTER TABLE `{$db_prefix}release_app` ADD unique ix_app ( `app` )");
+		}
 	}
 }
 ?>

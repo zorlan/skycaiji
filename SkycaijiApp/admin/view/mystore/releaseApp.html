@@ -7,9 +7,12 @@
 {php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'倒序'));{/php}
 <div class="nav-tabs-custom">
 	<ul class="nav nav-tabs">
-    	<li><a href="{:url('Mystore/Collect')}">采集规则</a></li>
+    	<li><a href="{:url('Mystore/Rule')}">采集规则</a></li>
     	<li class="active"><a href="{:url('Mystore/ReleaseApp')}">发布插件</a></li>
-    	<li class="nav-check-update"><a href="javascript:;" onclick="check_releaseapp_update()">检测更新</a></li>
+    	<li class="nav-check-update">
+    		<a href="javascript:;" onclick="check_releaseapp_update()">检测更新</a>
+    		<input type="checkbox" id="auto_check" {:empty($GLOBALS['config']['store_auto_check_plugin'])?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
+    	</li>
 	</ul>
 	<div class="tab-content">
 		<div class="tab-pane active">
@@ -24,7 +27,7 @@
 							<th>模块</th>
 							<th class="sorting{$orderClass['addtime']}" data-order="addtime" title="添加时间{$orderSort['addtime']}">添加时间</th>
 							<th class="sorting{$orderClass['uptime']}" data-order="uptime" title="更新时间{$orderSort['uptime']}">更新时间</th>
-							<th>详细</th>
+							<th>平台</th>
 							<th>{$Think.lang.op}</th>
 						</tr>
 					</thead>
@@ -32,12 +35,20 @@
 					{foreach name="appList" item="app"}
 						<tr data-app-id="{$app['id']}">
 							<td class="chk"><input type="checkbox" name="ids[]" value="{$app['id']}" /></td>
-							<td><a href="http://www.skycaiji.com/release/cms/detail?app={$app['app']}" class="store-detail">{$app['name']}</a></td>
+							<td>{$app['name']}</td>
 							<td>{$app['app']}</td>
 							<td>{$app['module']}</td>
 							<td>{:date('Y-m-d H:i',$app['addtime'])}</td>
 							<td>{:date('Y-m-d H:i',$app['uptime'])}</td>
-							<td class="store-info"><a href="http://www.skycaiji.com/release/cms/detail?app={$app['app']}" class="store-detail">详细</a></td>
+							<td class="store-info">
+								<a href="{$app['store_url']}" data-is-store-url="1" class="store-detail">
+									{if empty($app['provider_id'])}
+										官方
+									{else /}
+										第三方
+									{/if}
+								</a>
+							</td>
 							<td><a href="{:url('Develop/releaseCms?app='.$app['app'])}">开发</a> &nbsp; <a href="javascript:;" url="{:url('Mystore/releaseAppOp?op=delete&id='.$app['id'])}" class="delete">删除</a></td>
 						</tr>
 					{/foreach}
@@ -52,7 +63,7 @@
 						</tr>
 		    			{if condition="!empty($pagenav)"}
 						<tr>
-							<td colspan="5">{$pagenav}</td>
+							<td colspan="8">{$pagenav}</td>
 						</tr>
 						{/if}
 					</tfoot>

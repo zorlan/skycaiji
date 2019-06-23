@@ -66,12 +66,12 @@
 		        {/if}
 		        <tr>
 		          <th>当前版本</th>
-		          <td>SkyCaiji V{$serverInfo['version']}</td>
+		          <td>SkyCaiji V{$serverData['version']}</td>
 		        </tr>
-		        {if condition="isset($serverInfo['caiji'])"}
+		        {if condition="isset($serverData['caiji'])"}
 		        <tr>
 		          <th>采集状态</th>
-		          <td>{$serverInfo['caiji']}</td>
+		          <td>{$serverData['caiji']}</td>
 		        </tr>
 		        {/if}
 		        <tr>
@@ -90,23 +90,23 @@
 		      <tbody>
 		        <tr>
 		          <th style="width:90px;">操作系统</th>
-		          <td>{$serverInfo['os']}</td>
+		          <td>{$serverData['os']}</td>
 		        </tr>
 		        <tr>
 		          <th>运行环境</th>
-		          <td>{$serverInfo['server']}</td>
+		          <td>{$serverData['server']}</td>
 		        </tr>
 		        <tr>
 		          <th>数据库</th>
-		          <td>{$serverInfo['db']}</td>
+		          <td>{$serverData['db']}</td>
 		        </tr>
 		        <tr>
 		          <th>PHP版本</th>
-		          <td>{$serverInfo['php']}</td>
+		          <td>{$serverData['php']}</td>
 		        </tr>
 		        <tr>
 		          <th>上传限制</th>
-		          <td>{$serverInfo['upload_max']}</td>
+		          <td>{$serverData['upload_max']}</td>
 		        </tr>
 		      </tbody>
 		    </table>

@@ -2,9 +2,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 'use strict';$(document).ready(function(){toastr.options={"closeButton":!1,"debug":!1,"newestOnTop":!1,"progressBar":!1,"positionClass":"toast-top-center","preventDuplicates":!1,"onclick":null,"showDuration":"300","hideDuration":"1000","timeOut":"3000","extendedTimeOut":"1000","showEasing":"swing","hideEasing":"linear","showMethod":"fadeIn","hideMethod":"fadeOut"};$('body').on('submit','form[ajax-submit="true"]',function(){var $_o=$(this);$_o.find('button[type="submit"]').attr('disabled',!0);$.ajax({type:'POST',dataType:'json',url:$(this).attr('action'),data:$(this).serialize(),success:function(data){if(data.url){setTimeout("window.location.href='"+data.url+"';",2000)}else{$_o.find('button[type="submit"]').removeAttr('disabled')}
@@ -19,7 +19,7 @@ function modal(title,body,options){if(!options){options={}}
 if(document.getElementById('myModal')){$('#myModal').off();$('#myModal').modal('hide');$('#myModal').remove()}
 if(!document.getElementById('myModal')){var modal='<div class="modal '+(options.lg?' bs-example-modal-lg':'')+' myModal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog'+(options.lg?' modal-lg':'')+'"><div class="modal-content">'+'<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="font-size:24px;">&times;</button><h4 class="modal-title" id="myModalLabel"></h4></div><div class="modal-body" '+(options.bodyStyle?options.bodyStyle:'')+'></div>'+'<div class="modal-footer"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">'+tpl_lang.close+'</button></div></div></div></div>';$('body').append(modal)}
 $('#myModal .modal-title').html(title);$('#myModal .modal-body').html(body);$('#myModal').modal('show')}
-function htmlIsJson(html){if((/^\{(.+\:.+,*){1,}\}$/).test(html)){return!0}else{return!1}}
+function htmlIsJson(html){if((/^\{(.+\:.+,*){1,}\}$/).test(html)||(/^\[(.+,*)+\]$/).test(html)){return!0}else{return!1}}
 function windowModal(title,url,options){if(!options){options={}}
 modal(title,'<img src="'+window.site_config.pub+'/static/images/loading.gif" />',options);var ajaxSet={type:'get',url:url,success:function(data){if(htmlIsJson(data)){$('#myModal').modal('hide');ajaxDataMsg(data)}else{modal(title,data,options)}},dataType:'html'};if(options.ajax){ajaxSet=$.extend(ajaxSet,options.ajax)}
 var win_ajax_request=$.ajax(ajaxSet);$('#myModal').on('hidden.bs.modal',function(e){win_ajax_request.abort()})}

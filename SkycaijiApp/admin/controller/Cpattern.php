@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -188,7 +188,7 @@ class Cpattern extends BaseController {
 				'rule' =>array('rule','rule_multi','rule_multi_type','rule_multi_str','rule_merge'),
 				'auto' =>'auto',
 				'xpath' =>array('xpath','xpath_multi','xpath_multi_type','xpath_multi_str','xpath_attr','xpath_attr_custom'),
-				'json' =>array('json','json_arr','json_arr_implode'),
+				'json' =>array('json','json_arr','json_arr_implode','json_loop'),
 				'page' =>array('page','page_rule','page_rule_merge','page_rule_multi','page_rule_multi_str'),
 				'words' =>'words',
 				'num' => array('num_start','num_end'),
@@ -237,6 +237,7 @@ class Cpattern extends BaseController {
     		}elseif($op=='sub'){
     			
     			$process=input('process/a',null,'trim');
+    			$process=array_array_map('trim', $process);
     			if(empty($process)){
     				$process='';
     			}else{
@@ -246,7 +247,6 @@ class Cpattern extends BaseController {
     					}
     				}
     			}
-    			
     			$objid=input('objid','');
     			$this->success('',null,array('process'=>$process,'process_json'=>empty($process)?'':json_encode($process),'objid'=>$objid));
     		}
@@ -257,6 +257,7 @@ class Cpattern extends BaseController {
     		}elseif($op=='load'){
     			
     			$process=input('process/a',null,'trim');
+    			$process=array_array_map('trim', $process);
     			$this->assign('process',$process);
     			return $this->fetch('process_load');
     		}
@@ -382,7 +383,7 @@ class Cpattern extends BaseController {
     		$curLevel=input('level/d',0);
     		$curLevel=$curLevel>0?$curLevel:0;
     			
-    		$levelData=$eCpattern->get_level_urls($source_url,$curLevel);
+    		$levelData=$eCpattern->collLevelUrls($source_url,$curLevel);
     		
     		$eCpattern->success('',null,array('urls'=>$levelData['urls'],'levelName'=>$levelData['levelName'],'nextLevel'=>$levelData['nextLevel']));
     	}elseif('cont_url'==$op){
@@ -445,10 +446,27 @@ class Cpattern extends BaseController {
     			}
     			
     			$val_list=$eCpattern->getFields($cont_url);
-    
     			if(empty($eCpattern->first_loop_field)){
     				
     				$val_list=array($val_list);
+    			}
+
+    			$md5Url=md5($cont_url);
+    			$msg='';
+    			if(isset($eCpattern->exclude_cont_urls[$md5Url])){
+    				if(empty($eCpattern->first_loop_field)){
+    					
+    					$msg=reset($eCpattern->exclude_cont_urls[$md5Url]);
+    					$msg=$eCpattern->exclude_url_msg($msg);
+    					$this->error('中断采集 &gt; '.$msg);
+    				}else{
+    					
+    					$num=0;
+    					foreach ($eCpattern->exclude_cont_urls[$md5Url] as $k=>$v){
+    						$num+=count($v);
+    					}
+    					$msg='通过数据处理排除了'.$num.'条数据';
+    				}
     			}
 
     			foreach ($val_list as $v_k=>$vals){
@@ -457,7 +475,7 @@ class Cpattern extends BaseController {
     				}
     				$val_list[$v_k]=$vals;
     			}
-    			$eCpattern->success('',null,$val_list);
+    			$eCpattern->success($msg,null,$val_list);
     		}elseif('get_paging_urls'==$op){
     			
     			$paging_urls=$eCpattern->getPagingUrls($cont_url,$html,true);

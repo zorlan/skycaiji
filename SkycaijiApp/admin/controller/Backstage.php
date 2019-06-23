@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -26,7 +26,7 @@ class Backstage extends BaseController{
 		$runInfo['task_other']=model('Task')->where('`auto`=0')->count();
 		
 		/*服务器信息*/
-		$serverInfo=array(
+		$serverData=array(
 			'os'=>php_uname('s').' '.php_uname('r'),
 			'php'=>PHP_VERSION,
 			'db'=>config('database.type'),
@@ -35,9 +35,9 @@ class Backstage extends BaseController{
 			'upload_max'=>ini_get('upload_max_filesize')
 		);
 		
-		if(stripos($serverInfo['db'],'mysql')!==false){
+		if(stripos($serverData['db'],'mysql')!==false){
 			$dbVersion=db()->query('SELECT VERSION() as v;');
-			$serverInfo['db'].=' '.($dbVersion[0]?$dbVersion[0]['v']:'');
+			$serverData['db'].=' '.($dbVersion[0]?$dbVersion[0]['v']:'');
 		}
 		
 		$runInfo['auto_status']='良好';
@@ -48,28 +48,28 @@ class Backstage extends BaseController{
 			$taskAutoCount=model('Task')->where('auto',1)->count();
 			if($taskAutoCount<=0){
 				
-				$serverInfo['caiji']='<a href="'.url('Admin/Task/list').'">未设置自动采集任务</a>';
+				$serverData['caiji']='<a href="'.url('Admin/Task/list').'">未设置自动采集任务</a>';
 				$runInfo['auto_status']='无任务';
 			}else{
 				
 				if($lastTime>0){
 					$runInfo['auto_status']='运行良好';
-					$serverInfo['caiji']='最近采集：'.date('Y-m-d H:i:s',$lastTime).' &nbsp;';
+					$serverData['caiji']='最近采集：'.date('Y-m-d H:i:s',$lastTime).' &nbsp;';
 					if($GLOBALS['config']['caiji']['run']=='backstage'){
 						
 						if(NOW_TIME-$lastTime>60*($GLOBALS['config']['caiji']['interval']+15)){
 							
-							$serverInfo['caiji'].='<p class="help-block">自动采集似乎停止了，请<a href="'.
+							$serverData['caiji'].='<p class="help-block">自动采集似乎停止了，请<a href="'.
 								url('Admin/Setting/caiji').'">重新保存设置</a>以便激活采集</p>';
 							$runInfo['auto_status']='停止运行';
 						}
 					}
 				}
-				$serverInfo['caiji'].='<a href="javascript:;" id="a_collect_now">实时采集</a>';
+				$serverData['caiji'].='<a href="javascript:;" id="a_collect_now">实时采集</a>';
 			}
 		}else{
 			$runInfo['auto_status']='已停止';
-			$serverInfo['caiji']='<a href="'.url('Admin/Setting/caiji').'">未开启自动采集</a>';
+			$serverData['caiji']='<a href="'.url('Admin/Setting/caiji').'">未开启自动采集</a>';
 		}
 		
 		$upgradeDb=false;
@@ -93,7 +93,7 @@ class Backstage extends BaseController{
 		$GLOBALS['breadcrumb']=breadcrumb(array('首页'));
 		
 		$this->assign('runInfo',$runInfo);
-		$this->assign('serverInfo',$serverInfo);
+		$this->assign('serverData',$serverData);
 		$this->assign('upgradeDb',$upgradeDb);
 		
 		return $this->fetch('backstage/index');
@@ -106,7 +106,7 @@ class Backstage extends BaseController{
 	/*获取推送消息*/
 	public function adminIndexAction(){
 		$callback=input('?'.config('var_jsonp_handler'))?input(config('var_jsonp_handler')):config('default_jsonp_handler');
-		$html=get_html('http://www.skycaiji.com/Store/Client/adminIndex?v='.SKYCAIJI_VERSION.'&'.config('var_jsonp_handler').'='.rawurlencode($callback),null,null,'utf-8');
+		$html=get_html('https://www.skycaiji.com/store/client/adminIndex?v='.SKYCAIJI_VERSION.'&'.config('var_jsonp_handler').'='.rawurlencode($callback),null,null,'utf-8');
 		header('Content-Type:application/json;charset=utf-8');
 		exit($html);
 	}

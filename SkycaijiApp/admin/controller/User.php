@@ -3,9 +3,9 @@
  |--------------------------------------------------------------------------
  | SkyCaiji (蓝天采集器)
  |--------------------------------------------------------------------------
- | Copyright (c) 2018 http://www.skycaiji.com All rights reserved.
+ | Copyright (c) 2018 https://www.skycaiji.com All rights reserved.
  |--------------------------------------------------------------------------
- | 使用协议  http://www.skycaiji.com/licenses
+ | 使用协议  https://www.skycaiji.com/licenses
  |--------------------------------------------------------------------------
  */
 
@@ -61,7 +61,8 @@ class User extends BaseController {
     		if(!$check['success']){
     			$this->error($check['msg']);
     		}
-    		$newData['password']=pwd_encrypt($newData['password']);
+    		$newData['salt']=\skycaiji\admin\model\User::rand_salt();
+    		$newData['password']=\skycaiji\admin\model\User::pwd_encrypt($newData['password'],$newData['salt']);
     		$newGroup=$musergroup->getById($newData['groupid']);
     		if($musergroup->user_level_limit($newGroup['level'])){
     			$this->error('您不能添加“'.$GLOBALS['user']['group']['name'].'”用户组');
@@ -129,7 +130,8 @@ class User extends BaseController {
     			$this->error($check['msg']);
     		}
     		if(!empty($newData['password'])){
-    			$newData['password']=pwd_encrypt($newData['password']);
+    			$newData['salt']=\skycaiji\admin\model\User::rand_salt();
+    			$newData['password']=\skycaiji\admin\model\User::pwd_encrypt($newData['password'],$newData['salt']);
     		}
     		$newGroup=$musergroup->getById($newData['groupid']);
     		if($musergroup->user_level_limit($newGroup['level'])){
