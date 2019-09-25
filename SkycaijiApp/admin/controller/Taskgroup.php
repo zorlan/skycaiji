@@ -74,8 +74,8 @@ class Taskgroup extends BaseController {
     	$parentTgList=$mtaskgroup->where(array('parent_id'=>0))->order('sort desc')->column('name','id');
     	$this->assign('parentTgList',$parentTgList);
     	
-    	$GLOBALS['content_header']=lang('taskgroup_list');
-    	$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list'))));
+    	$GLOBALS['_sc']['p_name']=lang('taskgroup_list');
+    	$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list'))));
     	return $this->fetch();
     }
     /**
@@ -102,8 +102,8 @@ class Taskgroup extends BaseController {
     		$parentTgList=$mtaskgroup->where(array('parent_id'=>0))->order('sort desc')->column('name','id');
     		$this->assign('parentTgList',$parentTgList);
     		
-    		$GLOBALS['content_header']=lang('taskgroup_add');
-    		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list')),lang('taskgroup_add')));
+    		$GLOBALS['_sc']['p_name']=lang('taskgroup_add');
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list')),array('url'=>url('Taskgroup/add'),'title'=>lang('taskgroup_add'))));
     		
     		if(request()->isAjax()){
     			return view('add_ajax');
@@ -160,8 +160,8 @@ class Taskgroup extends BaseController {
     		$this->assign('parentTgList',$parentTgList);
     		$this->assign('tgData',$tgData);
     		
-    		$GLOBALS['content_header']=lang('taskgroup_edit');
-    		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list')),lang('taskgroup_edit')));
+    		$GLOBALS['_sc']['p_name']=lang('taskgroup_edit').'：'.$tgData['name'];
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list')),array('url'=>url('Taskgroup/edit?id='.$tgData['id']),'title'=>$tgData['name'])));
     		
     		if(request()->isAjax()){
     			return view('add_ajax');

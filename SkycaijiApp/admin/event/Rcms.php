@@ -11,6 +11,7 @@
 
 /*发布设置:本地cms*/
 namespace skycaiji\admin\event;
+
 class Rcms extends Release{
 	protected $rele_cms_list=array();
 	/**

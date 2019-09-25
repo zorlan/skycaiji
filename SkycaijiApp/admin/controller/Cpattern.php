@@ -11,6 +11,7 @@
 
 namespace skycaiji\admin\controller;
 
+use skycaiji\admin\model\FuncApp;
 /*采集器：规则采集*/
 class Cpattern extends BaseController {
 	/**
@@ -178,7 +179,7 @@ class Cpattern extends BaseController {
     				$field['num_end']=intval($field['num_end']);
     				$field['num_end'] = max ( $field['num_start'], $field ['num_end'] );
     				break;
-    			case 'words':if(empty($field['words']))$this->error('固定文字不能为空！');break;
+    			
     			case 'list':if(empty($field['list']))$this->error('随机抽取不能为空！');break;
     			case 'extract':if(empty($field['extract']))$this->error('请选择字段！');break;
     			case 'merge':if(empty($field['merge']))$this->error('字段组合不能为空！');break;
@@ -225,6 +226,16 @@ class Cpattern extends BaseController {
 
 	    $this->assign('type',$type);
 	    $op=input('op');
+	    
+	    
+	    $transApiLangs=null;
+	    if(!empty($GLOBALS['_sc']['c']['translate'])&&!empty($GLOBALS['_sc']['c']['translate']['open'])){
+	    	
+	    	$transApiLangs=\util\Translator::get_api_langs($GLOBALS['_sc']['c']['translate']['api']);
+	    	$transApiLangs=$transApiLangs?$transApiLangs:null;
+	    }
+	    $this->assign('transApiLangs',$transApiLangs);
+	    
     	if(empty($type)){
     		
     		if(empty($op)){
@@ -262,6 +273,39 @@ class Cpattern extends BaseController {
     			return $this->fetch('process_load');
     		}
     	}
+    }
+    /*获取函数插件列表*/
+    public function process_funcAction(){
+    	$module=input('module');
+    	if(empty($module)){
+    		$this->error('模块错误');
+    	}
+    	$mfuncApp=new FuncApp();
+    	
+    	$cacheName='cpattern_process_func_methods_'.$module;
+    	$cacheFuncs=cache($cacheName);
+    	
+    	$enableApps=$mfuncApp->where(array('module'=>$module,'enable'=>1))->column('uptime','app');
+    	$enableApps=md5(serialize($enableApps));
+    	
+    	$apps=array();
+    	if(empty($cacheFuncs)||$enableApps!=$cacheFuncs['key']||abs(time()-$cacheFuncs['time'])>600){
+    		
+    		$appList=$mfuncApp->where(array('module'=>$module,'enable'=>1))->column('uptime','app');
+    		$apps=array();
+    		if(!empty($appList)){
+    			foreach ($appList as $k=>$v){
+    				$appClass=$mfuncApp->get_app_class($module, $k);
+    				if(!empty($appClass['methods'])){
+    					$apps[$k]=$appClass;
+    				}
+    			}
+    		}
+    		cache($cacheName,array('list'=>$apps,'time'=>time(),'key'=>md5(serialize($appList))));
+    	}else{
+    		$apps=$cacheFuncs['list'];
+    	}
+    	$this->success('',null,$apps);
     }
     /**
      * 内容分页
@@ -351,7 +395,7 @@ class Cpattern extends BaseController {
 
     	model('Task')->loadConfig($taskData['config']);
 
-    	$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Collector/set?task_id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),'测试'));
+    	$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Collector/set?task_id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('Cpattern/test&op='.$op.'&coll_id='.$coll_id),'title'=>'测试')));
     	
     	if('source_urls'==$op){
     		
@@ -388,7 +432,7 @@ class Cpattern extends BaseController {
     		$eCpattern->success('',null,array('urls'=>$levelData['urls'],'levelName'=>$levelData['levelName'],'nextLevel'=>$levelData['nextLevel']));
     	}elseif('cont_url'==$op){
     		
-    		$GLOBALS['content_header']='测试抓取';
+    		$GLOBALS['_sc']['p_name']='测试抓取';
     		$cont_url=input('cont_url','','trim');
     		$test=input('test');
     		
@@ -463,7 +507,7 @@ class Cpattern extends BaseController {
     					
     					$num=0;
     					foreach ($eCpattern->exclude_cont_urls[$md5Url] as $k=>$v){
-    						$num+=count($v);
+    						$num+=count((array)$v);
     					}
     					$msg='通过数据处理排除了'.$num.'条数据';
     				}
@@ -505,7 +549,7 @@ class Cpattern extends BaseController {
     		}
     	}elseif('match'==$op){
     		
-    		$GLOBALS['content_header']='模拟匹配';
+    		$GLOBALS['_sc']['p_name']='模拟匹配';
     		if(request()->isPost()){
     			$type=strtolower(input('type'));
     			$content=input('content','','trim');
@@ -563,42 +607,61 @@ class Cpattern extends BaseController {
     	}elseif('elements'==$op){
     		
     		$cont_url=input('cont_url','','trim');
-    		if(!preg_match('/^\w+\:\/\//',$cont_url)){
-    			
-    			$cont_url='http://'.$cont_url;
-    		}
-    		$html=$eCpattern->get_html($cont_url,false,$eCpattern->config['url_post']);
     		
-    		$jsonData=null;
-    		if(preg_match('/^\{[\s\S]*\}$/',$html)){
-    			
-    			$jsonData=json_decode($html,true);
-    			$jsonData=$jsonData?$jsonData:null;
-    		}
+    		$this->redirect('Cpattern/browser?coll_id='.$coll_id.'&url='.rawurlencode($cont_url));
+    	}
+    }
+    /*编辑规则：简单模式*/
+    public function easymodeAction(){
+    	$taskId=input('task_id/d',0);
+    	$collId=model('Collector')->where('task_id',$taskId)->value('id');
+    	$this->assign('taskId',$taskId);
+    	$this->assign('collId',$collId);
+    	return $this->fetch();
+    }
+    /*浏览器*/
+    public function browserAction(){
+    	
+    	$coll_id=input('coll_id/d',0);
+    	$mcoll=model('Collector');
+    	$collData=$mcoll->where(array('id'=>$coll_id))->find();
+    	if(empty($collData)){
+    		$collData=array();
+    	}else{
+    		$collData=$collData->toArray();
+    	}
+    	 
+    	
+    	$eCpattern=controller('admin/Cpattern','event');
+    	$eCpattern->init($collData);
+    	
+    	$url=input('url','','trim');
+    	if(!preg_match('/^\w+\:\/\//',$url)){
     		
+    		$url='http://'.$url;
+    	}
+    	$html=$eCpattern->get_html($url,false,$eCpattern->config['url_post']);
+    	
+    	$jsonHtml=convert_html2json($html,true);
+    	
+    	$config=$eCpattern->config;
+    	$config=is_array($config)?$config:array();
+    	
+    	
+    	if(empty($jsonHtml)){
     		
-    		$publicUrl=config('root_website').'/public';
-    		$jscss="\r\n<!-- 以下为蓝天采集器代码 -->\r\n".'<script src="%s/jquery/jquery.min.js?%s"></script>'
-    			."\r\n".'<script src="%s/static/js/admin/cpattern_elements.js?%s"></script>'
-    			."\r\n".'<link rel="stylesheet" href="%s/static/css/cpattern_elements.css?%s">';
-    		$jscss=sprintf($jscss,$publicUrl,config('html_v'),$publicUrl,config('html_v'),$publicUrl,config('html_v'));
+    		$html=preg_replace('/<script[^<>]*?>[\s\S]*?<\/script>/i', '', $html);
+    		$html=preg_replace('/<meta[^<>]*charset[^<>]*?>/i', '', $html);
+    		header("Content-type:text/html;charset=utf-8");
+    		$eCpattern->assign('html',$html);
+    		$eCpattern->assign('config',$config);
     		
-    		if(empty($jsonData)){
-    			
-    			$html=preg_replace('/<script[^<>]*?>[\s\S]*?<\/script>/i', '', $html);
-    			$html=preg_replace('/<meta[^<>]*charset[^<>]*?>/i', '', $html);
-    			$html.=$jscss."\r\n".'<script>$(document).ready(function(){skycaijiCE.init();});</script>';
-    			ob_clean();
-    			header("Content-type:text/html;charset=utf-8");
-    			exit($html);
-    		}else{
-    			
-    			$GLOBALS['content_header']='分析元素';
-    			
-    			$eCpattern->assign('html',$html);
-    			$eCpattern->assign('jscss',$jscss);
-    			return $eCpattern->fetch('cpattern:test_elements');
-    		}
+    		return $eCpattern->fetch('cpattern:browser');
+    	}else{
+    		
+    		$GLOBALS['_sc']['p_name']='分析网页';
+    		$eCpattern->assign('jsonHtml',$jsonHtml);
+    		return $eCpattern->fetch('cpattern:browser_json');
     	}
     }
     /*名称命名规范*/

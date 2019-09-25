@@ -5,10 +5,10 @@
 	<li><a href="#coll_pattern_field" data-toggle="tab">获取内容</a></li>
 	{if condition="!empty($collData)"}
 	<li class="dropdown nav-save2store">
-	    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">保存规则 <span class="caret"></span></a>
+	    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">另存为 <span class="caret"></span></a>
 	    <ul class="dropdown-menu dropdown-menu-right">
-			<li><a href="{:url('Collector/save2store?coll_id='.$collData['id'])}" title="云端存储，下载规则更方便！" onclick="windowModal('保存到云端',$(this).attr('href'));return false;">上传至云端</a></li>
-    		<li><a href="{:url('Collector/export?coll_id='.$collData['id'])}" target="_blank">导出至本地</a></li>
+	   		<li><a href="{:url('Collector/export?coll_id='.$collData['id'])}" target="_blank">导出至本地</a></li>
+			<li><a href="{:url('Collector/save2store?coll_id='.$collData['id'])}" title="云端存储，保存规则更方便！" onclick="windowModal('保存到云端',$(this).attr('href'));return false;">上传至云端</a></li>
 	    </ul>
     </li>
 	{/if}
@@ -62,7 +62,7 @@
        					<label class="radio-inline"><input type="radio" name="config[page_render]" value="1"> 是</label>
        					<label class="radio-inline"><input type="radio" name="config[page_render]" value="0"> 否</label>
        				</div>
-       				<p class="help-block">需先配置<a href="{:url('Setting/page_render')}">页面渲染</a>，可自动加载ajax内容</p>
+       				<p class="help-block">需先配置<a href="{:url('Setting/page_render')}">页面渲染</a>，可自动加载ajax内容，注意：渲染后的html源码与未渲染时的不相同，原先的规则可能会失效！</p>
 				</div>
 			</div>
 		</div>
@@ -114,9 +114,9 @@
 	     				<label class="control-label">自定义</label>
 	      				<a href="javascript:;" class="glyphicon glyphicon-plus add-request-header" title="添加"></a>
 	      			</div>
-	      			<div class="form-group">
+	      			<div class="">
 	      				<div class="table-responsive">
-			            	<table class="table table-hover c-p-request-headers">
+			            	<table class="table table-bordered c-p-request-headers">
 			                   <thead>
 			                       <tr>
 			                           <th class="col-xs-4">名称</th>
@@ -129,6 +129,14 @@
 							</table>
 			        	</div>
 	      			</div>
+	       			<div class="form-group">
+	       				<label class="control-label">下载图片使用请求头</label>
+						<div class="input-group">
+	       					<label class="radio-inline"><input type="radio" name="config[request_headers][download_img]" value="1"> 是</label>
+	       					<label class="radio-inline"><input type="radio" name="config[request_headers][download_img]" value="0"> 否</label>
+	       				</div>
+	       				<p class="help-block">下载图片时是否使用该请求头设置</p>
+	       			</div>
 	      		</div>
 	      		</div>
 	    	</div>
@@ -139,7 +147,7 @@
 	    	<div class="panel-body">
 	     		<div class="form-group">
 	     			<label class="control-label">起始网址</label>
-	      			<a href="javascript:;" class="glyphicon glyphicon-plus" title="添加"></a>
+	      			<a href="javascript:;" class="glyphicon glyphicon-plus add-source-url" title="添加"></a>
 	      			<a href="javascript:;" class="glyphicon glyphicon-trash" title="清空"></a>
 	      		</div>
 	      		<div class="c-p-source-urls">
@@ -177,7 +185,7 @@
       					<a href="javascript:;" class="glyphicon glyphicon-plus add-level-url" title="添加"></a>
       				</div>
 		   			<div class="table-responsive">
-		            	<table id="c_p_level_urls" class="table table-bordered table-hover">
+		            	<table id="c_p_level_urls" class="table table-hover">
 		                   <thead>
 		                       <tr>
 		                           <th>级别</th>
@@ -363,7 +371,7 @@
       					<a href="javascript:;" class="glyphicon glyphicon-plus add-relation-url" title="添加"></a>
       				</div>
 		   			<div class="table-responsive">
-		            	<table id="c_p_relation_urls" class="table table-bordered table-hover">
+		            	<table id="c_p_relation_urls" class="table table-hover">
 		                   <thead>
 		                       <tr>
 		                           <th>名称</th>
@@ -403,7 +411,7 @@
 	      			<a href="javascript:;" onclick="c_pattern.add_default_fields()" style="float:right;font-weight:normal;">添加默认</a>
 	      		</div>
 	   			<div class="table-responsive">
-	            	<table class="table table-bordered table-hover c-p-field-list" style="margin-bottom:10px;">
+	            	<table class="table table-hover c-p-field-list" style="margin-bottom:10px;">
 	                   <thead>
 	                       <tr>
 	                           <th>字段</th>
@@ -570,6 +578,75 @@
 		{/if}
 	</div>
 </div>
+<div style="display:none;">
+	<table>
+		<tr id="coll_tpl_request_headers">
+			<td><input type="text" data-name="config[request_headers][custom_names][]" class="form-control" /></td>
+			<td><input type="text" data-name="config[request_headers][custom_vals][]" class="form-control" /></td>
+			<td><a href="javascript:;" class="glyphicon glyphicon-remove delete-request-header"></a></td>
+		</tr>
+		<tr id="coll_tpl_url_posts">
+			<td><input type="text" data-name="config[url_posts][names][]" class="form-control" /></td>
+			<td><input type="text" data-name="config[url_posts][vals][]" class="form-control" /></td>
+			<td><a href="javascript:;" class="glyphicon glyphicon-remove delete-url-post"></a></td>
+		</tr>
+		<tr id="coll_tpl_level_url">
+			<td>第<span class="level">级</span></td>
+			<td><a href="javascript:;" class="name"></a></td>
+			<td>
+				<input type="hidden" data-name="config[level_urls][]" />
+				<a href="javascript:;" class="delete">删除</a>
+				<a href="javascript:;" class="glyphicon glyphicon-arrow-up" style="font-size:12px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-arrow-down" style="font-size:12px;"></a>
+			</td>
+		</tr>
+		<tr id="coll_tpl_relation_url">
+			<td><a href="javascript:;" class="name"></a></td>
+			<td class="page"></td>
+			<td>
+				<input type="hidden" data-name="config[relation_urls][]" />
+				<a href="javascript:;" class="delete">删除</a>
+				<a href="javascript:;" class="glyphicon glyphicon-arrow-up" style="font-size:12px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-arrow-down" style="font-size:12px;"></a>
+			</td>
+		</tr>
+		<tr id="coll_tpl_field">
+			<td class="field-name"></td>
+			<td class="field-source"></td>
+			<td class="field-module"></td>
+			<td>
+				<input type="hidden" data-name="config[field_list][]" />
+				<input type="hidden" data-name="config[field_process][]" />
+				<a href="javascript:;" class="field-process">数据处理</a>
+				<a href="javascript:;" class="glyphicon glyphicon-arrow-up" style="font-size:12px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-arrow-down" style="font-size:12px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-remove field-del" style="font-size:12px;"></a>
+			</td>
+			<td><label class="radio-inline"><input type="radio" data-name="config[field_title]">绑定</label></td>
+		</tr>
+	</table>
+	<div id="coll_tpl_process" class="panel panel-default">
+		<div class="panel-heading">
+			<div class="panel-title" style="font-size:14px;overflow:hidden;">
+				<a data-toggle="collapse" style="float:left;"></a>
+				<div class="panel-title-title" style="float:left;">
+					<a data-toggle="collapse" style="color:inherit;"></a>
+					<input type="text" style="display:none;border-radius:2px;border:1px solid #ccc;line-height:16px;margin-left:2px;padding:1px 1px 1px 2px;" />
+				</div>
+				<div style="float:right;">
+					<a href="javascript:;" class="glyphicon glyphicon-tags" title="标题"></a>&nbsp;
+					<a href="javascript:;" class="glyphicon glyphicon-arrow-up"></a>
+					<a href="javascript:;" class="glyphicon glyphicon-arrow-down"></a>
+					<a href="javascript:;" class="glyphicon glyphicon-remove" onclick="c_pattern.process_op('delete',{obj:this})"></a>
+				</div>
+			</div>
+		</div>
+		<div class="panel-collapse collapse">
+			<div class="panel-body">
+			</div>
+		</div>
+	</div>
+</div>
 <link href="__PUBLIC__/static/css/jquery.datetimepicker.css" rel="stylesheet">
 <script type="text/javascript" src="__PUBLIC__/static/js/jquery.datetimepicker.js"></script>
 <script type="text/javascript">
@@ -579,5 +656,4 @@ c_pattern.init();
 {if condition="!empty($collData['config'])"}
 c_pattern.load({$collData['config']|json_encode});
 {/if}
-
 </script>

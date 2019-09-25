@@ -60,7 +60,7 @@ class Collector extends BaseController {
     		}
     		if($collId>0){
     			$tab_link=trim(input('tab_link'),'#');
-    			$this->success(lang('op_success'),'Collector/set?task_id='.$taskId.($tab_link?'&tab_link='.$tab_link:''));
+    			$this->success(lang('op_success'),'Collector/set?task_id='.$taskId.($tab_link?'&tab_link='.$tab_link:'').(input('?easymode')?'&easymode=1':''));
     		}else{
     			$this->error(lang('op_failed'));
     		}
@@ -68,8 +68,14 @@ class Collector extends BaseController {
     		if(!empty($collData)){
 	    		$collData['config']=unserialize($collData['config']);
     		}
-	    	$GLOBALS['content_header']=lang('coll_set').lang('separator').lang('task_module_'.$taskData['module']);
-	    	$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Task/edit?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),lang('coll_set')));
+	    	$GLOBALS['_sc']['p_name']=lang('coll_set').lang('separator').lang('task_module_'.$taskData['module']);
+	    	if(input('?easymode')){
+	    		$GLOBALS['_sc']['p_name'].=' <small><a href="'.url('Collector/set?task_id='.$taskId).'" onclick="if(window.top){window.top.location.href=$(this).attr(\'href\');return false;}">普通模式</a></small>';
+	    	}else{
+	    		$GLOBALS['_sc']['p_name'].=' <small><a href="'.url('Cpattern/easymode?task_id='.$taskId).'">简单模式</a></small>';
+	    	}
+	    	
+	    	$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Task/edit?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('Collector/set?task_id='.$taskData['id']),'title'=>lang('coll_set'))));
 	    	$this->assign('collData',$collData);
 	    	$this->assign('taskData',$taskData);
 	    	return $this->fetch();

@@ -18,116 +18,107 @@ class Index extends BaseController{
 	}
 	/*后台运行采集，会无限运行下去*/
 	public function backstageAction(){
-		if(empty($GLOBALS['config']['caiji']['auto'])){
-			$this->error('请先开启自动采集');
-		}
-		if(!input('?autorun')){
+		$key=input('key');
+		$cacheKey=CacheModel::getInstance()->getCache('admin_index_backstage_key', 'data');
+		if(empty($key)||$key!=$cacheKey){
 			
-			$this->error('参数错误');
-		}
-		
-		
-		$runtime=input('runtime/d');
-		if(empty($runtime)){
 			
-			$runtime=time();
-			cache('caiji_auto_backstage_runtime',$runtime);
-		}else{
-			
-			$cache_runtime=cache('caiji_auto_backstage_runtime');
-			$cache_runtime=intval($cache_runtime);
-			if($runtime<$cache_runtime){
-				
-				$this->error('终止旧进程');
-			}
+			$this->error('密钥错误，请在后台运行');
 		}
 		
-		$curlCname='caiji_auto_curltime_'.$runtime;
-		if(input('?curltime')){
-			
-			$cacheCurl=cache($curlCname);
-			if(!empty($cacheCurl)&&$cacheCurl>input('curltime')){
-				
-				$this->error('终止过期进程');
-			}
-			cache($curlCname,input('curltime'));
-		}
-		
-		ignore_user_abort(true);
-		set_time_limit(0);
 		
 		$mconfig=new \skycaiji\admin\model\Config();
-		$caijiConfig=$mconfig->where('cname','caiji')->find();
-		$caijiConfig=$mconfig->convertData($caijiConfig);
+		$caijiConfig=$mconfig->getConfig('caiji','data');
 		
-		if(empty($caijiConfig['data']['auto'])||$caijiConfig['data']['run']!='backstage'){
-			
-			$this->error('自动采集已停止');
+		if(empty($caijiConfig['auto'])){
+			$this->error('请先开启自动采集');
 		}
-		try{
-			
-			$ch = curl_init ();
-			curl_setopt ( $ch, CURLOPT_URL, url('Admin/Api/collect?backstage=1',null,false,true) );
-			curl_setopt ( $ch, CURLOPT_TIMEOUT, 3 );
-			curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
-			curl_setopt ( $ch, CURLOPT_FOLLOWLOCATION, 1 );
-			curl_setopt ( $ch, CURLOPT_HEADER, 1 );
-			curl_setopt ( $ch, CURLOPT_NOBODY, 1 );
-			curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, FALSE );
-			curl_setopt ( $ch, CURLOPT_SSL_VERIFYHOST, FALSE );
-			curl_exec ( $ch );
-			curl_close ( $ch );
-		}catch(\Exception $ex){
-			
+		if($caijiConfig['run']!='backstage'){
+			$this->error('不是后台运行方式');
 		}
 		
-		sleep(15);
-		
-		if($GLOBALS['config']['caiji']['auto']){
+		if($caijiConfig['server']=='cli'){
+			
+			cli_command_exec('collect backstage');
+		}else{
+			
+			$curlCname='caiji_auto_curltime_'.$key;
+			if(input('?curltime')){
+				
+				$cacheCurl=cache($curlCname);
+				if(!empty($cacheCurl)&&$cacheCurl>input('curltime')){
+					
+					$this->error('终止过期进程');
+				}
+				cache($curlCname,input('curltime'));
+			}
+			
+			ignore_user_abort(true);
+			set_time_limit(0);
 			
 			try{
-				
+				get_html(url('Admin/Api/collect?backstage=1',null,false,true),null,array('timeout'=>3));
+			}catch(\Exception $ex){
+					
+			}
+			
+			sleep(15);
+			
+			
+			try{
+				$maxTimes=0;
 				do {
+					
+					
+					
+					$cacheKey=CacheModel::getInstance()->getCache('admin_index_backstage_key', 'data');
+					if(empty($key)||$key!=$cacheKey){
+						
+						
+						$this->error('密钥错误，终止进程');
+					}
+					
+					$caijiConfig=$mconfig->getConfig('caiji','data');
+					
+					if(empty($caijiConfig['auto'])){
+						$this->error('请先开启自动采集');
+					}
+					if($caijiConfig['run']!='backstage'){
+						$this->error('不是后台运行方式');
+					}
+					
+					
 					
 					$curltime=time();
 					
-					$ch = curl_init ();
-					curl_setopt ( $ch, CURLOPT_URL, url('Admin/Index/backstage?autorun=1&runtime='.$runtime.'&curltime='.$curltime,null,false,true) );
-					curl_setopt ( $ch, CURLOPT_TIMEOUT, 2 );
-					curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
-					curl_setopt ( $ch, CURLOPT_FOLLOWLOCATION, 1 );
-					curl_setopt ( $ch, CURLOPT_HEADER, 1 );
-					curl_setopt ( $ch, CURLOPT_NOBODY, 1 );
-					curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, FALSE );
-					curl_setopt ( $ch, CURLOPT_SSL_VERIFYHOST, FALSE );
-					curl_exec ( $ch );
-					curl_close ( $ch );
-
-					sleep(1);
+					@get_html(url('Admin/Index/backstage?key='.$key.'&curltime='.$curltime,null,false,true),null,array('timeout'=>2));
+					
+					sleep(5);
 					
 					$cacheCurl=cache($curlCname);
 					
 					$continue=false;
-					if(empty($cacheCurl)||$cacheCurl<$curltime){
+					$maxTimes++;
+					if((empty($cacheCurl)||$cacheCurl<$curltime)&&$maxTimes<=3){
 						
 						$continue=true;
 					}
 				}while($continue);
 			}catch(\Exception $ex){
-			
+					
 			}
+			exit();
+			
 		}
-		exit();
-		
 	}
 	/*访问执行采集*/
 	public function caijiAction(){
-		if(empty($GLOBALS['config']['caiji']['auto'])){
+		if(empty($GLOBALS['_sc']['c']['caiji']['auto'])){
 			$this->error('请先开启自动采集','Admin/Setting/caiji');
 		}
 		@get_html(url('Admin/Api/collect?backstage=1',null,false,true),null,array('timeout'=>3));
-		$waitTime=$GLOBALS['config']['caiji']['interval']*60;
-		$waitTime=$waitTime>0?$waitTime:3;
+		$waitTime=$GLOBALS['_sc']['c']['caiji']['interval']*60;
+		$waitTime=$waitTime>0?$waitTime:60;
 		$this->success('正在采集...','Admin/Index/caiji',null,$waitTime);
 	}
 	/*任务api发布*/
@@ -138,11 +129,11 @@ class Index extends BaseController{
 	public function loginAction(){
 		if(request()->isPost()){
 			if(!check_usertoken()){
-				$this->error(lang('usertoken_error'));
+				$this->error(lang('usertoken_error'),'Admin/Index/login');
 			}
 			
 			$mcacheLogin=CacheModel::getInstance('login');
-			$config_login=$GLOBALS['config']['site']['login'];
+			$config_login=$GLOBALS['_sc']['c']['site']['login'];
 			$clientIpMd5=md5(request()->ip());
 			if(!empty($config_login['limit'])){
 				
@@ -155,7 +146,7 @@ class Index extends BaseController{
 			if(input('post.sublogin')){
 				$username=strtolower(trim(input('post.username')));
 				$pwd=trim(input('post.password'));
-				if($GLOBALS['config']['site']['verifycode']){
+				if($GLOBALS['_sc']['c']['site']['verifycode']){
 					
 					$verifycode=trim(input('post.verifycode'));
 					$check=check_verify($verifycode);
@@ -241,7 +232,7 @@ class Index extends BaseController{
 	/*退出*/
 	public function logoutAction(){
 		\think\Cookie::delete('login_history');
-		unset($GLOBALS['user']);
+		unset($GLOBALS['_sc']['user']);
 		session('user_id',null);
 		session('is_admin',null);
 		$this->success(lang('op_success'),'Admin/Index/index');
@@ -291,9 +282,9 @@ class Index extends BaseController{
 				if($step===1){
 					
 					if(!check_usertoken()){
-						$this->error(lang('usertoken_error'));
+						$this->error(lang('usertoken_error'),'Admin/Index/find_password');
 					}
-					if($GLOBALS['config']['site']['verifycode']){
+					if($GLOBALS['_sc']['c']['site']['verifycode']){
 						
 						$verifycode=trim(input('verifycode'));
 						$check=check_verify($verifycode);
@@ -370,7 +361,7 @@ class Index extends BaseController{
 		}else{
 			if($step===2){
 				$emailStatus=array('success'=>false,'msg'=>'');
-				if(empty($GLOBALS['config']['email'])){
+				if(empty($GLOBALS['_sc']['c']['email'])){
 					$emailStatus['msg']=lang('config_error_none_email');
 				}else{
 					$waitTime=60;
@@ -384,7 +375,7 @@ class Index extends BaseController{
 						$minutes=floor($expire/60);
 						$yzm=mt_rand(100000,999999);
 						session($waitSname,NOW_TIME);
-						$mailReturn=send_mail($GLOBALS['config']['email'], $stepSession['user']['email'], $stepSession['user']['username'],lang('find_pwd_email_subject'),lang('find_pwd_email_body',array('yzm'=>$yzm,'minutes'=>$minutes)));
+						$mailReturn=send_mail($GLOBALS['_sc']['c']['email'], $stepSession['user']['email'], $stepSession['user']['username'],lang('find_pwd_email_subject'),lang('find_pwd_email_body',array('yzm'=>$yzm,'minutes'=>$minutes)));
 						if($mailReturn===true){
 							$yzmSname='send_yzm.'.md5($username);
 							session(array('name'=>$yzmSname,'expire'=>$expire));

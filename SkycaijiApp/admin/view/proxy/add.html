@@ -1,0 +1,37 @@
+<form id="win_form_proxy_add"  method="post" action="{:url('Admin/Proxy/add')}">
+&nbsp;<a href="javascript:;" class="glyphicon glyphicon-plus add-proxy-ip">添加一行</a>
+<div class="table-responsive">
+<table class="table table-hover datatable proxy-ip-list">
+<thead>
+	<tr>
+		<th>IP（带端口）</th>
+		<th>用户名（选填）</th>
+		<th>密码（选填）</th>
+		<th>类型</th>
+		<th>{$Think.lang.op}</th>
+	</tr>
+</thead>
+<tbody>
+	<tr class="tpl-proxy-ip">
+		<td class="p-ip"><input type="text" name="ip_list[]" class="form-control" /></td>
+		<td><input type="text" name="user_list[]" class="form-control" /></td>
+		<td><input type="text" name="pwd_list[]" class="form-control" /></td>
+		<td>
+			<select name="type_list[]" class="form-control" style="width:95px;">
+				{foreach $proxyTypes as $k=>$v}
+				<option value="{$v}">{$k}</option>
+				{/foreach}
+			</select>
+		</td>
+		<td class="p-top1"><a href="javascript:;" class="glyphicon glyphicon-remove op-delete"></a></td>
+	</tr>
+</tbody>
+</table>
+</div>
+<div class="form-group">
+	<button type="submit" class="btn btn-primary btn-block">提交</button>
+</div>
+</form>
+<script type="text/javascript">
+window.proxyClass.init_add();
+</script>

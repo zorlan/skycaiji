@@ -13,10 +13,11 @@ namespace skycaiji\admin\model;
 /*第三方服务商*/
 class Provider extends BaseModel{
 	/*匹配域名*/
-	public static function matchDomain($url){
+	public static function match_domain($url){
 		$domain=null;
 		if(preg_match('/^\w+\:\/\/[\w\-]+(\.[\w\-]+)*(\:\d+){0,1}/', $url,$domain)){
 			$domain=rtrim($domain[0],'/');
+			$domain=strtolower($domain);
 		}else{
 			$domain=null;
 		}
@@ -24,7 +25,7 @@ class Provider extends BaseModel{
 	}
 	/*获取id*/
 	public function getIdByUrl($url){
-		$url=self::matchDomain($url);
+		$url=self::match_domain($url);
 		if(is_official_url($url)){
 			
 			$url=null;

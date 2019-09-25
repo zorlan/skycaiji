@@ -3,19 +3,16 @@
 <script src="__PUBLIC__/static/js/admin/proxy.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
+<form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('Admin/Setting/proxy')}">
 <div class="nav-tabs-custom">
-	<ul class="nav nav-tabs">
-    	<li><a href="{:url('Setting/Caiji')}">采集设置</a></li>
-    	<li><a href="{:url('Setting/page_render')}">页面渲染设置</a></li>
-    	<li class="active"><a href="{:url('Setting/Proxy')}">代理设置</a></li>
-    	<li><a href="{:url('Setting/Translate')}">翻译设置</a></li>
-	</ul>
+	{include file="setting/caiji_nav" /}
 	<div class="tab-content">
 		<div class="tab-pane active" style="padding:0px 5px;">
-		<form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('Admin/Setting/proxy')}">
+			<input type="hidden" name="ips" value="" />
 			<input type="hidden" name="ip_list" value="" />
 			<input type="hidden" name="user_list" value="" />
 			<input type="hidden" name="pwd_list" value="" />
+			<input type="hidden" name="type_list" value="" />
       		<div class="form-group">
 		        <label>开启代理</label>
 		        <div class="input-group">
@@ -32,7 +29,7 @@
 			    <div class="form-group">
 		        	<label>IP使用策略</label>
 					<div class="input-group">
-			        	<label class="radio-inline"><input type="radio" name="use" value="" checked="checked">无（默认循环使用）</label>
+			        	<label class="radio-inline"><input type="radio" name="use" value="" checked="checked">循环使用（默认）</label>
 			        	<label class="radio-inline"><input type="radio" name="use" value="num">按次数使用</label>
 			        	<label class="radio-inline"><input type="radio" name="use" value="time">按时长使用</label>
 			        </div>
@@ -45,37 +42,125 @@
 		        	<label>每个IP使用多少分钟</label>
 					<input type="number" class="form-control" name="use_time" />
 			    </div>
-	     		<div class="h-title">
-	     			<label class="control-label">代理IP</label>
-	      			&nbsp;<a href="javascript:;" id="add_proxy_ip" class="glyphicon glyphicon-plus" title="添加">添加</a>
-	      			&nbsp;<a href="javascript:;" id="batch_proxy_ip" class="glyphicon glyphicon-th" title="批量添加">批量</a>
-	      			&nbsp;<a href="javascript:;" id="clear_proxy_ip" class="glyphicon glyphicon-trash" title="清空">清空</a>
-	      		</div>
-			    <div class="form-group">
-	    			<div class="table-responsive proxy-ip-list">
-		            	<table class="table table-hover" id="proxy_ip_table" style="margin-bottom:0;">
-		                   <thead>
-		                       <tr>
-		                           <th class="col-xs-5" colspan="2">IP（可带端口）</th>
-		                           <th class="col-xs-3">用户名（选填）</th>
-		                           <th class="col-xs-3">密码（选填）</th>
-		                           <th class="col-xs-1">删除</th>
-		                       </tr>
-		                   </thead>
-		                   <tbody>
-		                   </tbody>
-						</table>
-		        	</div>
-	      		</div>
       		</div>
-		   	<div class="form-group">
-				<button type="submit" id="btn_sub" class="btn btn-primary btn-block">{$Think.lang.save}</button>
-			</div>
-		</form>
 		</div>
 	</div>
 </div>
+
+<div class="panel panel-default proxy-api-list" id="proxy_api" style="display:none;">
+	<div class="panel-heading">
+    	<h4 class="panel-title"><a data-toggle="collapse" href="#panel_proxy_api">API动态获取IP</a></h4>
+   	</div>
+    <div class="panel-collapse collapse in" id="panel_proxy_api">
+    	<div class="panel-body">
+    		<div class="form-group">
+		        <label>开启功能</label>
+		        <div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="api[open]" value="1">是</label>
+					<label class="radio-inline"><input type="radio" name="api[open]" value="0">否</label>
+		        </div>
+				<p class="help-block">采集运行时自动从API接口中抓取代理IP并入库</p>
+		    </div>
+		    <div class="panel-group" id="proxy_api_box" style="display:none;">
+		    	<div class="form-group">
+			        <label>IP入库时机</label>
+			        <select name="api[insert]" class="form-control">
+			        	<option value="">数据库中无可用IP时(默认)</option>
+			        	<option value="end">数据库中IP循环到最后时</option>
+			        </select>
+			    </div>
+			    <div class="form-group">
+			    	<div class="h-title">
+		     			<label class="control-label">API接口</label>
+		      			<a href="javascript:;" class="glyphicon glyphicon-plus p-api-add" title="添加"></a>
+		      		</div>
+	      		</div>
+			</div>
+			<div class="panel panel-default p-api-panel" id="proxy_api_tpl" style="display:none;">
+				<div class="panel-heading">
+					<div class="panel-title" style="width:auto;overflow:hidden;">
+						<a data-toggle="collapse" data-parent="#proxy_api_box" class="p-api-title">接口<small></small></a>
+						<div style="float:right;font-size:14px;">
+							<a href="javascript:;" class="glyphicon glyphicon-arrow-up p-api-up"></a>
+							<a href="javascript:;" class="glyphicon glyphicon-arrow-down p-api-down"></a>
+							<a href="javascript:;" class="glyphicon glyphicon-remove p-api-delete"></a>
+						</div>
+					</div>
+				</div>
+				<div class="panel-collapse collapse p-api-collapse">
+					<div class="panel-body">
+						<div class="form-group">
+							<label>接口地址</label>
+							<input type="text" data-name="api_url" class="form-control" />
+							<p class="help-block">请填写完整的API网址</p>
+						</div>
+						<div class="form-group">
+							<label>抓取间隔（分钟）</label>
+							<input type="number" data-name="api_interval" class="form-control" />
+							<p class="help-block">每隔多少分钟访问api，防止频繁访问api造成资源浪费</p>
+						</div>
+						<div class="form-group">
+							<label>匹配格式</label>
+					    	<textarea data-name="api_format" class="form-control">[ip]:[端口]</textarea>
+					    	<div style="margin:10px 0;" class="p-api-format">
+					    		<a href="javascript:;">[ip]</a>
+					    		&nbsp;<a href="javascript:;">[端口]</a>
+					    		&nbsp;<a href="javascript:;">[用户名]</a>
+					    		&nbsp;<a href="javascript:;">[密码]</a>
+					    		&nbsp;<a href="javascript:;" title="匹配任意字符">(*)</a>通配符
+					    	</div>
+					    	<p class="help-block">从API返回的源码中匹配出相应格式的数据</p>
+					    </div>
+					    <div class="form-group">
+							<label>代理类型</label>
+							<select data-name="api_type" class="form-control">
+								{foreach $proxyTypes as $k=>$v}
+								<option value="{$v}">{$k}</option>
+								{/foreach}
+							</select>
+						</div>
+						<div class="form-group">
+							<label>默认设置</label>
+							<div class="input-group">
+								<span class="input-group-addon">默认用户名</span>
+								<input type="text" data-name="api_user" class="form-control" />
+								<span class="input-group-addon" style="border-left:0;border-right:0;">默认密码</span>
+								<input type="text" data-name="api_pwd" class="form-control" />
+							</div>
+							<p class="help-block">当未匹配到用户名时，使用默认设置</p>
+						</div>
+						<div class="form-group">
+							<button type="button" class="btn btn-default btn-api-test">测试抓取IP</button>
+						</div>
+					</div>
+				</div>
+			</div>
+    	</div>
+    </div>
+</div>
+<div class="form-group">
+	<button type="submit" id="btn_sub" class="btn btn-primary btn-block">保存以上配置</button>
+</div>
+<div class="panel panel-default" id="proxy_ip">
+	<div class="panel-heading">
+    	<h4 class="panel-title">
+			<a data-toggle="collapse" href="#panel_proxy_ip">代理IP列表</a>
+			<small>
+	      		&nbsp;<a href="javascript:;" id="add_proxy_ip" class="glyphicon glyphicon-plus" title="添加">添加</a>
+	      		&nbsp;<a href="javascript:;" id="batch_proxy_ip" class="glyphicon glyphicon-th" title="批量添加">批量</a>
+	      		&nbsp;<a href="javascript:;" id="invalid_proxy_ip" class="glyphicon glyphicon glyphicon-erase" title="一键清理无效IP">清理无效IP</a>
+	      	</small>
+    	</h4>
+   	</div>
+    <div class="panel-collapse collapse in" id="panel_proxy_ip">
+    	<div class="panel-body" style="padding:0;">
+    		<div class="loading" style="margin:15px 10px;display:none;"></div>
+		    <iframe src="{:url('Proxy/list')}" class="proxy-ip-iframe" id="proxy_ip_iframe" width="100%" frameborder="0" scrolling="yes"></iframe>
+    	</div>
+    </div>
+</div>
+</form>
 <script type="text/javascript">
-proxyClass.init({$proxyConfig|json_encode});
+window.proxyClass.init_setting({$proxyConfig|json_encode});
 </script>
 {/block}

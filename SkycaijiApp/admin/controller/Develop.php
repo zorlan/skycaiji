@@ -12,6 +12,7 @@
 namespace skycaiji\admin\controller;
 
 use plugin;
+use skycaiji\admin\model\FuncApp;
 class Develop extends BaseController {
 	public static $typeList = array (
 		'number' => '数字(number)',
@@ -162,8 +163,9 @@ class Develop extends BaseController {
 				}
 			}
 			
-			$GLOBALS['content_header']='开发CMS发布插件 <small><a href="https://www.skycaiji.com/manual/doc/cms" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
-			$GLOBALS['breadcrumb']=breadcrumb(array('开发工具','开发CMS发布插件'));
+			$GLOBALS['_sc']['p_name']='开发CMS发布插件 <small><a href="https://www.skycaiji.com/manual/doc/cms" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
+			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Mystore/ReleaseApp'),'title'=>'CMS发布插件'),array('url'=>url('Develop/releaseCms'),'title'=>'开发CMS发布插件')));
+				
 			$this->assign('config',$config);
 			$this->assign('is_old_plugin',$is_old_plugin);
 			return $this->fetch('releaseCms');
@@ -537,8 +539,6 @@ EOF;
 							$codeAppPhp=preg_replace($matchVar, 'public $'.$reVar.'='.$reCont.';', $codeAppPhp);
 						}else{
 							
-							preg_match_all($matchVar,$codeAppPhp,$asd);
-								
 							$codeAppPhp=preg_replace($matchVar, 'public $'.$reVar."='".addslashes($reCont)."';", $codeAppPhp);
 						}
 					}
@@ -561,12 +561,12 @@ EOF;
 				$this->success('修改成功','Develop/app?app='.$app);
 			}
 		}else{
-			$GLOBALS['content_header']='开发应用程序 <small><a href="https://www.skycaiji.com/manual/doc/app" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
+			$GLOBALS['_sc']['p_name']='开发应用程序 <small><a href="https://www.skycaiji.com/manual/doc/app" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
 	
 			if($appData){
-				$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('App/manage?app='.$appData['app']),'title'=>$appData['config']['name']),'开发应用'));
+				$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('App/manage?app='.$appData['app']),'title'=>$appData['config']['name']),array('url'=>url('Develop/app?app='.$appData['app']),'title'=>'开发应用')));
 			}else{
-				$GLOBALS['breadcrumb']=breadcrumb(array('开发工具','应用程序'));
+				$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Mystore/app'),'title'=>'应用程序'),array('url'=>url('Develop/app'),'title'=>'开发应用')));
 			}
 				
 			$appClass=$mapp->app_class($app);
@@ -741,6 +741,94 @@ EOF;
 				}
 			}
 			$this->error();
+		}
+	}
+	/*开发函数插件*/
+	public function funcAction(){
+		$mfuncApp=new FuncApp();
+		if(request()->isPost()){
+			if(input('?edit')){
+				
+				$app=input('app');
+				$name=input('name');
+				$name=strip_tags($name);
+				$funcData=$mfuncApp->where('app',$app)->find();
+				if(empty($funcData)){
+					$this->error('插件不存在');
+				}
+				$mfuncApp->where('id',$funcData['id'])->update(array('name'=>$name,'uptime'=>time()));
+				
+				$this->success('修改成功','Develop/func?app='.$app);
+			}else{
+				
+				$module=input('module');
+				$copyright=input('copyright');
+				$identifier=input('identifier');
+				$name=input('name');
+				$methods=input('methods/a');
+				
+				if(empty($module)){
+					$this->error('请选择类型');
+				}
+				
+				$module=$mfuncApp->format_module($module);
+				$copyright=$mfuncApp->format_copyright($copyright);
+				$identifier=$mfuncApp->format_identifier($identifier);
+				
+				if(!$mfuncApp->right_module($module)){
+					$this->error('类型错误');
+				}
+				if(!$mfuncApp->right_identifier($identifier)){
+					$this->error('功能标识只能由字母或数字组成，且首个字符必须是字母！');
+				}
+				if(!$mfuncApp->right_copyright($copyright)){
+					$this->error('作者版权只能由字母或数字组成，且首个字符必须是字母！');
+				}
+				
+				$newMethods=array();
+				foreach ($methods['method'] as $k=>$v){
+					if(preg_match('/^[a-z\_]\w*/',$v)){
+						
+						foreach ($methods as $mk=>$mv){
+							
+							$newMethods[$mk][$k]=$mv[$k];
+						}
+					}
+				}
+				$methods=$newMethods;
+				unset($newMethods);
+				
+				if(empty($methods['method'])){
+					$this->error('请添加方法！');
+				}
+				
+				$app=$mfuncApp->app_name($copyright,$identifier);
+				
+				$id=$mfuncApp->createApp($module,$app,array('name'=>$name,'methods'=>$methods));
+				
+				if($id>0){
+					$this->success('创建成功','Develop/func?app='.$app);
+				}else{
+					$this->error('创建失败');
+				}
+			}
+		}else{
+			$GLOBALS['_sc']['p_name']='开发函数插件 <small><a href="https://www.skycaiji.com/manual/doc/func" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
+			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Mystore/funcApp'),'title'=>'函数插件'),array('url'=>url('Develop/func'),'title'=>'开发函数插件')));
+			
+			if(input('?app')){
+				
+				$funcData=$mfuncApp->where('app',input('app'))->find();
+				if(!empty($funcData)){
+					$funcClass=$mfuncApp->get_app_class($funcData['module'],$funcData['app']);
+					$funcClass['name']=$funcData['name'];
+					
+					$this->assign('funcClass',$funcClass);
+				}
+			}
+			
+			$this->assign('modules',$mfuncApp->funcModules);
+			return $this->fetch();
 		}
 	}
 	

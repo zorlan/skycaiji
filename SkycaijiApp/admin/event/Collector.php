@@ -17,7 +17,7 @@ abstract class Collector extends \skycaiji\admin\controller\BaseController {
 	public function error($msg = '', $url = null, $data = array(), $wait = 3, array $header = []){
 		if(is_collecting()){
 			
-			parent::echo_msg($msg,'red');
+			$this->echo_msg($msg,'red');
 			return null;
 		}else{
 			parent::error($msg,$url,$data,$wait,$header);
@@ -26,6 +26,17 @@ abstract class Collector extends \skycaiji\admin\controller\BaseController {
 	/*采集器的输出内容需要重写，只有正在采集时才输出内容*/
 	public function echo_msg($str,$color='red',$echo=true,$end_str=''){
 		if(is_collecting()){
+			static $pause_session=null;
+			if(!isset($pause_session)){
+				
+				if(session_status()!==2){
+					session_start();
+				}
+				\think\Session::pause();
+
+				$pause_session=true;
+			}
+			
 			parent::echo_msg($str,$color,$echo,$end_str);
 		}
 	}
@@ -56,9 +67,9 @@ abstract class Collector extends \skycaiji\admin\controller\BaseController {
 	public function set_html_interval(){
 		if(is_collecting()){
 			
-			if($GLOBALS['config']['caiji']['html_interval']>0){
+			if($GLOBALS['_sc']['c']['caiji']['html_interval']>0){
 				
-				sleep($GLOBALS['config']['caiji']['html_interval']);
+				sleep($GLOBALS['_sc']['c']['caiji']['html_interval']);
 				
 				
 				return true;

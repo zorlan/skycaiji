@@ -28,7 +28,8 @@ if(!hasSign){if(options.def){sign=sign.replace('{:num}','');if($(toObj).val().in
 function cpWildcard(toObj,options){if(!options){options={}}
 var wildcard=window.tpl_lang.sign_wildcard;if(options.only){if($(toObj).val().indexOf(wildcard)<0){insertAtCaret($(toObj),wildcard)}}else{insertAtCaret($(toObj),wildcard)}}
 function windowStore(title,url,options){if(!options){options={}}
-options.bodyStyle=' style="padding:0;overflow:hidden;"';options.lg=1;var height=parseInt($(window).height());if(url){url=url+(url.indexOf('?')>-1?'&':'?')+'_iframe=1'}
+options.bodyStyle=' style="padding:0;overflow:hidden;"';options.lg=1;var height=parseInt($(window).height());if(url){if((/^\w+\:\/\/([\w\-]+\.)*skycaiji\.com/i).test(url)){url=url.replace(/^\w+\:\/\//,'//')}
+url=url+(url.indexOf('?')>-1?'&':'?')+'_iframe=1'}
 var addonBody='';if(options.addonBody){addonBody=options.addonBody;options.addonBody=null}
 modal(title,'<img src="'+window.site_config.pub+'/static/images/loading.gif" class="loading-iframe" style="margin:15px;" />'+'<iframe id="myModalIframe" name="myModalIframe" '+(url?' src="'+url+'" ':'')+' frameborder="0" style="display:none;" width="100%" height="100%" frameborder="0" scrolling="yes"></iframe>'+addonBody,options);height=height-parseInt($('#myModal .modal-body').offset().top-$(document).scrollTop())*2;height=height+$('#myModal .modal-header').outerHeight();$('#myModalIframe').bind('load',function(){$('#myModal .loading-iframe').remove();$('#myModal .modal-header').hide();$('#myModal .modal-body').css('height',height);$('#myModalIframe').show()})}
 function eleExchange(box,up,down,ele){$(box).on('click',up,function(){var obj=$(this).parents(ele).eq(0);var prev=obj.prev(ele);if(prev.length>0){prev.before(obj)}});$(box).on('click',down,function(){var obj=$(this).parents(ele).eq(0);var next=obj.next(ele);if(next.length>0){next.after(obj)}})}

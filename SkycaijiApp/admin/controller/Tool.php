@@ -14,8 +14,8 @@ use skycaiji\admin\model\DbCommon;
 class Tool extends BaseController {
 	/*文件管理*/
 	public function fileManagerAction(){
-		$GLOBALS['content_header']='文件管理';
-		$GLOBALS['breadcrumb']=breadcrumb(array('文件管理'));
+		$GLOBALS['_sc']['p_name']='文件管理';
+		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Tool/fileManager'),'title'=>'文件管理')));
 		return $this->fetch('fileManager');
 	}
 	/*elfinder文件管理器*/
@@ -86,8 +86,8 @@ class Tool extends BaseController {
 				}
 			}
 		}
-		$GLOBALS['content_header']='错误日志';
-		$GLOBALS['breadcrumb']=breadcrumb(array('错误日志'));
+		$GLOBALS['_sc']['p_name']='错误日志';
+		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Tool/logs'),'title'=>'错误日志')));
 		$this->assign('logList',$logList);
 		return $this->fetch();
 	}
@@ -156,8 +156,8 @@ class Tool extends BaseController {
 				$this->error('',null,array('files'=>$error_files));
 			}
 		}else{
-			$GLOBALS['content_header']='校验文件';
-			$GLOBALS['breadcrumb']=breadcrumb(array('校验文件'));
+			$GLOBALS['_sc']['p_name']='校验文件';
+			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Tool/checkfile'),'title'=>'校验文件')));
 			return $this->fetch();
 		}
 	}
@@ -207,7 +207,7 @@ class Tool extends BaseController {
 				$this->error('没有获取到表');
 			}
 			
-			if(!version_compare($check_db['version'],$GLOBALS['config']['version'],'=')){
+			if(!version_compare($check_db['version'],$GLOBALS['_sc']['c']['version'],'=')){
 				
 				$this->error('校验文件版本与数据库版本不一致');
 			}
@@ -417,8 +417,8 @@ class Tool extends BaseController {
 				}
 			}
 		}else{
-			$GLOBALS['content_header']='校验数据库';
-			$GLOBALS['breadcrumb']=breadcrumb(array('校验数据库'));
+			$GLOBALS['_sc']['p_name']='校验数据库';
+			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Tool/checkdb'),'title'=>'校验数据库')));
 			return $this->fetch();
 		}
 	}
@@ -433,18 +433,14 @@ class Tool extends BaseController {
 				$html=get_html($url);
 			}
 			if(!empty($html)){
-				
-				if(preg_match($eCpattern::$jsonpRegExp,$html,$json)){
-					
-					$json=trim($json['json']).'}';
-				}
+				$json=convert_html2json($html,true);
 			}
 			
 			$this->success('','',array('json'=>$json));
 		}else{
-			$GLOBALS['content_header']='JSON解析';
-			$GLOBALS['breadcrumb']=breadcrumb(array('JSON解析'));
-			return $this->fetch();
+			$GLOBALS['_sc']['p_name']='JSON解析';
+			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Tool/json_tree'),'title'=>'JSON解析')));
+			return $this->fetch('json_tree');
 		}
 	}
 }

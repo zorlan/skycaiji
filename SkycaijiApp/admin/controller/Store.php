@@ -14,7 +14,7 @@ namespace skycaiji\admin\controller;
 class Store extends BaseController {
 	
 	public function isLoginAction(){
-		if(empty($GLOBALS['user'])){
+		if(empty($GLOBALS['_sc']['user'])){
 			$this->dispatchJump(false,lang('user_error_is_not_admin'),url('Admin/Index/index',null,null,true));
 		}else{
 			$this->dispatchJump(true);
@@ -34,7 +34,7 @@ class Store extends BaseController {
 			$url=$provData['url'];
 			
 			$url.=strpos($url, '?')===false?'?':'&';
-			$url.='clientinfo='.urlencode($GLOBALS['clientinfo']);
+			$url.='clientinfo='.urlencode($GLOBALS['_sc']['clientinfo']);
 
 			$this->assign('provData',$provData);
 		}
@@ -46,8 +46,8 @@ class Store extends BaseController {
 			
 		}
 
-		$GLOBALS['content_header']=lang('store');
-		$GLOBALS['breadcrumb']=breadcrumb(array(lang('store')));
+		$GLOBALS['_sc']['p_name']=lang('store');
+		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Store/index'),'title'=>lang('store'))));
 		
 		$this->assign('url',$url);
 		return $this->fetch();
@@ -124,7 +124,13 @@ class Store extends BaseController {
 		$newData['provider_id']=$this->_getStoreProvid($plugin['store_url']);
 		
 		if($plugin['type']=='release'){
+			
 			model('ReleaseApp')->addCms($newData,$plugin['code'],$plugin['tpl']);
+			$this->dispatchJump(true);
+		}elseif($plugin['type']=='func'){
+			
+			$newData['module']=$plugin['module'];
+			model('FuncApp')->addFunc($newData,$plugin['code']);
 			$this->dispatchJump(true);
 		}else{
 			$this->dispatchJump(false);
@@ -245,6 +251,8 @@ class Store extends BaseController {
 				$cond=array('app'=>array('in',$apps),'provider_id'=>$provId);
 				if($type=='release'||$type=='cms'){
 					$list=model('ReleaseApp')->where($cond)->column('uptime','app');
+				}elseif($type=='func'){
+					$list=model('FuncApp')->where($cond)->column('uptime','app');
 				}elseif($type=='app'){
 					foreach ($apps as $app){
 						

@@ -137,9 +137,9 @@
 			<div class="box-body">
 				<div class="form-group">
 					<label>文件存放目录</label>
-					<div class="input-group">
+					<div class="input-group mobile-input-group">
 						<div class="input-group-addon">{:config('root_path')}\data\</div>
-						<input type="text" class="form-control" name="file[path]" />
+						<input type="text" class="form-control" name="file[path]" placeholder="请输入目录名称" />
 						<div class="input-group-btn">
 							<button type="button" class="btn btn-default btn-file-rand-path">随机目录</button>
 						</div>
@@ -190,9 +190,9 @@
 			<div class="box-body">
 				<div class="form-group">
 					<label>api地址</label>
-					<div class="input-group">
+					<div class="input-group mobile-input-group">
 						<div class="input-group-addon">{:config('root_website')}/api_task/{$releData['task_id']}/</div>
-						<input type="text" class="form-control" name="api[url]" />
+						<input type="text" class="form-control" name="api[url]" placeholder="请输入字符串" />
 						<div class="input-group-btn">
 							<button type="button" class="btn btn-default btn-api-rand-url">随机字符串</button>
 						</div>
@@ -222,6 +222,97 @@
 					<p class="help-block">勾选的字段不显示，默认显示所有字段</p>
 				</div>
 				{/if}
+			</div>
+		</div>
+	</div>
+	<div class="rele-module" id="rele_module_toapi" module="toapi" style="display:none;">
+		<div class="box box-default">
+			<div class="box-body">
+				<div class="form-group">
+					<label>接口地址</label>
+					<input type="text" name="toapi[url]" class="form-control" />
+					<p class="help-block">以/开头自动补全为{:config('root_website')}/</p>
+				</div>
+				<div class="form-group">
+					<label>请求方式</label>
+					<select name="toapi[type]" class="form-control">
+						<option value="post">POST</option>
+						<option value="">GET</option>
+					</select>
+				</div>
+				<div class="form-group">
+			     	<label>请求参数</label>
+			      	<a href="javascript:;" class="glyphicon glyphicon-plus toapi-add-param" title="添加"></a>
+			   		<div class="table-responsive">
+			           	<table class="table table-bordered table-hover toapi-param-table" style="margin-bottom:0;">
+				            <thead>
+			                <tr>
+			                    <th>名称</th>
+			                    <th>值</th>
+			                    <th>删除</th>
+			                </tr>
+				            </thead>
+				            <tbody>
+							<tr class="toapi-param-tpl" style="display:none;">
+								<td>
+									<input type="text" name="toapi[param_name][]" class="form-control">
+								</td>
+								<td>
+									<div class="input-group">
+										<div class="input-group-btn">
+											<select name="toapi[param_val][]" class="form-control" style="min-width:110px;">
+												<option value="">空</option>
+												{if !empty($collFields)}
+												{foreach $collFields as $v}
+												<option value="field:{$v}">采集字段：{$v}</option>
+												{/foreach}
+												{/if}
+												<option value="custom">自定义</option>
+											</select>
+										</div>
+										<input type="text"  name="toapi[param_addon][]" class="form-control" style="display:none;margin-left:-1px;">
+									</div>
+								</td>
+								<td>
+									<a href="javascript:;" class="glyphicon glyphicon-remove toapi-del-param" style="margin-top:8px;"></a>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+			       	</div>
+				</div>
+				<div class="form-group">
+			     	<div class="page-header">响应状态</div>
+			        <p class="help-block">接口必须返回json格式的数组记录数据入库的状态，否则会标记为失败</p>
+			     	<div class="table-responsive">
+			           	<table class="table table-hover">
+			           		<thead>
+			                <tr>
+			                    <th style="width:150px;">名称</th>
+			                    <th>绑定响应的json数组健名</th>
+			                </tr>
+				            </thead>
+				            <tbody>
+				            	<tr>
+				            		<td>id（编号）</td>
+				            		<td><input type="text" name="toapi[response][id]" class="form-control" placeholder="必填，表示入库返回的自增id或入库状态" /></td>
+				            	</tr>
+				            	<tr>
+				            		<td>target（位置）</td>
+				            		<td><input type="text" name="toapi[response][target]" class="form-control" placeholder="记录入库的数据位置（发布的网址等）" /></td>
+				            	</tr>
+				            	<tr>
+				            		<td>desc（描述）</td>
+				            		<td><input type="text" name="toapi[response][desc]" class="form-control" placeholder="记录入库的数据位置附加信息" /></td>
+				            	</tr>
+				            	<tr>
+				            		<td>error（错误）</td>
+				            		<td><input type="text" name="toapi[response][error]" class="form-control" placeholder="记录入库失败的错误信息" /></td>
+				            	</tr>
+				            </tbody>
+			           	</table>
+			        </div>
+				</div>
 			</div>
 		</div>
 	</div>

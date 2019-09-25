@@ -108,6 +108,8 @@ class CpatternBase extends Collector{
 									$cont_urls[$k]=$v['match'];
 								}
 							}
+						}else{
+							$cont_urls=array();
 						}
 					}else{
 						
@@ -127,6 +129,8 @@ class CpatternBase extends Collector{
 										);
 									}
 								}
+							}else{
+								$cont_urls=array();
 							}
 						}
 					}
@@ -462,23 +466,18 @@ class CpatternBase extends Collector{
 		}
 		return $val;
 	}
+	
 	/**
 	 * json提取，方法可调用，$field_params传入规则参数
 	 * @param array $field_params 
 	 * @param string $html
 	 * @return string
 	 */
-	public static $jsonpRegExp='/^(\s*[\$\w\-]+\s*[\{\(])+(?P<json>[\s\S]+)\}\s*\)\s*[\;]{0,1}/i';
 	public function field_module_json($field_params,$html,$cur_url=''){
 		static $jsonList=array();
 		$jsonKey=!empty($cur_url)?md5($cur_url):md5($html);
 		if(!isset($jsonList[$jsonKey])){
-			$jsonList[$jsonKey]=json_decode($html,true);
-			if(empty($jsonList[$jsonKey])&&preg_match(self::$jsonpRegExp, $html,$json)){
-				
-				$json=trim($json['json']).'}';
-				$jsonList[$jsonKey]=json_decode($json,true);
-			}
+			$jsonList[$jsonKey]=convert_html2json($html);
 		}
 		$jsonArrType=$field_params['json_arr'];
 		if($field_params['json_loop']){
@@ -508,12 +507,7 @@ class CpatternBase extends Collector{
 			$jsonArr=&$jsonArrOrStr;
 		}else{
 			
-			$jsonArr=json_decode($jsonArrOrStr,true);
-			if(empty($jsonArr)&&preg_match(self::$jsonpRegExp,$jsonArrOrStr,$jsonArrOrStr)){
-				
-				$jsonArr=trim($jsonArrOrStr['json']).'}';
-				$jsonArr=json_decode($jsonArr,true);
-			}
+			$jsonArr=convert_html2json($jsonArrOrStr);
 			unset($jsonArrOrStr);
 		}
 		$val='';
@@ -652,7 +646,7 @@ class CpatternBase extends Collector{
 		return $fieldVal;
 	}
 	public function process_f_replace($fieldVal,$params){
-		return preg_replace('/'.$params['replace_from'].'/i',$params['replace_to'], $fieldVal);
+		return preg_replace('/'.$params['replace_from'].'/ui',$params['replace_to'], $fieldVal);
 	}
 	public function process_f_tool($fieldVal,$params){
 		
@@ -667,16 +661,16 @@ class CpatternBase extends Collector{
 		}
 		if(in_array('is_img', $params['tool_list'])){
 			
-			if(!empty($GLOBALS['config']['caiji']['download_img'])){
+			if(!empty($GLOBALS['_sc']['c']['download_img']['download_img'])){
 				
-				$fieldVal=preg_replace('/(\bhttp[s]{0,1}\:\/\/[^\s]+)/i','{[img]}'."$1".'{[/img]}',$fieldVal);
+				$fieldVal=preg_replace('/(?<![\'\"])(\bhttp[s]{0,1}\:\/\/[^\s\'\"\<\>]+)(?![\'\"])/i','{[img]}'."$1".'{[/img]}',$fieldVal);
 			}
 		}
 		return $fieldVal;
 	}
 	public function process_f_translate($fieldVal,$params){
 		
-		if(!empty($GLOBALS['config']['translate'])&&!empty($GLOBALS['config']['translate']['open'])){
+		if(!empty($GLOBALS['_sc']['c']['translate'])&&!empty($GLOBALS['_sc']['c']['translate']['open'])){
 			
 			$fieldVal=\util\Translator::translate($fieldVal, $params['translate_from'], $params['translate_to']);
 		}
@@ -698,8 +692,8 @@ class CpatternBase extends Collector{
 				$batch_re=$batch_list[$listMd5][0];
 				$batch_to=$batch_list[$listMd5][1];
 			}
-			$batch_re=is_array($batch_re)?$batch_re:null;
-			$batch_to=is_array($batch_to)?$batch_to:null;
+			$batch_re=is_array($batch_re)?$batch_re:array();
+			$batch_to=is_array($batch_to)?$batch_to:array();
 			if(!empty($batch_re)&&count($batch_re)==count($batch_to)){
 				
 				$fieldVal=str_replace($batch_re, $batch_to, $fieldVal);
@@ -717,44 +711,30 @@ class CpatternBase extends Collector{
 		}
 		return $fieldVal;
 	}
-	public function process_f_func($fieldVal,$params){
+	public function process_f_func($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5){
 		
-		if(!empty($params['func_name'])){
-			if(!function_exists($params['func_name'])){
+		$field_val_list=null;
+		if(preg_match('/\[\x{5b57}\x{6bb5}\:(.+?)\]/u',$params['func_param'])){
+			
+			if(empty($this->first_loop_field)){
 				
-				$this->error('数据处理》无效的函数：'.$params['func_name']);
+				$field_val_list=array();
+				foreach ($this->field_val_list as $k=>$v){
+					$field_val_list[$k]=$v['values'][$curUrlMd5];
+				}
 			}else{
 				
-				if(array_key_exists($params['func_name'], config('allow_process_func'))||array_key_exists($params['func_name'], config('EXTEND_PROCESS_FUNC'))){
-					
-					static $func_param_list=array();
-					$funcParam=null;
-					if(empty($params['func_param'])){
-						
-						$funcParam=array($fieldVal);
-					}else{
-						$fparamMd5=md5($params['func_param']);
-						if(!isset($func_param_list[$fparamMd5])){
-							if(preg_match_all('/[^\r\n]+/', $params['func_param'],$mfuncParam)){
-								$func_param_list[$fparamMd5]=$mfuncParam[0];
-							}
-						}
-						$funcParam=$func_param_list[$fparamMd5];
-						foreach ($funcParam as $k=>$v){
-							$funcParam[$k]=str_replace('###', $fieldVal, $v);
-						}
-					}
-					if(!empty($funcParam)&&is_array($funcParam)){
-						try {
-							$fieldVal=call_user_func_array($params['func_name'], $funcParam);
-						}catch (\Exception $ex){
-							
-						}
-					}
-				}else{
-					$this->error('数据处理》未配置函数：'.$params['func_name']);
+				$field_val_list=array();
+				
+				foreach ($this->field_val_list as $k=>$v){
+					$field_val_list[$k]=is_array($v['values'][$curUrlMd5])?$v['values'][$curUrlMd5][$loopIndex]:$v['values'][$curUrlMd5];
 				}
 			}
+		}
+		
+		$result=$this->execute_plugin_func('process', $params['func_name'], $fieldVal, $params['func_param'], $field_val_list);
+		if(isset($result)){
+			$fieldVal=$result;
 		}
 		return $fieldVal;
 	}
@@ -874,59 +854,16 @@ class CpatternBase extends Collector{
 						}
 						break;
 					case 'func':
-						if(!empty($ifVal)){
-							
-							$funcMd5=md5($ifVal);
-							if(!isset($func_list[$funcMd5])){
-								if(preg_match_all('/[^\r\n]+/',$ifVal,$funcParam)){
-									
-									$funcParam=$funcParam[0];
-								}else{
-									
-									$funcParam=array($ifVal);
-								}
-								$func_list[$funcMd5]=$funcParam;
-							}else{
-								$funcParam=$func_list[$funcMd5];
-							}
-							$funcName=$funcParam[0];
-							$isTurn=false;
-							if(strpos($funcName,'!')===0){
-								
-								$funcName=substr($funcName, 1);
-								$isTurn=true;
-							}
-							unset($funcParam[0]);
-							if(empty($funcParam)){
-								
-								$funcParam=array($fieldVal);
-							}else{
-								foreach($funcParam as $k=>$v){
-									$funcParam[$k]=str_replace('###', $fieldVal, $v);
-								}
-							}
-							
-							if(!function_exists($funcName)){
-								
-								$this->error('数据处理》条件判断》无效的函数：'.$funcName);
-							}else{
-								if(array_key_exists($funcName, config('allow_process_if'))||array_key_exists($funcName, config('EXTEND_PROCESS_IF'))){
-									
-									try {
-										$result=call_user_func_array($funcName, $funcParam);
-										if($isTurn){
-											
-											$result=$result?false:true;
-										}
-									}catch (\Exception $ex){
-										
-										$this->error('数据处理》条件判断》函数'.$funcName.'运行错误，'.$ex->getMessage());
-									}
-								}else{
-									$this->error('数据处理》条件判断》未配置函数：'.$funcName);
-								}
-							}
+						$funcName=$params['if_addon']['func'][$ifk];
+						$isTurn=$params['if_addon']['turn'][$ifk];
+						$isTurn=$isTurn?true:false;
+						
+						$result=$this->execute_plugin_func('processIf', $funcName, $fieldVal, $ifVal);
+						$result=$result?true:false;
+						if($isTurn){
+							$result=$result?false:true;
 						}
+						
 						break;
 					case 'has':$result=stripos($fieldVal,$ifVal)!==false?true:false;break;
 					case 'nhas':$result=stripos($fieldVal,$ifVal)===false?true:false;break;
@@ -1023,12 +960,66 @@ class CpatternBase extends Collector{
 		}
 		return $fieldVal;
 	}
+	/*调用接口*/
+	public function process_f_api($fieldVal,$params){
+		$url=$params['api_url'];
+		$result=null;
+		if(!empty($url)){
+			$isLoc=false;
+			if(!preg_match('/^\w+\:\/\//', $url)&&strpos($url, '/')===0){
+				
+				$isLoc=true;
+				$url=config('root_website').$url;
+			}
+			if(preg_match('/^\w+\:\/\//', $url)){
+				
+				$postData=array();
+				if(is_array($params['api_params'])){
+					foreach ($params['api_params']['name'] as $k=>$v){
+						if(empty($v)){
+							continue;
+						}
+						$val=$params['api_params']['val'][$k];
+						$addon=$params['api_params']['addon'][$k];
+						switch ($val){
+							case 'field':$val=$fieldVal;break;
+							case 'timestamp':$val=time();break;
+							case 'time':$addon=$addon?$addon:'Y-m-d H:i:s';$val=date($addon,time());break;
+							case 'custom':$val=$addon;break;
+						}
+						$postData[$v]=$val;
+					}
+				}
+				if($params['api_type']=='post'){
+					
+					$postData=empty($postData)?true:$postData;
+				}else{
+					
+					if($postData){
+						$url.=(strpos($url,'?')===false?'?':'&').http_build_query($postData);
+					}
+					$postData=null;
+				}
+				if($isLoc){
+					
+					$result=get_html($url,null,array(),'utf-8',$postData);
+				}else{
+					
+					$result=$this->get_html($url,false,$postData);
+				}
+				if(isset($result)){
+					$fieldVal=$this->rule_module_json_data(array('json'=>$params['api_json'],'json_arr'=>$params['api_json_arr'],'json_arr_implode'=>$params['api_json_implode']),$result);
+				}
+			}
+		}
+		return $fieldVal;
+	}
 	/*数据处理*/
 	public function process_field($fieldVal,$process,$curUrlMd5,$loopIndex,$contUrlMd5){
 		if(empty($process)){
 			return $fieldVal;
 		}
-		static $funcs=array('filter','if');
+		static $funcs=array('func','filter','if');
 		foreach ($process as $params){
 			
 			if(empty($this->first_loop_field)){
@@ -1164,6 +1155,8 @@ class CpatternBase extends Collector{
 				
 				$urls=array_unique($urls[0]);
 				$urls=array_values($urls);
+			}else{
+				$urls=array();
 			}
 			return $urls;
 		}else{
@@ -1269,15 +1262,159 @@ class CpatternBase extends Collector{
 		}
 		return $tags;
 	}
-	/*获取源码*/
-	public function get_html($url,$open_cache=false,$is_post=false){
-		if($open_cache&&!empty($this->html_cache_list[$url])){
-			
-			return $this->html_cache_list[$url];
+	/**
+	 * 执行数据处理》使用函数
+	 * @param string $module 模块
+	 * @param string $funcName 函数/方法
+	 * @param string $fieldVal 字段值
+	 * @param string $paramsStr 输入的参数（有换行符）
+	 * @param array $fieldValList 所有字段值（调用字段时使用）
+	 */
+	public function execute_plugin_func($module,$funcName,$fieldVal,$paramsStr,$fieldValList=null){
+		
+		static $func_class_list=array('process'=>array(),'processIf'=>array());
+		$class_list=&$func_class_list[$module];
+	
+		$options = array (
+			'process' => array (
+				'name' => '使用函数',
+				'config'=>'allow_process_func',
+				'extend'=>'EXTEND_PROCESS_FUNC',
+			),
+			'processIf' => array (
+				'name' => '条件判断》使用函数',
+				'config'=>'allow_process_if',
+				'extend'=>'EXTEND_PROCESS_IF',
+			)
+		);
+		$options=$options[$module];
+		$result=null;
+		if(!empty($funcName)){
+			$success=false;
+			if(strpos($funcName, ':')!==false){
+				$funcName=explode(':', $funcName);
+			}
+			if(!is_array($funcName)){
+				
+				if(!function_exists($funcName)){
+					
+					$this->error('数据处理》'.$options['name'].'》无效的函数：'.$funcName);
+				}elseif(!array_key_exists($funcName, config($options['config']))&&!array_key_exists($funcName, config($options['extend']))){
+					
+					$this->error('数据处理》'.$options['name'].'》未配置函数：'.$funcName);
+				}else{
+					$success=true;
+				}
+			}else{
+				
+				$className=$funcName[0];
+				$methodName=$funcName[1];
+				if(!isset($class_list[$className])){
+					
+					$enable=model('FuncApp')->field('enable')->where(array('app'=>$className,'module'=>$module))->value('enable');
+					if($enable){
+						
+						$class=model('FuncApp')->app_classname($module,$className);
+						if(!class_exists($class)){
+							
+							$class_list[$className]=1;
+						}else{
+							$class=new $class();
+							$class_list[$className]=$class;
+						}
+					}else{
+						$class_list[$className]=2;
+					}
+				}
+				if(is_object($class_list[$className])){
+					
+					if(!method_exists($class_list[$className], $methodName)){
+						$this->error('数据处理》'.$options['name'].'》不存在方法：'.$className.'-&gt;'.$methodName);
+					}else{
+						$success=true;
+					}
+				}else{
+					$msg='数据处理》'.$options['name'].'》';
+					if($class_list[$className]==1){
+						$msg.='不存在插件：';
+					}elseif($class_list[$className]==2){
+						$msg.='已禁用插件：';
+					}else{
+						$msg.='无效的插件：';
+					}
+					$this->error($msg.$className);
+				}
+			}
+				
+			if($success){
+				static $func_param_list=array();
+				$funcParam=null;
+				if(empty($paramsStr)){
+					
+					$funcParam=array($fieldVal);
+				}else{
+					$fparamMd5=md5($paramsStr);
+					if(!isset($func_param_list[$fparamMd5])){
+						if(preg_match_all('/[^\r\n]+/',$paramsStr,$mfuncParam)){
+							$func_param_list[$fparamMd5]=$mfuncParam[0];
+						}
+					}
+					$funcParam=$func_param_list[$fparamMd5];
+					if($funcParam){
+						foreach ($funcParam as $k=>$v){
+							$v=str_replace('###', $fieldVal, $v);
+							
+							if($fieldValList&&preg_match_all('/\[\x{5b57}\x{6bb5}\:(.+?)\]/u',$v,$match_fields)){
+								for($i=0;$i<count($match_fields[0]);$i++){
+									$v=str_replace($match_fields[0][$i],$fieldValList[$match_fields[1][$i]],$v);
+								}
+							}
+							$funcParam[$k]=$v;
+						}
+					}
+				}
+				if(!empty($funcParam)&&is_array($funcParam)){
+					try {
+						if(!is_array($funcName)){
+							
+							$result=call_user_func_array($funcName, $funcParam);
+						}else{
+							
+							$result=call_user_func_array(array($class_list[$funcName[0]],$funcName[1]), $funcParam);
+						}
+					}catch (\Exception $ex){
+						
+					}
+				}
+			}
 		}
+		return $result;
+	}
+	/**
+	 * 获取源码
+	 * @param string $url 网址
+	 * @param bool $openCache 开启缓存网页数据，$postData有数据时最好关闭，$postData为true根据$url缓存
+	 * @param bool|array $postData 开启post模式或者传递post数组，true会将$url中的get参数转换成post数组
+	 */
+	public function get_html($url,$openCache=false,$postData=false){
+		if(!empty($GLOBALS['_sc']['c']['caiji']['robots'])){
+			
+			if(!model('Collector')->abide_by_robots($url)){
+				$this->error('robots拒绝访问的网址：'.$url);
+				return null;
+			}
+		}
+		
+		$urlMd5=md5($url);
+		if($openCache&&!empty($this->html_cache_list[$urlMd5])){
+			
+			return $this->html_cache_list[$urlMd5];
+		}
+		$is_post=$postData?true:false;
+		
 		$pageRenderTool=null;
 		if($this->config['page_render']){
-			$pageRenderTool=$GLOBALS['config']['page_render']['tool'];
+			$pageRenderTool=$GLOBALS['_sc']['c']['page_render']['tool'];
 			if(empty($pageRenderTool)){
 				
 				$this->error('页面渲染未设置，请检查<a href="'.url('Setting/page_render').'" target="_blank">渲染设置</a>','Setting/page_render');
@@ -1288,33 +1425,23 @@ class CpatternBase extends Collector{
 		$html=null;
 		$headers=array();
 		$options=array();
-		if($this->config['request_headers']['open']){
+		
+		if(!empty($GLOBALS['_sc']['task_request_headers'])){
 			
-			if(!empty($this->config['request_headers']['useragent'])){
+			$headers=$GLOBALS['_sc']['task_request_headers']['headers'];
+			if(!empty($headers['useragent'])){
 				
-				$options['useragent']=$this->config['request_headers']['useragent'];
+				$options['useragent']=$headers['useragent'];
 			}
-			if(!empty($this->config['request_headers']['cookie'])){
-				$headers['cookie']=$this->config['request_headers']['cookie'];
-			}
-			if(!empty($this->config['request_headers']['referer'])){
-				$headers['referer']=$this->config['request_headers']['referer'];
-			}
-			
-			if(!empty($this->config['request_headers']['custom_names'])){
-				foreach ($this->config['request_headers']['custom_names'] as $k=>$v){
-					if(!empty($v)){
-						$headers[$v]=$this->config['request_headers']['custom_vals'][$k];
-					}
-				}
-			}
+			unset($headers['useragent']);
 		}
+		
 		$mproxy=model('Proxyip');
-		$proxy_ip=null;
-		if(!empty($GLOBALS['config']['proxy']['open'])){
+		$proxyDbIp=null;
+		if(!empty($GLOBALS['_sc']['c']['proxy']['open'])){
 			
-			$proxy_ip=$mproxy->get_usable_ip();
-			$proxyIp=$mproxy->to_proxy_ip($proxy_ip);
+			$proxyDbIp=$mproxy->get_usable_ip();
+			$proxyIp=$mproxy->to_proxy_ip($proxyDbIp);
 			
 			if(!empty($proxyIp)){
 				
@@ -1331,8 +1458,30 @@ class CpatternBase extends Collector{
 			}else{
 				$urlPost='';
 			}
+			if(is_string($postData)){
+				
+				if($urlPost){
+					$urlPost.=$postData?('&'.$postData):'';
+				}else{
+					$urlPost=$postData;
+				}
+			}elseif(is_array($postData)){
+				
+				if($urlPost){
+					if(preg_match_all('/([^\&]+?)\=([^\&]*)/',$urlPost,$mUrlPost)){
+						$urlPostData=array();
+						foreach($mUrlPost[1] as $k=>$v){
+							$urlPostData[$v]=rawurldecode($mUrlPost[2][$k]);
+						}
+						$urlPost=$urlPostData;
+						unset($urlPostData);
+					}
+				}
+				$urlPost=is_array($urlPost)?$urlPost:array();
+				$urlPost=array_merge($urlPost,$postData);
+				unset($postData);
+			}
 		}
-		
 		if($pageRenderTool){
 			
 			if(!empty($options['useragent'])){
@@ -1340,15 +1489,11 @@ class CpatternBase extends Collector{
 				$headers['user-agent']=$options['useragent'];
 				unset($options['useragent']);
 			}
-			if(!empty($options['proxy'])){
-				
-				$options['proxy']=$proxy_ip;
-			}
 			
 			if($pageRenderTool=='chrome'){
-				$chromeConfig=$GLOBALS['config']['page_render']['chrome'];
+				$chromeConfig=$GLOBALS['_sc']['c']['page_render']['chrome'];
 				try {
-					$chromeSocket=new \util\ChromeSocket($chromeConfig['host'],$chromeConfig['port'],$GLOBALS['config']['page_render']['timeout'],$chromeConfig['filename']);
+					$chromeSocket=new \util\ChromeSocket($chromeConfig['host'],$chromeConfig['port'],$GLOBALS['_sc']['c']['page_render']['timeout'],$chromeConfig['filename']);
 					$chromeSocket->newTab();
 					$chromeSocket->websocket(null);
 					if($is_post){
@@ -1367,16 +1512,17 @@ class CpatternBase extends Collector{
 			}
 		}else{
 			if($is_post){
-				$html=get_html($url,$headers,$options,$this->config['charset'],$urlPost);
+				$urlPost=$urlPost?$urlPost:'';
 			}else{
-				$html=get_html($url,$headers,$options,$this->config['charset']);
+				$urlPost=null;
 			}
+			$html=get_html($url,$headers,$options,$this->config['charset'],$urlPost);
 		}
 		
 		if($html==null){
 			
-			if(!empty($proxy_ip)){
-				$mproxy->set_ip_failed($proxy_ip);
+			if(!empty($proxyDbIp)){
+				$mproxy->set_ip_failed($proxyDbIp);
 			}
 			return null;
 		}
@@ -1393,8 +1539,8 @@ class CpatternBase extends Collector{
 				return \skycaiji\admin\event\Cpattern::create_complete_url($matche[1], $base_url, $domain_url);
 			},$html);
 		}
-		if($open_cache){
-			$this->html_cache_list[$url]=$html;
+		if($openCache){
+			$this->html_cache_list[$urlMd5]=$html;
 		}
 		return $html;
 	}

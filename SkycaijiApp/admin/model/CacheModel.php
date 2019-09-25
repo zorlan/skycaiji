@@ -54,6 +54,7 @@ class CacheModel{
 	 * @return mixed
 	 */
 	public function getCache($cname,$key=null){
+		
 		$cache=$this->db()->where('cname',$cname)->find();
 		switch($cache['ctype']){
 			case 1:$cache['data']=intval($cache['data']);break;

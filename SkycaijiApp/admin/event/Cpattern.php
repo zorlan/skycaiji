@@ -17,19 +17,24 @@ class Cpattern extends CpatternBase{
 		if(!defined('IS_COLLECTING')){
 			define('IS_COLLECTING', 1);
 		}
-		@session_start();
-		\think\Session::pause();
 	
 		if(!$this->show_opened_tools){
 			$opened_tools=array();
+			
+			if($GLOBALS['_sc']['c']['caiji']['robots']){
+				$opened_tools[]='遵守robots协议';
+			}
 			if($this->config['page_render']){
 				$opened_tools[]='页面渲染';
 			}
-			if($GLOBALS['config']['caiji']['download_img']){
+			if($GLOBALS['_sc']['c']['download_img']['download_img']){
 				$opened_tools[]='图片本地化';
 			}
-			if($GLOBALS['config']['proxy']['open']){
+			if($GLOBALS['_sc']['c']['proxy']['open']){
 				$opened_tools[]='代理';
+			}
+			if($GLOBALS['_sc']['c']['translate']['open']){
+				$opened_tools[]='翻译';
 			}
 			if(!empty($opened_tools)){
 				$this->echo_msg('开启功能：'.implode('、', $opened_tools),'black');
@@ -80,7 +85,7 @@ class Cpattern extends CpatternBase{
 			}
 		}
 	
-		$source_interval=$GLOBALS['config']['caiji']['interval']*60;
+		$source_interval=$GLOBALS['_sc']['c']['caiji']['interval']*60;
 		$time_interval_list=array();
 	
 		$source_urls=array();
@@ -311,6 +316,37 @@ class Cpattern extends CpatternBase{
 		}else{
 			$config=$cacheConfig['config'];
 		}
+		
+		if($config['request_headers']['open']){
+			
+			$taskHeaders=array();
+			if(!empty($config['request_headers']['useragent'])){
+				$taskHeaders['useragent']=$config['request_headers']['useragent'];
+			}
+			if(!empty($config['request_headers']['cookie'])){
+				$taskHeaders['cookie']=$config['request_headers']['cookie'];
+			}
+			if(!empty($config['request_headers']['referer'])){
+				$taskHeaders['referer']=$config['request_headers']['referer'];
+			}
+			
+			if(!empty($config['request_headers']['custom_names'])){
+				foreach ($config['request_headers']['custom_names'] as $k=>$v){
+					if(!empty($v)){
+						$taskHeaders[$v]=$config['request_headers']['custom_vals'][$k];
+					}
+				}
+			}
+			
+			$GLOBALS['_sc']['task_request_headers']=array(
+				'request_headers'=>$config['request_headers'],
+				'headers'=>$taskHeaders
+			);
+		}else{
+			
+			$GLOBALS['_sc']['task_request_headers']=null;
+		}
+		
 		$this->config=$config;
 	}
 	
@@ -976,21 +1012,15 @@ class Cpattern extends CpatternBase{
 				}
 			}elseif(in_array($module,$fieldArr1)){
 				
-				if($module=='words'){
+				if(empty($this->first_loop_field)){
 					
 					$val=$this->$field_func($field_params);
 				}else{
 					
-					if(empty($this->first_loop_field)){
-						
-						$val=$this->$field_func($field_params);
-					}else{
-						
-						$val=array();
-						
-						foreach ($this->field_val_list[$this->first_loop_field]['values'][$cur_url_md5] as $v_k=>$v_v){
-							$val[$v_k]=$this->$field_func($field_params);
-						}
+					$val=array();
+					
+					foreach ($this->field_val_list[$this->first_loop_field]['values'][$cur_url_md5] as $v_k=>$v_v){
+						$val[$v_k]=$this->$field_func($field_params);
 					}
 				}
 			}elseif(in_array($module,$fieldArr2)){
@@ -1090,7 +1120,7 @@ class Cpattern extends CpatternBase{
 				
 				$this->field_val_list[$field_name]['values'][$cur_url_md5]=$val;
 			}
-			if(!empty($GLOBALS['config']['caiji']['download_img'])&&!empty($val)){
+			if(!empty($GLOBALS['_sc']['c']['download_img']['download_img'])&&!empty($val)){
 				
 				$valImgs=array();
 				if(preg_match_all('/<img[^<>]*\bsrc=[\'\"]*(\w+\:\/\/[^\'\"\s]+)[\'\"]*/i',$val,$imgUrls)){
@@ -1141,7 +1171,7 @@ class Cpattern extends CpatternBase{
 		if(!preg_match('/^\w+\:\/\//',$page_url)){
 			return $this->error($page_url.'网址不完整');
 		}
-		if(empty($this->config['paging']['max'])||(count($this->used_paging_urls[$contMd5])<$this->config['paging']['max'])){
+		if(empty($this->config['paging']['max'])||(count((array)$this->used_paging_urls[$contMd5])<$this->config['paging']['max'])){
 			
 			$this->set_html_interval();
 			$this->echo_msg("——采集分页：<a href='{$page_url}' target='_blank'>{$page_url}</a>",'black');
@@ -1323,9 +1353,9 @@ class Cpattern extends CpatternBase{
 			if(empty($this->first_loop_field)){
 				
 				foreach ($this->field_val_list as $fieldName=>$fieldVal){
-					$val_values=array_filter($fieldVal['values']);
+					$val_values=array_filter_keep0($fieldVal['values']);
 					$val_values=implode($this->config['new_paging_fields'][$fieldName]['delimiter'], $val_values);
-	
+
 					$val_imgs=array();
 					if(!empty($fieldVal['imgs'])){
 						foreach ($fieldVal['imgs'] as $v){
@@ -1518,7 +1548,7 @@ class Cpattern extends CpatternBase{
 	/*执行采集返回未使用的网址*/
 	public function _collect_unused_cont_urls($cont_urls=array(),$echo_str=''){
 		$mcollected=model('Collected');
-		$count_conts=count($cont_urls);
+		$count_conts=count((array)$cont_urls);
 		if($this->config['url_repeat']){
 			
 			$db_cont_urls=array();
@@ -1567,7 +1597,7 @@ class Cpattern extends CpatternBase{
 		$this->echo_msg('','',true,'<div style="padding-left:30px;">');
 	
 		$level_data=$this->collLevelUrls($source_url,$level);
-		$this->echo_msg($level_str.'抓取到'.$level.'级“'.$this->config['level_urls'][$level-1]['name'].'”网址'.count($level_data['urls']).'条','black');
+		$this->echo_msg($level_str.'抓取到'.$level.'级“'.$this->config['level_urls'][$level-1]['name'].'”网址'.count((array)$level_data['urls']).'条','black');
 	
 		$mcollected=model('Collected');
 		$mcacheLevel=CacheModel::getInstance('level_url');
@@ -1579,7 +1609,7 @@ class Cpattern extends CpatternBase{
 				$level_urls["level_{$level}:{$level_url}"]=$level_url;
 			}
 				
-			$level_interval=$GLOBALS['config']['caiji']['interval']*60;
+			$level_interval=$GLOBALS['_sc']['c']['caiji']['interval']*60;
 			$time_interval_list=array();
 			
 			$cacheLevels=$mcacheLevel->db()->where(array('cname'=>array('in',array_map('md5', array_keys($level_urls)))))->column('dateline','cname');
@@ -1651,7 +1681,7 @@ class Cpattern extends CpatternBase{
 					
 					if(count($this->collected_field_list)>=$this->collect_num){
 						
-						if($cur_level_i<count($level_data['urls'])){
+						if($cur_level_i<count((array)$level_data['urls'])){
 							$finished_source=false;
 						}
 						break;
@@ -1730,9 +1760,9 @@ class Cpattern extends CpatternBase{
 					if(input('?backstage')){
 						
 						$backstageDate=CacheModel::getInstance('backstage_task')->db()->field('dateline')->where('cname',$this->collector['task_id'])->find();
-						if(empty($backstageDate)||$GLOBALS['backstage_task_runtime']<$backstageDate['dateline']){
+						if(empty($backstageDate)||$GLOBALS['_sc']['backstage_task_runtime']<$backstageDate['dateline']){
 							
-							unset($GLOBALS['backstage_task_ids'][$this->collector['task_id']]);
+							unset($GLOBALS['_sc']['backstage_task_ids'][$this->collector['task_id']]);
 							exit('终止进程');
 						}
 					}
@@ -1750,7 +1780,7 @@ class Cpattern extends CpatternBase{
 					$is_loop=empty($this->first_loop_field)?false:true;
 					if(!empty($field_vals_list)){
 						$is_real_time=false;
-						if(!empty($GLOBALS['config']['caiji']['real_time'])&&!empty($GLOBALS['real_time_release'])){
+						if(!empty($GLOBALS['_sc']['c']['caiji']['real_time'])&&!empty($GLOBALS['_sc']['real_time_release'])){
 							
 							$is_real_time=true;
 						}
@@ -1775,7 +1805,7 @@ class Cpattern extends CpatternBase{
 											unset($field_vals_list[$k]);
 										}
 									}
-									$this->echo_msg($echo_str.'已过滤'.count($loop_exists_urls).'条重复数据','black');
+									$this->echo_msg($echo_str.'已过滤'.count((array)$loop_exists_urls).'条重复数据','black');
 								}
 							}
 							if(isset($this->exclude_cont_urls[$md5_cont_url])){
@@ -1783,7 +1813,7 @@ class Cpattern extends CpatternBase{
 								$excludeNum=0;
 								foreach($this->exclude_cont_urls[$md5_cont_url] as $k=>$v){
 									
-									$excludeNum+=count($v);
+									$excludeNum+=count((array)$v);
 								}
 								
 								$this->echo_msg($echo_str.'通过数据处理排除了'.$excludeNum.'条数据','black');
@@ -1823,7 +1853,7 @@ class Cpattern extends CpatternBase{
 								if($is_real_time){
 									
 									
-									$GLOBALS['real_time_release']->export(array($collected_data));
+									$GLOBALS['_sc']['real_time_release']->export(array($collected_data));
 										
 									unset($collected_data['fields']);
 									unset($collected_data['title']);
@@ -1889,7 +1919,7 @@ class Cpattern extends CpatternBase{
 					$this->used_source_urls[$cont_key]=1;
 				}
 			}
-				
+			
 			if($this->collect_num>0&&count($this->collected_field_list)>=$this->collect_num){
 				break;
 			}

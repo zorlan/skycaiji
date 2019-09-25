@@ -243,9 +243,9 @@ return [
     
     
     /**********************************自定义配置*********************************************/
-    'cli_cache_config'=>array('view_replace_str','root_path','app_path','plugin_path','root_url','root_website'),//cli模式下需要缓存的配置，否则会失效引起程序bug
+    'cli_cache_config'=>array('view_replace_str','root_path','app_path','apps_path','plugin_path','root_url','root_website'),//cli模式下需要缓存的配置，否则会失效引起程序bug
     
-	'html_v'=>'20190601',//css和js版本
+	'html_v'=>'20190901',//css和js版本
 	
 	'root_path'=>realpath(ROOT_PATH),//根目录
 	'app_path'=>realpath(APP_PATH),//skycaijiApp目录
@@ -255,7 +255,7 @@ return [
 	'root_website'=>(Request::instance()->isSsl()?'https':'http').'://'.trim(Request::instance()->host(),'\/\\').rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()),'\/\\'),//带域名网站根目录，去掉index.php，结尾不带/
 	
 	'allow_coll_modules'=>array('pattern'),//允许的采集器模块
-	'release_modules'=>array('cms','db','file','api','diy'),//发布模块
+	'release_modules'=>array('cms','db','file','toapi','api','diy'),//发布模块
 	'yzm_expire'=>1200, //邮箱验证码过期时间(秒)
 	
 	'allow_process_func'=>array(

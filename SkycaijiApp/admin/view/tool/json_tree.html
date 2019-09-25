@@ -33,6 +33,7 @@ $(document).ready(function(){
 		var data=$('#txt_json').val();
 		
 		if((/^\w+\:\/\//).test(data)){
+			$('#json_tree').html('<div class="loading"></div>');
 			//是网址
 			$.ajax({
 				type: 'POST',

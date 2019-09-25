@@ -42,6 +42,8 @@ class App extends BaseModel{
 									$config=array();
 								}
 								$appClass->config=is_array($config)?$config:array();
+							}else{
+								$appClass->config=array();
 							}
 						}
 					}

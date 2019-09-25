@@ -10,7 +10,7 @@
 		<input type="hidden" name="show" value="list" /> 
 		<input type="hidden" name="op" value="saveall" />
 		<div class="table-responsive">
-		<table id="task_list" class="table table-bordered table-hover datatable">
+		<table id="task_list" class="table table-hover datatable">
 			<thead>
 	            <tr>
 					<th width="80">{$Think.lang.sort}</th>
@@ -24,6 +24,13 @@
 	            </tr>
 			</thead>
 			<tbody>
+			{if empty($taskList)}
+				<tr>
+					<td colspan="8" style="text-align:center;">
+						<p class="help-block">没有任务，创建<a href="{:url('Task/add')}">新任务</a>或进入<a href="{:url('Store/index')}">云平台</a>下载规则</p>
+					</td>
+				</tr>
+			{else/}
 			{foreach name="taskList" item="item"}
 				<tr task-id="{$item['id']}">
 					<td class="sort"><input type="text" name="newsort[{$item['id']}]" class="form-control" value="{$item['sort']}" autocomplete="off" /></td>
@@ -50,6 +57,7 @@
 	                </td>
 	            </tr>
 			{/foreach}
+			{/if}
 			</tbody>
 			<tfoot>
 				<tr>

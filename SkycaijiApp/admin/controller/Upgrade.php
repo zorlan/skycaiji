@@ -17,21 +17,29 @@ class Upgrade extends BaseController{
 	public function __construct(){
 		parent::__construct();
 		set_time_limit(3600);
-		$this->oldFilePath=config('root_path').'/data/program/backup/skycaiji'.$GLOBALS['config']['version'];
-		$this->newFilePath=config('root_path').'/data/program/upgrade/skycaiji'.$GLOBALS['config']['version'];
+		$this->oldFilePath=config('root_path').'/data/program/backup/skycaiji'.$GLOBALS['_sc']['c']['version'];
+		$this->newFilePath=config('root_path').'/data/program/upgrade/skycaiji'.$GLOBALS['_sc']['c']['version'];
 	}
     /*检测更新*/
     public function newVersionAction(){
     	$version=get_html('https://www.skycaiji.com/upgrade/program/version?v='.SKYCAIJI_VERSION,null,null,'utf-8');
     	$version=json_decode($version,true);
+    	$version=is_array($version)?$version:array();
     	$new_version=trim($version['new_version']);
-    	$cur_version=$GLOBALS['config']['version'];
+    	$cur_version=$GLOBALS['_sc']['c']['version'];
 		
-    	if(version_compare($new_version,$cur_version)>=1){
-    		$this->success('',null,$version);
-    	}else{
-    		$this->error();
+		
+    	if(version_compare($new_version,$cur_version,'>')){
+    		
+    		$version['is_new_version']=true;
     	}
+    	
+    	$cacheIx=cache('backstage_admin_index');
+    	if(empty($cacheIx)||$cacheIx['ver']!=$version['admin_index_ver']){
+    		$version['is_new_admin_index']=true;
+    	}
+    	
+    	$this->success('',null,$version);
     }
     /*
      * 下载的文件完整性检测
@@ -89,10 +97,11 @@ class Upgrade extends BaseController{
     		}
     	}
     	$fileUrl='https://www.skycaiji.com/upgrade/program/getFile?filename='.rawurlencode(base64_encode($fileName));
-    	$result=\Requests::get($fileUrl,array(),array('timeout'=>100,'verify'=>false));
-    	if(200==$result->status_code){
+    	
+    	$curl=\util\Curl::get($fileUrl,null,array('timeout'=>100));
+    	if($curl->isOk){
     		
-    		$newFile=$result->body;
+    		$newFile=$curl->body;
     		$oldFile=file_get_contents(config('root_path').$fileName);
     		if(!empty($oldFile)){
     			

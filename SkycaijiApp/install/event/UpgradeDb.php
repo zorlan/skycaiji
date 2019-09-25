@@ -43,12 +43,12 @@ class UpgradeDb extends BaseController{
 		return $programVersion;
 	}
 	/*判断存在索引*/
-	public function check_exists_index($name,$indexs){
+	public function check_exists_index($name,$indexes){
 		if(empty($name)){
 			return false;
 		}
 		$exists_index=false;
-		foreach ($indexs as $k=>$v){
+		foreach ($indexes as $k=>$v){
 			if(strcasecmp($name,$v['Key_name'])==0){
 				$exists_index=true;
 				break;
@@ -166,8 +166,8 @@ EOF;
 			db()->execute("alter table `{$db_prefix}collected` add `titleMd5` varchar(32) NOT NULL DEFAULT ''");
 		}
 	
-		$indexs_collected=db()->query("SHOW INDEX FROM `{$db_prefix}collected`");
-		if(!$this->check_exists_index('ix_titlemd5', $indexs_collected)){
+		$indexes_collected=db()->query("SHOW INDEX FROM `{$db_prefix}collected`");
+		if(!$this->check_exists_index('ix_titlemd5', $indexes_collected)){
 			
 			db()->execute("ALTER TABLE `{$db_prefix}collected` ADD INDEX ix_titlemd5 ( `titleMd5` )");
 		}
@@ -248,10 +248,73 @@ EOF;
 			db()->execute("alter table `{$db_prefix}release_app` add `provider_id` int(11) NOT NULL DEFAULT '0'");
 		}
 		
-		$indexs_release_app=db()->query("SHOW INDEX FROM `{$db_prefix}release_app`");
-		if(!$this->check_exists_index('ix_app', $indexs_release_app)){
+		$indexes_release_app=db()->query("SHOW INDEX FROM `{$db_prefix}release_app`");
+		if(!$this->check_exists_index('ix_app', $indexes_release_app)){
 			
 			db()->execute("ALTER TABLE `{$db_prefix}release_app` ADD unique ix_app ( `app` )");
+		}
+	}
+	public function upgrade_db_to_2_3(){
+		$db_prefix=config('database.prefix');
+		$func_app_table=$db_prefix.'func_app';
+		$exists=db()->query("show tables like '{$func_app_table}'");
+		if(empty($exists)){
+			
+			$addTable=<<<EOF
+CREATE TABLE `{$func_app_table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `module` varchar(20) NOT NULL DEFAULT '',
+  `app` varchar(100) NOT NULL,
+  `name` varchar(100) NOT NULL DEFAULT '',
+  `desc` text,
+  `enable` tinyint(1) NOT NULL DEFAULT '0',
+  `addtime` int(11) NOT NULL DEFAULT '0',
+  `uptime` int(11) NOT NULL DEFAULT '0',
+  `provider_id` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ix_app` (`app`),
+  UNIQUE KEY `module_app` (`module`,`app`),
+  KEY `module_enable` (`module`,`enable`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
+EOF;
+			db()->execute($addTable);
+		}
+		
+		
+
+		$columns_proxyip=db()->query("SHOW COLUMNS FROM `{$db_prefix}proxy_ip`");
+		if(!$this->check_exists_field('type', $columns_proxyip)){
+			
+			db()->execute("alter table `{$db_prefix}proxy_ip` add `type` varchar(20) NOT NULL DEFAULT ''");
+		}
+		if(!$this->check_exists_field('addtime', $columns_proxyip)){
+			
+			db()->execute("alter table `{$db_prefix}proxy_ip` add `addtime` int(11) NOT NULL DEFAULT '0'");
+		}
+		if(!$this->check_exists_field('no', $columns_proxyip)){
+			
+			db()->execute("alter table `{$db_prefix}proxy_ip` add `no` bigint(20) NOT NULL");
+		}
+		
+		$indexes_proxyip=db()->query("SHOW INDEX FROM `{$db_prefix}proxy_ip`");
+		if(!$this->check_exists_index('no', $indexes_proxyip)){
+			
+			db()->execute("ALTER TABLE `{$db_prefix}proxy_ip` ADD INDEX no ( `no` )");
+		}
+		
+		db()->execute("alter table `{$db_prefix}proxy_ip` modify `no` bigint auto_increment");
+		
+		if(!$this->check_exists_index('addtime_no', $indexes_proxyip)){
+			
+			db()->execute("ALTER TABLE `{$db_prefix}proxy_ip` ADD INDEX addtime_no ( `addtime`,`no` )");
+		}
+		if(!$this->check_exists_index('ix_num', $indexes_proxyip)){
+			
+			db()->execute("ALTER TABLE `{$db_prefix}proxy_ip` ADD INDEX ix_num ( `num` )");
+		}
+		if(!$this->check_exists_index('ix_time', $indexes_proxyip)){
+			
+			db()->execute("ALTER TABLE `{$db_prefix}proxy_ip` ADD INDEX ix_time ( `time` )");
 		}
 	}
 }

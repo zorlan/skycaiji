@@ -19,8 +19,8 @@
 
 .verify-img{cursor:pointer;height:32px;display:table-cell}
 
+.cur-menu > .treeview-menu{display:block;}
 
-.cur-menu .treeview-menu{display:block;}
 .treeview-skins{color:#8aa4af;}
 .treeview-skins li{padding:5px 15px 5px 0px;margin:0;font-size:14px;vertical-align:middle;overflow:hidden;}
 .treeview-skins li .checkbox{margin:0;}
@@ -224,9 +224,10 @@ table.datatable thead .sorting_desc:after {
 .p-m-html-tags a{font-size:12px;font-weight:normal;cursor:pointer;margin-right:5px;}
 .p-m-html-tags a span{margin-right:2px;color:#999;}
 
-.p-m-if-time>.form-control{margin-left:2px;}
-.p-m-if-func{vertical-align:top;}
-.p-m-if-func>.form-control{padding:3px;margin:0 0 2px 2px;height:auto;text-align:center;}
+.p-m-if-time>.form-control{border-left:0;}
+.p-m-if-func{margin-bottom:-1px;}
+.p-m-if-func>a.input-group-addon{border-left:0;}
+.p-m-if-func>.input-group-btn>select{border-left:0;width:auto;padding:0;padding-left:5px;text-align:center;}
 /*发布设置*/
 .rele-db-error{margin-top:10px;color:red;font-weight:bold;}
 .table-db-table-bind{padding:0;margin-bottom:0;border:0;}
@@ -317,10 +318,23 @@ table.datatable thead .sorting_desc:after {
 .nav-check-update a{display:inline!important;padding:0!important;}
 .nav-check-update img{width:14px;}
 /*设置*/
+.proxy-ip-iframe{
+	width:100%;
+	height:500px;
+    border-top-width: 0px;
+    border-right-width: 0px;
+    border-bottom-width: 0px;
+    border-left-width: 0px;
+}
+
 .proxy-ip-box .h-title .glyphicon{font-size:80%;}
 .proxy-ip-list .delete-proxy-ip{margin-top:8px;}
 .proxy-ip-list .p-ip .form-control{min-width:150px;}
 .proxy-ip-list .p-ip-info{vertical-align:middle;color:#999;}
+.proxy-ip-list .p-top{padding-top:11px;}
+.proxy-ip-list .p-top1{padding-top:13px;}
+
+.proxy-api-list .p-api-title{width:90%;float:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 /**/
 .table-test-loop thead{background:#F5F5F5;}
 .table-test-loop input{border:0;overflow:hidden;width:100%;min-width:150px;}
@@ -361,4 +375,10 @@ footer.footer-end{display:none;}
 	.coll-tab>li.active>a{border-radius:3px;border-bottom-color:#ddd!important;}
 	.coll-tab .nav-save2store{float:left!important;}
 	.coll-tab .nav-save2store>a{color:#999;}
+
+	.c-p-source-tab>li{margin-bottom:5px;margin-right:3px;width:auto;}
+	.c-p-source-tab>li>a{padding:5px 7px;border:solid 1px #ddd;text-align:center;}
+	.c-p-source-tab>li.active>a{border-radius:3px;border-bottom-color:#ddd!important;background-color:#efefef!important;}
+	
+	.mobile-input-group>.input-group-addon{display:table-caption;width:100%;background:#fafafa;margin-bottom:5px;border-right:1px solid #ccc;}
 }

@@ -19,14 +19,14 @@
 				{foreach $urls as $url}
 				<li>
 					[<a href="javascript:;" class="cont_ceshi" url="{$url}">测试</a>]
-					[<a href="javascript:;" class="cont_element" url="{$url}">元素</a>]
+					[<a href="javascript:;" class="cont_element" url="{$url}">分析</a>]
 					{$url}
 				</li>
 				{/foreach}
 			{else /}
 				<li>
 					[<a href="javascript:;" class="cont_ceshi" url="{$urls}">测试</a>]
-					[<a href="javascript:;" class="cont_element" url="{$urls}">元素</a>]
+					[<a href="javascript:;" class="cont_element" url="{$urls}">分析</a>]
 					{$urls}
 				</li>
 			{/if}
@@ -64,40 +64,46 @@ $(document).ready(function(){
 		get_cont_urls(source_url,$(this),0);
 		{/if}
 	{/if}
+	});
 
-		//测试
-		$('#test_source_urls').on('click','.cont_ceshi',function(){
-			var test_cont_url="{:url('Cpattern/test?op=cont_url&coll_id='.$collData['id'])}&cont_url=_url_";
-			test_cont_url=test_cont_url.replace('_url_',encodeURIComponent($(this).attr('url')));
-			var urls={};
-			$(this).parents('.source_url').each(function(){
-				var surl=$(this).attr('url');
-				if(surl){
-					if($(this).attr('level')){
-						//是级别
-						urls['level_'+$(this).attr('level')]=surl;
-					}else{
-						//是起始页
-						urls['source_url']=surl;
-					}
-				}
-			});
-			if(urls){
-				//加上多级和起始网址
-				for(var i in urls){
-					test_cont_url+='&'+i+'='+encodeURIComponent(urls[i]);
+	//测试
+	$('#test_source_urls').on('click','.cont_ceshi',function(){
+		var test_cont_url="{:url('Cpattern/test?op=cont_url&coll_id='.$collData['id'])}&cont_url=_url_";
+		test_cont_url=test_cont_url.replace('_url_',encodeURIComponent($(this).attr('url')));
+		var urls={};
+		$(this).parents('.source_url').each(function(){
+			var surl=$(this).attr('url');
+			if(surl){
+				if($(this).attr('level')){
+					//是级别
+					urls['level_'+$(this).attr('level')]=surl;
+				}else{
+					//是起始页
+					urls['source_url']=surl;
 				}
 			}
-			window.open(test_cont_url,'_test_cont');
 		});
-
-		//元素
-		$('#test_source_urls').on('click','.cont_element',function(){
-			var ele_cont_url="{:url('Cpattern/test?op=elements&coll_id='.$collData['id'])}&cont_url=_url_";
-			ele_cont_url=ele_cont_url.replace('_url_',encodeURIComponent($(this).attr('url')));
-			window.open(ele_cont_url,'_test_cont');
-		});
+		if(urls){
+			//加上多级和起始网址
+			for(var i in urls){
+				test_cont_url+='&'+i+'='+encodeURIComponent(urls[i]);
+			}
+		}
+		window.open(test_cont_url,'_blank');
 	});
+
+	//分析
+	$('#test_source_urls').on('click','.cont_element',function(){
+		if((/\beasymode\s*\=/i).test(window.self.location.href)&&window.top){
+			//简单模式
+			window.top.postMessage('browser_url:'+$(this).attr('url'),'*');
+		}else{
+			var ele_cont_url="{:url('Cpattern/browser?coll_id='.$collData['id'])}&url=_url_";
+			ele_cont_url=ele_cont_url.replace('_url_',encodeURIComponent($(this).attr('url')));
+			window.open(ele_cont_url,'_blank');
+		}
+	});
+	
 	//展开收起
 	$('#test_source_urls').on('click','.cont_urls_num a',function(){
 		var status=$(this).attr('status');
@@ -150,7 +156,7 @@ $(document).ready(function(){
 							//无级别，显示测试网址
 							for(var i in urls){
 								list+='<li>[<a href="javascript:;" class="cont_ceshi" url="'+urls[i]+'">测试</a>] '
-									+'[<a href="javascript:;" class="cont_element" url="'+urls[i]+'">元素</a>] '+urls[i]+'</li>';
+									+'[<a href="javascript:;" class="cont_element" url="'+urls[i]+'">分析</a>] '+urls[i]+'</li>';
 							}
 							list+='</ul>';
 							

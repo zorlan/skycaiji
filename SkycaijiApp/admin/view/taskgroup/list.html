@@ -5,7 +5,7 @@
 	<div class="box-body">
 		<form id="form_list" method="post" ajax-submit="true" action="{:url('Taskgroup/op')}">
 		<input type="hidden" name="op" value="saveall" />
-		<table id="list_table" class="table table-bordered table-hover datatable">
+		<table id="list_table" class="table table-hover datatable">
 			<thead>
 				<tr>
 					<th width="50" class="chk">{$Think.lang.select}</th>
@@ -116,7 +116,7 @@ $(document).ready(function(){
 	
 	//sort改变值后选中
 	$('input[name^="newsort"]').bind('change',function(){
-		$(this).parent().parent().find('input[name="ids[]"]').attr('checked',true);
+		$(this).parent().parent().find('input[name="ids[]"]').prop('checked',true);
 	});
 	//删除选中
 	$('#deleteall').bind('click',function(){

@@ -33,7 +33,7 @@ class Api extends BaseController{
 			if(!IS_CLI){
 				ignore_user_abort(true);
 				
-				if($GLOBALS['config']['caiji']['server']=='cli'){
+				if($GLOBALS['_sc']['c']['caiji']['server']=='cli'){
 					
 					cli_command_exec('collect auto');
 					exit();
@@ -55,19 +55,19 @@ class Api extends BaseController{
 		}
 		ignore_user_abort(true);
 		
-		if($GLOBALS['config']['caiji']['timeout']>0){
-			set_time_limit(60*$GLOBALS['config']['caiji']['timeout']);
+		if($GLOBALS['_sc']['c']['caiji']['timeout']>0){
+			set_time_limit(60*$GLOBALS['_sc']['c']['caiji']['timeout']);
 		}else{
 			set_time_limit(0);
 		}
 		
-		if(empty($GLOBALS['config']['caiji']['auto'])){
+		if(empty($GLOBALS['_sc']['c']['caiji']['auto'])){
 			$this->error('请先开启自动采集','Admin/Setting/caiji');
 		}
 		$lastCollectTime=cache('last_collect_time');
-		if($GLOBALS['config']['caiji']['interval']>0){
+		if($GLOBALS['_sc']['c']['caiji']['interval']>0){
 			
-			$waitTime=(60*$GLOBALS['config']['caiji']['interval'])-abs(time()-$lastCollectTime);
+			$waitTime=(60*$GLOBALS['_sc']['c']['caiji']['interval'])-abs(time()-$lastCollectTime);
 			if($waitTime>0){
 				$this->error('再次采集需等待'.(($waitTime<60)?($waitTime.'秒'):(sprintf("%.2f", $waitTime/60).'分钟')),'Admin/Api/collect',null,$waitTime);
 			}

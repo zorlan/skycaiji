@@ -9,7 +9,6 @@
  |--------------------------------------------------------------------------
  */
 
-/*发布设置:本地cms*/
 namespace skycaiji\admin\event;
 use skycaiji\admin\model\CacheModel;
 class Rapi extends Release{

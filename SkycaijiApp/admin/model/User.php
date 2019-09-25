@@ -40,7 +40,7 @@ class User extends BaseModel{
 	 */
 	public static function right_pwd($pwd,$name='password'){
 		$return=array('name'=>$name);
-		if(!preg_match('/^[a-zA-Z0-9\!\@\#\$\%\^\&\*]{6,20}$/i', $pwd)){
+		if(!preg_match('/^[a-zA-Z0-9\`\~\!\@\#\$\%\^\*\(\)\-\_\+\=\|\{\}\[\]\:\;\,\.\?\&\'\"\<\>]{6,30}$/i', $pwd)){
 			$return['msg']=lang('user_error_password');
 		}else{
 			$return['success']=true;

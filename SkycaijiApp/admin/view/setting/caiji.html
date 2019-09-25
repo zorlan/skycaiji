@@ -5,14 +5,33 @@
 {block name="content"}
 <form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('Admin/Setting/caiji')}">
 <div class="nav-tabs-custom">
-	<ul class="nav nav-tabs">
-    	<li class="active"><a href="{:url('Setting/Caiji')}">采集设置</a></li>
-    	<li><a href="{:url('Setting/page_render')}">页面渲染设置</a></li>
-    	<li><a href="{:url('Setting/Proxy')}">代理设置</a></li>
-    	<li><a href="{:url('Setting/Translate')}">翻译设置</a></li>
-	</ul>
+	{include file="setting/caiji_nav" /}
 	<div class="tab-content">
 		<div class="tab-pane active" style="padding:0px 5px;">
+		    <div class="form-group">
+		        <label>遵守robots协议</label>
+		        <div class="input-group">
+		        	<label class="radio-inline"><input type="radio" name="robots" value="1">{$Think.lang.yes}</label>
+		        	<label class="radio-inline"><input type="radio" name="robots" value="0">{$Think.lang.no}</label>
+		        </div>
+		        <p class="help-block">严格按照目标网站的robots.txt设置爬取数据，避免采集到隐私、侵权等具有争议性的内容 <a href="https://www.baidu.com/s?wd=robots%E5%8D%8F%E8%AE%AE" target="_blank">了解robots协议</a></p>
+		    </div>
+		    <div class="form-group" id="set_caiji_server">
+		        <label>采集运行模式</label>
+		        <select name="server" class="form-control">
+		        	<option value="">web服务器（默认）</option>
+		        	<option value="cli">cli命令行（推荐）</option>
+		        </select>
+		        <p class="help-block server-">使用web服务器运行采集，会受web服务器运行超时影响导致采集中断，需修改web服务器的超时时间</p>
+		        <div class="server-cli" style="display:none;">
+		        	<p class="help-block">使用php cli命令行模式运行采集，自动采集、后台采集可以稳定运行，需要web服务器拥有执行命令的权限 <a href="https://www.baidu.com/s?wd=php%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E6%9D%83%E9%99%90" target="_blank">了解权限</a></p>
+		        	<div class="input-group">
+		       			<span class="input-group-addon">PHP可执行文件</span>
+		       			<input type="text" name="server_php" class="form-control" value="{$caijiConfig['server_php']}" {$phpExeFile?('placeholder="默认：'.$phpExeFile.'"'):''} />
+			       	</div>
+			       	<p class="help-block">PHP可执行文件在服务器中的绝对路径或者在系统中的环境变量名称</p>
+		        </div>
+		    </div>
 			<div class="form-group">
 		        <label>{$Think.lang.set_caiji_auto}</label>
 		        <div class="input-group">
@@ -20,15 +39,6 @@
 		        	<label class="radio-inline"><input type="radio" name="auto" value="0">{$Think.lang.no}</label>
 		        </div>
 		        <p class="help-block">此设置为总控制开关，如设置“否”则任务中的自动采集设置不生效</p>
-		    </div>
-		    <div class="form-group" id="set_caiji_server">
-		        <label>采集运行模式</label>
-		        <div class="input-group">
-			        <label class="radio-inline"><input type="radio" name="server" value="">web服务器（默认）</label>
-					<label class="radio-inline"><input type="radio" name="server" value="cli">cli命令行（推荐）</label>
-		        </div>
-		        <p class="help-block server-">使用web服务器运行采集，会受web服务器运行超时影响导致采集中断，需修改web服务器的超时时间</p>
-		        <p class="help-block server-cli" style="display:none;">使用php cli命令行模式运行采集，自动采集、后台采集可以稳定运行，需要web服务器拥有执行命令的权限</p>
 		    </div>
 		    <div class="form-group" id="set_caiji_run" style="display:none;">
 		        <label>{$Think.lang.set_caiji_run}</label>
@@ -74,62 +84,12 @@
 		</div>
 	</div>
 </div>
-<div class="panel panel-default">
-	<div class="panel-heading">
-    	<h4 class="panel-title">图片本地化</h4>
-   	</div>
-    <div class="panel-collapse collapse in">
-    	<div class="panel-body" style="padding-bottom:0px;">
-		    <div class="form-group">
-		        <label>开启功能</label>
-		        <div class="input-group">
-			        <label class="radio-inline"><input type="radio" name="download_img" value="1">是</label>
-					<label class="radio-inline"><input type="radio" name="download_img" value="0">否</label>
-		        </div>
-		        <p class="help-block">将远程图片下载到本地服务器</p>
-		    </div>
-		    <div id="set_caiji_download_img" style="display:none;">
-		        <div class="form-group">
-		        	<label>图片保存目录（绝对路径）</label>
-		        	<input type="text" name="img_path" class="form-control" placeholder="默认{:config('root_path')}\data\images" value="{$caijiConfig['img_path']}">
-			   		<p class="help-block">可设置为服务器中的任意文件夹（必须开启读写权限），如果保存到本程序中，目录必须在data文件夹里</p>	        
-			    </div>
-			    <div class="form-group">
-		        	<label>图片链接地址（绝对地址）</label>
-		        	<input type="text" name="img_url" class="form-control" placeholder="默认{:config('root_website')}/data/images" value="{:htmlspecialchars($caijiConfig['img_url'],ENT_QUOTES)}">
-			    	<p class="help-block">网页中可访问的图片网址目录，请务必对应到图片保存目录，否则图片无法显示</p>
-			    </div>
-			    <div class="form-group">
-		        	<label>图片名称</label>
-			       	<select name="img_name" class="form-control">
-			       		<option value="">按时间生成（方便日期归类）</option>
-			       		<option value="url">按网址生成（防止重复下载）</option>
-			       	</select>
-			    </div>
-			    <div class="form-group">
-		        	<label>下载超时（秒）</label>
-		        	<input type="number" name="img_timeout" class="form-control" value="{$caijiConfig['img_timeout']}">
-			   		<p class="help-block">多少秒内未下载完，跳过下载该图片，留空或0表示不限制</p>	        
-			    </div>
-			    <div class="form-group">
-		        	<label>下载间隔（秒）</label>
-		        	<input type="number" name="img_interval" class="form-control" value="{$caijiConfig['img_interval']}">
-			   		<p class="help-block">可防止下载太快造成目标网站响应超时或宕机，留空或0表示不限制</p>        
-			    </div>
-			    <div class="form-group">
-		        	<label>限制大小（MB）</label>
-		        	<input type="number" name="img_max" class="form-control" value="{$caijiConfig['img_max']}">
-			   		<p class="help-block">超过兆数的图片不下载，留空或0表示不限制</p>        
-			    </div>
-		    </div>
-    	</div>
-    </div>
-</div>
+
 <div class="form-group">
 	<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
 </div>
 </form>
-		
+
 <script type="text/javascript">
 'use strict';//严格模式
 $('#form_set [name="auto"]').bind('click',function(){
@@ -145,25 +105,16 @@ $('#form_set [name="run"]').bind('change',function(){
 	$('#set_caiji_run .run-'+$(this).val()).show();
 });
 
-$('#form_set [name="server"]').bind('click',function(){
-	$('#set_caiji_server .help-block').hide();
+$('#form_set [name="server"]').bind('change',function(){
+	$('#set_caiji_server .server-').hide();
+	$('#set_caiji_server .server-cli').hide();
 	$('#set_caiji_server .server-'+$(this).val()).show();
 });
 
-$('#form_set [name="download_img"]').bind('click',function(){
-	if($(this).val()>0){
-		$('#set_caiji_download_img').show();
-	}else{
-		$('#set_caiji_download_img').hide();
-	}
-});
-
+$('#form_set [name="robots"][value="{$caijiConfig["robots"]|intval}"]').prop('checked',true);
 $('#form_set [name="auto"][value="{$caijiConfig["auto"]|intval}"]').trigger("click");
 $('#form_set [name="run"]').val("{$caijiConfig['run']?$caijiConfig['run']:'backstage'}").trigger("change");
-$('#form_set [name="server"][value="{$caijiConfig["server"]}"]').prop('checked',true).trigger("click");
-
+$('#form_set [name="server"]').val("{$caijiConfig['server']}").trigger("change");
 $('#form_set [name="real_time"][value="{$caijiConfig["real_time"]|intval}"]').prop('checked',true);
-$('#form_set [name="download_img"][value="{$caijiConfig["download_img"]|intval}"]').trigger("click");
-$('#form_set [name="img_name"]').val('{$caijiConfig["img_name"]}');
 </script>
 {/block}

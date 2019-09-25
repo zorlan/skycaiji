@@ -18,7 +18,9 @@ use think\Config;
 class Index extends BaseController{
 	public function __construct(){
 		parent::__construct();
-		session_start();
+		if(session_status()!==2){
+			session_start();
+		}
 		if(file_exists(config('app_path').'/install/data/install.lock')){
 			
 			$this->success('程序已安装','admin/Index/index');
@@ -31,51 +33,12 @@ class Index extends BaseController{
 	/*环境检测*/
 	public function step1Action(){
 		
-		$serverDataList=array(
-			'os'=>array('操作系统','不限制',php_uname('s').' '.php_uname('r'),true),
-			'php'=>array('PHP版本','5.4',phpversion())
-		);
-		/*判断最低配置*/
-		if(version_compare($serverDataList['php'][1],$serverDataList['php'][2])<=0){
-			$serverDataList['php'][3]=true;
-		}else{
-			$serverDataList['php'][3]=false;
-		}
-		 
-		/*php函数*/
-		$phpModuleList=array(
-			array('curl',extension_loaded('curl')),
-			array('mb_string',extension_loaded('mbstring')),
-			array('pdo_mysql',extension_loaded('pdo_mysql')),
-			array('gd',extension_loaded('gd')),
-		);
-		 
-		 
-		/*目录、文件*/
-		$pathFiles=array('./data','./data/config.php','./data/images','./data/app','./data/program/upgrade','./data/program/backup','./app','./plugin','./runtime');
-		$pathFileList=array();
-		foreach ($pathFiles as $pathFile){
-			$filename=config('root_path').'/'.$pathFile;
-			if(!file_exists($filename)){
-				
-				if(preg_match('/\w+\.\w+/', $pathFile)){
-					
-					write_dir_file($filename, null);
-				}else{
-					
-					mkdir($filename,0777,true);
-				}
-			}
-			$pathFileList[]=array(
-					$pathFile,
-					is_writeable($filename),
-					is_readable($filename)
-			);
-		}
-		 
-		$this->assign('serverDataList',$serverDataList);
-		$this->assign('phpModuleList',$phpModuleList);
-		$this->assign('pathFileList',$pathFileList);
+		$LocSystem=new \skycaiji\install\event\LocSystem();
+		$setting=$LocSystem->environment();
+		
+		$this->assign('serverDataList',$setting['server']);
+		$this->assign('phpModuleList',$setting['php']);
+		$this->assign('pathFileList',$setting['path']);
 		return $this->fetch();
 	}
 	/*数据安装表单*/

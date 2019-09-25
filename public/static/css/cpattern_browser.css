@@ -1,0 +1,113 @@
+@CHARSET "UTF-8";
+.skycaiji_bg{background-color:#C8ECE6!important;}
+.skycaiji_bd{border-width:1px!important;border-style:solid!important;}
+.skycaiji_bd1{border-color:red!important;}
+.skycaiji_bd2{border-color:black!important;}
+.skycaiji_bd3{border-color:yellow!important;}
+.skycaiji_bd4{border-color:cyan!important;}
+.skycaiji_bd5{border-color:purple!important;}
+.skycaiji_bd6{border-color:orange!important;}
+.skycaiji_bd7{border-color:brown!important;}
+.skycaiji_bd8{border-color:pink!important;}
+.skycaiji_bd9{border-color:blue!important;}
+.skycaiji_bd10{border-color:grey!important;}
+.skycaiji_bd11{border-color:green!important;}
+
+#skycaiji_wrapper * {
+	font-size: 14px;
+	font-family: "Microsoft YaHei";
+	border: 0;
+	line-height: 20px;
+	padding: 0;
+	margin: 0;
+	font-weight: normal;
+	font-style: normal;
+	vertical-align: middle;
+	text-shadow:none;
+	color:#333;
+}
+
+#skycaiji_wrapper ul{list-style:none;}
+#skycaiji_wrapper a{text-decoration:none;color:#333;}
+#skycaiji_wrapper a:hover{color:red;}
+#skycaiji_console{
+	cursor:default;
+	background:#A0C5E8;position:fixed;bottom:0;left:0;right:0;padding:0 5px 5px 5px;z-index:999999;
+	font-family:"Microsoft YaHei";
+	overflow:hidden;
+}
+#skycaiji_console .skycaiji-block{width:100%;overflow:hidden;line-height:20px;padding-top:5px;}
+#skycaiji_console .skycaiji-block>.skycaiji-b-l{float:left;width:130px;}
+#skycaiji_console .skycaiji-block>.skycaiji-b-c{margin-left:130px;margin-right:260px;}
+#skycaiji_console .skycaiji-block>.skycaiji-b-c .skycaiji-b-c-i{margin-right:20px;}
+#skycaiji_console .skycaiji-block>.skycaiji-b-c input{width:100%;height:20px;float:left;}
+#skycaiji_console .skycaiji-block>.skycaiji-b-c select{width:20px;height:20px;overflow:hidden;float:left;}
+#skycaiji_console .skycaiji-block>.skycaiji-b-r{padding-left:5px;float:left;}
+
+#skycaiji_console  .skycaiji-close {
+	cursor: pointer;
+	position: absolute;
+	font-size: 25px;
+	top: 1px;
+	right: 3px;
+	z-index: 9999999;
+}
+#skycaiji_sidebar{
+    font-size: 14px;
+    position: fixed;
+    top: 0;
+    right: 0;
+}
+#skycaiji_tips{
+	width:200px;
+    border-radius: 5px;	
+    background: #A0C5E8;
+    font-size: 14px;
+    position: fixed;
+	z-index:999999;
+    margin-left:auto;
+    margin-right:auto;	
+    top: 30%;
+    left: 0;
+    right: 0;
+    text-align: center;
+	line-height: 20px;
+    padding: 15px 20px;
+    color: #fff;
+}
+
+#skycaiji_tips  .skycaiji-close {
+	cursor: pointer;
+	position: absolute;
+	font-size: 20px;
+	top: -25px;
+	right: 1px;
+	font-weight:bold;
+	z-index: 9999999;
+	color:#367FA9;
+}
+.skycaiji_tips_list {text-align:left!important;}
+.skycaiji_tips_list li{
+	display:inline;padding-right:10px!important;
+}
+.skycaiji_tips_list li:last-child{padding-right:0!important;}
+
+
+.skycaiji_tips_html{
+	width:600px!important;
+	padding:5px;
+	top:20%!important;
+}
+.skycaiji_tips_html table{width:100%;}
+.skycaiji_tips_html table td{padding-bottom:5px!important;}
+.skycaiji_tips_html textarea{
+	width:100%;
+}
+
+
+@media (max-width: 550px){
+	.skycaiji_tips_html{
+		width:100%!important;
+		top:30px!important;		
+	}
+}

@@ -26,10 +26,10 @@
 			<li class="dropdown user user-menu">
         		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
             		<span class="glyphicon glyphicon-user"></span>
-              		<span>{$GLOBALS['user']['username']}</span>
+              		<span>{$GLOBALS['_sc']['user']['username']}</span>
             	</a>
             	<ul class="dropdown-menu">
-            		<li><a href="{:url('User/edit?uid='.$GLOBALS['user']['uid'])}">{$Think.lang.user_edit}</a></li>
+            		<li><a href="{:url('User/edit?uid='.$GLOBALS['_sc']['user']['uid'])}">{$Think.lang.user_edit}</a></li>
 				  	<li><a href="{:url('Admin/Index/logout')}">{$Think.lang.logout}</a></li>
           		</ul>
 			</li>
@@ -38,6 +38,7 @@
 	</nav>
 </header>
 {php}$curMenu=array(strtolower(request()->controller())=>' menu-open cur-menu');{/php}
+{php}$curSubm=array(strtolower(request()->action())=>' menu-open cur-menu');{/php}
 <aside class="main-sidebar">
 <section class="sidebar">
 <ul class="sidebar-menu" data-widget="tree">
@@ -64,13 +65,13 @@
 		<ul class="treeview-menu">
 			<li><a href="{:url('Admin/Task/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.task_list}</a></li>
 			<li><a href="{:url('Admin/Task/add')}"><i class="fa fa-circle-o"></i> {$Think.lang.task_add}</a></li>
-			<li class="treeview">
+			<li class="treeview{$curMenu['taskgroup']}">
 				<a href="#"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup}
 				<span class="pull-right-container">
 				<i class="fa fa-angle-left pull-right"></i>
 				</span>
 				</a>
-				<ul class="treeview-menu" style="display:none;">
+				<ul class="treeview-menu">
 					<li><a href="{:url('Taskgroup/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup_list}</a></li>
 					<li><a href="{:url('Taskgroup/add')}"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup_add}</a></li>
 				</ul>
@@ -95,7 +96,8 @@
 				</a>
 				<ul class="treeview-menu" style="display:block;">
 					<li><a href="{:url('Admin/Mystore/rule')}"><i class="fa fa-circle-o"></i> 采集规则</a></li>
-					<li><a href="{:url('Admin/Mystore/ReleaseApp')}"><i class="fa fa-circle-o"></i> 发布插件</a></li>
+					<li><a href="{:url('Admin/Mystore/releaseApp')}"><i class="fa fa-circle-o"></i> 发布插件</a></li>
+					<li><a href="{:url('Admin/Mystore/funcApp')}"><i class="fa fa-circle-o"></i> 函数插件</a></li>
 					<li><a href="{:url('Admin/Mystore/app')}"><i class="fa fa-circle-o"></i> 应用程序</a></li>
 				</ul>
 			</li>
@@ -109,7 +111,8 @@
 			</span>
 		</a>
 		<ul class="treeview-menu">
-			<li><a href="{:url('Admin/Collected/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.collected_list}</a></li>
+			<li><a href="{:url('Admin/Collected/list')}"><i class="fa fa-circle-o"></i> 数据列表</a></li>
+			<li><a href="{:url('Admin/Collected/chart')}"><i class="fa fa-circle-o"></i> 统计图表</a></li>
 		</ul>
 	</li>
 	<li class="treeview{$curMenu['user']}">
@@ -131,27 +134,28 @@
 			</span>
 		</a>
 		<ul class="treeview-menu">
-			<li class="treeview">
+			<li class="treeview{$curMenu['develop']}">
 				<a href="#"><i class="fa fa-circle-o"></i> 开发
 				<span class="pull-right-container">
 					<i class="fa fa-angle-left pull-right"></i>
 				</span>
 				</a>
-				<ul class="treeview-menu" style="display:none;">
+				<ul class="treeview-menu">
 					<li><a href="{:url('Admin/Develop/releaseCms')}"><i class="fa fa-circle-o"></i> CMS发布插件</a></li>
+					<li><a href="{:url('Admin/Develop/func')}"><i class="fa fa-circle-o"></i> 函数插件</a></li>
 					<li><a href="{:url('Admin/Develop/app')}"><i class="fa fa-circle-o"></i> 应用程序</a></li>
 				</ul>
 			</li>
 			<li><a href="{:url('Admin/Tool/fileManager')}"><i class="fa fa-circle-o"></i> 文件管理</a></li>
 			<li><a href="{:url('Admin/Tool/json_tree')}" target="_blank"><i class="fa fa-circle-o"></i> JSON解析</a></li>
 			<li><a href="{:url('Admin/Tool/logs')}"><i class="fa fa-circle-o"></i> 错误日志</a></li>
-			<li class="treeview">
+			<li class="treeview{$curSubm['checkfile']}{$curSubm['checkdb']}">
 				<a href="#"><i class="fa fa-circle-o"></i> 校验
 				<span class="pull-right-container">
 					<i class="fa fa-angle-left pull-right"></i>
 				</span>
 				</a>
-				<ul class="treeview-menu" style="display:none;">
+				<ul class="treeview-menu">
 					<li><a href="{:url('Admin/Tool/checkfile')}"><i class="fa fa-circle-o"></i> 文件</a></li>
 					<li><a href="{:url('Admin/Tool/checkdb')}"><i class="fa fa-circle-o"></i> 数据库</a></li>
 				</ul>
@@ -179,10 +183,10 @@
 </aside>
 <div class="content-wrapper">
 	<section class="content-header">
-	<h1>{$GLOBALS['content_header']}</h1>
+	<h1>{$GLOBALS['_sc']['p_name']}</h1>
 	<ol class="breadcrumb">
 		<li><a href="{:url('Admin/Backstage/index')}"><i class="fa fa-dashboard"></i> {$Think.lang.admincp}</a></li>
-		{$GLOBALS['breadcrumb']}
+		{$GLOBALS['_sc']['p_nav']}
 	</ol>
 	</section>
 	<section class="content">

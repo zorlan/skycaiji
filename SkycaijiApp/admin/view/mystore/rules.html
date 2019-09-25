@@ -7,18 +7,19 @@
 {php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'倒序'));{/php}
 <div class="nav-tabs-custom">
 	<ul class="nav nav-tabs">
-    	<li class="active"><a href="{:url('Mystore/Rule')}">采集规则</a></li>
-    	<li><a href="{:url('Mystore/ReleaseApp')}">发布插件</a></li>
+    	<li class="active"><a href="{:url('Mystore/rule')}">采集规则</a></li>
+    	<li><a href="{:url('Mystore/releaseApp')}">发布插件</a></li>
+    	<li><a href="{:url('Mystore/funcApp')}">函数插件</a></li>
     	<li class="nav-check-update">
     		<a href="javascript:;" onclick="check_rules_update()">检测更新</a>
-    		<input type="checkbox" id="auto_check" {:empty($GLOBALS['config']['store_auto_check_rule'])?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
+    		<input type="checkbox" id="auto_check" {:empty($GLOBALS['_sc']['c']['store_auto_check_rule'])?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
     	</li>
 	</ul>
 	<div class="tab-content">
 		<div class="tab-pane active">
 		    <div class="table-responsive">
 				<form id="form_list" method="post" ajax-submit="true" action="{:url('Mystore/ruleOp')}">
-				<table id="list_table" class="table table-bordered table-hover datatable">
+				<table id="list_table" class="table table-hover datatable">
 					<thead>
 						<tr>
 							<th class="chk">{$Think.lang.select}</th>
@@ -54,8 +55,11 @@
 					<tfoot>
 						<tr>
 							<td class="chk"><label><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" />全部</label></td>
-							<td colspan="6">
-								<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
+							<td><button type="button" class="btn btn-danger" id="deleteall">{$Think.lang.delete}</button></td>
+							<td colspan="5" style="text-align:right;font-size:12px;">
+								{if !empty($ruleList)}
+								<p class="help-block">在 “编辑任务 &gt; 导入规则 &gt; 已下载规则” 中使用</p>
+								{/if}
 							</td>
 						</tr>
 		    			{if condition="!empty($pagenav)"}

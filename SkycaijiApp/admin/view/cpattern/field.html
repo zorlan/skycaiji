@@ -121,11 +121,11 @@
 				<textarea name="field[words]" class="form-control" rows="3">{$field['words']}</textarea>
 			</div>
 			<div class="c-p-field-module" module="num" style="display:none;">
-				<div class="input-group col-sm-8" style="margin:0 auto;">
+				<div class="input-group">
 					<div class="input-group-addon">范围</div>
-					<input type="number" name="field[num_start]" class="form-control" value="{$field['num_start']?intval($field['num_start']):1}" />
-					<div class="input-group-addon">到</div>
-					<input type="number" name="field[num_end]" class="form-control" value="{$field['num_end']?intval($field['num_end']):100}" />
+					<input type="number" name="field[num_start]" class="form-control" value="{:isset($field['num_start'])?intval($field['num_start']):1}" />
+					<div class="input-group-addon" style="border-left:0;border-right:0;">到</div>
+					<input type="number" name="field[num_end]" class="form-control" value="{:isset($field['num_end'])?intval($field['num_end']):100}" />
 		   		</div>
 			</div>
 			<div class="c-p-field-module" module="time" style="display:none;">
@@ -140,7 +140,7 @@
 				<div class="input-group">	
 					<div class="input-group-addon">范围随机</div>
 					<input type="text" name="field[time_start]" class="form-control" placeholder="默认当前时间" />
-					<div class="input-group-addon">到</div>
+					<div class="input-group-addon" style="border-left:0;border-right:0;">到</div>
 					<input type="text" name="field[time_end]" class="form-control" placeholder="默认当前时间" />
 		   			<div class="input-group-btn"><button type="button" class="btn btn-default" onclick="$(this).parent().siblings('input:text').val('');">清空</button></div>
 		   		</div>

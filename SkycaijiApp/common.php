@@ -10,7 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.2');
+define('SKYCAIJI_VERSION', '2.3');
 define('NOW_TIME', time());
 \think\Loader::addNamespace('plugin', realpath(ROOT_PATH.'plugin'));
 \think\Loader::addNamespace('util',realpath(APP_PATH.'extend/util'));
@@ -171,7 +171,14 @@ function clientinfo(){
 	);
 	return $info;
 }
-/*获取html代码*/
+/**
+ * 获取html代码
+ * @param string $url
+ * @param string $headers 键值对形式
+ * @param array $options
+ * @param string $fromEncode
+ * @param array $post_data 通过isset判断是否是post模式
+ */
 function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$post_data=null){
 	$headers=is_array($headers)?$headers:array();
 	$options=is_array($options)?$options:array();
@@ -179,13 +186,20 @@ function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$post_d
 		$options['useragent']='Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70 Safari/537.36';
 	}
 	$options['timeout']=$options['timeout']>0?$options['timeout']:30;
-	$options['verify']=false;
 
+	$curlHeaders=array();
+	foreach ($headers as $k=>$v){
+		$curlHeaders[]=$k.': '.$v;
+	}
+	$headers=$curlHeaders;
+	unset($curlHeaders);
+	
 	if(!preg_match('/^\w+\:\/\//', $url)){
 		
 		$url='http://'.$url;
 	}
 
+	$curl=null;
 	try {
 		if(!isset($post_data)){
 			
@@ -194,8 +208,8 @@ function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$post_d
 				
 				$max_bytes=intval($options['max_bytes']);
 				unset($options['max_bytes']);
-				$request=\Requests::head($url,$headers,$options);
-				if(preg_match('/\bContent-Length\s*:\s*(\d+)/i', $request->raw,$contLen)){
+				$curl=\util\Curl::head($url,$headers,$options);
+				if(preg_match('/\bContent-Length\s*:\s*(\d+)/i', $curl->header,$contLen)){
 					
 					$contLen=intval($contLen[1]);
 					if($contLen>=$max_bytes){
@@ -205,40 +219,43 @@ function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$post_d
 			}
 			if($allow_get){
 				
-				$request=\Requests::get($url,$headers,$options);
+				$curl=\util\Curl::get($url,$headers,$options);
 			}else{
-				$request=null;
+				$curl=null;
 			}
 		}else{
 			
-			if(!is_array($post_data)){
-				
-				if(preg_match_all('/([^\&]+)\=([^\&]*)/',$post_data,$m_post_data)){
-					$new_post_data=array();
-					foreach($m_post_data[1] as $k=>$v){
-						$new_post_data[$v]=rawurldecode($m_post_data[2][$k]);
-					}
-					$post_data=$new_post_data;
-				}else{
-					$post_data='';
-				}
-			}
-			$post_data=empty($post_data)?array():$post_data;
 			if(!empty($post_data)&&!empty($fromEncode)&&!in_array(strtolower($fromEncode), array('auto','utf-8','utf8'))){
 				
+				if(!is_array($post_data)){
+					
+					if(preg_match_all('/([^\&]+?)\=([^\&]*)/',$post_data,$m_post_data)){
+						$new_post_data=array();
+						foreach($m_post_data[1] as $k=>$v){
+							$new_post_data[$v]=rawurldecode($m_post_data[2][$k]);
+						}
+						$post_data=$new_post_data;
+					}else{
+						$post_data=array();
+					}
+				}
+				$post_data=is_array($post_data)?$post_data:array();
 				foreach ($post_data as $k=>$v){
 					$post_data[$k] = iconv ( 'utf-8', $fromEncode.'//IGNORE', $v );
 				}
 			}
-			$request=\Requests::post($url,$headers,$post_data,$options);
+			
+			$curl=\util\Curl::post($url,$headers,$options,$post_data);
 		}
 	} catch (\Exception $e) {
-		$request=null;
+		$curl=null;
 	}
-	if(!empty($request)){
-		if(200==$request->status_code){
+	$html=null;
+	
+	if(!empty($curl)){
+		if($curl->isOk){
 			
-			$html=$request->body;
+			$html=$curl->body;
 			if ($fromEncode == 'auto') {
 				
 				$htmlCharset='';
@@ -251,7 +268,7 @@ function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$post_d
 					$htmlCharset='';
 				}
 				$headerCharset='';
-				if(preg_match('/charset=(?P<charset>[\w\-]+)/i', $request->headers['content-type'],$headerCharset)){
+				if(preg_match('/\bContent-Type\s*:[^\r\n]*charset=(?P<charset>[\w\-]+)/i', $curl->header,$headerCharset)){
 					$headerCharset=strtolower(trim($headerCharset['charset']));
 					if('utf8'==$headerCharset){
 						$headerCharset='utf-8';
@@ -306,7 +323,7 @@ function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$post_d
 			}
 		}
 	}
-	return $html?$html:null;
+	return isset($html)?$html:false;
 }
 
 /*载入配置文件*/

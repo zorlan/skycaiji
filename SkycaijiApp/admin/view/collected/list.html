@@ -12,7 +12,7 @@
         </div>
 		<form id="form_list" method="post" ajax-submit="true" action="{:url('Collected/op')}">
 		<div class="table-responsive">
-		<table id="list_table" class="table table-bordered table-hover datatable">
+		<table id="list_table" class="table table-hover datatable">
 			<thead>
 				<tr>
 					<th width="60" class="chk">{$Think.lang.select}</th>
@@ -46,13 +46,13 @@
 			<tfoot>
 				<tr>
 					<td class="chk"><label><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" />全部</label></td>
-					<td colspan="4">
+					<td colspan="6">
 						<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
 					</td>
 				</tr>
     			{if condition="!empty($pagenav)"}
 				<tr>
-					<td colspan="5">{$pagenav}</td>
+					<td colspan="6">{$pagenav}</td>
 				</tr>
 				{/if}
 			</tfoot>

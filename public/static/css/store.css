@@ -11,5 +11,5 @@
     border-bottom-width: 0px;
     border-left-width: 0px;
 }
-.iframe-loading{position:absolute;left:20px;top:20px;line-height:32px;text-align:center;}
+.iframe-loading{position:absolute;left:15px;top:20px;line-height:32px;text-align:center;}
 .iframe-loading .loading{float:left;margin-right:5px;}

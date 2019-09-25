@@ -75,8 +75,11 @@
 		        </tr>
 		        {/if}
 		        <tr>
-		          <th>社区论坛</th>
-		          <td><a href="http://bbs.skycaiji.com" target="_blank">SkyCaiji交流社区</a></td>
+		          <th>官方网站</th>
+		          <td>
+		          	<a href="http://bbs.skycaiji.com" target="_blank">社区</a>&nbsp;
+		          	<a href="http://www.skycaiji.com" target="_blank">官网</a>
+		          </td>
 		        </tr>
 		        <tr>
 		          <th>清除缓存</th>
@@ -114,7 +117,35 @@
 		</div>
 	</div>
 </div>
-<div id="skycaiji_admin_index">
+{if !empty($systemWarning)}
+<div class="callout callout-warning">
+	{if !empty($systemWarning['php'])}
+		请开启PHP模块：{:implode(' , ',$systemWarning['php'])}<br/>
+	{/if}
+	{if !empty($systemWarning['path_write'])}
+		请设置可写权限：{:implode(' , ',$systemWarning['path_write'])}<br/>
+	{/if}
+	{if !empty($systemWarning['path_read'])}
+		请设置可读权限：{:implode(' , ',$systemWarning['path_read'])}<br/>
+	{/if}
+</div>
+{/if}
 
+
+<div class="box box-default">
+	<div class="box-header with-border">
+		<h3 class="box-title" style="font-size:16px;">系统消息</h3>
+		<div class="box-tools pull-right">
+			<button class="btn btn-box-tool" id="refresh_admin_index"><i class="fa fa-refresh"></i></button>
+		</div>
+	</div>
+	<div class="box-body" id="skycaiji_admin_index" style="padding:0;">
+		{if !empty($adminIndexData)}
+			{$adminIndexData['html']}
+		{/if}
+	</div>
+	<div class="overlay" style="display:none;">
+		<i class="fa fa-refresh fa-spin"></i>
+	</div>
 </div>
 {/block}

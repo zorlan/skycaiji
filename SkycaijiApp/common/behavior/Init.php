@@ -15,7 +15,13 @@ use think\Request;
 class Init{
 	
 	public function run(){
-		session_start();
+		if(!isset($GLOBALS['_sc'])){
+			
+			$GLOBALS['_sc']=array();
+		}
+		if(session_status()!==2){
+			session_start();
+		}
 		if(isset($_GET['m'])&&isset($_GET['c'])&&isset($_GET['a'])){
 			
 			$tourl=config('root_website');
@@ -41,7 +47,7 @@ class Init{
 			$browserIe = doubleval($browserIe[1]);
 			if($browserIe<9){
 				
-				$GLOBALS['browser_is_old']=true;
+				$GLOBALS['_sc']['browser_is_old']=true;
 			}
 		}
 		if(stripos(Request::instance()->root(),'/index.php')!==false&&isset($_GET['s'])){

@@ -151,7 +151,7 @@ class ChromeSocket{
 			
 			if(!is_array($postData)){
 				
-				if(preg_match_all('/([^\&]+)\=([^\&]*)/', $postData,$m_post_data)){
+				if(preg_match_all('/([^\&]+?)\=([^\&]*)/', $postData,$m_post_data)){
 					$new_post_data=array();
 					foreach($m_post_data[1] as $k=>$v){
 						$new_post_data[$v]=rawurldecode($m_post_data[2][$k]);

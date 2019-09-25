@@ -19,7 +19,8 @@ class Log extends File{
 			'未定义','Undefined',
 			'A session had already been started','DOMDocument::loadHTML',
 			'MySQL server has gone away',"Error reading result set's header",
-			'The /e modifier is deprecated'
+			'The /e modifier is deprecated',
+			'Invalid argument supplied for foreach'
 		);
 		
 		foreach ($log as $type => $val) {

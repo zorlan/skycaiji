@@ -11,17 +11,9 @@
 
 namespace skycaiji\admin\controller;
 
+use skycaiji\admin\model\FuncApp;
 class Mystore extends BaseController {
 	public function indexAction(){
-
-
-
-
-
-		
-
-
-		
     	$this->redirect('Mystore/rule');
 	}
 	public function ruleAction(){
@@ -66,8 +58,8 @@ class Mystore extends BaseController {
 			}
 		}
 
-		$GLOBALS['content_header']='已下载';
-		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Mystore/index'),'title'=>'已下载'),lang('rule_'.$type)));
+		$GLOBALS['_sc']['p_name']='已下载';
+		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Mystore/rule'),'title'=>'已下载：'.lang('rule_'.$type))));
 		
 		$this->assign('ruleList',$ruleList);
 
@@ -103,9 +95,9 @@ class Mystore extends BaseController {
 			$auto=input('auto/d',0);
 			model('Config')->setConfig('store_auto_check_rule',$auto);
 			if($auto){
-				$this->success('设置为自动检测更新');
+				$this->success('规则设置为自动检测更新');
 			}else{
-				$this->error('设置为手动检测更新');
+				$this->error('规则设置为手动检测更新');
 			}
 		}elseif($op=='check_store_update'){
 			
@@ -213,8 +205,8 @@ class Mystore extends BaseController {
 			}
 		}
 		
-		$GLOBALS['content_header']='已下载';
-		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Mystore/index'),'title'=>'已下载'),'发布插件'));
+		$GLOBALS['_sc']['p_name']='已下载';
+		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Mystore/releaseApp'),'title'=>'已下载：发布插件')));
 		
 		$this->assign('appList',$appList);
 		return $this->fetch('releaseApp');
@@ -242,65 +234,13 @@ class Mystore extends BaseController {
     		$this->success(lang('op_success'),'Mystore/ReleaseApp');
 		}elseif($op=='auto_check'){
 			
-			$auto=input('auto/d');
-			model('Config')->setConfig('store_auto_check_plugin',$auto);
-			if($auto){
-				$this->success('设置为自动检测更新');
-			}else{
-				$this->error('设置为手动检测更新');
-			}
+			$this->_auto_check_plugin();
 		}elseif($op=='check_store_update'){
 			
 			$ids=input('ids/a');
 			
 			$appList=model('ReleaseApp')->where(array('module'=>'cms','id'=>array('in',$ids)))->column('*','app');
-			
-			$appList1=array();
-			foreach ($appList as $k=>$v){
-				$appList1[$v['app'].'_'.$v['provider_id']]=$v;
-			}
-			$appList=$appList1;
-			unset($appList1);
-			
-			$uptimeList=array();
-			if(!empty($appList)){
-				$provList=array();
-				$provApps=array();
-				foreach ($appList as $v){
-					$provList[$v['provider_id']]=$v['provider_id'];
-					$provApps[$v['provider_id']][$v['app']]=$v['app'];
-				}
-				if(!empty($provList)){
-					$provList=model('Provider')->where('id','in',$provList)->column('*','id');
-				}else{
-					$provList=array();
-				}
-				
-				foreach ($provApps as $provId=>$apps){
-					$apps=implode(',',$apps);
-					$apps=rawurlencode($apps);
-					$url='https://www.skycaiji.com';
-					if(!empty($provId)&&!empty($provList[$provId])){
-						
-						$url=$provList[$provId]['url'];
-					}
-					$url.='/client/plugin/update?apps='.$apps;
-					
-					$uptimeList=get_html($url,null,array('timeout'=>2));
-					$uptimeList=json_decode($uptimeList,true);
-			
-					if(!empty($uptimeList)){
-						
-						foreach ($uptimeList as $app=>$uptime){
-							if($uptime>0&&$uptime>$appList[$app.'_'.$provId]['uptime']){
-								
-								$updateList[]=$appList[$app.'_'.$provId]['id'];
-							}
-						}
-					}
-				}
-			}
-			
+			$updateList=$this->_check_store_plugin_update($appList);
 			if(!empty($updateList)){
 				$this->success('',null,$updateList);
 			}else{
@@ -392,8 +332,8 @@ class Mystore extends BaseController {
 			}
 		}
 	
-		$GLOBALS['content_header']='应用程序';
-		$GLOBALS['breadcrumb']=breadcrumb(array('应用程序'));
+		$GLOBALS['_sc']['p_name']='应用程序';
+		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Mystore/app'),'title'=>'应用程序')));
 	
 		$this->assign('pagenav',$pagenav);
 		$this->assign('dbApps',$dbApps);
@@ -411,9 +351,9 @@ class Mystore extends BaseController {
 			$auto=input('auto/d');
 			model('Config')->setConfig('store_auto_check_app',$auto);
 			if($auto){
-				$this->success('设置为自动检测更新');
+				$this->success('应用设置为自动检测更新');
 			}else{
-				$this->error('设置为手动检测更新');
+				$this->error('应用设置为手动检测更新');
 			}
 		}elseif($op=='check_store_update'){
 			
@@ -479,5 +419,165 @@ class Mystore extends BaseController {
 				$this->error('无更新');
 			}
 		}
+	}
+	/*函数插件*/
+	public function funcAppAction(){
+		$page=max(1,input('p/d',0));
+		$cond=array();
+		
+		$sortBy=input('sort','desc');
+		$sortBy=($sortBy=='asc')?'asc':'desc';
+		$orderKey=input('order');
+		
+		$this->assign('sortBy',$sortBy);
+		$this->assign('orderKey',$orderKey);
+		$orderBy=!empty($orderKey)?($orderKey.' '.$sortBy):'id desc';
+		$mfuncApp=model('FuncApp');
+		$limit=20;
+		$count=$mfuncApp->where($cond)->count();
+		$appList=$mfuncApp->where($cond)->order($orderBy)->paginate($limit,false,paginate_auto_config());
+		
+		$pagenav = $appList->render();
+		$this->assign('pagenav',$pagenav);
+		$appList=$appList->all();
+		
+		if(!empty($appList)){
+			$provList=array();
+			foreach ($appList as $k=>$v){
+				if(!empty($v['provider_id'])){
+					
+					$provList[$v['provider_id']]=$v['provider_id'];
+				}
+			}
+			$provList=model('Provider')->where('id','in',$provList)->column('*','id');
+			
+			foreach ($appList as $k=>$v){
+				$url='https://www.skycaiji.com';
+				if(!empty($v['provider_id'])&&!empty($provList[$v['provider_id']])){
+					
+					$url=$provList[$v['provider_id']]['url'];
+				}
+				$appList[$k]['store_url']=$url.'/client/plugin/detail?app='.$v['app'];
+			}
+		}
+		
+		$GLOBALS['_sc']['p_name']='已下载';
+		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Mystore/funcApp'),'title'=>'已下载：函数插件')));
+		
+		$this->assign('appList',$appList);
+		$this->assign('modules',$mfuncApp->funcModules);
+		return $this->fetch('func');
+	}
+	
+	public function funcAppOpAction(){
+		$op=input('op');
+		$id=input('id');
+		
+		$ops=array('item'=>array('delete','enable','detail'),'list'=>array('deleteall','check_store_update'),'else'=>array('auto_check'));
+		if(!in_array($op,$ops['item'])&&!in_array($op,$ops['list'])&&!in_array($op,$ops['else'])){
+			
+			$this->error(lang('invalid_op'));
+		}
+		
+		$mfuncApp=new FuncApp();
+		$appData=$mfuncApp->where('id',$id)->find();
+		if($op=='detail'){
+			$appClass=empty($appData)?array():$mfuncApp->get_app_class($appData['module'], $appData['app']);
+			$this->success('',null,$appClass);
+		}elseif($op=='enable'){
+			$enable=input('enable/d');
+			$mfuncApp->where('id',$appData['id'])->update(array('enable'=>$enable));
+			$this->success();
+		}elseif($op=='delete'){
+			if(!empty($appData['module'])&&!empty($appData['app'])){
+				$filename=$mfuncApp->filename($appData['module'], $appData['app']);
+				if(file_exists($filename)){
+					unlink($filename);
+				}
+			}
+			$mfuncApp->where('id',$appData['id'])->delete();
+			$this->success('删除成功');
+		}elseif($op=='deleteall'){
+			
+			$ids=input('ids/a');
+			if(is_array($ids)&&count($ids)>0){
+				$mfuncApp->where(array('id'=>array('in',$ids)))->delete();
+			}
+    		$this->success(lang('op_success'),'Mystore/funcApp');
+		}elseif($op=='auto_check'){
+			
+			$this->_auto_check_plugin();
+		}elseif($op=='check_store_update'){
+			
+			$ids=input('ids/a');
+			
+			$appList=model('FuncApp')->where(array('id'=>array('in',$ids)))->column('*','app');
+			$updateList=$this->_check_store_plugin_update($appList);
+			if(!empty($updateList)){
+				$this->success('',null,$updateList);
+			}else{
+				$this->error();
+			}
+		}
+	}
+	/*插件设置自动检测*/
+	public function _auto_check_plugin(){
+		$auto=input('auto/d');
+		model('Config')->setConfig('store_auto_check_plugin',$auto);
+		if($auto){
+			$this->success('插件设置为自动检测更新');
+		}else{
+			$this->error('插件设置为手动检测更新');
+		}
+	}
+	/*检测插件云平台c插件更新*/
+	public function _check_store_plugin_update($appList=array()){
+		$appList1=array();
+		foreach ($appList as $k=>$v){
+			$appList1[$v['app'].'_'.$v['provider_id']]=$v;
+		}
+		$appList=$appList1;
+		unset($appList1);
+			
+		$uptimeList=array();
+		$updateList=array();
+		if(!empty($appList)){
+			$provList=array();
+			$provApps=array();
+			foreach ($appList as $v){
+				$provList[$v['provider_id']]=$v['provider_id'];
+				$provApps[$v['provider_id']][$v['app']]=$v['app'];
+			}
+			if(!empty($provList)){
+				$provList=model('Provider')->where('id','in',$provList)->column('*','id');
+			}else{
+				$provList=array();
+			}
+		
+			foreach ($provApps as $provId=>$apps){
+				$apps=implode(',',$apps);
+				$apps=rawurlencode($apps);
+				$url='https://www.skycaiji.com';
+				if(!empty($provId)&&!empty($provList[$provId])){
+					
+					$url=$provList[$provId]['url'];
+				}
+				$url.='/client/plugin/update?apps='.$apps;
+				
+				$uptimeList=get_html($url,null,array('timeout'=>2));
+				$uptimeList=json_decode($uptimeList,true);
+				
+				if(!empty($uptimeList)){
+					
+					foreach ($uptimeList as $app=>$uptime){
+						if($uptime>0&&$uptime>$appList[$app.'_'.$provId]['uptime']){
+							
+							$updateList[]=$appList[$app.'_'.$provId]['id'];
+						}
+					}
+				}
+			}
+		}
+		return $updateList;
 	}
 }

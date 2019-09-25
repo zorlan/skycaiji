@@ -22,35 +22,35 @@ class Task extends BaseModel{
 		
 		static $global_config=null;
 		if(!isset($global_config)){
-			$global_config=$GLOBALS['config'];
+			$global_config=$GLOBALS['_sc']['c'];
 		}
 
-		if(!empty($global_config['caiji']['download_img'])){
+		if(!empty($global_config['download_img']['download_img'])){
 			
 			if($config['download_img']=='n'){
 				
-				$GLOBALS['config']['caiji']['download_img']=0;
+				$GLOBALS['_sc']['c']['download_img']['download_img']=0;
 			}else{
-				$GLOBALS['config']['caiji']['download_img']=1;
+				$GLOBALS['_sc']['c']['download_img']['download_img']=1;
 			}
 		}else{
-			$GLOBALS['config']['caiji']['download_img']=0;
+			$GLOBALS['_sc']['c']['download_img']['download_img']=0;
 		}
 		
 		if(!empty($global_config['proxy']['open'])){
 			
 			if($config['proxy']=='n'){
 				
-				$GLOBALS['config']['proxy']['open']=0;
+				$GLOBALS['_sc']['c']['proxy']['open']=0;
 			}else{
-				$GLOBALS['config']['proxy']['open']=1;
+				$GLOBALS['_sc']['c']['proxy']['open']=1;
 			}
 		}else{
-			$GLOBALS['config']['proxy']['open']=0;
+			$GLOBALS['_sc']['c']['proxy']['open']=0;
 		}
 		
-		$GLOBALS['config']['caiji']['img_path']=empty($config['img_path'])?$global_config['caiji']['img_path']:$config['img_path'];
-		$GLOBALS['config']['caiji']['img_url']=empty($config['img_url'])?$global_config['caiji']['img_url']:$config['img_url'];
+		$GLOBALS['_sc']['c']['download_img']['img_path']=empty($config['img_path'])?$global_config['download_img']['img_path']:$config['img_path'];
+		$GLOBALS['_sc']['c']['download_img']['img_url']=empty($config['img_url'])?$global_config['download_img']['img_url']:$config['img_url'];
 	}
 }
 

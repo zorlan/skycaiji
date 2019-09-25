@@ -1,0 +1,64 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script type="text/javascript" src="__PUBLIC__/static/js/chart.min.js?{$Think.config.html_v}"></script>
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/collected.js?{$Think.config.html_v}"></script>
+<style type="text/css">
+	.chart-box{height:315px;padding-top:5px;padding-bottom:10px;}
+</style>
+{/block}
+{block name="content"}
+<div class="row">
+	<div class="col-md-8">
+		<div class="nav-tabs-custom" id="chart_date">
+			<ul class="nav nav-tabs">
+		    	<li class="active"><a href="javascript:;" data-chart-op="today">今日</a></li>
+		    	<li><a href="javascript:;" data-chart-op="this_month">本月</a></li>
+		    	<li><a href="javascript:;" data-chart-op="this_year">今年</a></li>
+		    	<li><a href="javascript:;" data-chart-op="years">全部</a></li>
+			</ul>
+			<div class="tab-content" style="padding-top:0;padding-bottom:0;">
+				<div class="tab-pane active chart-box">
+					<div class="overlay chart-loading" style="font-size:30px;text-align:center;margin-top:110px;">
+						<i class="fa fa-refresh fa-spin"></i>
+					</div>
+					<div class="chart"><canvas class="chart-canvas"></canvas></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="box box-primary" id="chart_release">
+			<div class="box-header with-border">
+				<h3 class="box-title">发布方式</h3>
+			</div>
+			<div class="box-body chart-box">
+				<div class="chart">
+					<canvas class="chart-canvas" style="display:none;"></canvas>
+				</div>
+			</div>
+			<div class="overlay chart-loading">
+				<i class="fa fa-refresh fa-spin"></i>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-12">
+		<div class="box box-primary"  id="chart_task">
+			<div class="box-header with-border">
+				<h3 class="box-title">任务</h3>
+			</div>
+			<div class="box-body chart-box">
+				<div class="chart">
+					<canvas class="chart-canvas" style="display:none;"></canvas>
+				</div>
+			</div>
+			<div class="overlay chart-loading">
+				<i class="fa fa-refresh fa-spin"></i>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	window.collectedClass.chart_init();
+</script>
+
+{/block}

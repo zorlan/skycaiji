@@ -60,8 +60,8 @@ class Release extends BaseController{
     			$this->error(lang('op_failed'));
     		}
 		}else{
-			$GLOBALS['content_header']=lang('rele_set');
-			$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Task/edit?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),lang('rele_set')));
+			$GLOBALS['_sc']['p_name']=lang('rele_set');
+			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Task/edit?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('Release/set?task_id='.$taskData['id']),'title'=>lang('rele_set'))));
 
 			$this->assign('taskData',$taskData);
 			if(!empty($releData)){

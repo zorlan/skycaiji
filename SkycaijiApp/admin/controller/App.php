@@ -61,9 +61,6 @@ class App extends BaseController {
 			$appData['app_class']=$mapp->get_class_vars($appClass);
 		}
 		
-		
-		
-		
 		$this->assign('app',$app);
 		$this->assign('appUrl',$appUrl);
 		$this->assign('navid',$navid);

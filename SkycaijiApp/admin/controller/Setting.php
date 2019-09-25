@@ -11,6 +11,7 @@
 
 namespace skycaiji\admin\controller;
 
+use skycaiji\admin\model\CacheModel;
 class Setting extends BaseController {
 	/*站点设置*/
     public function siteAction(){
@@ -35,8 +36,8 @@ class Setting extends BaseController {
     		$mconfig->setConfig('site',$config);
 			$this->success(lang('op_success'),'Setting/site');
     	}else{
-    		$GLOBALS['content_header']=lang('setting_site');
-    		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Setting/site'),'title'=>lang('setting_site'))));
+    		$GLOBALS['_sc']['p_name']=lang('setting_site');
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Setting/site'),'title'=>lang('setting_site'))));
     		$siteConfig=$mconfig->getConfig('site','data');
     		$this->assign('siteConfig',$siteConfig);
     	}
@@ -46,15 +47,68 @@ class Setting extends BaseController {
     public function caijiAction(){
     	$mconfig=model('Config');
     	if(request()->isPost()){
+			
+    		if($mconfig->where('cname','download_img')->count()<=0){
+    			
+    			$caijiConfig=$mconfig->getConfig('caiji','data');
+    			$imgConfig=$mconfig->get_img_config_from_caiji($caijiConfig);
+    			if(!empty($imgConfig)){
+    				
+    				$mconfig->setConfig('download_img',$imgConfig);
+    			}
+    		}
+    		
     		$config=array();
+    		$config['robots']=input('robots/d',0);
     		$config['auto']=input('auto/d',0);
     		$config['run']=input('run');
     		$config['server']=input('server');
+    		$config['server_php']=input('server_php');
     		$config['num']=input('num/d',0);
     		$config['interval']=input('interval/d',0);
     		$config['timeout']=input('timeout/d',0);
     		$config['html_interval']=input('html_interval/d',0);
     		$config['real_time']=input('real_time/d',0);
+    		
+    		unset($config['download_img']);
+    		
+    		if($config['server']=='cli'){
+    			
+    			if(!function_exists('proc_open')){
+    				$this->error('抱歉cli命令行模式需开启proc_open函数');
+    			}
+    		}
+    		
+    		$mconfig->setConfig('caiji',$config);
+    		if($config['auto']){
+    			
+    			remove_auto_collecting();
+    			if($config['run']=='backstage'){
+    				
+    				$runkey=md5(time().rand(1, 1000000));
+    				CacheModel::getInstance()->setCache('admin_index_backstage_key', $runkey);
+    				@get_html(url('Admin/Index/backstage?key='.$runkey,null,false,true),null,array('timeout'=>3));
+    			}
+			}
+			$this->success(lang('op_success'),'Setting/caiji');
+    	}else{
+    		$GLOBALS['_sc']['p_name']=lang('setting_caiji');
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Setting/caiji'),'title'=>lang('setting_caiji'))));
+    		$caijiConfig=$mconfig->getConfig('caiji','data');
+    		$caijiConfig=is_array($caijiConfig)?$caijiConfig:array();
+
+    		$phpExeFile=$mconfig->detect_php_exe();
+    		
+    		$this->assign('caijiConfig',$caijiConfig);
+    		$this->assign('phpExeFile',$phpExeFile);
+    	}
+        return $this->fetch();
+    }
+    /*图片本地化设置*/
+    public function download_imgAction(){
+    	$mconfig=model('Config');
+    	if(request()->isPost()){
+    		$config=array();
     		$config['download_img']=input('download_img/d',0);
     		$config['img_path']=trim(input('img_path',''));
     		$config['img_url']=input('img_url','','trim');
@@ -62,45 +116,54 @@ class Setting extends BaseController {
     		$config['img_timeout']=input('img_timeout/d',0);
     		$config['img_interval']=input('img_interval/d',0);
     		$config['img_max']=input('img_max/d',0);
-
-    		if($config['server']=='cli'){
-    			
-    			if(!function_exists('proc_open')){
-    				$this->error('抱歉cli命令行模式需开启proc_open函数');
-    			}
-    		}
-    		if(!empty($config['img_path'])){
-    			
-    			$checkImgPath=$mconfig->check_img_path($config['img_path']);
-    			if(!$checkImgPath['success']){
-    				$this->error($checkImgPath['msg']);
-    			}
-    		}
-    		if(!empty($config['img_url'])){
-    			
-    			$checkImgUrl=$mconfig->check_img_url($config['img_url']);
-	    		if(!$checkImgUrl['success']){
-	    			$this->error($checkImgUrl['msg']);
-	    		}
-    		}
-    		$mconfig->setConfig('caiji',$config);
-    		if($config['auto']){
-    			
-    			remove_auto_collecting();
-    			if($config['run']=='backstage'){
-    				
-    				@get_html(url('Admin/Index/backstage?autorun=1',null,false,true),null,array('timeout'=>3));
-    			}
+    		$config['name_custom_path']=input('name_custom_path','');
+    		$config['name_custom_name']=input('name_custom_name','');
+			if(!empty($config['img_path'])){
+				
+				$checkImgPath=$mconfig->check_img_path($config['img_path']);
+				if(!$checkImgPath['success']){
+					$this->error($checkImgPath['msg']);
+				}
 			}
-    		
-			$this->success(lang('op_success'),'Setting/caiji');
+			if(!empty($config['img_url'])){
+				
+				$checkImgUrl=$mconfig->check_img_url($config['img_url']);
+				if(!$checkImgUrl['success']){
+					$this->error($checkImgUrl['msg']);
+				}
+			}
+			
+			$checkNamePath=$mconfig->check_img_name_path($config['name_custom_path']);
+			if($config['img_name']=='custom'){
+				
+				if(empty($config['name_custom_path'])){
+					$this->error('请输入图片名称自定义目录');
+				}
+				if(!$checkNamePath['success']){
+					$this->error($checkNamePath['msg']);
+				}
+			}else{
+				
+				if(!$checkNamePath['success']){
+					$config['name_custom_path']='';
+				}
+			}
+			
+			$mconfig->setConfig('download_img',$config);
+
+			$this->success(lang('op_success'),'Setting/download_img');
     	}else{
-    		$GLOBALS['content_header']=lang('setting_caiji');
-    		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Setting/caiji'),'title'=>lang('setting_caiji'))));
-    		$caijiConfig=$mconfig->getConfig('caiji','data');
-    		$this->assign('caijiConfig',$caijiConfig);
+    		$GLOBALS['_sc']['p_name']='图片本地化设置';
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Setting/caiji'),'title'=>lang('setting_caiji')),array('url'=>url('Setting/download_img'),'title'=>'图片本地化')));
+    		$imgConfig=$mconfig->getConfig('download_img','data');
+    		if(empty($imgConfig)){
+    			
+    			$caijiConfig=$mconfig->getConfig('caiji','data');
+    			$imgConfig=$mconfig->get_img_config_from_caiji($caijiConfig);
+    		}
+    		$this->assign('imgConfig',$imgConfig);
+    		return $this->fetch('download_img');
     	}
-        return $this->fetch();
     }
     /*代理设置*/
     public function proxyAction(){
@@ -111,10 +174,12 @@ class Setting extends BaseController {
     		$ip_list=input('ip_list','','trim');
     		$user_list=input('user_list','','trim');
     		$pwd_list=input('pwd_list','','trim');
+    		$type_list=input('type_list','','trim');
 
-    		$ip_list=empty($ip_list)?null:json_decode($ip_list,true);
-    		$user_list=empty($user_list)?null:json_decode($user_list,true);
-    		$pwd_list=empty($pwd_list)?null:json_decode($pwd_list,true);
+    		$ip_list=empty($ip_list)?array():json_decode($ip_list,true);
+    		$user_list=empty($user_list)?array():json_decode($user_list,true);
+    		$pwd_list=empty($pwd_list)?array():json_decode($pwd_list,true);
+    		$type_list=empty($type_list)?array():json_decode($type_list,true);
     		
     		$config['open']=input('open/d',0);
     		$config['failed']=input('failed/d',0);
@@ -132,13 +197,14 @@ class Setting extends BaseController {
     		
     		if(!empty($ip_list)&&is_array($ip_list)){
     			
-    			$mproxy->where(array('ip'=>array('not in',$ip_list)))->delete();
-    			
     			$ip_list=array_map('trim', $ip_list);
     			$user_list=array_map('trim', $user_list);
     			$pwd_list=array_map('trim', $pwd_list);
+    			$type_list=array_map('trim', $type_list);
     			
-    			foreach ($ip_list as $k=>$v){
+    			
+    			for($k=count($ip_list);$k>=0;$k--){
+    				$v=$ip_list[$k];
     				if(empty($v)){
     					
     					continue;
@@ -147,10 +213,12 @@ class Setting extends BaseController {
     					'ip'=>$v,
     					'user'=>$user_list[$k],
     					'pwd'=>$pwd_list[$k],
+    					'type'=>$type_list[$k],
     					'invalid'=>0,
     					'failed'=>0,
     					'num'=>0,
     					'time'=>0,
+    					'addtime'=>NOW_TIME,
     				);
     				if($mproxy->where(array('ip'=>$newData['ip']))->count()>0){
     					
@@ -162,60 +230,44 @@ class Setting extends BaseController {
     					$mproxy->db()->insert($newData,true);
     				}
     			}
-    		}else{
-				
-    			$mproxy->where('1=1')->delete();
     		}
+    		
+    		
+    		$config['api']=input('api/a','','trim');
+    		$config['apis']=input('apis/a','','trim');
+    		$config['apis']=is_array($config['apis'])?$config['apis']:array();
+    		foreach ($config['apis'] as $k=>$v){
+    			if(empty($v['api_url'])||!preg_match('/^\w+\:\/\//',$v['api_url'])){
+    				
+    				unset($config['apis'][$k]);
+    			}
+    		}
+    		$config['apis']=array_values($config['apis']);
+    		
     		$mconfig->setConfig('proxy',$config);
 			$this->success(lang('op_success'),'Setting/Proxy');
     	}else{
-    		$GLOBALS['content_header']='代理设置';
-    		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Setting/Proxy'),'title'=>'代理设置')));
+    		$GLOBALS['_sc']['p_name']='代理设置';
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Setting/caiji'),'title'=>lang('setting_caiji')),array('url'=>url('Setting/Proxy'),'title'=>'代理')));
     		$proxyConfig=$mconfig->getConfig('proxy','data');
-    		$proxyConfig['ip_list']=$mproxy->column('*');
+    		
+    		$proxyConfig['ip_count']=$mproxy->count();
     		$this->assign('proxyConfig',$proxyConfig);
+    		$this->assign('proxyTypes',$mproxy->proxy_types());
     	}
     	return $this->fetch();
-    }
-    /*批量添加代理*/
-    public function proxyBatchAction(){
-    	if(request()->isPost()){
-    		$ips=input('ips');
-    		$fmt=input('format');
-    		
-    		$fmt=str_replace(array('[ip]','[端口]','[用户名]','[密码]')
-    			,array('(?P<ip>(\d+\.)+\d+)','(?P<port>\d+)','(?P<user>[^\s]+)','(?P<pwd>[^\s]+)')
-    			,$fmt);
-    		$ipList=array();
-    		if(preg_match_all('/[^\r\n]+/',$ips,$m_ips)){
-    			foreach ($m_ips[0] as $ip){
-    				if(preg_match('/'.$fmt.'/',$ip,$ipInfo)){
-    					$ipList[]=array(
-    						'ip'=>$ipInfo['ip'].':'.$ipInfo['port'],
-    						'user'=>$ipInfo['user'],
-    						'pwd'=>$ipInfo['pwd'],
-    					);
-    				}
-    			}
-    		}
-    		if(empty($ipList)){
-    			$this->error('没有匹配到数据');
-    		}else{
-    			$this->success('',null,$ipList);
-    		}
-    	}else{
-    		return $this->fetch('proxyBatch');
-    	}
     }
     /*翻译设置*/
     public function translateAction(){
     	$mconfig=model('Config');
+    	$apiTypes=array('baidu','youdao','qq');
     	if(request()->isPost()){
     		$config=array();
     		$config['open']=input('open/d',0);
     		$config['api']=input('api','','strtolower');
-    		$config['baidu']=input('baidu/a',null,'trim');
-    		$config['youdao']=input('youdao/a',null,'trim');
+    		foreach ($apiTypes as $v){
+    			$config[$v]=input($v.'/a',null,'trim');
+    		}
     		if(!empty($config['api'])){
     			
 	    		if(empty($config[$config['api']])){
@@ -231,18 +283,21 @@ class Setting extends BaseController {
     		$mconfig->setConfig('translate',$config);
     		$this->success(lang('op_success'),'Setting/translate');
     	}else{
-    		$GLOBALS['content_header']='翻译设置';
-    		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Setting/translate'),'title'=>'翻译设置')));
+    		$GLOBALS['_sc']['p_name']='翻译设置';
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Setting/caiji'),'title'=>lang('setting_caiji')),array('url'=>url('Setting/translate'),'title'=>'翻译')));
     		$transConfig=$mconfig->getConfig('translate','data');
-
-    		foreach ($transConfig['baidu'] as $k=>$v){
-    			$transConfig['baidu'][$k]=htmlspecialchars($v,ENT_QUOTES);
-    		}
-    		foreach ($transConfig['youdao'] as $k=>$v){
-    			$transConfig['youdao'][$k]=htmlspecialchars($v,ENT_QUOTES);
+    		$apiLangs=array();
+    		foreach ($apiTypes as $api){
+    			$transConfig[$api]=is_array($transConfig[$api])?$transConfig[$api]:array();
+    			foreach ($transConfig[$api] as $k=>$v){
+    				$transConfig[$api][$k]=htmlspecialchars($v,ENT_QUOTES);
+    			}
+    			$apiLangs[$api]=\util\Translator::get_api_langs($api);
+    			$apiLangs[$api]=is_array($apiLangs[$api])?implode(', ',$apiLangs[$api]):'';
     		}
     		
     		$this->assign('transConfig',$transConfig);
+    		$this->assign('apiLangs',$apiLangs);
     		return $this->fetch();
     	}
     }
@@ -272,8 +327,8 @@ class Setting extends BaseController {
     			$this->success(lang('op_success'),'Setting/email');
     		}
     	}else{
-    		$GLOBALS['content_header']=lang('setting_email');
-    		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Setting/email'),'title'=>lang('setting_email'))));
+    		$GLOBALS['_sc']['p_name']=lang('setting_email');
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Setting/email'),'title'=>lang('setting_email'))));
     		$emailConfig=$mconfig->getConfig('email','data');
     		$this->assign('emailConfig',$emailConfig);
     	}
@@ -317,8 +372,8 @@ class Setting extends BaseController {
     		}
     		$this->success(lang('op_success'),'Setting/page_render');
     	}else{
-    		$GLOBALS['content_header']='页面渲染设置 <small><a href="https://www.skycaiji.com/manual/doc/page_render" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
-    		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Setting/page_render'),'title'=>'页面渲染设置')));
+    		$GLOBALS['_sc']['p_name']='页面渲染设置 <small><a href="https://www.skycaiji.com/manual/doc/page_render" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>';
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Setting/caiji'),'title'=>lang('setting_caiji')),array('url'=>url('Setting/page_render'),'title'=>'页面渲染')));
     		$config=$mconfig->getConfig('page_render','data');
     		$this->assign('config',$config);
     		
@@ -329,7 +384,7 @@ class Setting extends BaseController {
     			$toolIsOpen=$chromeSoket->hostIsOpen();
     			$this->assign('toolIsOpen',$toolIsOpen);
     		}
-    		return $this->fetch();
+    		return $this->fetch('page_render');
     	}
     }
     /*清理缓存目录*/

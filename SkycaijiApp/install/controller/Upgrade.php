@@ -15,7 +15,9 @@ use skycaiji\install\event\UpgradeDb;
 class Upgrade extends BaseController{
 	public function __construct(){
 		parent::__construct();
-		session_start();
+		if(session_status()!==2){
+			session_start();
+		}
 
 		$mconfig=model('admin/Config');
 		$dbVersion=$mconfig->getVersion();

@@ -8,6 +8,10 @@
 	<input type="hidden" name="module" value="{$taskData['module']}" />
 	<input type="hidden" name="tab_link" value="{:input('tab_link')}" />
 	<input type="hidden" name="effective" value="" />
+	{if input('?easymode')}
+	<input type="hidden" name="easymode" value="1" />
+	{/if}
+	
    	{if condition="$taskData['module']=='pattern'"}
 		{include file="cpattern:set" /}
    	{elseif condition="$taskData['module']=='weixin'" /}

@@ -1,0 +1,46 @@
+{$html}
+<!-- 以下为蓝天采集器代码 -->
+<link rel="stylesheet" href="__PUBLIC__/static/css/cpattern_browser.css?{$Think.config.html_v}">
+<script type="text/javascript" src="__PUBLIC__/jquery/jquery.min.js?{$Think.config.html_v}"></script>
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/cpattern_browser.js?{$Think.config.html_v}"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		window.skycaijiCB.init({$config|json_encode});
+	});
+</script>
+
+<div id="skycaiji_wrapper" style="display:none;">
+	<div id="skycaiji_console" style="display:none;">
+		<em class="skycaiji-close" title="关闭">×</em>
+		<div class="skycaiji-block">
+			<span class="skycaiji-b-l">当前元素的xpath：</span>
+			<div class="skycaiji-b-c"><input skycaiji-id="xpath" /></div>
+			<div class="skycaiji-b-r">
+				<a href="javascript:;" skycaiji-id="show-xpath">显示</a> /
+				<a href="javascript:;" title="当前元素的所有属性" skycaiji-id="obj-prop">属性</a> /
+				<a href="javascript:;" title="清理界面" skycaiji-id="obj-clear">清理</a> /
+				<a href="javascript:;" title="当前元素的父元素" skycaiji-id="obj-parent">父元素</a> /
+				<a href="javascript:;" title="当前元素的子元素" skycaiji-id="obj-child">子元素</a>
+			</div>
+		</div>
+		<div class="skycaiji-block">
+			<span class="skycaiji-b-l">同类型元素xpath：</span>
+			<div class="skycaiji-b-c">
+				<div skycaiji-id="box-listXpath"><input skycaiji-id="listXpath" /></div>
+				<select skycaiji-id="listXpaths" style="display:none;">
+					<option value="">请选择</option>
+				</select>
+			</div>
+			<div class="skycaiji-b-r">
+				<a href="javascript:;" skycaiji-id="show-listXpath">显示</a>
+			</div>
+		</div>
+	</div>
+	<div id="skycaiji_sidebar">
+		
+	</div>
+	<div id="skycaiji_tips" style="display:none;">
+		
+	</div>
+</div>
+

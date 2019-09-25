@@ -76,8 +76,8 @@ return array(
 	'user_login_in'=>'登录中...',
 	'user_auto_login'=>'正在自动登录...',
 	
-	'usertoken_error'=>'用户token错误，请刷新页面重新获取！',
-		
+	'usertoken_error'=>'用户token错误，请刷新界面重新获取或清除浏览器缓存！',
+	
 	'task'=>'任务',
 	'task_add'=>'添加任务',
 	'task_edit'=>'编辑任务',
@@ -166,6 +166,7 @@ return array(
 	'process_module_batch'=>'批量替换',
 	'process_module_substr'=>'截取字符串',
 	'process_module_func'=>'使用函数',
+	'process_module_api'=>'调用接口',
 		
 	'p_m_if_1'=>'满足条件采集',	
 	'p_m_if_2'=>'满足条件不采集',
@@ -182,7 +183,8 @@ return array(
 	'rele_module'=>'发布方式',
 	'rele_module_cms'=>'本地CMS程序',
 	'rele_module_db'=>'数据库',
-	'rele_module_api'=>'API接口',
+	'rele_module_api'=>'生成API',
+	'rele_module_toapi'=>'调用接口',
 	'rele_module_file'=>'文件存储',
 	'rele_module_diy'=>'自定义插件',
 	'rele_btn_detect'=>'开始检测',
@@ -206,6 +208,7 @@ return array(
 	'collected_rele_cms'=>'CMS',
 	'collected_rele_db'=>'数据库',
 	'collected_rele_file'=>'文件',
+	'collected_rele_toapi'=>'接口',
 	'collected_rele_api'=>'API',
 	'collected_rele_diy'=>'插件',
 		

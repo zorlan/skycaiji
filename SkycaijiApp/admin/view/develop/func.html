@@ -1,0 +1,83 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/develop.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="box box-default">
+	<div class="box-body">
+		<form id="form_func" method="post" ajax-submit="true" action="{:url('Admin/Develop/func')}">
+			{if !empty($funcClass)}
+		    <input type="hidden" name="edit" value="1" />
+		    <input type="hidden" name="app" value="{$funcClass['app']}" />
+			<div class="alert alert-warning">
+		    	<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+		    	请在 {$funcClass['filename']} 文件中编辑代码
+		    </div>
+			{/if}
+		    <div class="form-group">
+		        <label>模块</label>
+		        <select name="module" class="form-control">
+		   			<option value="">请选择</option>
+		   			{foreach $modules as $k=>$v}
+		   			<option value="{$k}">{$v['name']}：{$v['loc']}</option>
+		   			{/foreach}
+		   		</select>
+		   	</div>
+		    <div class="form-group">
+		        <label>插件名称</label>
+		        <input type="text" name="name" class="form-control">
+		        <p class="help-block">精简描述该插件</p>
+		    </div>
+		    <div class="form-group">
+		        <label>功能标识</label>
+		        <input type="text" name="identifier" class="form-control">
+		        <p class="help-block">表示该插件的作用，只能输入字母或数字</p>
+		    </div>
+		    <div class="form-group">
+		        <label>作者版权</label>
+		        <input type="text" name="copyright" class="form-control">
+		        <p class="help-block">版权归属能有效区分他人开发的插件，只能输入字母或数字</p>
+		    </div>
+		    
+		    {if !empty($funcClass)}
+		    <div class="form-group">
+		        <label>类的方法（方法名：注释说明）</label>
+				<ul>
+					{foreach $funcClass['methods'] as $k=>$v}
+					<li>{$k}：{$v['comment']}</li>
+					{/foreach}
+				</ul>
+				<p class="help-block">如需编辑方法请在插件文件中修改，仅获取public方法，注释必须在方法的前一行且以/**开头，/*或//都获取不到注释</p>
+		    </div>
+		    {else /}
+    		<div class="form-group">
+    			<div class="h-title">
+	     			<label class="control-label">方法</label>
+	      			<a href="javascript:;" id="add_method" class="glyphicon glyphicon-plus" title="添加"></a>
+	      		</div>
+    			<div class="table-responsive">
+            	<table class="table table-hover method_list">
+                   <thead>
+                       <tr>
+                           <th class="col-xs-4">方法名</th>
+                           <th class="col-xs-6">描述</th>
+                           <th class="col-xs-2">删除</th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                   </tbody>
+				</table>
+        		</div>
+        		<p class="help-block">类的方法名必须符合php命名规范</p>
+     		</div>
+     		{/if}
+		   	<div class="form-group">
+				<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+developClass.func({$funcClass|json_encode});
+</script>
+{/block}

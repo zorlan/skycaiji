@@ -30,6 +30,7 @@ class Config extends BaseModel {
 	 * @return mixed
 	 */
 	public function getConfig($cname,$key=null){
+		
 		$item=$this->where('cname',$cname)->find();
 		if(!empty($item)){
 			$item=$item->toArray();
@@ -55,7 +56,29 @@ class Config extends BaseModel {
 		}
 		$data['dateline']=time();
 		$this->insert($data,true);
+		
+		
+		$this->cacheConfigList();
 	}
+	/*缓存所有配置*/
+	public function cacheConfigList(){
+		$keyConfig='cache_config_all';
+		$configDbList=$this->column('*');
+		$configDbList=empty($configDbList)?array():$configDbList;
+		$configList=array();
+		foreach ($configDbList as $configItem){
+			$configItem=$this->convertData($configItem);
+			$configList[$configItem['cname']]=$configItem['data'];
+		}
+		cache($keyConfig,array('list'=>$configList));
+	}
+	public function getConfigList(){
+		$keyConfig='cache_config_all';
+		$cacheConfig=cache($keyConfig);
+		$configList=$cacheConfig['list'];
+		return is_array($configList)?$configList:array();
+	}
+	
 	/*设置版本号*/
 	public function setVersion($version){
 		$version=trim(strtoupper($version),'V');
@@ -110,6 +133,106 @@ class Config extends BaseModel {
 			}
 		}
 		return $return;
+	}
+	
+	public function check_img_name_path($path){
+		static $check_list=array(); 
+		if(!isset($check_list[$path])){
+			$return=array('success'=>false,'msg'=>'');
+			if(!empty($path)){
+				if(!preg_match('/^(\w+|\-|\/|(\[(年|月|日|时|前两位|后两位)\]))+$/u',$path)){
+					$return['msg']='图片名称自定义目录只能输入字母、数字、- 、/ 或 标签';
+				}else{
+					if(preg_match('/^\/+$/', $path)){
+						$return['msg']='图片名称自定义目录不能只由/组成';
+					}else{
+						$return['success']=true;
+					}
+				}
+			}
+			$check_list[$path]=$return;
+		}else{
+			$return=$check_list[$path];
+		}
+		
+		return $return;
+	}
+	
+	public function convert_img_name_path($path,$url){
+		$check=$this->check_img_name_path($path);
+		if($check['success']){
+			$md5=md5($url);
+			static $tags=array('[年]','[月]','[日]','[时]','[前两位]','[后两位]');
+			$tagsRe=array(
+				date('Y',NOW_TIME),
+				date('m',NOW_TIME),
+				date('d',NOW_TIME),
+				date('H',NOW_TIME),
+				substr($md5,0,2),
+				substr($md5,-2,2),
+			);
+			$path=preg_replace('/\/{2,}/', '/', $path);
+			$path=str_replace($tags, $tagsRe, $path);
+			$path=trim($path,'/');
+		}else{
+			$path='temp';
+		}
+		return $path;
+	}
+	
+	
+	public function get_img_config_from_caiji($caijiConfig){
+		$config=array();
+		if(!empty($caijiConfig)){
+			
+			static $vars=array('download_img','img_path','img_url','img_name','img_timeout','img_interval','img_max');
+			foreach ($vars as $var){
+				if(isset($caijiConfig[$var])){
+					$config[$var]=$caijiConfig[$var];
+				}
+			}
+		}
+		return $config;
+	}
+	
+	public function detect_php_exe(){
+		static $php_filename=null;
+		
+		if(!isset($php_filename)){
+			$ds=DIRECTORY_SEPARATOR;
+			$ini_all=ini_get_all();
+			$php_ext_path=$ini_all['extension_dir']['local_value'];
+			if($php_ext_path){
+				$php_ext_path=preg_replace('/[\/\\\]+/', '/', $php_ext_path);
+				$phpPaths=explode('/', $php_ext_path);
+				$phpPath='';
+				if(IS_WIN){
+					
+					foreach ($phpPaths as $v){
+						$phpPath.=$v.$ds;
+						if(is_file($phpPath.'php-cli.exe')){
+							$php_filename=$phpPath.'php-cli.exe';
+							break;
+						}elseif(is_file($phpPath.'php.exe')){
+							$php_filename=$phpPath.'php.exe';
+							break;
+						}
+					}
+				}else{
+					
+					foreach ($phpPaths as $v){
+						$phpPath.=$v.$ds;
+						if(is_file($phpPath.'bin'.$ds.'php')){
+							$php_filename=$phpPath.'bin'.$ds.'php';
+							break;
+						}
+					}
+				}
+			}else{
+				$php_filename='php';
+			}
+		}
+		return $php_filename;
 	}
 }
 ?>

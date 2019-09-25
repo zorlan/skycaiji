@@ -31,8 +31,8 @@ class Provider extends BaseController {
 		$pagenav=$list->render();
 		$list=$list->all();
 		
-		$GLOBALS['content_header']='第三方平台';
-		$GLOBALS['breadcrumb']=breadcrumb(array('第三方平台'));
+		$GLOBALS['_sc']['p_name']='第三方平台';
+		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Provider/list'),'title'=>'第三方平台')));
 		
 		$this->assign('list',$list);
 		$this->assign('pagenav',$pagenav);
@@ -76,7 +76,7 @@ class Provider extends BaseController {
 			$sort=input('sort/d',0);
 			$enable=input('enable/d',0);
 			
-			$domain=\skycaiji\admin\model\Provider::matchDomain($url);
+			$domain=\skycaiji\admin\model\Provider::match_domain($url);
 			if(empty($domain)){
 				$this->error('网址格式错误');
 			}

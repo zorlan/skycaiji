@@ -9,7 +9,6 @@
  |--------------------------------------------------------------------------
  */
 
-/*发布设置:本地cms*/
 namespace skycaiji\admin\event;
 use skycaiji\admin\model\DbCommon;
 class Rdb extends Release{

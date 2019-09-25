@@ -24,8 +24,8 @@ class User extends BaseController {
     	$this->assign('pagenav',$pagenav);
     	$userList=$userList->all();
     	
-    	$GLOBALS['content_header']=lang('user_list');
-    	$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list'))));
+    	$GLOBALS['_sc']['p_name']=lang('user_list');
+    	$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list'))));
     	
     	$groupList=model('Usergroup')->column('*','id');
     	$this->assign('userList',$userList);
@@ -38,10 +38,10 @@ class User extends BaseController {
     	$musergroup=model('Usergroup');
     	if(request()->isPost()){
     		if(!check_usertoken()){
-    			$this->error(lang('usertoken_error'));
+    			$this->error(lang('usertoken_error'),'Admin/User/add');
     		}
     		
-    		if($GLOBALS['config']['site']['verifycode']){
+    		if($GLOBALS['_sc']['c']['site']['verifycode']){
     			
     			$verifycode=trim(input('verifycode'));
     			$check=check_verify($verifycode);
@@ -65,7 +65,7 @@ class User extends BaseController {
     		$newData['password']=\skycaiji\admin\model\User::pwd_encrypt($newData['password'],$newData['salt']);
     		$newGroup=$musergroup->getById($newData['groupid']);
     		if($musergroup->user_level_limit($newGroup['level'])){
-    			$this->error('您不能添加“'.$GLOBALS['user']['group']['name'].'”用户组');
+    			$this->error('您不能添加“'.$GLOBALS['_sc']['user']['group']['name'].'”用户组');
     		}
     		$newData['regtime']=NOW_TIME;
     		$muser->isUpdate(false)->allowField(true)->save($newData);
@@ -75,9 +75,9 @@ class User extends BaseController {
     			$this->error(lang('op_failed'));
     		}
     	}else{
-    		$subGroupList=$musergroup->get_sub_level($GLOBALS['user']['groupid']);
-    		$GLOBALS['content_header']=lang('user_add');
-    		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list')),lang('user_add')));
+    		$subGroupList=$musergroup->get_sub_level($GLOBALS['_sc']['user']['groupid']);
+    		$GLOBALS['_sc']['p_name']=lang('user_add');
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list')),array('url'=>url('User/add'),'title'=>lang('user_add'))));
     		$this->assign('subGroupList',$subGroupList);
     		return $this->fetch();
     	}
@@ -95,16 +95,16 @@ class User extends BaseController {
     	}
     	$userData['group']=$musergroup->getById($userData['groupid']);
     	
-    	$isOwner=($GLOBALS['user']['uid']==$userData['uid'])?true:false;
+    	$isOwner=($GLOBALS['_sc']['user']['uid']==$userData['uid'])?true:false;
     	if(!$isOwner&&$musergroup->user_level_limit($userData['group']['level'])){
     		
     		$this->error('您不能编辑“'.$userData['group']['name'].'”组的用户');
     	}
     	if(request()->isPost()){
     		if(!check_usertoken()){
-    			$this->error(lang('usertoken_error'));
+    			$this->error(lang('usertoken_error'),'Admin/User/edit?uid='.$userData['uid']);
     		}
-    		if($GLOBALS['config']['site']['verifycode']){
+    		if($GLOBALS['_sc']['c']['site']['verifycode']){
     			
     			$verifycode=trim(input('verifycode'));
     			$check=check_verify($verifycode);
@@ -135,7 +135,7 @@ class User extends BaseController {
     		}
     		$newGroup=$musergroup->getById($newData['groupid']);
     		if($musergroup->user_level_limit($newGroup['level'])){
-    			$this->error('您不能改为“'.$GLOBALS['user']['group']['name'].'”用户组');
+    			$this->error('您不能改为“'.$GLOBALS['_sc']['user']['group']['name'].'”用户组');
     		}
     		if($isOwner||empty($newData['groupid'])){
     			
@@ -147,11 +147,11 @@ class User extends BaseController {
     		
     	}else{
     		$this->assign('userData',$userData);
-    		$subGroupList=$musergroup->get_sub_level($GLOBALS['user']['groupid']);
+    		$subGroupList=$musergroup->get_sub_level($GLOBALS['_sc']['user']['groupid']);
     		$this->assign('subGroupList',$subGroupList);
     		$this->assign('isOwner',$isOwner);
-    		$GLOBALS['content_header']=lang('user_edit');
-    		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list')),lang('user_edit')));
+    		$GLOBALS['_sc']['p_name']=lang('user_edit').'：'.$userData['username'];
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list')),array('url'=>url('User/edit?uid='.$userData['uid']),'title'=>$userData['username'])));
     		return $this->fetch();
     	}
     }
@@ -166,7 +166,7 @@ class User extends BaseController {
     	if(empty($userData)){
     		$this->error(lang('user_error_empty_user'));
     	}
-    	if($userData['uid']==$GLOBALS['user']['uid']){
+    	if($userData['uid']==$GLOBALS['_sc']['user']['uid']){
     		
     		$this->error('不能删除自己');
     	}

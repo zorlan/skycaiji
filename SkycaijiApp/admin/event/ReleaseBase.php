@@ -74,7 +74,7 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 			return '';
 		}
 		$val=$collFieldVal['value'];
-		if(!empty($GLOBALS['config']['caiji']['download_img'])){
+		if(!empty($GLOBALS['_sc']['c']['download_img']['download_img'])){
 			
 			if(!empty($collFieldVal['img'])){
 				
@@ -96,8 +96,8 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 					$curI++;
 					if($curI<$total){
 						
-						if(!empty($GLOBALS['config']['caiji']['img_interval'])){
-							sleep($GLOBALS['config']['caiji']['img_interval']);
+						if(!empty($GLOBALS['_sc']['c']['download_img']['img_interval'])){
+							sleep($GLOBALS['_sc']['c']['download_img']['img_interval']);
 						}
 					}
 				}
@@ -110,8 +110,8 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 		static $imgPaths=array();
 		static $imgUrls=array();
 		
-		$img_path=$GLOBALS['config']['caiji']['img_path'];
-		$img_url=$GLOBALS['config']['caiji']['img_url'];
+		$img_path=$GLOBALS['_sc']['c']['download_img']['img_path'];
+		$img_url=$GLOBALS['_sc']['c']['download_img']['img_url'];
 		
 		if(!isset($imgPaths[$img_path])){
 			if(empty($img_path)){
@@ -142,6 +142,15 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 			
 			return $url;
 		}
+		
+		if(!empty($GLOBALS['_sc']['c']['caiji']['robots'])){
+			
+			if(!model('Collector')->abide_by_robots($url)){
+				$this->echo_msg('robots拒绝访问的网址：'.$url);
+				return $url;
+			}
+		}
+		
 		static $imgList=array();
 		$key=md5($url);
 		if(!isset($imgList[$key])){
@@ -153,43 +162,75 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 			}
 			$filename='';
 			$imgurl='';
-			$imgname='';
+			$isExists=false;
+			$imgname=$GLOBALS['_sc']['c']['download_img']['img_name'];
 			
-			if('url'==$GLOBALS['config']['caiji']['img_name']){
+			if('url'==$imgname){
 				
-				$imgname=substr($key,0,2).'/'.substr($key,-2,2).'/';
+				
+				
+				
+				$imgname=substr($key,0,2).'/'.substr($key,-2,2).'/'.$key.'.'.$prop;
+				$filename=$img_path.$imgname;
+				$isExists=file_exists($filename);
+				
+				if(!$isExists){
+					
+					
+					$imgname=substr($key,0,2).'/'.substr($key,2).'.'.$prop;
+					$filename=$img_path.$imgname;
+					$isExists=file_exists($filename);
+				}
+			}elseif('custom'==$imgname){
+				
+				$imgname=model('Config')->convert_img_name_path($GLOBALS['_sc']['c']['download_img']['name_custom_path'],$url);
+				$imgname.='/'.$key.'.'.$prop;
+				$filename=$img_path.$imgname;
+				$isExists=file_exists($filename);
 			}else{
 				
-				$imgname=date('Y-m-d',NOW_TIME).'/';
+				$imgname=date('Y-m-d',NOW_TIME).'/'.$key.'.'.$prop;
+				$filename=$img_path.$imgname;
+				$isExists=file_exists($filename);
 			}
-			$imgname.=$key.'.'.$prop;
-			$filename=$img_path.$imgname;
 			$imgurl=$img_url.$imgname;
 			
-			if(!file_exists($filename)){
+			if(!$isExists){
 				
 				$mproxy=model('Proxyip');
 				try {
 					$options=array();
-					if(!empty($GLOBALS['config']['caiji']['img_timeout'])){
+					$headers=array();
+
+					if(!empty($GLOBALS['_sc']['task_request_headers'])&&!empty($GLOBALS['_sc']['task_request_headers']['request_headers']['download_img'])){
 						
-						$options['timeout']=$GLOBALS['config']['caiji']['img_timeout'];
+						$headers=$GLOBALS['_sc']['task_request_headers']['headers'];
+						if(!empty($headers['useragent'])){
+							
+							$options['useragent']=$headers['useragent'];
+						}
+						unset($headers['useragent']);
 					}
-					if(!empty($GLOBALS['config']['proxy']['open'])){
+					
+					if(!empty($GLOBALS['_sc']['c']['download_img']['img_timeout'])){
 						
-						$proxy_ip=$mproxy->get_usable_ip();
-						$proxyIp=$mproxy->to_proxy_ip($proxy_ip);
+						$options['timeout']=$GLOBALS['_sc']['c']['download_img']['img_timeout'];
+					}
+					if(!empty($GLOBALS['_sc']['c']['proxy']['open'])){
+						
+						$proxyIp=$mproxy->get_usable_ip();
+						$proxyIp=$mproxy->to_proxy_ip($proxyIp);
 						if(!empty($proxyIp)){
 							
 							$options['proxy']=$proxyIp;
 						}
 					}
-					if(!empty($GLOBALS['config']['caiji']['img_max'])){
+					if(!empty($GLOBALS['_sc']['c']['download_img']['img_max'])){
 						
-						$options['max_bytes']=intval($GLOBALS['config']['caiji']['img_max'])*1024*1024;
+						$options['max_bytes']=intval($GLOBALS['_sc']['c']['download_img']['img_max'])*1024*1024;
 					}
 					
-					$imgCode=get_html($url,null,$options,'utf-8');
+					$imgCode=get_html($url,$headers,$options,'utf-8');
 					
 					if(!empty($imgCode)){
 						

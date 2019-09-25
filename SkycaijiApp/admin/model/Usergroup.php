@@ -22,7 +22,7 @@ class Usergroup extends BaseModel{
 	}
 	/*等级限制：判断当前用户组等级小于等于传入的等级*/
 	public function user_level_limit($level){
-		if($GLOBALS['user']['group']['level']<=$level){
+		if($GLOBALS['_sc']['user']['group']['level']<=$level){
 			return true;
 		}else{
 			return false;

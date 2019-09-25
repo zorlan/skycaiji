@@ -76,8 +76,8 @@ class Collected extends BaseController {
 	   				$taskList=model('Task')->where(array('id'=>array('in',$taskIds)))->column('name','id');
 	   			}
 	   		}
-	   		$GLOBALS['content_header']=lang('collected_list');
-	   		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Collected/list'),'title'=>lang('collected_list'))));
+	   		$GLOBALS['_sc']['p_name']=lang('collected_list');
+			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Collected/list'),'title'=>'已采集数据'),array('url'=>url('Collected/list'),'title'=>'数据列表')));
    		}
    		$this->assign('search',$search);
 		$this->assign('dataList',$dataList);
@@ -120,6 +120,137 @@ class Collected extends BaseController {
 				$mcollected->where(array('id'=>array('in',$ids)))->delete();
 			}
     		$this->success(lang('op_success'),'list');
+		}
+	}
+	/*图表显示*/
+	public function chartAction(){
+		$GLOBALS['_sc']['p_name']='已采集数据：统计图表';
+		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Collected/list'),'title'=>'已采集数据'),array('url'=>url('Collected/chart'),'title'=>'统计图表')));
+		
+		return $this->fetch();
+	}
+	
+	public function chartOpAction(){
+		$op=input('op');
+		$mcollected=model('Collected');
+		$nowTime=time();
+		$nowYear=intval(date('Y',$nowTime));
+		$nowMonth=intval(date('m',$nowTime));
+		$nowDay=intval(date('d',$nowTime));
+		if(in_array($op,array('today','this_month','this_year','years'))){
+			$dataList = array (
+				'name'=>array(),
+				'success' => array (),
+				'failed' => array ()
+			);
+			$dateList=array();
+			if($op=='today'){
+				
+				for($i=0;$i<24;$i++){
+					$start=$nowYear.'-'.$nowMonth.'-'.$nowDay.' '.$i.':00';
+					$end=strtotime($start.' +1 hour')-1;
+					$start=strtotime($start);
+					$dateList[$i+1]=array('name'=>($i+1).'点','start'=>$start,'end'=>$end);
+				}
+			}if($op=='this_month'){
+				
+				$endDay=date('d',strtotime("{$nowYear}-{$nowMonth}-1 +1 month -1 day"));
+				$endDay=intval($endDay);
+				for($i=1;$i<=$endDay;$i++){
+					$start=$nowYear.'-'.$nowMonth.'-'.$i;
+					$end=strtotime($start.' +1 day')-1;
+					$start=strtotime($start);
+					$dateList[$i]=array('name'=>$i.'号','start'=>$start,'end'=>$end);
+				}
+			}elseif($op=='this_year'){
+				
+				for($i=1;$i<=12;$i++){
+					$start=$nowYear.'-'.$i.'-1';
+					$end=strtotime($start.' +1 month')-1;
+					$start=strtotime($start);
+					$dateList[$i]=array('name'=>$i.'月','start'=>$start,'end'=>$end);
+					
+				}
+			}elseif($op=='years'){
+				
+				$minTime=$mcollected->min('addtime');
+				$minYear=intval(date('Y',$minTime));
+				for($i=$nowYear;$i>=$minYear;$i--){
+					$start=$i.'-1-1';
+					$end=strtotime($start.' +1 year')-1;
+					$start=strtotime($start);
+					$dateList[$i]=array('name'=>$i.'年','start'=>$start,'end'=>$end);
+				}
+			}
+			foreach ($dateList as $k=>$v){
+				$dataList['name'][$k]=$v['name'];
+				
+				$dataList['success'][$k]=$mcollected->where(array(
+					'addtime'=>array('between',array($v['start'],$v['end'])),
+					'target'=>array('<>','')
+				))->count();
+				
+				
+				$dataList['failed'][$k]=$mcollected->where(array(
+					'addtime'=>array('between',array($v['start'],$v['end'])),
+					'error'=>array('<>','')
+				))->count();
+			}
+			
+			$this->success('',null,$dataList);
+		}elseif($op=='release'){
+			
+			$dataList = array (
+				'name'=>array(),
+				'success' => array (),
+				'failed' => array (),
+			);
+			
+			foreach(config('release_modules') as $module){
+				if($module=='api'){
+					
+					continue;
+				}
+				$dataList['name'][$module]=lang('rele_module_'.$module);
+				
+				$dataList['success'][$module]=$mcollected->where(array(
+					'release'=>$module,
+					'target'=>array('<>','')
+				))->count();
+				
+				
+				$dataList['failed'][$module]=$mcollected->where(array(
+					'release'=>$module,
+					'error'=>array('<>','')
+				))->count();
+			}
+			$this->success('',null,$dataList);
+		}elseif($op=='task'){
+			
+			$dataList = array (
+				'name'=>array(),
+				'total' => array (),
+			);
+			
+			
+			$list=$mcollected->field('task_id,count(id) as ct')->group('task_id')->having('count(id)>0')->select();
+			$taskIds=array();
+			foreach($list as $v){
+				$taskIds[$v['task_id']]=$v['task_id'];
+			}
+			if($taskIds){
+				$taskList=model('Task')->where('id','in',$taskIds)->column('name','id');
+			}
+			
+			foreach($list as $v){
+				if(isset($taskList[$v['task_id']])){
+					
+					$dataList['name'][$v['task_id']]=$taskList[$v['task_id']];
+					$dataList['total'][$v['task_id']]=$v['ct'];
+				}
+			}
+			
+			$this->success('',null,$dataList);
 		}
 	}
 }

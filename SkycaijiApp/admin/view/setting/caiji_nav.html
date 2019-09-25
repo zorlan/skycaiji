@@ -1,0 +1,8 @@
+{php}$curNav=request()->action();$curNav=array(strtolower($curNav)=>' class="active"');{/php}
+<ul class="nav nav-tabs">
+   	<li{$curNav['caiji']}><a href="{:url('Setting/caiji')}">采集设置</a></li>
+   	<li{$curNav['download_img']}><a href="{:url('Setting/download_img')}">图片本地化</a></li>
+   	<li{$curNav['page_render']}><a href="{:url('Setting/page_render')}">页面渲染</a></li>
+   	<li{$curNav['proxy']}><a href="{:url('Setting/proxy')}">代理</a></li>
+   	<li{$curNav['translate']}><a href="{:url('Setting/translate')}">翻译</a></li>
+</ul>

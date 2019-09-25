@@ -97,13 +97,6 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
     );
 
     public static $prefixesPsr0 = array (
-        'R' => 
-        array (
-            'Requests' => 
-            array (
-                0 => __DIR__ . '/..' . '/rmccue/requests/library',
-            ),
-        ),
         'P' => 
         array (
             'PHPExcel' => 

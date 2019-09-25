@@ -66,7 +66,7 @@ function program_filemd5_list($path,&$md5FileList){
 }
 /*验证用户token*/
 function check_usertoken(){
-	if($GLOBALS['usertoken']!=input('_usertoken_')){
+	if($GLOBALS['_sc']['usertoken']!=input('_usertoken_')){
 		return false;
 	}else{
 		return true;
@@ -75,7 +75,7 @@ function check_usertoken(){
 /*输出用户token*/
 function html_usertoken(){
 	
-	return '<input type="hidden" name="_usertoken_" value="'.$GLOBALS['usertoken'].'" />';
+	return '<input type="hidden" name="_usertoken_" value="'.$GLOBALS['_sc']['usertoken'].'" />';
 }
 
 /*判断正在执行采集任务*/
@@ -106,35 +106,24 @@ function cli_command_exec($paramStr){
 		}
 	}
 	
-	static $php_ext_path=null;
-	
-	if(!isset($php_ext_path)){
-		$ini_all=ini_get_all();
-		$php_ext_path=$ini_all['extension_dir']['local_value'];
+	$phpExeFile=$GLOBALS['_sc']['c']['caiji']['server_php'];
+	if(empty($phpExeFile)){
+		
+		$phpExeFile=model('Config')->detect_php_exe();
 	}
-	
-	if($php_ext_path){
-		$phpPath=preg_replace('/[\/\\\]ext[\/\\\]*$/i', '', $php_ext_path);
-		if(IS_WIN){
-			
-			$phpPath.=DIRECTORY_SEPARATOR.'php.exe';
-		}
-	}else{
-		$phpPath='php';
-	}
-	 
-	$commandStr=$phpPath;
+	$commandStr=$phpExeFile;
 	if(IS_WIN){
+		
 		$commandStr='"'.$commandStr.'"';
 	}
 	
-	$cliUser=strtolower($GLOBALS['user']['username']);
-	$cliUser=$cliUser.'_'.md5($cliUser.$GLOBALS['user']['password']);
+	$cliUser=strtolower($GLOBALS['_sc']['user']['username']);
+	$cliUser=$cliUser.'_'.md5($cliUser.$GLOBALS['_sc']['user']['password']);
 	
 	$paramStr.=' --cli_user '.base64_encode($cliUser);
 
 	$commandStr.=' '.config('root_path').DIRECTORY_SEPARATOR.'caiji '.$paramStr;
-
+	
 	$descriptorspec = array(
 			0 => array('pipe', 'r'),  
 			1 => array('pipe', 'w'),  
@@ -156,4 +145,37 @@ function is_official_url($url){
 	}else{
 		return false;
 	}
+}
+
+
+function convert_html2json($html,$returnStr=false){
+	static $jsonpRegExp='/^(\s*[\$\w\-]+\s*[\{\(])+(?P<json>[\s\S]+)(?P<end>[\}\]])\s*\)\s*[\;]{0,1}/i';
+	$json=json_decode($html,true);
+	if(!empty($json)){
+		
+		if($returnStr){
+			
+			$json=$html;
+		}
+	}elseif(preg_match($jsonpRegExp,$html,$json)){
+		
+		$json=trim($json['json']).$json['end'];
+		if(!$returnStr){
+			
+			$json=json_decode($json,true);
+		}
+	}
+	return $json?$json:null;
+}
+
+function array_filter_keep0($list){
+	if(is_array($list)){
+		foreach ($list as $k=>$v){
+			if(empty($v)&&$v!==0&&$v!=='0'){
+				
+				unset($list[$k]);
+			}
+		}
+	}
+	return $list;
 }

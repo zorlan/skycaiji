@@ -66,13 +66,13 @@ class Init{
 		}
 		
 		if($s_userid>0){
-			$GLOBALS['user']=$muser->getByUid($s_userid);
-			if(!empty($GLOBALS['user'])){
-				$GLOBALS['user']=$GLOBALS['user']->toArray();
-				$GLOBALS['user']['group']=model('Usergroup')->getById($GLOBALS['user']['groupid']);
-				if(!empty($GLOBALS['user']['group'])){
-					$GLOBALS['user']['group']=$GLOBALS['user']['group']->toArray();
-					if(model('Usergroup')->is_admin($GLOBALS['user']['group'])){
+			$GLOBALS['_sc']['user']=$muser->getByUid($s_userid);
+			if(!empty($GLOBALS['_sc']['user'])){
+				$GLOBALS['_sc']['user']=$GLOBALS['_sc']['user']->toArray();
+				$GLOBALS['_sc']['user']['group']=model('Usergroup')->getById($GLOBALS['_sc']['user']['groupid']);
+				if(!empty($GLOBALS['_sc']['user']['group'])){
+					$GLOBALS['_sc']['user']['group']=$GLOBALS['_sc']['user']['group']->toArray();
+					if(model('Usergroup')->is_admin($GLOBALS['_sc']['user']['group'])){
 						session('is_admin',true);
 					}else{
 						session('is_admin',null);
@@ -81,7 +81,7 @@ class Init{
 			}
 		}
 		
-		if(!empty($GLOBALS['user'])&&session('is_admin')){
+		if(!empty($GLOBALS['_sc']['user'])&&session('is_admin')){
 			/*是管理员，进行下列操作*/
 			if('index'==$curController&&'index'==strtolower(request()->action())){
 				
@@ -108,38 +108,32 @@ class Init{
 		}
 		/*通用操作,全局变量*/
 		$mconfig=model('Config');
-		$latestDate=$mconfig->max('dateline');
-		$keyConfig='cache_config_all';
-		$cacheConfig=cache($keyConfig);
-		$configList=array();
-		if(empty($cacheConfig)||$cacheConfig['update_time']!=$latestDate){
-			
-			$configDbList=$mconfig->column('*');
-			$configDbList=empty($configDbList)?array():$configDbList;
-			foreach ($configDbList as $configItem){
-				$configItem=$mconfig->convertData($configItem);
-				$configList[$configItem['cname']]=$configItem['data'];
-			}
-			cache($keyConfig,array('update_time'=>$latestDate,'list'=>$configList));
-		}else{
-			$configList=$cacheConfig['list'];
+		$configList=$mconfig->getConfigList();
+		if(empty($configList)){
+			$mconfig->cacheConfigList();
+			$configList=$mconfig->getConfigList();
 		}
-		$GLOBALS['config']=$configList;
+		$GLOBALS['_sc']['c']=$configList;
 		
-		if(!empty($GLOBALS['config']['site']['closelog'])){
+		if(!empty($GLOBALS['_sc']['c']['site']['closelog'])){
 			
 			\think\Log::init(array('type'=>'test','level'=>array()));
 		}
-		if(!empty($GLOBALS['config']['site']['dblong'])){
+		if(!empty($GLOBALS['_sc']['c']['site']['dblong'])){
 			
 			$dbParams=config('database.params');
 			$dbParams[\PDO::ATTR_PERSISTENT]=true;
 			config('database.params',$dbParams);
 		}
 		
-		$GLOBALS['clientinfo']=clientinfo();
-		if(!empty($GLOBALS['clientinfo'])){
-			$GLOBALS['clientinfo']=base64_encode(json_encode($GLOBALS['clientinfo']));
+		
+		if(empty($GLOBALS['_sc']['c']['download_img'])){
+			$GLOBALS['_sc']['c']['download_img']=$mconfig->get_img_config_from_caiji($GLOBALS['_sc']['c']['caiji']);
+		}
+		
+		$GLOBALS['_sc']['clientinfo']=clientinfo();
+		if(!empty($GLOBALS['_sc']['clientinfo'])){
+			$GLOBALS['_sc']['clientinfo']=base64_encode(json_encode($GLOBALS['_sc']['clientinfo']));
 		}
 		
 		
@@ -150,7 +144,7 @@ class Init{
 			$usertoken=md5($usertoken);
 			session('usertoken',$usertoken);
 		}
-		$GLOBALS['usertoken']=$usertoken;
+		$GLOBALS['_sc']['usertoken']=$usertoken;
 	}
 }
 

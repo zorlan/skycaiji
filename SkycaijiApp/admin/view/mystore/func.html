@@ -1,0 +1,94 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/store.js?{$Think.config.html_v}"></script>
+<script src="__PUBLIC__/static/js/admin/mystore.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+{php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'倒序'));{/php}
+<div class="nav-tabs-custom">
+	<ul class="nav nav-tabs">
+    	<li><a href="{:url('Mystore/rule')}">采集规则</a></li>
+    	<li><a href="{:url('Mystore/releaseApp')}">发布插件</a></li>
+    	<li class="active"><a href="{:url('Mystore/funcApp')}">函数插件</a></li>
+    	<li class="nav-check-update">
+    		<a href="javascript:;" onclick="check_funcapp_update()">检测更新</a>
+    		<input type="checkbox" id="auto_check" {:empty($GLOBALS['_sc']['c']['store_auto_check_plugin'])?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
+    	</li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane active">
+		    <div class="table-responsive">
+				<form id="form_list" method="post" ajax-submit="true" action="{:url('Mystore/funcAppOp')}">
+				<table id="list_table" class="table table-hover datatable">
+					<thead>
+						<tr>
+							<th class="chk">{$Think.lang.select}</th>
+							<th class="sorting{$orderClass['app']}" data-order="app" title="类名{$orderSort['app']}">类和方法</th>
+							<th class="sorting{$orderClass['name']}" data-order="name" title="名称{$orderSort['name']}">名称</th>
+							<th class="sorting{$orderClass['module']}" data-order="module" title="模块{$orderSort['module']}">模块</th>
+							<th class="sorting{$orderClass['addtime']}" data-order="addtime" title="添加时间{$orderSort['addtime']}">添加时间</th>
+							<th class="sorting{$orderClass['uptime']}" data-order="uptime" title="更新时间{$orderSort['uptime']}">更新时间</th>
+							<th>平台</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+					<tbody>
+					{foreach name="appList" item="app"}
+					<tr data-app-id="{$app['id']}">
+						<td class="chk"><input type="checkbox" name="ids[]" value="{$app['id']}" /></td>
+						<td class="dropdown methods">
+							<a href="javascript:;" class="dropdown-toggle" id="dm_{$app['app']}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">{$app['app']} <span class="caret"></span></a>
+							<ul class="dropdown-menu" aria-labelledby="dm_{$app['app']}">
+							</ul>
+						</td>
+						<td>{$app['name']}</td>
+						<td>{$modules[$app['module']]['name']}</td>
+						<td>{:date('Y-m-d H:i',$app['addtime'])}</td>
+						<td>{:date('Y-m-d H:i',$app['uptime'])}</td>
+						<td class="store-info">
+							<a href="{$app['store_url']}" data-is-store-url="1" class="store-detail">
+								{if empty($app['provider_id'])}
+									官方
+								{else /}
+									第三方
+								{/if}
+							</a>
+						</td>
+						<td>
+							<a href="javascript:;" class="enable" style="color:{$app['enable']?'green':'red'}">{$app['enable']?'已启用':'已禁用'}</a>
+							&nbsp;<a href="{:url('Develop/func?app='.$app['app'])}">开发</a>
+							&nbsp;<a href="javascript:;" class="delete">删除</a>
+						</td>
+					</tr>
+					{/foreach}
+					</tbody>
+					<tfoot>
+						<tr>
+							<td class="chk"><label><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" />全部</label></td>
+							<td colspan="2">
+								<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
+								&nbsp;<a href="{:url('Develop/func')}" class="btn btn btn-success">开发一个</a>
+							</td>
+							<td colspan="5" style="text-align:right;font-size:12px;">
+								{if !empty($appList)}
+								<p class="help-block">在 “任务 &gt; 采集器设置 &gt; 获取内容 &gt; 数据处理 &gt; 使用函数或条件判断” 中使用</p>
+								{/if}
+							</td>
+						</tr>
+		    			{if condition="!empty($pagenav)"}
+						<tr>
+							<td colspan="8">{$pagenav}</td>
+						</tr>
+						{/if}
+					</tfoot>
+				</table>
+				</form>
+			</div>
+		</div>
+	</div>
+	
+</div>
+<script type="text/javascript">
+init_funcapp();
+</script>
+{/block}

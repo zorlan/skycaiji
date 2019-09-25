@@ -16,13 +16,13 @@
 		        <ul class="dropdown-menu">
 		        	<li><a href="javascript:;" data-test="get_fields">抓取字段</a></li>
 		        	<li><a href="javascript:;" data-test="get_html">抓取源码</a></li>
-		        	<li><a href="javascript:;" data-test="elements">分析元素</a></li>
+		        	<li><a href="javascript:;" data-test="elements">分析网页</a></li>
 		        	<li><a href="javascript:;" data-test="get_paging_urls">抓取分页</a></li>
 		        	<li><a href="javascript:;" data-test="get_relation_urls">抓取关联页</a></li>
 		        </ul>
 		    </div>
 	  		{if condition="!empty($url_post)"}
-	  		<div class="input-group-addon" style="color:green;">POST模式</div>
+	  		<div class="input-group-addon" style="color:green;border-right:0;">POST模式</div>
 	  		{/if}
 	  		<input type="text" class="form-control" name="url" value="{$cont_url}" placeholder="输入内容页网址" />
 	 		<div class="input-group-btn"><button type="button" class="btn btn-default test-sub">确定</button></div>
@@ -83,11 +83,11 @@ function win_test_view(id){
     $("#ifm_test_view").contents().find('body').html(html);
 }
 
-//分析元素
+//分析网页
 function test_elements(id){
 	var cont_url=$('#win_test_cont_url input[name="url"]').val();
-	var url="{:url('Cpattern/test?op=_op_&coll_id='.$collData['id'].'&cont_url=_url_')}";
-	url=url.replace('_op_','elements').replace('_url_',encodeURIComponent(cont_url));
+	var url="{:url('Cpattern/browser?coll_id='.$collData['id'].'&url=_url_')}";
+	url=url.replace('_url_',encodeURIComponent(cont_url));
 	window.open(url,'_blank');
 }
 //下拉选择
@@ -147,7 +147,7 @@ $('#win_test_cont_url button.test-sub').bind('click',function(){
 					}else{
 						var eleId=generateUUID();
 						data=data.replace(/\</g,'&lt;').replace(/\>/g,'&gt;');//编码
-						var html='<label>源码：</label><a href="javascript:;" onclick="test_elements()">分析元素</a><textarea id="'
+						var html='<label>源码：</label><a href="javascript:;" onclick="test_elements()">分析网页</a><textarea id="'
 							+eleId+'" class="form-control" rows="20">'+data+'</textarea>';
 						$('#win_test_cont_url .vals').html(html);
 					}
@@ -230,6 +230,15 @@ $('#win_test_cont_url button.test-sub').bind('click',function(){
 		}
 	}
 });
+
+//回车测试
+$('#win_test_cont_url input[name="url"]').bind('keyup',function(event){
+　　if(event.keyCode=="13"){
+		$('#win_test_cont_url button').trigger("click");
+　　}
+});
+
+
 if($('#win_test_cont_url input[name="url"]').val().length>0){
 	//有网址自动触发
 	$('#win_test_cont_url button').trigger("click");

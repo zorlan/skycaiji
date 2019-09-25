@@ -121,8 +121,8 @@ class Task extends BaseController {
 	    	$this->assign('pagenav',$pagenav);
     	}
     	$showChange=$show=='list'?'folder':'list';
-    	$GLOBALS['content_header']=lang('task_list').' <small><a href="'.url('Task/list?show='.$showChange).'">'.lang('task_change_'.$showChange).'</a></small>';
-    	$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Task/list'),'title'=>lang('task_list'))));
+    	$GLOBALS['_sc']['p_name']=lang('task_list').' <small><a href="'.url('Task/list?show='.$showChange).'">'.lang('task_change_'.$showChange).'</a></small>';
+    	$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Task/list'),'title'=>lang('task_list'))));
 	    return $this->fetch('list_'.$show);
     }
     /*任务列表，打开文件夹*/
@@ -221,8 +221,8 @@ class Task extends BaseController {
     		$mtaskgroup=model('Taskgroup');
     		$tgSelect=$mtaskgroup->getLevelSelect();
 
-    		$GLOBALS['content_header']=lang('task_add');
-			$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Task/list'),'title'=>lang('task_list')),lang('task_add')));
+    		$GLOBALS['_sc']['p_name']=lang('task_add');
+			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Task/list'),'title'=>lang('task_list')),array('url'=>url('Task/add'),'title'=>lang('task_add'))));
     		
     		$this->assign('tgSelect',$tgSelect);
     		
@@ -287,8 +287,8 @@ class Task extends BaseController {
     		$mtaskgroup=model('Taskgroup');
     		$tgSelect=$mtaskgroup->getLevelSelect();
     		
-    		$GLOBALS['content_header']=lang('task_edit');
-    		$GLOBALS['breadcrumb']=breadcrumb(array(array('url'=>url('Task/list'),'title'=>lang('task_list')),lang('task_edit')));
+    		$GLOBALS['_sc']['p_name']=lang('task_edit').'：'.$taskData['name'];
+    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Task/list'),'title'=>lang('task_list')),array('url'=>url('Task/edit?id='.$taskData['id']),'title'=>$taskData['name'])));
     		
     		$this->assign('tgSelect',$tgSelect);
     		$this->assign('taskData',$taskData);
@@ -431,7 +431,7 @@ class Task extends BaseController {
     		if(!IS_CLI){
     			ignore_user_abort(true);
     			
-    			if($GLOBALS['config']['caiji']['server']=='cli'){
+    			if($GLOBALS['_sc']['c']['caiji']['server']=='cli'){
     				
     				cli_command_exec('collect task --task_id '.$taskId);
     				exit();
@@ -460,7 +460,7 @@ class Task extends BaseController {
     		if(!IS_CLI){
     			ignore_user_abort(true);
     			
-    			if($GLOBALS['config']['caiji']['server']=='cli'){
+    			if($GLOBALS['_sc']['c']['caiji']['server']=='cli'){
     				
     				cli_command_exec('collect batch --task_ids '.implode(',',$taskIds));
     				exit();
@@ -472,8 +472,8 @@ class Task extends BaseController {
     		ignore_user_abort(false);
     	}
     	
-    	if($GLOBALS['config']['caiji']['timeout']>0){
-    		set_time_limit(60*$GLOBALS['config']['caiji']['timeout']);
+    	if($GLOBALS['_sc']['c']['caiji']['timeout']>0){
+    		set_time_limit(60*$GLOBALS['_sc']['c']['caiji']['timeout']);
     	}else{
     		set_time_limit(0);
     	}
@@ -498,30 +498,30 @@ class Task extends BaseController {
     }
     /*将任务标记为后台运行*/
     public function _backstage_task($taskId){
-    	$GLOBALS['backstage_task_runtime']=time();
+    	$GLOBALS['_sc']['backstage_task_runtime']=time();
     	
     	if(model('Task')->where('id',$taskId)->count()>0){
     		
     		$mcache=CacheModel::getInstance('backstage_task');
     		$mcache->db()->strict(false)->insert(array(
     				'cname'=>$taskId,
-    				'dateline'=>$GLOBALS['backstage_task_runtime'],
+    				'dateline'=>$GLOBALS['_sc']['backstage_task_runtime'],
     				'ctype'=>0,
     				'data'=>''
     		),true);
     		
-    		if(!isset($GLOBALS['backstage_task_ids'])){
-    			$GLOBALS['backstage_task_ids']=array();
+    		if(!isset($GLOBALS['_sc']['backstage_task_ids'])){
+    			$GLOBALS['_sc']['backstage_task_ids']=array();
     		}
-    		$GLOBALS['backstage_task_ids'][$taskId]=$taskId;
+    		$GLOBALS['_sc']['backstage_task_ids'][$taskId]=$taskId;
     		
     		static $registered=false;
     		if(!$registered){
     			register_shutdown_function(function(){
     				
-    				if(!empty($GLOBALS['backstage_task_ids'])&&is_array($GLOBALS['backstage_task_ids'])){
+    				if(!empty($GLOBALS['_sc']['backstage_task_ids'])&&is_array($GLOBALS['_sc']['backstage_task_ids'])){
     					$mcache=\skycaiji\admin\model\CacheModel::getInstance('backstage_task');
-    					$mcache->db()->strict(false)->where('cname','in',$GLOBALS['backstage_task_ids'])->update(array('ctype'=>1,'data'=>time()));
+    					$mcache->db()->strict(false)->where('cname','in',$GLOBALS['_sc']['backstage_task_ids'])->update(array('ctype'=>1,'data'=>time()));
     				}
     			});
     			$registered=true;
@@ -532,8 +532,8 @@ class Task extends BaseController {
     public function _collect($taskId){
     	static $setted_timeout=null;
     	if(!isset($setted_timeout)){
-    		if($GLOBALS['config']['caiji']['timeout']>0){
-    			set_time_limit(60*$GLOBALS['config']['caiji']['timeout']);
+    		if($GLOBALS['_sc']['c']['caiji']['timeout']>0){
+    			set_time_limit(60*$GLOBALS['_sc']['c']['caiji']['timeout']);
     		}else{
     			set_time_limit(0);
     		}
@@ -579,11 +579,11 @@ class Task extends BaseController {
 		$acoll->init($collData);
 		$arele=controller('admin/R'.strtolower($releData['module']),'event');
 		$arele->init($releData);
-		$GLOBALS['real_time_release']=&$arele;
+		$GLOBALS['_sc']['real_time_release']=&$arele;
 
 		if('api'==$releData['module']){
 			
-			$GLOBALS['config']['caiji']['real_time']=0;
+			$GLOBALS['_sc']['c']['caiji']['real_time']=0;
 			
 			
 			$cacheApiData=$arele->get_cache_fields();
@@ -598,7 +598,7 @@ class Task extends BaseController {
 		
 		$all_field_list=array();
 		
-		$caijiNum=intval($GLOBALS['config']['caiji']['num']);
+		$caijiNum=intval($GLOBALS['_sc']['c']['caiji']['num']);
 		$taskNum=intval($taskData['config']['num']);
 
 		if($taskNum<=0||($caijiNum>0&&$taskNum>$caijiNum)){
@@ -620,10 +620,10 @@ class Task extends BaseController {
 				}elseif(is_array($field_list)&&!empty($field_list)){
 					
 					$all_field_list=array_merge($all_field_list,$field_list);
-					$taskNum-=count($field_list);
+					$taskNum-=count((array)$field_list);
 				}
 				if($taskNum>0){
-					$this->echo_msg('采集到'.count($field_list).'条数据，还差'.$taskNum.'条','orange');
+					$this->echo_msg('采集到'.count((array)$field_list).'条数据，还差'.$taskNum.'条','orange');
 				}
 			}
 		}else{
@@ -640,8 +640,8 @@ class Task extends BaseController {
 		if(empty($all_field_list)){
 			$this->echo_msg('没有采集到数据','orange');
 		}else{
-			$this->echo_msg('采集到'.count($all_field_list).'条数据','green');
-			if(empty($GLOBALS['config']['caiji']['real_time'])){
+			$this->echo_msg('采集到'.count((array)$all_field_list).'条数据','green');
+			if(empty($GLOBALS['_sc']['c']['caiji']['real_time'])){
 				
 				$addedNum=$arele->export($all_field_list);
 				$this->echo_msg('成功发布'.$addedNum.'条数据','green');
@@ -653,7 +653,7 @@ class Task extends BaseController {
     	$mtask=model('Task');
     	$mcoll=model('Collector');
     	$mrele=model('Release');
-    	$caijiNum=intval($GLOBALS['config']['caiji']['num']);
+    	$caijiNum=intval($GLOBALS['_sc']['c']['caiji']['num']);
     	$caijiLimit=false;
     	if($caijiNum>0){
     		$caijiLimit=true;
@@ -690,7 +690,7 @@ class Task extends BaseController {
     		$arele='\\skycaiji\\admin\\event\\R'.strtolower($releData['module']);
     		$arele=new $arele();
     		$arele->init($releData);
-    		$GLOBALS['real_time_release']=&$arele;
+    		$GLOBALS['_sc']['real_time_release']=&$arele;
     	
     		$this->echo_msg('<div style="background:#efefef;padding:5px;margin:5px 0;text-align:center;">正在执行任务：'.$taskData['name'].'</div>','black');
     		$all_field_list=array();
@@ -711,8 +711,8 @@ class Task extends BaseController {
     				}elseif(is_array($field_list)&&!empty($field_list)){
     					
     					$all_field_list=array_merge($all_field_list,$field_list);
-    					$taskNum-=count($field_list);
-    					$caijiNum-=count($field_list);
+    					$taskNum-=count((array)$field_list);
+    					$caijiNum-=count((array)$field_list);
     				}
     			}
     		}else{
@@ -728,9 +728,9 @@ class Task extends BaseController {
     		if(empty($all_field_list)){
     			$this->echo_msg('任务：'.$taskData['name'].' 没有采集到数据','orange');
     		}else{
-    			$this->echo_msg('任务：'.$taskData['name'].' 采集到'.count($all_field_list).'条数据','green');
+    			$this->echo_msg('任务：'.$taskData['name'].' 采集到'.count((array)$all_field_list).'条数据','green');
     	
-    			if(empty($GLOBALS['config']['caiji']['real_time'])){
+    			if(empty($GLOBALS['_sc']['c']['caiji']['real_time'])){
     				
     				$addedNum=$arele->export($all_field_list);
     				$this->echo_msg('成功发布'.$addedNum.'条数据','green');

@@ -30,7 +30,7 @@ class Backstage extends BaseController{
 			'os'=>php_uname('s').' '.php_uname('r'),
 			'php'=>PHP_VERSION,
 			'db'=>config('database.type'),
-			'version'=>$GLOBALS['config']['version']?$GLOBALS['config']['version']:constant("SKYCAIJI_VERSION"),
+			'version'=>$GLOBALS['_sc']['c']['version']?$GLOBALS['_sc']['c']['version']:constant("SKYCAIJI_VERSION"),
 			'server'=>$_SERVER["SERVER_SOFTWARE"],
 			'upload_max'=>ini_get('upload_max_filesize')
 		);
@@ -42,7 +42,7 @@ class Backstage extends BaseController{
 		
 		$runInfo['auto_status']='良好';
 		/*设置采集状态*/
-		if($GLOBALS['config']['caiji']['auto']){
+		if($GLOBALS['_sc']['c']['caiji']['auto']){
 			
 			$lastTime=cache('last_collect_time');
 			$taskAutoCount=model('Task')->where('auto',1)->count();
@@ -55,9 +55,9 @@ class Backstage extends BaseController{
 				if($lastTime>0){
 					$runInfo['auto_status']='运行良好';
 					$serverData['caiji']='最近采集：'.date('Y-m-d H:i:s',$lastTime).' &nbsp;';
-					if($GLOBALS['config']['caiji']['run']=='backstage'){
+					if($GLOBALS['_sc']['c']['caiji']['run']=='backstage'){
 						
-						if(NOW_TIME-$lastTime>60*($GLOBALS['config']['caiji']['interval']+15)){
+						if(NOW_TIME-$lastTime>60*($GLOBALS['_sc']['c']['caiji']['interval']+15)){
 							
 							$serverData['caiji'].='<p class="help-block">自动采集似乎停止了，请<a href="'.
 								url('Admin/Setting/caiji').'">重新保存设置</a>以便激活采集</p>';
@@ -78,6 +78,45 @@ class Backstage extends BaseController{
 			$upgradeDb=true;
 		}
 		
+		$LocSystem=new \skycaiji\install\event\LocSystem();
+		$systemData=$LocSystem->environment();
+		
+		$systemWarning=array('php'=>array(),'path_write'=>array(),'path_read'=>array());
+		if(is_array($systemData['php'])){
+			foreach ($systemData['php'] as $k=>$v){
+				if(empty($v[1])){
+					
+					$systemWarning['php'][$v[0]]=$v[0];
+				}
+			}
+		}
+		if(is_array($systemData['path'])){
+			foreach ($systemData['path'] as $k=>$v){
+				if(empty($v[1])){
+					
+					$systemWarning['path_write'][$v[0]]=$v[0];
+				}
+				if(empty($v[2])){
+					
+					$systemWarning['path_read'][$v[0]]=$v[0];
+				}
+			}
+		}
+		
+		$hasSystemWarning=false;
+		foreach ($systemWarning as $k=>$v){
+			if(!empty($v)){
+				$hasSystemWarning=true;
+			}
+		}
+		if(!$hasSystemWarning){
+			$systemWarning=null;
+		}
+		
+		
+		
+		$adminIndexData=cache('backstage_admin_index');
+		
 		
 		$timeout=NOW_TIME-(3600*24*30);
 		$mcacheSource=CacheModel::getInstance('source_url');
@@ -89,12 +128,14 @@ class Backstage extends BaseController{
 		$mcacheCont=CacheModel::getInstance('cont_url');
 		$mcacheCont->db()->where('dateline','<',$timeout)->delete();
 		
-		$GLOBALS['content_header']='后台管理';
-		$GLOBALS['breadcrumb']=breadcrumb(array('首页'));
+		$GLOBALS['_sc']['p_name']='后台管理';
+		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Backstage/index'),'title'=>'首页')));
 		
 		$this->assign('runInfo',$runInfo);
 		$this->assign('serverData',$serverData);
 		$this->assign('upgradeDb',$upgradeDb);
+		$this->assign('systemWarning',$systemWarning);
+		$this->assign('adminIndexData',$adminIndexData);
 		
 		return $this->fetch('backstage/index');
 	}
@@ -105,10 +146,21 @@ class Backstage extends BaseController{
 	}
 	/*获取推送消息*/
 	public function adminIndexAction(){
-		$callback=input('?'.config('var_jsonp_handler'))?input(config('var_jsonp_handler')):config('default_jsonp_handler');
-		$html=get_html('https://www.skycaiji.com/store/client/adminIndex?v='.SKYCAIJI_VERSION.'&'.config('var_jsonp_handler').'='.rawurlencode($callback),null,null,'utf-8');
-		header('Content-Type:application/json;charset=utf-8');
-		exit($html);
+		$refresh=input('refresh');
+		$data=cache('backstage_admin_index');
+		$data=is_array($data)?$data:array();
+		if($refresh||empty($data['html'])){
+			
+			$data=get_html('https://www.skycaiji.com/store/client/adminIndex?v='.SKYCAIJI_VERSION,null,null,'utf-8');
+			$data=json_decode($data,true);
+			
+			$data=array(
+				'ver'=>$data['ver'],
+				'html'=>$data['html']
+			);
+			cache('backstage_admin_index',$data);
+		}
+		return json($data);
 	}
 	/*后台任务操作*/
 	public function backstageTaskAction(){
@@ -221,7 +273,7 @@ class Backstage extends BaseController{
 		}
 	}
 	
-	/*生成js语言包文件*/
+	
 	public function createJsLangAction(){
 		$langs=array();
 		$langs['zh-cn']='zh-cn';
@@ -259,4 +311,5 @@ class Backstage extends BaseController{
 		}
 		print_r ( $repeatList );
 	}
+	
 }

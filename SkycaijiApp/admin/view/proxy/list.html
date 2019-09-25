@@ -1,0 +1,121 @@
+{extend name="common:main_clean" /}
+{block name="cssjs"}
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/proxy.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div style="border-bottom:1px solid #ddd;padding:10px 0;">
+	<form id="form_search" method="post" action="{:url('Proxy/list')}" class="form-inline">
+		<div class="form-group form-group-sm">
+			<label>每页显示</label>
+		    <select name="num" class="form-control">
+			    <option value="100">100条</option>
+			    <option value="200">200条</option>
+			    <option value="500">500条</option>
+			    <option value="1000">1000条</option>
+		    </select>
+	    </div>
+		<div class="form-group form-group-sm">
+        	<input type="text" name="ip" class="form-control" placeholder="IP（选填）" />
+	    </div>
+		<div class="form-group form-group-sm">
+        	<input type="text" name="user" class="form-control" placeholder="用户名（选填）" />
+	    </div>
+		<div class="form-group form-group-sm">
+        	<input type="text" name="pwd" class="form-control" placeholder="密码（选填）" />
+	    </div>
+	    <div class="form-group form-group-sm">
+	    	<select name="type" class="form-control" style="width:95px;">
+	    		<option value="all">类型</option>
+				{foreach $proxyTypes as $k=>$v}
+				<option value="{$v}"{$curType[$v]}>{$k}</option>
+				{/foreach}
+			</select>
+	    </div>
+		<div class="form-group form-group-sm">
+		    <select name="invalid" class="form-control">
+			    <option value="all">状态</option>
+			    <option value="0">有效</option>
+			    <option value="1">无效</option>
+		    </select>
+	    </div>
+        <button type="submit" class="btn btn-default btn-sm">{$Think.lang.search}</button>
+	</form>
+</div>
+<form id="form_list" method="post" ajax-submit="true" action="{:url('Proxy/op')}">
+	<input type="hidden" name="op" value="" />
+	<input type="hidden" name="url_params" value="{$urlParams}" />
+	<input type="hidden" name="ips" value="" />
+	<input type="hidden" name="ip_list" value="" />
+	<input type="hidden" name="user_list" value="" />
+	<input type="hidden" name="pwd_list" value="" />
+	<input type="hidden" name="type_list" value="" />
+	<div class="table-responsive proxy-ip-list">
+	<table id="list_table" class="table table-hover datatable">
+		<thead>
+			<tr>
+				<td class="chk"><label><input type="checkbox" class="check-all-ip" /> 全部</label></td>
+				<td>
+					<a href="javascript:;" class="label label-danger delete-all-ip">{$Think.lang.delete}</a>
+					<a href="javascript:;" class="label label-success update-all-ip">修改</a>
+				</td>
+				{if condition="!empty($pagenav)"}
+				<td colspan="6">{$pagenav}</td>
+				{/if}
+			</tr>
+			<tr>
+				<th width="60" class="chk">{$Think.lang.select}</th>
+				<th colspan="2">IP（带端口）</th>
+				<th>用户名（选填）</th>
+				<th>密码（选填）</th>
+				<th>类型</th>
+				<th>添加时间</th>
+				<th>{$Think.lang.op}</th>
+			</tr>
+		</thead>
+		<tbody>
+		{foreach name="dataList" item="item"}
+			<tr class="form-group-sm">
+				<td class="chk p-top"><input type="checkbox" data-name="ips[]" value="{$item['ip']}" /></td>
+				{if $item['invalid']>0||$item['failed']>0}
+				<td class="p-ip"><input type="text" data-name="ip_list[]" class="form-control" value="{$item['ip']}" /></td>
+				<td class="p-ip-info">
+					{if $item['invalid']>0}&nbsp;无效的{/if}
+					{if $item['failed']>0}&nbsp;失败{$item['failed']}次{/if}
+				</td>
+				{else/}
+				<td class="p-ip" colspan="2"><input type="text" data-name="ip_list[]" class="form-control" value="{$item['ip']}" /></td>
+				{/if}
+				<td><input type="text" data-name="user_list[]" class="form-control" value="{$item['user']}" /></td>
+				<td><input type="text" data-name="pwd_list[]" class="form-control" value="{$item['pwd']}" /></td>
+				<td>
+					{php}$curType=array($item['type']=>' selected="true"');{/php}
+					<select data-name="type_list[]" class="form-control" style="width:95px;">
+						{foreach $proxyTypes as $k=>$v}
+						<option value="{$v}"{$curType[$v]}>{$k}</option>
+						{/foreach}
+					</select>
+				</td>
+				<td class="p-top">{:date('Y-m-d H:i',$item['addtime'])}</td>
+				<td class="p-top"><a href="javascript:;" class="glyphicon glyphicon-remove op-delete"></a></td>
+			</tr>
+		{/foreach}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td class="chk"><label><input type="checkbox" class="check-all-ip" /> 全部</label></td>
+				<td>
+					<a href="javascript:;" class="label label-danger delete-all-ip">{$Think.lang.delete}</a>
+					<a href="javascript:;" class="label label-success update-all-ip">修改</a>
+				</td>
+				{if condition="!empty($pagenav)"}
+				<td colspan="6">{$pagenav}</td>
+				{/if}
+			</tr>
+		</tfoot>
+	</table>
+	</div>
+</form>
+<script type="text/javascript">
+window.proxyClass.init_list({$search|json_encode});
+</script>
+{/block}

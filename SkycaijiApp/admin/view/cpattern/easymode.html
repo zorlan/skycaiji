@@ -1,0 +1,31 @@
+{extend name="common:main_clean" /}
+{block name="cssjs"}
+<link rel="stylesheet" href="__PUBLIC__/static/css/cpattern_easy.css?{$Think.config.html_v}">
+<link rel="stylesheet" href="__PUBLIC__/static/css/introjs.css?{$Think.config.html_v}">
+<script type="text/javascript" src="__PUBLIC__/static/js/intro.js?{$Think.config.html_v}"></script>
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/cpattern_easy.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div id="wrapper">
+	<iframe id="ifr_collector" src="{:url('Collector/set?easymode=1&task_id='.$taskId)}"></iframe>
+	<div id="box_guide">
+		<input type="hidden" id="coll_id" value="{$collId}" />
+		<div class="input-group">
+			<div class="input-group-btn">
+		        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">新手引导 <span class="caret"></span></button>
+		        <ul class="dropdown-menu">
+		          <li><a href="javascript:;" onclick="cpatternEasy.start_coll_guide()">开始引导</a></li>
+		          <li><a href="javascript:;" onclick="cpatternEasy.coll_goto_step(0,true)">重新引导</a></li>
+		        </ul>
+	      	</div>
+			<input type="text" id="browser_url" class="form-control" placeholder="请输入网址" />
+			<span class="input-group-btn">
+				<button class="btn btn-primary" type="button" id="btn_browser">分析网页</button>
+			</span>
+		</div>
+		<div id="ifr_browser_box">
+			<iframe id="ifr_browser" name="ifr_browser"></iframe>
+		</div>
+	</div>
+</div>
+{/block}

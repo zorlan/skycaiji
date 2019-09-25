@@ -1,0 +1,34 @@
+{extend name="common:main_clean" /}
+{block name="cssjs"}
+<link rel="stylesheet" href="__PUBLIC__/static/css/cpattern_browser.css?{$Think.config.html_v}">
+<script type="text/javascript" src="__PUBLIC__/jquery/jquery.min.js?{$Think.config.html_v}"></script>
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/cpattern_browser.js?{$Think.config.html_v}"></script>
+
+<style type="text/css">
+#json_tree{width:100%;overflow:hidden;}
+#json_tree ul{list-style:none;margin:0px;padding:0px;padding-left:20px;}
+#json_tree li{padding:0;margin:0;}
+#json_tree .tree{cursor:pointer;margin-left:-16px;margin-right:2px;}
+
+#json_tree .node{color:#7F007F;}
+#json_tree .val{}
+</style>
+<script src="__PUBLIC__/static/js/admin/json_tree.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="form-group" style="padding-top:10px;">
+	<label>抓取到JSON字符串</label>
+	<textarea id="txt_json" rows="3" class="form-control">{$jsonHtml}</textarea>
+</div>
+<label>JSON解析</label>
+<div id="json_tree"></div>
+
+<script type="text/javascript">
+'use strict';//严格模式
+$(document).ready(function(){
+	jsonTree.treeId='#json_tree';
+	jsonTree.treeClass='.tree';
+	jsonTree.load($('#txt_json').val());
+});
+</script>
+{/block}

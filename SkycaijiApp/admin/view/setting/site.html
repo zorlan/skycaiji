@@ -27,13 +27,17 @@
 		        	<label class="radio-inline"><input type="radio" name="login[limit]" value="1">{$Think.lang.yes}</label>
 		        	<label class="radio-inline"><input type="radio" name="login[limit]" value="0">{$Think.lang.no}</label>
 		        </div>
-		        <div class="input-group" id="login_limit" style="margin-top:10px;display:none;">
-		        	<span class="input-group-addon">登录失败</span>
-		        	<input type="number" name="login[failed]" class="form-control" value="{$siteConfig['login']['failed']}">
-		        	<span class="input-group-addon">次，将被锁定</span>
-			       	<input type="number" name="login[time]" class="form-control" value="{$siteConfig['login']['time']}">
-			       	<span class="input-group-addon">小时</span>
-		        	
+		        <div id="login_limit" style="margin-top:10px;display:none;">
+		        	<div class="input-group" style="margin-bottom:5px;">
+		        		<span class="input-group-addon">登录失败</span>
+		        		<input type="number" name="login[failed]" class="form-control" value="{$siteConfig['login']['failed']}">
+		        		<span class="input-group-addon" style="border-left:0;">次</span>
+		        	</div>
+		        	<div class="input-group">
+		        		<span class="input-group-addon">锁定登录</span>
+			       		<input type="number" name="login[time]" class="form-control" value="{$siteConfig['login']['time']}">
+			       		<span class="input-group-addon">小时</span>
+			       	</div>
 			    </div>
 		    </div>
 		    <div class="form-group">
