@@ -22,6 +22,20 @@ class ReleaseApp extends BaseModel{
 		
 		$cms['module']='cms';
 		$cms['uptime']=$cms['uptime']>0?$cms['uptime']:NOW_TIME;
+		
+		if(!preg_match('/^([A-Z][a-z0-9]*){3}$/',$cms['app'])){
+			
+			return false;
+		}
+		if(!preg_match('/^\s*namespace\s+plugin\\\release\b/im',$code)){
+			
+			return false;
+		}
+		if(!preg_match('/class\s+'.$cms['app'].'\b/i',$code)){
+			
+			return false;
+		}
+		
 		$cmsData=$this->where('app',$cms['app'])->find();
 		$success=false;
 		

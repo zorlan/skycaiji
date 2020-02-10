@@ -1,8 +1,8 @@
-{if condition="!empty($collData)"}
+{if condition="!empty($pluginData)"}
 <script src="__PUBLIC__/static/js/admin/store.js?{$Think.config.html_v}"></script>
 <div>
-	<form id="win_form_save2store" action="https://www.skycaiji.com/client/rule/upload" method="post" target="myModalIframe">
-	<input type="hidden" name="rule" value="{:base64_encode(serialize($collData))}" />
+	<form id="win_form_save2store" action="https://www.skycaiji.com/client/plugin/upload" method="post" target="myModalIframe">
+	<input type="hidden" name="plugin" value="{:base64_encode(serialize($pluginData))}" />
 	</form>
 	<script type="text/javascript">
 		$(document).ready(function(){
@@ -13,5 +13,5 @@
 	</script>
 </div>
 {else /}
-	规则不存在
+	插件不存在
 {/if}

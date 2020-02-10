@@ -1,0 +1,28 @@
+<form id="win_form_upload" method="post" enctype="multipart/form-data" action="{:url('Mystore/upload')}">
+	<input name="replace" type="hidden" value="" />
+	{:html_usertoken()}
+	<div class="form-group">
+		<label>插件文件</label>
+		<input type="file" name="plugin_file" class="form-control" style="padding:4px 0 0 4px; background:#efefef;">
+	</div>
+	{if condition="$GLOBALS['_sc']['c']['site']['verifycode']"}	
+	<div class="form-group">
+		<label>{$Think.lang.verifycode}</label>
+		<div class="input-group">
+			<input type="text" name="verifycode" class="form-control" />
+			<div class="input-group-btn"><img src="{:url('Admin/Index/verify')}" class="verify-img" onclick="refreshVerify(this)" /></div>
+		</div>
+	</div>
+	{/if}
+   	<div class="form-group">
+		<button type="submit" class="btn btn-primary btn-block">{$Think.lang.submit}</button>
+	</div>
+</form>
+<script type="text/javascript">
+ajaxFormFile('#win_form_upload');
+function win_submit_replace(){
+	//替换插件
+	$('#win_form_upload').find('[name="replace"]').val(1);
+	$('#win_form_upload').submit();
+}
+</script>

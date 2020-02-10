@@ -1263,7 +1263,7 @@ class CpatternBase extends Collector{
 		return $tags;
 	}
 	/**
-	 * 执行数据处理》使用函数
+	 * 执行数据处理»使用函数
 	 * @param string $module 模块
 	 * @param string $funcName 函数/方法
 	 * @param string $fieldVal 字段值
@@ -1282,7 +1282,7 @@ class CpatternBase extends Collector{
 				'extend'=>'EXTEND_PROCESS_FUNC',
 			),
 			'processIf' => array (
-				'name' => '条件判断》使用函数',
+				'name' => '条件判断»使用函数',
 				'config'=>'allow_process_if',
 				'extend'=>'EXTEND_PROCESS_IF',
 			)
@@ -1298,10 +1298,10 @@ class CpatternBase extends Collector{
 				
 				if(!function_exists($funcName)){
 					
-					$this->error('数据处理》'.$options['name'].'》无效的函数：'.$funcName);
+					$this->error('数据处理»'.$options['name'].'»无效的函数：'.$funcName);
 				}elseif(!array_key_exists($funcName, config($options['config']))&&!array_key_exists($funcName, config($options['extend']))){
 					
-					$this->error('数据处理》'.$options['name'].'》未配置函数：'.$funcName);
+					$this->error('数据处理»'.$options['name'].'»未配置函数：'.$funcName);
 				}else{
 					$success=true;
 				}
@@ -1329,12 +1329,12 @@ class CpatternBase extends Collector{
 				if(is_object($class_list[$className])){
 					
 					if(!method_exists($class_list[$className], $methodName)){
-						$this->error('数据处理》'.$options['name'].'》不存在方法：'.$className.'-&gt;'.$methodName);
+						$this->error('数据处理»'.$options['name'].'»不存在方法：'.$className.'-&gt;'.$methodName);
 					}else{
 						$success=true;
 					}
 				}else{
-					$msg='数据处理》'.$options['name'].'》';
+					$msg='数据处理»'.$options['name'].'»';
 					if($class_list[$className]==1){
 						$msg.='不存在插件：';
 					}elseif($class_list[$className]==2){

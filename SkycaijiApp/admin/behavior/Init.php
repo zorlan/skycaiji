@@ -21,11 +21,9 @@ class Init{
 			
 			$httpOrigin=strtolower($_SERVER['HTTP_ORIGIN']);
 			$httpOrigin=rtrim($httpOrigin,'/');
-			
-			$allowOrigins=array('http://www.skycaiji.com','https://www.skycaiji.com');
-			
+		
 			$allowOrigin='';
-			if(in_array($httpOrigin,$allowOrigins)){
+			if(in_array($httpOrigin,config('allow_origins'))){
 				
 				$allowOrigin=$httpOrigin;
 			}else{

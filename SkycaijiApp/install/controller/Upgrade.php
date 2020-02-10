@@ -36,7 +36,7 @@ class Upgrade extends BaseController{
     		$this->error($result['msg'],url('Admin/Index/index'));
     	}
     }
-    /*延续后台升级操作》升级数据库*/
+    /*延续后台升级操作»升级数据库*/
     public function adminAction(){
     	$updb=new UpgradeDb();
     	$result=$updb->upgrade();

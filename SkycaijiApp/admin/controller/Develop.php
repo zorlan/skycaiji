@@ -832,6 +832,98 @@ EOF;
 		}
 	}
 	
+	/*保存到云端*/
+	public function save2storeAction(){
+		$type=input('type');
+		$app=input('app');
+		$pluginData=$this->_get_plugin_data($type,$app);
+		$this->assign('pluginData',$pluginData);
+		return $this->fetch();
+	}
+	/*导出插件*/
+	public function exportAction(){
+		$type=input('type');
+		$app=input('app');
+		$pluginData=$this->_get_plugin_data($type,$app);
+
+		set_time_limit(600);
+		$txt='/*skycaiji-plugin-start*/'.base64_encode(serialize($pluginData)).'/*skycaiji-plugin-end*/';
+		$name=$pluginData['app'];
+		ob_start();
+		header("Expires: 0" );
+		header("Pragma:public" );
+		header("Cache-Control:must-revalidate,post-check=0,pre-check=0" );
+		header("Cache-Control:public");
+		header("Content-Type:application/octet-stream" );
+		
+		header("Content-transfer-encoding: binary");
+		header("Accept-Length: " .mb_strlen($txt));
+		if (preg_match("/MSIE/i", $_SERVER["HTTP_USER_AGENT"])) {
+			header('Content-Disposition: attachment; filename="'.urlencode($name).'.skycaiji"');
+		}else{
+			header('Content-Disposition: attachment; filename="'.$name.'.skycaiji"');
+		}
+		echo $txt;
+		ob_end_flush();
+	}
+	protected function _get_plugin_data($type,$app){
+		$mapp=null;
+		if($type=='release'){
+			$mapp=model('ReleaseApp');
+		}elseif($type=='func'){
+			$mapp=model('FuncApp');
+		}else{
+			$this->error('类型错误');
+		}
+		if(empty($app)){
+			$this->error('app标识错误');
+		}
+		$pluginDb=$mapp->where('app',$app)->find();
+		if(empty($pluginDb)){
+			$this->error('插件不存在');
+		}
+		
+		$pluginData=array(
+			'app'=>$pluginDb['app'],
+			'name'=>$pluginDb['name'],
+			'type'=>$type,
+			'module'=>$pluginDb['module'],
+			'uptime'=>$pluginDb['uptime'],
+			'store_url'=>''
+		);
+		
+		if(!empty($pluginDb['provider_id'])){
+			
+			$provData=model('Provider')->where('id',$pluginDb['provider_id'])->find();
+			$pluginData['store_url']=$provData['url'].'/client/plugin/detail?app='.$pluginDb['app'];
+		}
+		
+		if(empty($pluginData['name'])){
+			$this->error('插件名称为空');
+		}
+		if(empty($pluginData['module'])){
+			$this->error('插件模块为空');
+		}
+		$appFile=config('plugin_path').'/'.$type.'/'.$pluginDb['module'].'/'.$pluginData['app'].'.php';
+		if($type=='release'){
+			$appTpl=config('plugin_path').'/'.$type.'/view/'.$pluginDb['module'].'/'.$pluginData['app'].'.html';
+			if(file_exists($appTpl)){
+				
+				$appTpl=file_get_contents($appTpl);
+				$pluginData['tpl']=base64_encode($appTpl);
+			}
+		}
+		if(file_exists($appFile)){
+			
+			$appFile=file_get_contents($appFile);
+			$pluginData['code']=base64_encode($appFile);
+		}
+		if(empty($pluginData['code'])){
+			$this->error('插件文件不存在');
+		}
+		return $pluginData;
+	}
+	
 	public function _format_array($arr,$headStr=''){
 		if(is_array($arr)){
 			$arr=var_export($arr,true);

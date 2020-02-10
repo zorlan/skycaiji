@@ -86,7 +86,7 @@ function is_collecting(){
 		return false;
 	}
 }
-/*移除自动采集》正在采集状态*/
+/*移除自动采集»正在采集状态*/
 function remove_auto_collecting(){
 	\skycaiji\admin\model\CacheModel::getInstance()->db()->where('cname','auto_collecting')->delete();
 }

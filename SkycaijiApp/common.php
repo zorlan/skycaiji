@@ -10,7 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.3');
+define('SKYCAIJI_VERSION', '2.3.1');
 define('NOW_TIME', time());
 \think\Loader::addNamespace('plugin', realpath(ROOT_PATH.'plugin'));
 \think\Loader::addNamespace('util',realpath(APP_PATH.'extend/util'));

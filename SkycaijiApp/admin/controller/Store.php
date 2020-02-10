@@ -54,6 +54,8 @@ class Store extends BaseController {
 	}
 	/*安装规则*/
 	public function installRuleAction(){
+		$this->_checkOrigin();
+		
 		$mrule=model('Rule');
 		$rule=json_decode(base64_decode(input('post.rule')),true);
 		
@@ -96,48 +98,17 @@ class Store extends BaseController {
 	}
 	/*安装插件*/
 	public function installPluginAction(){
+		$this->_checkOrigin();
+		
 		$plugin=json_decode(base64_decode(input('post.plugin')),true);
-		$plugin['code']=base64_decode($plugin['code']);
-		if(empty($plugin['app'])){
-			$this->dispatchJump(false,'标识错误');
-		}
-		if(empty($plugin['name'])){
-			$this->dispatchJump(false,'名称错误');
-		}
-		if(empty($plugin['type'])){
-			$this->dispatchJump(false,'类型错误');
-		}
-		if(empty($plugin['module'])){
-			$this->dispatchJump(false,'模块错误');
-		}
-		if(empty($plugin['code'])){
-			$this->dispatchJump(false,'不是可用的程序');
-		}
-		if(!empty($plugin['tpl'])){
-			
-			$plugin['tpl']=base64_decode($plugin['tpl']);
-		}
-		
-		$newData=array('app'=>$plugin['app'],'name'=>$plugin['name'],'desc'=>$plugin['desc'],'uptime'=>$plugin['uptime']);
-		
-		
-		$newData['provider_id']=$this->_getStoreProvid($plugin['store_url']);
-		
-		if($plugin['type']=='release'){
-			
-			model('ReleaseApp')->addCms($newData,$plugin['code'],$plugin['tpl']);
-			$this->dispatchJump(true);
-		}elseif($plugin['type']=='func'){
-			
-			$newData['module']=$plugin['module'];
-			model('FuncApp')->addFunc($newData,$plugin['code']);
-			$this->dispatchJump(true);
-		}else{
-			$this->dispatchJump(false);
-		}
+		$result=$this->_installPlugin($plugin);
+
+		$this->dispatchJump($result['success'],$result['msg']);
 	}
 	/*安装应用程序*/
 	public function installAppAction(){
+		$this->_checkOrigin();
+		
 		$app=json_decode(base64_decode(input('post.app')),true);
 		if(empty($app['app'])){
 			$this->dispatchJump(false,'app标识错误');
@@ -281,13 +252,86 @@ class Store extends BaseController {
 			$this->dispatchJump(false,'操作错误！');
 		}
 	}
+	
+	public function _installPlugin($plugin){
+		$result=array('success'=>false,'msg'=>'');
+	
+		$plugin['code']=base64_decode($plugin['code']);
+		if(empty($plugin['app'])){
+			$result['msg']='标识错误';
+			return $result;
+		}
+		if(empty($plugin['name'])){
+			$result['msg']='名称错误';
+			return $result;
+		}
+		if(empty($plugin['type'])){
+			$result['msg']='类型错误';
+			return $result;
+		}
+		if(empty($plugin['module'])){
+			$result['msg']='模块错误';
+			return $result;
+		}
+		if(empty($plugin['code'])){
+			$result['msg']='插件文件错误';
+			return $result;
+		}
+		if(!empty($plugin['tpl'])){
+			
+			$plugin['tpl']=base64_decode($plugin['tpl']);
+		}
+
+		$newData=array('app'=>$plugin['app'],'name'=>$plugin['name'],'desc'=>$plugin['desc'],'uptime'=>$plugin['uptime']);
+	
+		
+		$newData['provider_id']=$this->_getStoreProvid($plugin['store_url']);
+	
+		if($plugin['type']=='release'){
+			
+			$success=model('ReleaseApp')->addCms($newData,$plugin['code'],$plugin['tpl']);
+			$result['success']=$success?true:false;
+			$result['msg']=$result['success']?'成功':'无效的插件';
+		}elseif($plugin['type']=='func'){
+			
+			$newData['module']=$plugin['module'];
+			$success=model('FuncApp')->addFunc($newData,$plugin['code']);
+			$result['success']=$success?true:false;
+			$result['msg']=$result['success']?'成功':'无效的插件';
+		}else{
+			$result['msg']='类型错误';
+		}
+		return $result;
+	}
 	/*获取平台域名Id*/
 	protected function _getStoreProvid($storeUrl=null){
-		$referer=request()->server('HTTP_REFERER');
-		if(!empty($referer)){
-			$storeUrl=$referer;
+		if(empty($storeUrl)){
+			$referer=request()->server('HTTP_REFERER');
+			if(!empty($referer)){
+				$storeUrl=$referer;
+			}
 		}
     	$provId=model('Provider')->getIdByUrl($storeUrl);
     	return $provId;
+	}
+	/*检测下载来源*/
+	protected function _checkOrigin(){
+		if(!request()->isAjax()){
+			
+			$origin=strtolower($_SERVER['HTTP_ORIGIN']);
+			$origin=rtrim($origin,'/');
+			if(empty($origin)){
+				$this->dispatchJump(false,'未知来源');
+			}
+			if(!in_array($origin, config('allow_origins'))){
+				
+				$provData=model('Provider')->where(array('domain'=>$origin))->find();
+				if(empty($provData)){
+					$this->dispatchJump(false,'未知的第三方来源：'.$origin);
+				}elseif($provData['enable']!=1){
+					$this->dispatchJump(false,'未受信任的第三方来源：'.$origin);
+				}
+			}
+		}
 	}
 }

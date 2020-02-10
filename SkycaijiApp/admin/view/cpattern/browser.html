@@ -1,8 +1,8 @@
 {$html}
 <!-- 以下为蓝天采集器代码 -->
-<link rel="stylesheet" href="__PUBLIC__/static/css/cpattern_browser.css?{$Think.config.html_v}">
-<script type="text/javascript" src="__PUBLIC__/jquery/jquery.min.js?{$Think.config.html_v}"></script>
-<script type="text/javascript" src="__PUBLIC__/static/js/admin/cpattern_browser.js?{$Think.config.html_v}"></script>
+<link rel="stylesheet" href="{:config('root_website')}/public/static/css/cpattern_browser.css?{$Think.config.html_v}">
+<script type="text/javascript" src="{:config('root_website')}/public/jquery/jquery.min.js?{$Think.config.html_v}"></script>
+<script type="text/javascript" src="{:config('root_website')}/public/static/js/admin/cpattern_browser.js?{$Think.config.html_v}"></script>
 <script type="text/javascript">
 	$(document).ready(function() {
 		window.skycaijiCB.init({$config|json_encode});

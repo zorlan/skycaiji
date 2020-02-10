@@ -314,9 +314,12 @@ table.datatable thead .sorting_desc:after {
 .nav-tabs-color li.active{border-top-color:#3c8dbc!important;}
 .nav-tabs-color{background:#F8F8F8!important;}
 
-.nav-check-update{float:right!important;padding:10px 15px}
-.nav-check-update a{display:inline!important;padding:0!important;}
-.nav-check-update img{width:14px;}
+.nav-tab-right{float:right!important;padding:10px 15px;}
+.nav-tab-right a{color:#555;}
+.nav-tab-right .nav-sep{color:#999;font-size:90%;}
+.nav-tab-right .nav-upload{display:inline;}
+.nav-tab-right .nav-check-update{display:inline;}
+.nav-tab-right .nav-check-update img{width:14px;}
 /*设置*/
 .proxy-ip-iframe{
 	width:100%;

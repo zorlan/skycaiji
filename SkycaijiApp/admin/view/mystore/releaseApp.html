@@ -10,9 +10,13 @@
     	<li><a href="{:url('Mystore/rule')}">采集规则</a></li>
     	<li class="active"><a href="{:url('Mystore/releaseApp')}">发布插件</a></li>
     	<li><a href="{:url('Mystore/funcApp')}">函数插件</a></li>
-    	<li class="nav-check-update">
-    		<a href="javascript:;" onclick="check_releaseapp_update()">检测更新</a>
-    		<input type="checkbox" id="auto_check" {:empty($GLOBALS['_sc']['c']['store_auto_check_plugin'])?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
+    	<li class="nav-tab-right">
+    		<div class="nav-upload"><a href="{:url('Mystore/upload')}" onclick="windowModal('导入插件',$(this).attr('href'));return false;">导入插件</a></div>
+    		<span class="nav-sep">|</span>
+    		<div class="nav-check-update">
+    			<a href="javascript:;" onclick="check_releaseapp_update()">检测更新</a>
+    			<input type="checkbox" id="auto_check" {:empty($GLOBALS['_sc']['c']['store_auto_check_plugin'])?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
+    		</div>
     	</li>
 	</ul>
 	<div class="tab-content">

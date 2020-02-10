@@ -17,11 +17,11 @@ class FuncApp extends BaseModel{
 	public $funcModules=array(
 		'process'=>array (
 			'name'=>'数据处理',
-			'loc'=>'数据处理》使用函数'
+			'loc'=>'数据处理»使用函数'
 		),
 		'processIf'=>array(
 			'name'=>'条件判断',
-			'loc'=>'数据处理》条件判断》使用函数'
+			'loc'=>'数据处理»条件判断»使用函数'
 		)
 	);
 	public function __construct($data = []){
@@ -79,7 +79,25 @@ class FuncApp extends BaseModel{
 			return false;
 		}
 		$func['module']=$this->format_module($func['module']);
+		if(!$this->right_module($func['module'])){
+			return false;
+		}
+		
 		$func['uptime']=$func['uptime']>0?$func['uptime']:time();
+		
+		if(!preg_match('/^([A-Z][a-z0-9]*){2}$/',$func['app'])){
+			
+			return false;
+		}
+		if(!preg_match('/^\s*namespace\s+plugin\\\func\b/im',$code)){
+			
+			return false;
+		}
+		if(!preg_match('/class\s+'.$func['app'].'\b/i',$code)){
+			
+			return false;
+		}
+		
 		$funcData=$this->where('app',$func['app'])->find();
 		$success=false;
 		
