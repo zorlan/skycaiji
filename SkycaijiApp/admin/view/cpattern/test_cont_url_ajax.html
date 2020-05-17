@@ -12,13 +12,13 @@
 	<div class="form-group">
 	  	<div class="input-group">
 	  		<div class="input-group-btn">
-		    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><em style="font-style:normal">抓取字段</em> <span class="caret"></span></button>
+		    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><em class="test-tips" style="font-style:normal">抓取字段</em> <span class="caret"></span></button>
 		        <ul class="dropdown-menu">
-		        	<li><a href="javascript:;" data-test="get_fields">抓取字段</a></li>
-		        	<li><a href="javascript:;" data-test="get_html">抓取源码</a></li>
-		        	<li><a href="javascript:;" data-test="elements">分析网页</a></li>
-		        	<li><a href="javascript:;" data-test="get_paging_urls">抓取分页</a></li>
-		        	<li><a href="javascript:;" data-test="get_relation_urls">抓取关联页</a></li>
+		        	<li><a href="javascript:;" data-test="get_fields" data-title="抓取字段">抓取字段</a></li>
+		        	<li><a href="javascript:;" data-test="get_html" data-title="抓取源码">抓取源码</a></li>
+		        	<li><a href="javascript:;" data-test="elements" data-title="分析网页">分析网页</a></li>
+		        	<li><a href="javascript:;" data-test="get_paging_urls" data-title="抓取分页">抓取分页</a></li>
+		        	<li><a href="javascript:;" data-test="get_relation_urls" data-title="抓取关联页">抓取关联页</a></li>
 		        </ul>
 		    </div>
 	  		{if condition="!empty($url_post)"}
@@ -94,7 +94,7 @@ function test_elements(id){
 $('#win_test_cont_url .dropdown-menu a[data-test]').bind('click',function(){
 	var btnObj=$(this).parents('.dropdown-menu').eq(0).siblings('button.dropdown-toggle').eq(0);
 	btnObj.attr('data-test',$(this).attr('data-test'));
-	btnObj.find('em').eq(0).text($(this).text());
+	btnObj.find('.test-tips').text($(this).attr('data-title'));
 	if($(this).attr('data-test')=='get_fields'){
 		//显示输入数据源网址
 		$('#win_get_fields_input').show();

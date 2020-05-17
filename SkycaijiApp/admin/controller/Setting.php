@@ -23,6 +23,8 @@ class Setting extends BaseController {
     		$config['closelog']=input('closelog/d',0);
     		$config['dblong']=input('dblong/d',0);
     		$config['login']=input('login/a');
+    		$config['closetrans']=input('closetrans/d',0);
+    		
     		if($config['login']['limit']){
     			
     			if(empty($config['login']['failed'])){
@@ -265,6 +267,8 @@ class Setting extends BaseController {
     		$config=array();
     		$config['open']=input('open/d',0);
     		$config['api']=input('api','','strtolower');
+    		$config['interval']=input('interval/d',0);
+    		
     		foreach ($apiTypes as $v){
     			$config[$v]=input($v.'/a',null,'trim');
     		}

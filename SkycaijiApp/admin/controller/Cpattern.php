@@ -652,6 +652,7 @@ class Cpattern extends BaseController {
     		
     		$html=preg_replace('/<script[^<>]*?>[\s\S]*?<\/script>/i', '', $html);
     		$html=preg_replace('/<meta[^<>]*charset[^<>]*?>/i', '', $html);
+    		$html=preg_replace('/<meta[^<>]*http-equiv\s*=\s*[\'\"]{0,1}refresh\b[\'\"]{0,1}[^<>]*?>/i', '', $html);
     		header("Content-type:text/html;charset=utf-8");
     		$eCpattern->assign('html',$html);
     		$eCpattern->assign('config',$config);

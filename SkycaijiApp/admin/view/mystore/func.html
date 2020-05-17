@@ -59,7 +59,7 @@
 							</a>
 						</td>
 						<td>
-							<a href="javascript:;" class="enable" style="color:{$app['enable']?'green':'red'}">{$app['enable']?'已启用':'已禁用'}</a>
+							<a href="javascript:;" class="enable" style="color:{$app['enable']?'green':'red'}" data-val="{$app['enable']?1:0}">{$app['enable']?'已启用':'已禁用'}</a>
 							&nbsp;<a href="{:url('Develop/func?app='.$app['app'])}">开发</a>
 							&nbsp;<a href="javascript:;" class="delete">删除</a>
 						</td>

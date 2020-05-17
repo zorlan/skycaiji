@@ -27,6 +27,9 @@ class Rtoapi extends Release{
 		}
 		
 		
+		$toapi['param_name']=is_array($toapi['param_name'])?$toapi['param_name']:array();
+		$toapi['param_val']=is_array($toapi['param_val'])?$toapi['param_val']:array();
+		$toapi['param_addon']=is_array($toapi['param_addon'])?$toapi['param_addon']:array();
 		if(is_array($toapi['param_name'])){
 			$toapi['param_name']=array_array_map('trim', $toapi['param_name']);
 			foreach ($toapi['param_name'] as $k=>$v){
@@ -38,6 +41,18 @@ class Rtoapi extends Release{
 				}
 			}
 		}
+		
+		$toapi['header_name']=is_array($toapi['header_name'])?$toapi['header_name']:array();
+		$toapi['header_val']=is_array($toapi['header_val'])?$toapi['header_val']:array();
+		if(is_array($toapi['header_name'])){
+			foreach($toapi['header_name'] as $k=>$v){
+				if(empty($v)){
+					unset($toapi['header_name'][$k]);
+					unset($toapi['header_val'][$k]);
+				}
+			}
+		}
+		
 		$config['toapi']=$toapi;
 		return $config;
 	}
@@ -97,7 +112,30 @@ class Rtoapi extends Release{
 					$url.=(strpos($url,'?')===false?'?':'&').http_build_query($params);
 					$params=null;
 				}
-				$json=get_html($url,null,array(),'utf-8',$params);
+				
+				$headers=null;
+				if(is_array($this->config['toapi']['header_name'])){
+					$headers=array();
+					foreach($this->config['toapi']['header_name'] as $k=>$hname){
+						if(empty($hname)){
+							
+							continue;
+						}
+						$headers[$hname]=$this->config['toapi']['header_val'][$k];
+					}
+				}
+				
+				
+				$charset=$this->config['toapi']['charset'];
+				if($charset=='custom'){
+					$charset=$this->config['toapi']['charset_custom'];
+				}
+				if(empty($charset)){
+					$charset='utf-8';
+				}
+				
+				$json=get_html($url,$headers,array(),$charset,$params);
+				
 				$json=json_decode($json,true);
 
 				$returnData=array('id'=>'','target'=>'','desc'=>'','error'=>'');
@@ -123,7 +161,7 @@ class Rtoapi extends Release{
 				}else{
 					
 					$returnData['id']=0;
-					$returnData['error']='无响应状态';
+					$returnData['error']='发布接口无响应状态';
 				}
 				
 				$this->record_collected($contUrl,$returnData,$this->release,$contTitle);

@@ -23,7 +23,7 @@
         	<span class="glyphicon glyphicon-user form-control-feedback"></span>
     	</div>
       	<div class="form-group has-feedback">
-        	<input type="password" name="password" class="form-control" placeholder="{$Think.lang.user_password}">
+        	<input type="password" name="password" class="form-control" autocomplete="off" placeholder="{$Think.lang.user_password}">
         	<span class="glyphicon glyphicon-lock form-control-feedback"></span>
       	</div>
 		{if condition="$GLOBALS['_sc']['c']['site']['verifycode']"}	
@@ -48,4 +48,17 @@
 	</form>
   </div>
 </div>
+<script type="text/javascript">
+(function(){
+	if(!navigator.cookieEnabled){
+		//禁用了cookie
+		if(window.self === window.top){
+			modal('请启用Cookie','抱歉，您的浏览器禁止了Cookie，这将影响蓝天采集器的使用，请在浏览器设置中启用Cookie，开启后刷新界面重试！');
+		}else{
+			//是iframe
+			modal('请启用第三方Cookie','抱歉，您的浏览器禁止了第三方Cookie，这将影响蓝天采集器的使用，请在浏览器设置中启用第三方Cookie，开启后刷新界面重试！');
+		}
+	}
+})();
+</script>
 {include file="common:footer_public" /}

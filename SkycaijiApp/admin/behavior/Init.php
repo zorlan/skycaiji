@@ -19,9 +19,9 @@ class Init{
 		$curController=strtolower(request()->controller());
 		if('store'==$curController){
 			
-			$httpOrigin=strtolower($_SERVER['HTTP_ORIGIN']);
+			$httpOrigin=strtolower(request()->server('HTTP_ORIGIN'));
 			$httpOrigin=rtrim($httpOrigin,'/');
-		
+			
 			$allowOrigin='';
 			if(in_array($httpOrigin,config('allow_origins'))){
 				

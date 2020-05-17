@@ -110,11 +110,11 @@ $(document).ready(function(){
 		if(status==1){
 			$(this).html('[展开]');
 			$(this).attr('status',0);
-			$(this).parent().siblings('.cont_urls_list').hide();
+			$(this).parents('.cont_urls_num').eq(0).siblings('.cont_urls_list').hide();
 		}else{
 			$(this).html('[收起]');
 			$(this).attr('status',1);
-			$(this).parent().siblings('.cont_urls_list').show();
+			$(this).parents('.cont_urls_num').eq(0).siblings('.cont_urls_list').show();
 		}
 	});
 

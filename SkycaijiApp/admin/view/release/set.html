@@ -41,7 +41,7 @@
 						<div class="form-group" id="cms_info">
 							<div class="input-group">
 								<div class="input-group-addon">
-									<a href="javascript:;" onclick="modal('CMS路径',$(this).text());" class="glyphicon glyphicon-info-sign" style="width:16px;overflow:hidden;">
+									<a href="javascript:;" onclick="modal('CMS路径',$(this).html());" class="glyphicon glyphicon-info-sign" style="width:16px;overflow:hidden;">
 									注意是CMS程序在硬盘中的路径并非网址URL，蓝天采集器所在路径为：{:config('root_path')}
 									</a>
 									<b>{$Think.lang.rele_cms_path}</b>
@@ -99,7 +99,7 @@
 					    </div>
 					    <div class="form-group">
 					    	<label>{$Think.lang.rele_db_pwd}</label>
-					    	<input type="password" name="db[pwd]" class="form-control" value="{$config['db']['pwd']}">
+					    	<input type="password" name="db[pwd]" class="form-control" autocomplete="off" value="{$config['db']['pwd']}">
 					    </div>
 					    <div class="form-group">
 					   		<button type="button" class="btn btn-default btn-db-connect">测试连接到数据库</button>
@@ -241,15 +241,25 @@
 					</select>
 				</div>
 				<div class="form-group">
-			     	<label>请求参数</label>
+					<label>数据编码</label>
+					<select name="toapi[charset]" class="form-control">
+						<option value="">utf-8</option>
+						<option value="gbk">gbk</option>
+						<option value="gb2312">gb2312</option>
+						<option value="custom">自定义</option>
+					</select>
+					<input type="text" class="form-control" name="toapi[charset_custom]" style="display:none;margin-top:10px;">
+				</div>
+				<div class="form-group">
+			     	<label>发送数据</label>
 			      	<a href="javascript:;" class="glyphicon glyphicon-plus toapi-add-param" title="添加"></a>
 			   		<div class="table-responsive">
 			           	<table class="table table-bordered table-hover toapi-param-table" style="margin-bottom:0;">
 				            <thead>
 			                <tr>
-			                    <th>名称</th>
-			                    <th>值</th>
-			                    <th>删除</th>
+			                    <td>名称</td>
+			                    <td>值</td>
+			                    <td>删除</td>
 			                </tr>
 				            </thead>
 				            <tbody>
@@ -282,14 +292,44 @@
 			       	</div>
 				</div>
 				<div class="form-group">
-			     	<div class="page-header">响应状态</div>
-			        <p class="help-block">接口必须返回json格式的数组记录数据入库的状态，否则会标记为失败</p>
+			     	<label>请求头信息</label>
+			      	<a href="javascript:;" class="glyphicon glyphicon-plus toapi-add-header" title="添加"></a>
+			   		<div class="table-responsive">
+			           	<table class="table table-bordered table-hover toapi-header-table" style="margin-bottom:0;">
+				            <thead>
+			                <tr>
+			                    <td>名称</td>
+			                    <td>值</td>
+			                    <td>删除</td>
+			                </tr>
+				            </thead>
+				            <tbody>
+							<tr class="toapi-header-tpl" style="display:none;">
+								<td>
+									<input type="text" name="toapi[header_name][]" class="form-control">
+								</td>
+								<td>
+									<input type="text"  name="toapi[header_val][]" class="form-control">
+								</td>
+								<td>
+									<a href="javascript:;" class="glyphicon glyphicon-remove toapi-del-header" style="margin-top:8px;"></a>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+			       	</div>
+				</div>
+				<div class="form-group">
+			     	<div>
+			     		<label>响应状态</label>
+			        	<small style="margin-left:5px;color:#999;">接口必须返回json格式的数组用来记录数据入库的状态，否则会标记为失败</small>
+			        </div>
 			     	<div class="table-responsive">
 			           	<table class="table table-hover">
 			           		<thead>
 			                <tr>
-			                    <th style="width:150px;">名称</th>
-			                    <th>绑定响应的json数组健名</th>
+			                    <td style="width:150px;">名称</td>
+			                    <td>绑定响应的json数组健名</td>
 			                </tr>
 				            </thead>
 				            <tbody>
@@ -331,7 +371,7 @@
 							<input type="text" class="form-control" name="diy[app]" />
 							<p class="help-block">
 								自定义插件适用于任何网站的数据发布或开发其他发布功能<br>
-								请在网站根目录/plugin/release/diy目录中创建<b></b>插件，可参考目录中的Demo.php文件
+								请在网站根目录/plugin/release/diy目录中创建<b class="diy-app-name"></b>插件，可参考目录中的Demo.php文件
 							</p>
 						</div>
 					</div>

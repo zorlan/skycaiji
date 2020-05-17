@@ -103,11 +103,30 @@ class Rcms extends Release{
 				
 				$cmsFiles=$this->cms_files();
 				foreach ($cmsFiles as $cms=>$cmsFile){
-					$cmsFile=realpath($cmsPath.'/'.$cmsFile);
-					if(!empty($cmsFile)&&file_exists($cmsFile)){
+					if(is_array($cmsFile)){
 						
-						$cmsName=$cms;
-						break;
+						$hasCmsFile=true;
+						foreach($cmsFile as $cmsFile1){
+							$cmsFile1=realpath($cmsPath.'/'.$cmsFile1);
+							if(empty($cmsFile1)||!file_exists($cmsFile1)){
+								
+								$hasCmsFile=false;
+								break;
+							}
+						}
+						if($hasCmsFile){
+							
+							$cmsName=$cms;
+							break;
+						}
+					}else{
+						
+						$cmsFile=realpath($cmsPath.'/'.$cmsFile);
+						if(!empty($cmsFile)&&file_exists($cmsFile)){
+							
+							$cmsName=$cms;
+							break;
+						}
 					}
 				}
 			}
@@ -159,6 +178,16 @@ class Rcms extends Release{
 			'hadsky'=>'app/hadskycloudserver/index.php',
 			'mipcms'=>'app/article/Mipcms.php',
 			'maccms'=>'application/extra/maccms.php',
+			'typecho'=>'var/Typecho/Widget.php',
+			'emlog'=>array('include/controller/log_controller.php','content/cache/logalias.php'),
+			'drupal'=>'modules/simpletest/drupal_web_test_case.php',
+			'hybbs'=>'Action/HYBBS.php',
+			'sdcms'=>'app/sdcms.php',
+			'feifei'=>'Runtime/Data/_fields/feifeicms.ff_tag.php',
+			'catfish'=>'application/catfishajax/controller/Index.php',
+			'pboot'=>'data/pbootcms.db',
+			'yzmcms'=>'yzmphp/yzmphp.php',
+			'chanzhi'=>'js/chanzhi.all.js',
 		);
 		return $files;
 	}

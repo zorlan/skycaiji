@@ -26,7 +26,7 @@
 					<td class="sort"><input type="text" name="newsort[{$item['id']}]" class="form-control" value="{$item['sort']}" autocomplete="off" /></td>
 					<td><a href="javascript:;" class="store">{$item['url']}</a></td>
 					<td>{$item['title']}</td>
-					<td><a href="javascript:;" class="enable" style="color:{$item['enable']?'green':'red'}">{$item['enable']?'允许':'拒绝'}</a></td>
+					<td><a href="javascript:;" class="enable" style="color:{$item['enable']?'green':'red'}" data-val="{$item['enable']?1:0}">{$item['enable']?'允许':'拒绝'}</a></td>
 					<td>
 						<a href="javascript:;" class="comment">评价</a>
 						<span class="sep">|</span>

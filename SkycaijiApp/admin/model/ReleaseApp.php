@@ -27,11 +27,14 @@ class ReleaseApp extends BaseModel{
 			
 			return false;
 		}
-		if(!preg_match('/^\s*namespace\s+plugin\\\release\b/im',$code)){
+		
+		$codeFmt=strip_phpcode_comment($code);
+		
+		if(!preg_match('/^\s*namespace\s+plugin\\\release\b/im',$codeFmt)){
 			
 			return false;
 		}
-		if(!preg_match('/class\s+'.$cms['app'].'\b/i',$code)){
+		if(!preg_match('/class\s+'.$cms['app'].'\b/i',$codeFmt)){
 			
 			return false;
 		}

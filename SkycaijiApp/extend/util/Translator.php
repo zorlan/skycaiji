@@ -141,6 +141,11 @@ class Translator{
 		}
 		
 		
+		if(!empty($transConf['interval'])&&$transConf['interval']>0){
+			
+			usleep($transConf['interval']*1000);
+		}
+		
 		if('baidu'==$apiType){
 			$return=self::api_baidu($q, $from, $to);
 		}elseif('youdao'==$apiType){

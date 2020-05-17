@@ -17,7 +17,18 @@ class Store extends BaseController {
 		if(empty($GLOBALS['_sc']['user'])){
 			$this->dispatchJump(false,lang('user_error_is_not_admin'),url('Admin/Index/index',null,null,true));
 		}else{
-			$this->dispatchJump(true);
+			
+			if(request()->isAjax()){
+				
+				$token=$this->_getToken();
+				if(empty($token)){
+					$token=md5(request()->server('HTTP_ORIGIN').date('Y-m-d H:i:s',time()).rand(1,1000000));
+					session('store_token',array('token'=>$token,time=>time()));
+				}
+				$this->dispatchJump(true,$token);
+			}else{
+				$this->dispatchJump(false,'无效的操作！');
+			}
 		}
 	}
 	public function indexAction(){
@@ -54,7 +65,7 @@ class Store extends BaseController {
 	}
 	/*安装规则*/
 	public function installRuleAction(){
-		$this->_checkOrigin();
+		$this->_checkRequest();
 		
 		$mrule=model('Rule');
 		$rule=json_decode(base64_decode(input('post.rule')),true);
@@ -98,7 +109,7 @@ class Store extends BaseController {
 	}
 	/*安装插件*/
 	public function installPluginAction(){
-		$this->_checkOrigin();
+		$this->_checkRequest();
 		
 		$plugin=json_decode(base64_decode(input('post.plugin')),true);
 		$result=$this->_installPlugin($plugin);
@@ -107,7 +118,7 @@ class Store extends BaseController {
 	}
 	/*安装应用程序*/
 	public function installAppAction(){
-		$this->_checkOrigin();
+		$this->_checkRequest();
 		
 		$app=json_decode(base64_decode(input('post.app')),true);
 		if(empty($app['app'])){
@@ -179,77 +190,83 @@ class Store extends BaseController {
 	}
 	/*统一检测更新*/
 	public function updateAction(){
-		$storeIds=input('store_ids');
-		$storeIds=explode(',', $storeIds);
-		
-		$storeApps=input('store_apps');
-		$storeApps=explode(',', $storeApps);
-		
-		$storeIdList=array();
-		foreach ($storeIds as $id){
-			if(preg_match('/^(\w+)_(\w+)$/',$id,$id)){
-				$storeIdList[$id[1]][$id[2]]=$id[2];
-			}
-		}
-		
-		$storeAppList=array();
-		foreach ($storeApps as $app){
-			if(preg_match('/^(\w+)_(\w+)$/',$app,$app)){
-				$storeAppList[$app[1]][$app[2]]=$app[2];
-			}
-		}
-		
-		$provId=$this->_getStoreProvid(input('store_url'));
-		
 		$updateList=array('status'=>1,'data'=>array());
-		
-		if(!empty($storeIdList)){
-			foreach ($storeIdList as $type=>$ids){
-				$list=array();
-				$cond=array('store_id'=>array('in',$ids),'provider_id'=>$provId,'type'=>$type);
-				$list=model('Rule')->field('`id`,`store_id`,`uptime`')->where($cond)->column('uptime','store_id');
-				$list=is_array($list)?$list:array();
-				$updateList['data'][$type]=$list;
+		if(request()->isAjax()){
+			$storeIds=input('store_ids');
+			$storeIds=explode(',', $storeIds);
+			
+			$storeApps=input('store_apps');
+			$storeApps=explode(',', $storeApps);
+			
+			$storeIdList=array();
+			foreach ($storeIds as $id){
+				if(preg_match('/^(\w+)_(\w+)$/',$id,$id)){
+					$storeIdList[$id[1]][$id[2]]=$id[2];
+				}
 			}
-		}
-		
-		if(!empty($storeAppList)){
-			foreach ($storeAppList as $type=>$apps){
-				if(empty($type)){
-					continue;
+			
+			$storeAppList=array();
+			foreach ($storeApps as $app){
+				if(preg_match('/^(\w+)_(\w+)$/',$app,$app)){
+					$storeAppList[$app[1]][$app[2]]=$app[2];
 				}
-				$list=array();
-				$cond=array('app'=>array('in',$apps),'provider_id'=>$provId);
-				if($type=='release'||$type=='cms'){
-					$list=model('ReleaseApp')->where($cond)->column('uptime','app');
-				}elseif($type=='func'){
-					$list=model('FuncApp')->where($cond)->column('uptime','app');
-				}elseif($type=='app'){
-					foreach ($apps as $app){
-						
-						$appClass=model('App')->app_class($app,false);
-						$list[$app]=$appClass->config['version'];
+			}
+			
+			$provId=$this->_getStoreProvid(input('store_url'));
+			
+			
+			if(!empty($storeIdList)){
+				foreach ($storeIdList as $type=>$ids){
+					$list=array();
+					$cond=array('store_id'=>array('in',$ids),'provider_id'=>$provId,'type'=>$type);
+					$list=model('Rule')->field('`id`,`store_id`,`uptime`')->where($cond)->column('uptime','store_id');
+					$list=is_array($list)?$list:array();
+					$updateList['data'][$type]=$list;
+				}
+			}
+			
+			if(!empty($storeAppList)){
+				foreach ($storeAppList as $type=>$apps){
+					if(empty($type)){
+						continue;
 					}
+					$list=array();
+					$cond=array('app'=>array('in',$apps),'provider_id'=>$provId);
+					if($type=='release'||$type=='cms'){
+						$list=model('ReleaseApp')->where($cond)->column('uptime','app');
+					}elseif($type=='func'){
+						$list=model('FuncApp')->where($cond)->column('uptime','app');
+					}elseif($type=='app'){
+						foreach ($apps as $app){
+							
+							$appClass=model('App')->app_class($app,false);
+							$list[$app]=$appClass->config['version'];
+						}
+					}
+					$list=is_array($list)?$list:array();
+					$updateList['data'][$type]=$list;
 				}
-				$list=is_array($list)?$list:array();
-				$updateList['data'][$type]=$list;
 			}
 		}
 		return jsonp($updateList);
 	}
 	/*站点验证*/
 	public function siteCertificationAction(){
-		$op=input('op');
-		if($op=='set_key'){
-			
-			$key=input('post.key');
-			if(empty($key)){
-				$this->dispatchJump(false,'密钥错误');
+		if(request()->isAjax()){
+			$op=input('op');
+			if($op=='set_key'){
+				
+				$key=input('post.key');
+				if(empty($key)){
+					$this->dispatchJump(false,'密钥错误');
+				}
+				cache('site_certification',array('key'=>$key,'time'=>NOW_TIME));
+				$this->dispatchJump(true);
+			}else{
+				$this->dispatchJump(false,'操作错误！');
 			}
-			cache('site_certification',array('key'=>$key,'time'=>NOW_TIME));
-			$this->dispatchJump(true);
 		}else{
-			$this->dispatchJump(false,'操作错误！');
+			$this->dispatchJump(false,'无效的操作！');
 		}
 	}
 	
@@ -314,24 +331,39 @@ class Store extends BaseController {
     	$provId=model('Provider')->getIdByUrl($storeUrl);
     	return $provId;
 	}
-	/*检测下载来源*/
-	protected function _checkOrigin(){
+	/*验证请求源*/
+	protected function _checkRequest(){
+		
+		$token=input('token');
+		$sessionToken=$this->_getToken();
+		if(empty($token)||empty($sessionToken)||$token!=$sessionToken){
+			$this->dispatchJump(false,'token验证失败，请刷新页面或清除缓存');
+		}
+		
 		if(!request()->isAjax()){
 			
-			$origin=strtolower($_SERVER['HTTP_ORIGIN']);
+			$origin=strtolower(request()->server('HTTP_ORIGIN'));
 			$origin=rtrim($origin,'/');
 			if(empty($origin)){
 				$this->dispatchJump(false,'未知来源');
 			}
-			if(!in_array($origin, config('allow_origins'))){
-				
-				$provData=model('Provider')->where(array('domain'=>$origin))->find();
-				if(empty($provData)){
-					$this->dispatchJump(false,'未知的第三方来源：'.$origin);
-				}elseif($provData['enable']!=1){
-					$this->dispatchJump(false,'未受信任的第三方来源：'.$origin);
-				}
+			
+			$provData=model('Provider')->where(array('domain'=>$origin))->find();
+			if(empty($provData)){
+				$this->dispatchJump(false,'未知的第三方来源：'.$origin);
+			}elseif($provData['enable']!=1){
+				$this->dispatchJump(false,'未受信任的第三方来源：'.$origin);
 			}
 		}
+	}
+	protected function _getToken(){
+		$storeToken=session('store_token');
+		$token=null;
+		if(empty($storeToken)||!is_array($storeToken)||empty($storeToken['token'])){
+			$token='';
+		}else{
+			$token=$storeToken['token'];
+		}
+		return $token;
 	}
 }

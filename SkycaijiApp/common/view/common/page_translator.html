@@ -1,0 +1,34 @@
+{if empty($GLOBALS['_sc']['c']['site']['closetrans'])}
+<script type="text/javascript">
+'use strict';//严格模式
+window.gg_page_translator_loaded=false;
+if(!window.gg_page_translator_loaded){
+	window.gg_page_translator_loaded=true;
+	(function(){
+		var localLanguage=null;//当前语言
+		if (navigator.language){
+			localLanguage = navigator.language;
+		}else{
+			localLanguage = navigator.browserLanguage;
+		}
+		
+		if(localLanguage.toLowerCase()!='zh-cn'){
+			//不是简体中文加载翻译
+			window.localLanguage=localLanguage;//当前语言
+			window.resourcesUrl='__PUBLIC__/googleTrans';//资源请求路径
+
+			var eleLink=document.createElement('link');
+			eleLink.setAttribute('rel','stylesheet');
+			eleLink.setAttribute('href',window.resourcesUrl+'/page.css');
+			
+			var eleScript=document.createElement('script');
+			eleScript.setAttribute('type','text/javascript');
+			eleScript.setAttribute('src',window.resourcesUrl+'/page.js');
+			
+			$('body').append(eleLink);
+			$('body').append(eleScript);
+		}
+	})();
+}
+</script>
+{/if}

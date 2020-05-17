@@ -390,11 +390,11 @@
    		{if condition="!empty($collData)"}
 		<div class="form-group">
 			<div class="dropdown">
-				<button class="btn btn-default btn-block dropdown-toggle" type="button" id="dropdownMenuTestUrl" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+				<button class="btn btn-default btn-block dropdown-toggle" type="button" id="dropdownMenuTestSourceUrl" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 			    	测试（需先保存设置）
 			    	<span class="caret"></span>
 			  	</button>
-			  	<ul class="dropdown-menu" style="width:100%;text-align:center;" aria-labelledby="dropdownMenuTestUrl">
+			  	<ul class="dropdown-menu" style="width:100%;text-align:center;" aria-labelledby="dropdownMenuTestSourceUrl">
 			    	<li><a href="{:url('Cpattern/test?op=source_urls&coll_id='.$collData['id'])}" target="_blank" onclick="windowModal('测试',$(this).attr('href'),{lg:1});return false;">测试抓取内容页网址</a></li>
 			    	<li><a href="{:url('Cpattern/test?op=cont_url&coll_id='.$collData['id'])}&test=get_relation_urls" target="_blank" onclick="windowModal('测试',$(this).attr('href'),{lg:1});return false;">测试抓取关联页网址</a></li>
 			  	</ul>
@@ -592,7 +592,7 @@
 		</tr>
 		<tr id="coll_tpl_level_url">
 			<td>第<span class="level">级</span></td>
-			<td><a href="javascript:;" class="name"></a></td>
+			<td><a href="javascript:;" class="name" data-val=""></a></td>
 			<td>
 				<input type="hidden" data-name="config[level_urls][]" />
 				<a href="javascript:;" class="delete">删除</a>
@@ -601,7 +601,7 @@
 			</td>
 		</tr>
 		<tr id="coll_tpl_relation_url">
-			<td><a href="javascript:;" class="name"></a></td>
+			<td><a href="javascript:;" class="name" data-val=""></a></td>
 			<td class="page"></td>
 			<td>
 				<input type="hidden" data-name="config[relation_urls][]" />
@@ -611,7 +611,7 @@
 			</td>
 		</tr>
 		<tr id="coll_tpl_field">
-			<td class="field-name"></td>
+			<td class="field-name" data-val=""></td>
 			<td class="field-source"></td>
 			<td class="field-module"></td>
 			<td>

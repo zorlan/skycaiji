@@ -2,13 +2,16 @@
 <div id="window_colls">
 	<ul class="row" id="coll_list">
 	{foreach name="collList" item="coll"}
+	{php}
+		if(!empty($taskNames[$coll['task_id']])){
+			$collTitle='任务规则：'.$taskNames[$coll['task_id']];
+		}else{
+			$collTitle='采集器：'.$coll['name'];
+		}
+	{/php}
 	<li class="col-xs-6" style="padding:0;">
-		<a href="javascript:;" data-id="{$coll['id']}">
-			{if condition="!empty($taskNames[$coll['task_id']])"}
-			任务规则：{$taskNames[$coll['task_id']]}
-			{else /}
-			采集器：{$coll['name']}
-			{/if}
+		<a href="javascript:;" data-id="{$coll['id']}" data-title="{$collTitle|htmlentities}">
+			{$collTitle}
 		</a>
 	</li>
 	{/foreach}
@@ -17,7 +20,7 @@
 	<script type="text/javascript">
 	$('#window_colls #coll_list li a').bind('click',function(){
 		var id=$(this).attr('data-id');
-		var name=$(this).text();
+		var name=$(this).attr('data-title');
 		import_rule('collector:'+id,name);
 	});
 	$('#window_colls .pagination').addClass('pagination-sm');

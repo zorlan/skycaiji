@@ -2,13 +2,16 @@
 <div id="window_reles">
 	<ul class="row" id="rele_list">
 	{foreach name="releList" item="rele"}
+	{php}
+		if(!empty($taskNames[$rele['task_id']])){
+			$releTitle='任务：'.$taskNames[$rele['task_id']];
+		}else{
+			$releTitle='发布：'.$rele['name'];
+		}
+	{/php}
 	<li class="col-xs-6" style="padding:0;">
-		<a href="javascript:;" data-id="{$rele['id']}">
-			{if condition="!empty($taskNames[$rele['task_id']])"}
-			任务：{$taskNames[$rele['task_id']]}
-			{else /}
-			发布：{$rele['name']}
-			{/if}
+		<a href="javascript:;" data-id="{$rele['id']}" data-title="{$releTitle|htmlentities}">
+			{$releTitle}
 		</a>
 	</li>
 	{/foreach}
@@ -17,7 +20,7 @@
 	<script type="text/javascript">
 	$('#window_reles #rele_list li a').bind('click',function(){
 		var id=$(this).attr('data-id');
-		var name=$(this).text();
+		var name=$(this).attr('data-title');
 		releaseClass.import(id,name);
 	});
 	$('#window_reles .pagination').addClass('pagination-sm');

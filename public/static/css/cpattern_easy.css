@@ -14,8 +14,7 @@ body>.container-fluid{padding:0px;margin:0px;}
 #box_guide{
 	padding:0;
 	margin:0;
-	float:left;
-	width:65%;
+	margin-left:35%;
 }
 #ifr_browser{
 	width:100%;
@@ -26,3 +25,18 @@ body>.container-fluid{padding:0px;margin:0px;}
 }
 #ifr_browser_box{position:relative;}
 #ifr_loading{position:absolute;z-index:999999;top:15px;left:10px;background:url('../images/loading.gif') no-repeat 5px 0px;width:37px;height:32px;}
+@media(max-width:767px) {
+	#wrapper{overflow:auto;}
+	#ifr_collector {
+		width: 100%;
+		resize: none;
+		float: none;
+		resize:vertical;
+	}
+	#box_guide {
+		width: 100%
+		background:#fefefe;
+		margin-left: 0;
+		padding: 5px;
+	}
+}

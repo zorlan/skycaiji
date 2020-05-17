@@ -11,10 +11,10 @@
 					<div class="form-group">
 						<input type="text" data-process="html:html_allow" class="form-control" value="p,br,img" />
 						<div class="p-m-html-tags" module-html="html_allow">
-							<a href="javascript:;"><span>img</span>图片</a>
-							<a href="javascript:;"><span>a</span>超链接</a>
-							<a href="javascript:;"><span>p</span>段落</a>
-							<a href="javascript:;"><span>br</span>换行</a>
+							<a href="javascript:;" data-val="img"><span>img</span>图片</a>
+							<a href="javascript:;" data-val="a"><span>a</span>超链接</a>
+							<a href="javascript:;" data-val="p"><span>p</span>段落</a>
+							<a href="javascript:;" data-val="br"><span>br</span>换行</a>
 						</div>
 					</div>
                 </div>
@@ -22,18 +22,18 @@
                     <div class="form-group">
 						<input type="text" data-process="html:html_filter" class="form-control" value="" />
 						<div class="p-m-html-tags" module-html="html_filter">
-							<a href="javascript:;"><span>all</span>全部标签</a>
-							<a href="javascript:;"><span>a</span>超链接</a>
-							<a href="javascript:;"><span>img</span>图片</a>
-							<a href="javascript:;"><span>div</span>层</a>
-							<a href="javascript:;"><span>p</span>段落</a>
-							<a href="javascript:;"><span>br</span>换行</a>
-							<a href="javascript:;"><span>form</span>表单</a>
-							<a href="javascript:;"><span>iframe</span>框架</a>
-							<a href="javascript:;"><span>object</span>对象</a>
-							<a href="javascript:;"><span>script</span>脚本</a>
-							<a href="javascript:;"><span>style</span>样式</a>
-							<a href="javascript:;"><span>link</span>外部样式</a>
+							<a href="javascript:;" data-val="all"><span>all</span>全部标签</a>
+							<a href="javascript:;" data-val="a"><span>a</span>超链接</a>
+							<a href="javascript:;" data-val="img"><span>img</span>图片</a>
+							<a href="javascript:;" data-val="div"><span>div</span>层</a>
+							<a href="javascript:;" data-val="p"><span>p</span>段落</a>
+							<a href="javascript:;" data-val="br"><span>br</span>换行</a>
+							<a href="javascript:;" data-val="form"><span>form</span>表单</a>
+							<a href="javascript:;" data-val="iframe"><span>iframe</span>框架</a>
+							<a href="javascript:;" data-val="object"><span>object</span>对象</a>
+							<a href="javascript:;" data-val="script"><span>script</span>脚本</a>
+							<a href="javascript:;" data-val="style"><span>style</span>样式</a>
+							<a href="javascript:;" data-val="link"><span>link</span>外部样式</a>
 						</div>
 					</div>
                 </div>
@@ -268,12 +268,12 @@
 						<li><a href="javascript:;" data-val="###">###表示当前字段</a></li>
 					</ul>
 				</div>
-				，请按函数传参，否则运行出错！<a href="javascript:;" onclick="$(this).siblings('span').show();">扩展函数</a>
-				<span style="display:none;">
-					<br>如需扩展系统函数，请在根目录/data/config.php中添加配置：
+				，请按函数传参，否则运行出错！<a href="javascript:;" onclick="$(this).parent().find('.p-m-func-tips').show();">扩展函数</a>
+				<div class="p-m-func-tips" style="display:none;">
+					如需扩展系统函数，请在根目录/data/config.php中添加配置：
 					'EXTEND_PROCESS_FUNC'=&gt;array('PHP函数名'=&gt;'描述')
 					<br>如需扩展插件函数，可以创建<a href="{:url('Develop/func')}" target="_blank">函数插件</a>
-				</span>
+				</div>
 			</div>
 		</div>
 		</section>

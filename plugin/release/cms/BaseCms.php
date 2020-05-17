@@ -193,115 +193,6 @@ abstract class BaseCms extends \skycaiji\admin\event\ReleaseBase{
 		}
 		return $cmsDb;
 	}
-	/*引入文件必须用include，include_once在多个实例化后会失效*/
-	public function cms_db_discuz($cmsPath){
-		$dbFile=realpath($cmsPath.'/config/config_global.php');
-		//转换成thinkphp数据库配置
-		include $dbFile;//导入本地cms配置文件
-		$_config=$_config?$_config:array();
-		$cmsDb=array(
-			'db_type'  => 'mysql',
-			'db_user'  => $_config['db'][$_config['server']['id']]['dbuser'],
-			'db_pwd'   => $_config['db'][$_config['server']['id']]['dbpw'],
-			'db_host'  => $_config['db'][$_config['server']['id']]['dbhost'],
-			'db_port'  => 3306,
-			'db_name'  => $_config['db'][$_config['server']['id']]['dbname'],
-			'db_charset'  => $_config['db'][$_config['server']['id']]['dbcharset'],
-			'db_prefix'  => $_config['db'][$_config['server']['id']]['tablepre']
-		);
-		return $cmsDb;
-	}
-	public function cms_db_wordpress($cmsPath){
-		$dbFile=realpath($cmsPath.'/wp-config.php');
-		$configTxt=file_get_contents($dbFile);
-		$cmsDb=array(
-			'db_user'  => 'DB_USER',
-			'db_pwd'   => 'DB_PASSWORD',
-			'db_host'  => 'DB_HOST',
-			'db_name'  => 'DB_NAME',
-			'db_charset'  => 'DB_CHARSET',
-		);
-		//匹配定义的参数
-		foreach ($cmsDb as $dbKey=>$dbDefine){
-			if(preg_match('/define\s*\(\s*[\'\"]\s*'.$dbDefine.'\s*[\'\"]\s*\,\s*[\'\"](?P<val>[^\'\"]*?)[\'\"]\s*\)/i', $configTxt,$dbDefineVal)){
-				$cmsDb[$dbKey]=$dbDefineVal['val'];	
-			}else{
-				$cmsDb[$dbKey]='';
-			}
-		}
-		//匹配表前缀
-		if(preg_match('/\$table_prefix\s*=\s*[\'\"](?P<val>[^\'\"]*?)[\'\"]/i', $configTxt,$tablePre)){
-			$cmsDb['db_prefix']=$tablePre['val'];
-		}else{
-			$cmsDb['db_prefix']='';
-		}
-		$cmsDb['db_type']='mysql';
-		$cmsDb['db_port']=3306;
-		return $cmsDb;
-	}
-	public function cms_db_empirecms($cmsPath){
-		$dbFile=realpath($cmsPath.'/e/config/config.php');
-		define('InEmpireCMS', true);//必须定义才能引入配置
-		include $dbFile;
-		$ecms_config=$ecms_config?$ecms_config:array();
-		$cmsDb=array(
-			'db_type'  => 'mysql',
-			'db_user'  => $ecms_config['db']['dbusername'],
-			'db_pwd'   => $ecms_config['db']['dbpassword'],
-			'db_host'  => $ecms_config['db']['dbserver'],
-			'db_port'  => $ecms_config['db']['dbport'],
-			'db_name'  => $ecms_config['db']['dbname'],
-			'db_charset'  => $ecms_config['db']['setchar'],
-			'db_prefix'  => $ecms_config['db']['dbtbpre']
-		);
-		return $cmsDb;
-	}
-	public function cms_db_dedecms($cmsPath){
-		$dbFile=realpath($cmsPath.'/data/common.inc.php');
-		$cfg_dbuser=null;$cfg_dbpwd=null;$cfg_dbhost=null;$cfg_dbname=null;$cfg_db_language=null;$cfg_dbprefix=null;
-		include $dbFile;
-		$cmsDb=array(
-			'db_type'  => 'mysql',
-			'db_user'  => $cfg_dbuser,
-			'db_pwd'   => $cfg_dbpwd,
-			'db_host'  => $cfg_dbhost,
-			'db_port'  => 3306,
-			'db_name'  => $cfg_dbname,
-			'db_charset'  => $cfg_db_language,
-			'db_prefix'  => $cfg_dbprefix
-		);
-		return $cmsDb;
-	}
-	public function cms_db_phpcms($cmsPath){
-		$dbFile=realpath($cmsPath.'/caches/configs/database.php');
-		$config=include $dbFile;
-		$cmsDb=array(
-			'db_type'  => 'mysql',
-			'db_user'  => $config['default']['username'],
-			'db_pwd'   => $config['default']['password'],
-			'db_host'  => $config['default']['hostname'],
-			'db_port'  => $config['default']['port'],
-			'db_name'  => $config['default']['database'],
-			'db_charset'  => $config['default']['charset'],
-			'db_prefix'  => $config['default']['tablepre']
-		);
-		return $cmsDb;
-	}
-	public function cms_db_metinfo($cmsPath){
-		$dbFile=realpath($cmsPath.'/config/config_db.php');
-		$config=parse_ini_file($dbFile);
-		$cmsDb=array(
-			'db_type'  => 'mysql',
-			'db_user'  => $config['con_db_id'],
-			'db_pwd'   => $config['con_db_pass'],
-			'db_host'  => $config['con_db_host'],
-			'db_port'  => 3306,
-			'db_name'  => $config['con_db_name'],
-			'db_charset'  => $config['db_charset'],
-			'db_prefix'  => $config['tablepre']
-		);
-		return $cmsDb;
-	}
 	/*获取cms名称*/
 	public function cms_name($cmsPath){
 		$acms=controller('admin/Rcms','event');
@@ -388,6 +279,420 @@ abstract class BaseCms extends \skycaiji\admin\event\ReleaseBase{
 			$sltCollField.="<option value=\"field:{$collField}\">采集字段：{$collField}</option>";
 		}
 		return $sltCollField;
+	}
+	/*引入文件必须用include，include_once在多个实例化后会失效*/
+	public function cms_db_discuz($cmsPath){
+		$dbFile=realpath($cmsPath.'/config/config_global.php');
+		//转换成thinkphp数据库配置
+		include $dbFile;//导入本地cms配置文件
+		$_config=$_config?$_config:array();
+		$cmsDb=array(
+			'db_type'  => 'mysql',
+			'db_user'  => $_config['db'][$_config['server']['id']]['dbuser'],
+			'db_pwd'   => $_config['db'][$_config['server']['id']]['dbpw'],
+			'db_host'  => $_config['db'][$_config['server']['id']]['dbhost'],
+			'db_port'  => 3306,
+			'db_name'  => $_config['db'][$_config['server']['id']]['dbname'],
+			'db_charset'  => $_config['db'][$_config['server']['id']]['dbcharset'],
+			'db_prefix'  => $_config['db'][$_config['server']['id']]['tablepre']
+		);
+		return $cmsDb;
+	}
+	public function cms_db_wordpress($cmsPath){
+		$dbFile=realpath($cmsPath.'/wp-config.php');
+		$configTxt=file_get_contents($dbFile);
+		$cmsDb=array(
+			'db_user'  => 'DB_USER',
+			'db_pwd'   => 'DB_PASSWORD',
+			'db_host'  => 'DB_HOST',
+			'db_name'  => 'DB_NAME',
+			'db_charset'  => 'DB_CHARSET',
+		);
+		//匹配定义的参数
+		foreach ($cmsDb as $dbKey=>$dbDefine){
+			if(preg_match('/define\s*\(\s*[\'\"]\s*'.$dbDefine.'\s*[\'\"]\s*\,\s*[\'\"](?P<val>[^\'\"]*?)[\'\"]\s*\)/i', $configTxt,$dbDefineVal)){
+				$cmsDb[$dbKey]=$dbDefineVal['val'];
+			}else{
+				$cmsDb[$dbKey]='';
+			}
+		}
+		//匹配表前缀
+		if(preg_match('/\$table_prefix\s*=\s*[\'\"](?P<val>[^\'\"]*?)[\'\"]/i', $configTxt,$tablePre)){
+			$cmsDb['db_prefix']=$tablePre['val'];
+		}else{
+			$cmsDb['db_prefix']='';
+		}
+		$cmsDb['db_type']='mysql';
+		$cmsDb['db_port']=3306;
+		return $cmsDb;
+	}
+	public function cms_db_empirecms($cmsPath){
+		$dbFile=realpath($cmsPath.'/e/config/config.php');
+		define('InEmpireCMS', true);//必须定义才能引入配置
+		include $dbFile;
+		$ecms_config=$ecms_config?$ecms_config:array();
+		$cmsDb=array(
+			'db_type'  => 'mysql',
+			'db_user'  => $ecms_config['db']['dbusername'],
+			'db_pwd'   => $ecms_config['db']['dbpassword'],
+			'db_host'  => $ecms_config['db']['dbserver'],
+			'db_port'  => $ecms_config['db']['dbport'],
+			'db_name'  => $ecms_config['db']['dbname'],
+			'db_charset'  => $ecms_config['db']['setchar'],
+			'db_prefix'  => $ecms_config['db']['dbtbpre']
+		);
+		return $cmsDb;
+	}
+	public function cms_db_dedecms($cmsPath){
+		$dbFile=realpath($cmsPath.'/data/common.inc.php');
+		$cfg_dbuser=null;$cfg_dbpwd=null;$cfg_dbhost=null;$cfg_dbname=null;$cfg_db_language=null;$cfg_dbprefix=null;
+		include $dbFile;
+		$cmsDb=array(
+			'db_type'  => 'mysql',
+			'db_user'  => $cfg_dbuser,
+			'db_pwd'   => $cfg_dbpwd,
+			'db_host'  => $cfg_dbhost,
+			'db_port'  => 3306,
+			'db_name'  => $cfg_dbname,
+			'db_charset'  => $cfg_db_language,
+			'db_prefix'  => $cfg_dbprefix
+		);
+		return $cmsDb;
+	}
+	public function cms_db_phpcms($cmsPath){
+		$dbFile=realpath($cmsPath.'/caches/configs/database.php');
+		$config=include $dbFile;
+		$cmsDb=array(
+			'db_type'  => 'mysql',
+			'db_user'  => $config['default']['username'],
+			'db_pwd'   => $config['default']['password'],
+			'db_host'  => $config['default']['hostname'],
+			'db_port'  => $config['default']['port'],
+			'db_name'  => $config['default']['database'],
+			'db_charset'  => $config['default']['charset'],
+			'db_prefix'  => $config['default']['tablepre']
+		);
+		return $cmsDb;
+	}
+	public function cms_db_metinfo($cmsPath){
+		$dbFile=realpath($cmsPath.'/config/config_db.php');
+		$config=parse_ini_file($dbFile);
+		$cmsDb=array(
+			'db_type'  => 'mysql',
+			'db_user'  => $config['con_db_id'],
+			'db_pwd'   => $config['con_db_pass'],
+			'db_host'  => $config['con_db_host'],
+			'db_port'  => 3306,
+			'db_name'  => $config['con_db_name'],
+			'db_charset'  => $config['db_charset'],
+			'db_prefix'  => $config['tablepre']
+		);
+		return $cmsDb;
+	}
+	public function cms_db_emlog($cmsPath){
+		$configFile=realpath($cmsPath.'/config.php');
+		$cmsDb=array('db_type'=>'mysql','db_charset'=>'utf8');
+		if(file_exists($configFile)){
+			$configFile=file_get_contents($configFile);
+			if($configFile){
+				$dbKeys=array('db_host'=>'DB_HOST','db_user'=>'DB_USER','db_pwd'=>'DB_PASSWD','db_prefix'=>'DB_PREFIX','db_name'=>'DB_NAME');
+				foreach($dbKeys as $k=>$v){
+					if(preg_match('/define\s*\(\s*[\'\"]'.$v.'[\'\"]\s*,\s*[\'\"](?P<val>[^\'\"]+)[\'\"]\s*\)/i',$configFile,$val)){
+						$cmsDb[$k]=$val['val'];
+					}
+				}
+			}
+		}
+		return $cmsDb;
+	}
+	public function cms_db_drupal($cmsPath){
+		$dbFile=realpath($cmsPath.'/sites/default/settings.php');
+		$cmsDb=array();
+		if(file_exists($dbFile)){
+			$dbFile=file_get_contents($dbFile);
+			if(preg_match('/\$databases\s*\=\s*array[\s\S]+?\)\s*\;/i',$dbFile,$dbFile)){
+				$dbFile=$dbFile[0];
+				$dbParams=array('db_host'=>'host','db_user'=>'username','db_pwd'=>'password','db_port'=>'port','db_name'=>'database','db_prefix'=>'prefix');
+				foreach ($dbParams as $k=>$v){
+					if(preg_match('/\''.$v.'\'\s*\=\s*\>\s*[\'\"](?P<val>.*)[\'\"]/i',$dbFile,$dbMatch)){
+						$cmsDb[$k]=$dbMatch['val'];
+					}
+				}
+				$cmsDb['db_charset']='utf8';
+			}
+		}
+		return $cmsDb;
+	}
+	public function cms_db_chanzhi($cmsPath){
+		$dbFile=realpath($cmsPath.'/../system/config/my.php');
+		$cmsDb=array();
+		if(file_exists($dbFile)){
+			$dbFile=file_get_contents($dbFile);
+			$dbParams=array('db_host'=>'host','db_user'=>'user','db_pwd'=>'password','db_port'=>'port','db_name'=>'name','db_prefix'=>'prefix');
+			foreach ($dbParams as $k=>$v){
+				if(preg_match('/\$config->db->'.$v.'\s*=\s*[\'\"](?P<val>.*)[\'\"]/i',$dbFile,$dbMatch)){
+					$cmsDb[$k]=$dbMatch['val'];
+				}
+			}
+			$cmsDb['db_charset']='utf8';
+		}
+		return $cmsDb;
+	}
+	public function cms_db_feifei($cmsPath){
+		$dbFile=realpath($cmsPath.'/Runtime/Conf/config.php');
+		$cmsDb=array();
+		if(file_exists($dbFile)){
+			$dbFile=include $dbFile;
+			if(is_array($dbFile)){
+				$cmsDb['db_host']=$dbFile['db_host'];
+				$cmsDb['db_user']=$dbFile['db_user'];
+				$cmsDb['db_pwd']=$dbFile['db_pwd'];
+				$cmsDb['db_charset']=$dbFile['db_charset'];
+				$cmsDb['db_port']=$dbFile['db_port'];
+				$cmsDb['db_name']=$dbFile['db_name'];
+				$cmsDb['db_prefix']=$dbFile['db_prefix'];
+			}
+		}
+		return $cmsDb;
+	}
+	public function cms_db_hybbs($cmsPath){
+		$dbFile=realpath($cmsPath.'/Conf/config.php');
+		$cmsDb=array();
+		if(file_exists($dbFile)){
+			$dbFile=include $dbFile;
+			if(is_array($dbFile)){
+				$cmsDb['db_host']=$dbFile['SQL_IP'];
+				$cmsDb['db_user']=$dbFile['SQL_USER'];
+				$cmsDb['db_pwd']=$dbFile['SQL_PASS'];
+				$cmsDb['db_charset']=$dbFile['SQL_CHARSET'];
+				$cmsDb['db_port']=$dbFile['SQL_PORT'];
+				$cmsDb['db_name']=$dbFile['SQL_NAME'];
+				$cmsDb['db_prefix']=$dbFile['SQL_PREFIX'];
+	
+				$this->siteurl=rtrim($dbFile['DOMAIN_NAME'],'\/\\').'/';
+			}
+		}
+		return $cmsDb;
+	}
+	public function cms_db_sdcms($cmsPath){
+		$dbFile=realpath($cmsPath.'/config.php');
+		$cmsDb=array();
+		if(file_exists($dbFile)){
+			$dbFile=include $dbFile;
+			if(is_array($dbFile)){
+				$dbFile=$dbFile['DEFAULT_DB'];
+				$cmsDb['db_host']=$dbFile['DB_HOST'];
+				$cmsDb['db_user']=$dbFile['DB_USER'];
+				$cmsDb['db_pwd']=$dbFile['DB_PASS'];
+				$cmsDb['db_port']=$dbFile['DB_PORT'];
+				$cmsDb['db_name']=$dbFile['DB_BASE'];
+				$cmsDb['db_prefix']=$dbFile['DB_PREFIX'];
+			}
+		}
+		return $cmsDb;
+	}
+	public function cms_db_catfish($cmsPath){
+		$dbFile=realpath($cmsPath.'/application/database.php');
+		$cmsDb=array();
+		if(file_exists($dbFile)){
+			$dbFile=include $dbFile;
+			if(is_array($dbFile)){
+				$cmsDb['db_host']=$dbFile['hostname'];
+				$cmsDb['db_user']=$dbFile['username'];
+				$cmsDb['db_pwd']=$dbFile['password'];
+				$cmsDb['db_charset']=$dbFile['charset'];
+				$cmsDb['db_port']=$dbFile['hostport'];
+				$cmsDb['db_name']=$dbFile['database'];
+				$cmsDb['db_prefix']=$dbFile['prefix'];
+			}
+		}
+		return $cmsDb;
+	}
+	public function cms_db_pboot($cmsPath){
+		$dbFile=realpath($cmsPath.'/config/database.php');
+		$cmsDb=array();
+		if(file_exists($dbFile)){
+			$dbFile=include $dbFile;
+			$dbFile=$dbFile['database'];
+			if(is_array($dbFile)){
+				//使用sqlite必须开启pdo_sqlite
+				$cmsDb['db_type']=stripos($dbFile['type'], 'sqlite')!==false?'sqlite':'mysql';
+				$cmsDb['db_name']=$cmsDb['db_type']=='sqlite'?($cmsPath.$dbFile['dbname']):$dbFile['dbname'];
+				$cmsDb['db_host']=$dbFile['host'];
+				$cmsDb['db_user']=$dbFile['user'];
+				$cmsDb['db_pwd']=$dbFile['passwd'];
+				$cmsDb['db_charset']='utf8';
+				$cmsDb['db_port']=$dbFile['port'];
+				$cmsDb['db_prefix']='ay_';//固定的前缀
+			}
+		}
+		return $cmsDb;
+	}
+	public function cms_db_typecho($cmsPath){
+		$configFile=realpath($cmsPath.'/config.inc.php');
+		$cmsDb=array();
+		if(file_exists($configFile)){
+			$configFile=file_get_contents($configFile);
+			if($configFile){
+				if(preg_match('/\s*new\s*Typecho_Db\s*\([^,\(\)]+,\s*[\'\"](?P<pre>[^\'\"]+)[\'\"]/i',$configFile,$prefix)){
+					//匹配前缀
+					$cmsDb['db_prefix']=$prefix['pre'];
+				}
+				if(preg_match('/\$db->addServer\s*\((?P<db>[\s\S]+?)\)\s*,/i',$configFile,$db)){
+					//匹配数组
+					$db=$db['db'];
+					$dbKeys=array('db_host'=>'host','db_user'=>'user','db_pwd'=>'password','db_charset'=>'charset','db_port'=>'port','db_name'=>'database');
+					foreach($dbKeys as $k=>$v){
+						if(preg_match('/[\'\"]'.$v.'[\'\"]\s*=\s*>\s*[\'\"](?P<val>[^\'\"]+)[\'\"]/i',$db,$val)){
+							$cmsDb[$k]=$val['val'];
+						}
+					}
+				}
+			}
+		}
+		return $cmsDb;
+	}
+	public function cms_db_maccms($cmsPath){
+		$config=include $cmsPath.'/application/database.php';
+		$cmsDb=array(
+			'db_type'  => $config['type'],
+			'db_user'  => $config['username'],
+			'db_pwd'   => $config['password'],
+			'db_host'  => $config['hostname'],
+			'db_port'  => $config['hostport'],
+			'db_name'  => $config['database'],
+			'db_charset'  => $config['charset'],
+			'db_prefix'  => $config['prefix']
+		);
+		return $cmsDb;
+	}
+	public function cms_db_yzmcms($cmsPath){
+		$config=include $cmsPath.'/common/config/config.php';
+		$cmsDb=array(
+			'db_type'  => 'mysql',
+			'db_user'  => $config['db_user'],
+			'db_pwd'   => $config['db_pwd'],
+			'db_host'  => $config['db_host'],
+			'db_port'  => $config['db_port'],
+			'db_name'  => $config['db_name'],
+			'db_charset'  => 'utf8',
+			'db_prefix'  => $config['db_prefix']
+		);
+		return $cmsDb;
+	}
+	public function cms_db_xiunobbs($cmsPath){
+		$dbFile=realpath($cmsPath.'/conf/conf.php');
+		//转换成thinkphp数据库配置
+		$config=include $dbFile;
+	
+		$config=$config['db'][$config['db']['type']]['master'];
+		$cmsDb=array(
+			'db_type'  => 'mysql',
+			'db_user'  => $config['user'],
+			'db_pwd'   => $config['password'],
+			'db_host'  => $config['host'],
+			'db_port'  => 3306,
+			'db_name'  => $config['name'],
+			'db_charset'  => $config['charset'],
+			'db_prefix'  => $config['tablepre']
+		);
+	
+		return $cmsDb;
+	}
+	public function cms_db_hadsky($cmsPath){
+		$dbFile=realpath($cmsPath.'/puyuetian/mysql/config.php');
+		//转换成thinkphp数据库配置
+		$_G=null;
+		include $dbFile;
+		$config=$_G['MYSQL'];
+		if(preg_match('/set names (\w+)/i', $config['CHARSET'],$charset)){
+			$config['CHARSET']=$charset[1];
+		}else{
+			$config['CHARSET']='utf8';
+		}
+	
+		$cmsDb=array(
+			'db_type'  => 'mysql',
+			'db_user'  => $config['USERNAME'],
+			'db_pwd'   => $config['PASSWORD'],
+			'db_host'  => $config['LOCATION'],
+			'db_port'  => 3306,
+			'db_name'  => $config['DATABASE'],
+			'db_charset'  => $config['CHARSET'],
+			'db_prefix'  => $config['PREFIX']
+		);
+	
+		return $cmsDb;
+	}
+	public function cms_db_mipcms($cmsPath){
+		$dbFile=realpath($cmsPath.'/app/database.php');
+		//转换成thinkphp数据库配置
+		$config=include $dbFile;
+	
+		$cmsDb=array(
+			'db_type'  => $config['type'],
+			'db_user'  => $config['username'],
+			'db_pwd'   => $config['password'],
+			'db_host'  => $config['hostname'],
+			'db_port'  => $config['hostport'],
+			'db_name'  => $config['database'],
+			'db_charset'  => $config['charset'],
+			'db_prefix'  => $config['prefix']
+		);
+	
+		return $cmsDb;
+	}
+	public function cms_db_zblog($cmsPath){
+		$dbFile=realpath($cmsPath.'/zb_users/c_option.php');
+		//转换成thinkphp数据库配置
+		$config=include $dbFile;
+		$cmsDb=array(
+			'db_type'  => $config['ZC_DATABASE_TYPE'],
+			'db_user'  => $config['ZC_MYSQL_USERNAME'],
+			'db_pwd'   => $config['ZC_MYSQL_PASSWORD'],
+			'db_host'  => $config['ZC_MYSQL_SERVER'],
+			'db_port'  => $config['ZC_MYSQL_PORT'],
+			'db_name'  => $config['ZC_MYSQL_NAME'],
+			'db_charset'  => $config['ZC_MYSQL_CHARSET'],
+			'db_prefix'  => $config['ZC_MYSQL_PRE']
+		);
+		return $cmsDb;
+	}
+	public function cms_db_twcms($cmsPath){
+		$dbFile=realpath($cmsPath.'/twcms/config/config.inc.php');
+		//转换成thinkphp数据库配置
+		include_once $dbFile;//导入本地cms配置文件
+		$config=$_ENV['_config'][db];
+		$cmsDb=array(
+			'db_type'  => $config['type'],
+			'db_user'  => $config['master']['user'],
+			'db_pwd'   => $config['master']['password'],
+			'db_host'  => $config['master']['host'],
+			'db_port'  => 3306,
+			'db_name'  => $config['master']['name'],
+			'db_charset'  => $config['master']['charset'],
+			'db_prefix'  => $config['master']['tablepre']
+		);
+		return $cmsDb;
+	}
+	public function cms_db_destoon($cmsPath){
+		define('IN_DESTOON',true);
+		$dbFile=realpath($cmsPath.'/config.inc.php');
+		//转换成thinkphp数据库配置
+		$CFG=null;
+		include $dbFile;//导入本地cms配置文件
+		$cmsDb=array(
+			'db_type'  => $CFG['database'],
+			'db_user'  => $CFG['db_user'],
+			'db_pwd'   => $CFG['db_pass'],
+			'db_host'  => $CFG['db_host'],
+			'db_port'  => 3306,
+			'db_name'  => $CFG['db_name'],
+			'db_charset'  => $CFG['db_charset'],
+			'db_prefix'  => $CFG['tb_pre']
+		);
+		$this->siteurl=$CFG['url'];
+		return $cmsDb;
 	}
 }
 ?>

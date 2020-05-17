@@ -44,12 +44,12 @@
 					       	</select>
 				       	</div>
 			       		<div class="help-block name-custom-path">
-			       			<a href="javascript:;">[年]</a>&nbsp;
-			       			<a href="javascript:;">[月]</a>&nbsp;
-			       			<a href="javascript:;">[日]</a>&nbsp;
-			       			<a href="javascript:;">[时]</a>&nbsp;
-			       			<a href="javascript:;" title="图片网址MD5码的前两位">[前两位]</a>&nbsp;
-			       			<a href="javascript:;" title="图片网址MD5码的后两位">[后两位]</a>&nbsp;
+			       			<a href="javascript:;" data-val="[年]">[年]</a>&nbsp;
+			       			<a href="javascript:;" data-val="[月]">[月]</a>&nbsp;
+			       			<a href="javascript:;" data-val="[日]">[日]</a>&nbsp;
+			       			<a href="javascript:;" data-val="[时]">[时]</a>&nbsp;
+			       			<a href="javascript:;" data-val="[前两位]" title="图片网址MD5码的前两位">[前两位]</a>&nbsp;
+			       			<a href="javascript:;" data-val="[后两位]" title="图片网址MD5码的后两位">[后两位]</a>&nbsp;
 			       			用/分隔子目录
 			       		</div>
 			       	</div>
@@ -97,8 +97,8 @@ $('#form_set [name="img_name"]').bind('change',function(){
 	}
 });
 
-$('#form_set').on('click','.name-custom-path a',function(){
-	insertAtCaret($('[name="name_custom_path"]'),$(this).text());
+$('#form_set').on('click','.name-custom-path a[data-val]',function(){
+	insertAtCaret($('[name="name_custom_path"]'),$(this).attr('data-val'));
 });
 
 

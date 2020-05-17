@@ -3,7 +3,7 @@
 	<ul class="row" id="task_list">
 	{foreach name="taskList" item="task"}
 	<li class="col-xs-4" style="padding:0;">
-		<a href="javascript:;" data-id="{$task['id']}">{$task['name']}</a>
+		<a href="javascript:;" data-id="{$task['id']}" data-title="{$task['name']|htmlentities}">{$task['name']}</a>
 	</li>
 	{/foreach}
 	</ul>
@@ -11,7 +11,7 @@
 	<script type="text/javascript">
 	$('#window_tasks #task_list li a').bind('click',function(){
 		var id=$(this).attr('data-id');
-		var name=$(this).text();
+		var name=$(this).attr('data-title');
 		import_task(id,name);
 	});
 	$('#window_tasks .pagination').addClass('pagination-sm');

@@ -56,6 +56,14 @@
 		        </div>
 		        <p class="help-block">日志文件会占用磁盘空间，非运维人员建议关闭</p>
 		    </div>
+		    <div class="form-group">
+		        <label>关闭页面翻译</label>
+		        <div class="input-group">
+		        	<label class="radio-inline"><input type="radio" name="closetrans" value="1">{$Think.lang.yes}</label>
+		        	<label class="radio-inline"><input type="radio" name="closetrans" value="0">{$Think.lang.no}</label>
+		        </div>
+		        <p class="help-block">当浏览器语言不是中文时，页面将自动翻译为相应语言</p>
+		    </div>
 		   	<div class="form-group">
 				<button type="submit" class="btn btn-primary">{$Think.lang.save}</button>
 			</div>
@@ -76,6 +84,7 @@ $('#form_set [name="hidehome"][value="{$siteConfig['hidehome']|intval}"]').attr(
 $('#form_set [name="closelog"][value="{$siteConfig['closelog']|intval}"]').attr('checked', 'checked');
 $('#form_set [name="dblong"][value="{$siteConfig['dblong']|intval}"]').attr('checked', 'checked');
 $('#form_set [name="login[limit]"][value="{$siteConfig['login']['limit']|intval}"]').attr('checked', 'checked').trigger('click');
+$('#form_set [name="closetrans"][value="{$siteConfig['closetrans']|intval}"]').attr('checked', 'checked');
 
 </script>
 {/block}

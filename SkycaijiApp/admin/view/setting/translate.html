@@ -56,6 +56,11 @@
 				    </div>
 				    <p class="help-block">支持语种：{$apiLangs['qq']}</p>
 			    </div>
+			    <div class="form-group">
+		        	<label>调用间隔（毫秒，1000毫秒=1秒）</label>
+		        	<input type="number" name="interval" class="form-control" value="">
+			   		<p class="help-block">如翻译接口有频率限制，可设置间隔时间避免调用过快导致翻译失败</p>        
+			    </div>
 			</div>
 		   	<div class="form-group">
 				<button type="submit" id="btn_sub" class="btn btn-primary btn-block">{$Think.lang.save}</button>
@@ -81,6 +86,7 @@ $('#form_set [name="api"]').bind('change',function(){
 {if condition="!empty($transConfig)"}
 $('#form_set [name="open"][value="{$transConfig["open"]|intval}"]').trigger('click');
 $('#form_set [name="api"]').val("{$transConfig['api']}").trigger("change");
+$('#form_set [name="interval"]').val("{$transConfig['interval']}");
 {/if}
 </script>
 {/block}

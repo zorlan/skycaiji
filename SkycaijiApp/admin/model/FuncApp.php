@@ -89,11 +89,14 @@ class FuncApp extends BaseModel{
 			
 			return false;
 		}
-		if(!preg_match('/^\s*namespace\s+plugin\\\func\b/im',$code)){
+		
+		$codeFmt=strip_phpcode_comment($code);
+		
+		if(!preg_match('/^\s*namespace\s+plugin\\\func\b/im',$codeFmt)){
 			
 			return false;
 		}
-		if(!preg_match('/class\s+'.$func['app'].'\b/i',$code)){
+		if(!preg_match('/class\s+'.$func['app'].'\b/i',$codeFmt)){
 			
 			return false;
 		}
@@ -147,11 +150,17 @@ class FuncApp extends BaseModel{
 				$methods=array();
 				if(!empty($reMethods)){
 					foreach ($reMethods as $reMethod){
+						$methodName=$reMethod->name;
+						if(empty($methodName)||strpos($methodName,'__')===0){
+							
+							continue;
+						}
+						
 						$comment=$reMethod->getDocComment();
 						$comment=preg_replace('/^[\/\*\s]+/m', '', $comment);
 						$comment=trim($comment);
 						
-						$methods[$reMethod->name]=array('comment'=>$comment);
+						$methods[$methodName]=array('comment'=>$comment);
 					}
 				}
 				return array (
