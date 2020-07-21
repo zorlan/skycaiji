@@ -90,11 +90,95 @@
 		    </div>
 		    <div class="form-group">
 	        	<label>图片保存目录（绝对路径）</label>
-	        	<input type="text" name="config[img_path]" class="form-control" placeholder="默认设置" value="{$taskData['config']['img_path']}">
+		        <input type="text" name="config[img_path]" class="form-control" placeholder="默认设置">
 		    </div>
 		    <div class="form-group">
 	        	<label>图片链接地址（绝对地址）</label>
-	        	<input type="text" name="config[img_url]" class="form-control" placeholder="默认设置">
+		        <input type="text" name="config[img_url]" class="form-control" placeholder="默认设置">
+		    </div>
+		    <div class="form-group">
+	        	<label>图片名称</label>
+		       	<select name="config[img_name]" class="form-control">
+		       		<option value="">默认设置</option>
+		       		<option value="time">按时间生成（方便日期归类）</option>
+		       		<option value="url">按网址生成（防止重复下载）</option>
+		       		<option value="custom">自定义</option>
+		       	</select>
+		       	<div id="config_img_name_custom" style="margin-top:5px;display:none;">
+		       		<p class="help-block" style="margin-bottom:5px;font-size:12px;">注意：字段值的长度限制100字内（超出自动截取），字段值中任何特殊字符都会被替换成下划线，自定义路径或名称太长都可能导致图片保存失败</p>
+	       			<div style="width:100%;">
+	       				<div style="width:50%;float:left">
+		       				<div class="input-group">
+		       					<input type="text" name="config[name_custom_path]" class="form-control" placeholder="路径，默认设置" autocomplete="off" />
+		       					<div class="input-group-addon" style="border-left:0;border-right:0;font-weight:bold;">/</div>
+		       				</div>
+		       				<div class="help-block name-custom-path">
+		       					<div class="dropup" style="display:inline;">
+									<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										系统
+										<span class="caret"></span>
+									</a>
+									<ul class="dropdown-menu">
+										<li><a href="javascript:;" data-val="[年]">[年]</a></li>
+										<li><a href="javascript:;" data-val="[月]">[月]</a></li>
+										<li><a href="javascript:;" data-val="[日]">[日]</a></li>
+										<li><a href="javascript:;" data-val="[时]">[时]</a></li>
+										<li><a href="javascript:;" data-val="[分]">[分]</a></li>
+										<li><a href="javascript:;" data-val="[秒]">[秒]</a></li>
+										<li><a href="javascript:;" data-val="[前两位]" title="图片网址MD5码的前两位">[前两位]</a></li>
+										<li><a href="javascript:;" data-val="[后两位]" title="图片网址MD5码的后两位">[后两位]</a></li>
+										<li><a href="javascript:;" data-val="[任务名]">[任务名]</a></li>
+										<li><a href="javascript:;" data-val="[任务ID]">[任务ID]</a></li>
+									</ul>
+								</div>&nbsp;
+				       			<div class="dropup" style="display:inline;">
+									<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										采集器字段
+										<span class="caret"></span>
+									</a>
+									<ul class="dropdown-menu name-custom-path-fields">
+										<li><a href="javascript:;">没有字段，请先配置采集器设置！</a></li>
+									</ul>
+								</div>&nbsp;
+				       			用/分隔子目录
+				       		</div>
+	       				</div>
+	       				<div style="width:50%;float:left">
+		       				<input type="text" name="config[name_custom_name]" class="form-control" placeholder="名称，默认设置" autocomplete="off" />
+	       					<div class="help-block name-custom-name">
+		       					<div class="dropup" style="display:inline;">
+									<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										系统
+										<span class="caret"></span>
+									</a>
+									<ul class="dropdown-menu">
+										<li><a href="javascript:;" data-val="[图片网址MD5码]">[图片网址MD5码]</a></li>
+										<li><a href="javascript:;" data-val="[图片原名]">[图片原名]</a></li>
+										<li><a href="javascript:;" data-val="[年]">[年]</a></li>
+										<li><a href="javascript:;" data-val="[月]">[月]</a></li>
+										<li><a href="javascript:;" data-val="[日]">[日]</a></li>
+										<li><a href="javascript:;" data-val="[时]">[时]</a></li>
+										<li><a href="javascript:;" data-val="[分]">[分]</a></li>
+										<li><a href="javascript:;" data-val="[秒]">[秒]</a></li>
+										<li><a href="javascript:;" data-val="[前两位]" title="图片网址MD5码的前两位">[前两位]</a></li>
+										<li><a href="javascript:;" data-val="[后两位]" title="图片网址MD5码的后两位">[后两位]</a></li>
+										<li><a href="javascript:;" data-val="[任务名]">[任务名]</a></li>
+										<li><a href="javascript:;" data-val="[任务ID]">[任务ID]</a></li>
+									</ul>
+								</div>&nbsp;
+				       			<div class="dropup" style="display:inline;">
+									<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										采集器字段
+										<span class="caret"></span>
+									</a>
+									<ul class="dropdown-menu name-custom-name-fields">
+										<li><a href="javascript:;">没有字段，请先配置采集器设置！</a></li>
+									</ul>
+								</div>
+				       		</div>
+	       				</div>
+		       		</div>
+		       	</div>
 		    </div>
     	</div>
     </div>
@@ -105,38 +189,6 @@
 </form>
 
 <script type="text/javascript">
-{if condition="!empty($taskData)"}
-	$('#form_item select[name="tg_id"]').val("{$taskData['tg_id']|intval}");
-	$('#form_item select[name="auto"]').val("{$taskData['auto']|intval}");
-	$('#form_item select[name="module"]').val("{$taskData['module']}");
-	$('#form_item input[name="auto"][value="{$taskData["auto"]|intval}"]').prop('checked','checked');
-	$('#form_item [name="config[download_img]"][value="{$taskData["config"]["download_img"]}"]').prop('checked','checked');
-	$('#form_item [name="config[proxy]"][value="{$taskData["config"]["proxy"]}"]').prop('checked','checked');
-	
-	var task_config={:json_encode($taskData["config"])};
-	for(var i in task_config){
-		if(task_config[i]){
-			$('#task_config').addClass('in');
-			break;
-		}
-	}
-
-	$('#form_item [name="config[img_url]"]').val(task_config.img_url);
-	
-{/if}
-//模块显示导入
-$('#form_item select[name="module"]').bind('change',function(){
-	if($(this).val()!='pattern'){
-		$('#btn_import_rule').parents('.input-group-btn').hide();
-	}else{
-		$('#btn_import_rule').parents('.input-group-btn').show();
-	}
-});
-//导入本地规则
-$('#form_item [name="rule_file"]').bind('change',function(){
-	import_rule('file',$(this).val());
-	$(this).parents('.dropdown').removeClass('open');
-});
 //导入规则
 function import_rule(ruleId,ruleName){
 	$('#form_item input[name="rule_id"]').val(ruleId);
@@ -153,4 +205,75 @@ function import_task(id,name){
 	$('#btn_import_task').text('导入任务：'+name);
 	$('#myModal').modal('hide');
 }
+
+(function(){
+	//模块显示导入
+	$('#form_item select[name="module"]').bind('change',function(){
+		if($(this).val()!='pattern'){
+			$('#btn_import_rule').parents('.input-group-btn').hide();
+		}else{
+			$('#btn_import_rule').parents('.input-group-btn').show();
+		}
+	});
+	//导入本地规则
+	$('#form_item [name="rule_file"]').bind('change',function(){
+		import_rule('file',$(this).val());
+		$(this).parents('.dropdown').removeClass('open');
+	});
+	//图片名称自定义
+	$('#form_item [name="config[img_name]"]').bind('change',function(){
+		if($(this).val()=='custom'){
+			$('#config_img_name_custom').show();
+		}else{
+			$('#config_img_name_custom').hide();
+		}
+	});
+	$('#config_img_name_custom').on('click','.name-custom-path a[data-val]',function(){
+		insertAtCaret($('[name="config[name_custom_path]"]'),$(this).attr('data-val'));
+	});
+	$('#config_img_name_custom').on('click','.name-custom-name a[data-val]',function(){
+		insertAtCaret($('[name="config[name_custom_name]"]'),$(this).attr('data-val'));
+	});
+})();
+
+{if condition="!empty($taskData)"}
+(function(){
+	$('#form_item select[name="tg_id"]').val("{$taskData['tg_id']|intval}");
+	$('#form_item select[name="auto"]').val("{$taskData['auto']|intval}");
+	$('#form_item select[name="module"]').val("{$taskData['module']}");
+	$('#form_item input[name="auto"][value="{$taskData["auto"]|intval}"]').prop('checked','checked');
+	$('#form_item [name="config[download_img]"][value="{$taskData["config"]["download_img"]}"]').prop('checked','checked');
+	$('#form_item [name="config[proxy]"][value="{$taskData["config"]["proxy"]}"]').prop('checked','checked');
+	
+	var task_config={:json_encode($taskData["config"])};
+	for(var i in task_config){
+		if(task_config[i]){
+			$('#task_config').addClass('in');
+			break;
+		}
+	}
+	
+	//图片设置
+	$('#form_item [name="config[img_path]"]').val(task_config.img_path);
+	$('#form_item [name="config[img_url]"]').val(task_config.img_url);
+
+	$('#form_item [name="config[img_name]"]').val(task_config.img_name).trigger('change');
+	$('#form_item [name="config[name_custom_path]"]').val(task_config.name_custom_path);
+	$('#form_item [name="config[name_custom_name]"]').val(task_config.name_custom_name);
+	
+	
+	//图片自定义插入字段
+	var field_list={:json_encode($fieldList)};
+	if(field_list&&field_list.length>0){
+		$('#config_img_name_custom .name-custom-path-fields').html('');//清空
+		$('#config_img_name_custom .name-custom-name-fields').html('');//清空
+		for(var i in field_list){
+			var fieldHtml='[字段:'+field_list[i]+']';
+			fieldHtml='<li><a href="javascript:;" data-val="'+fieldHtml+'">'+fieldHtml+'</a></li>';
+			$('#config_img_name_custom .name-custom-path-fields').append(fieldHtml);
+			$('#config_img_name_custom .name-custom-name-fields').append(fieldHtml);
+		}
+	}
+})();
+{/if}
 </script>

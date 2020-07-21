@@ -290,8 +290,22 @@ class Task extends BaseController {
     		$GLOBALS['_sc']['p_name']=lang('task_edit').'：'.$taskData['name'];
     		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Task/list'),'title'=>lang('task_list')),array('url'=>url('Task/edit?id='.$taskData['id']),'title'=>$taskData['name'])));
     		
+    		$fieldList=array();
+    		$collData=model('Collector')->where(array('task_id'=>$taskData['id']))->find();
+    		if(!empty($collData)&&!empty($collData['config'])){
+    		    $collData['config']=unserialize($collData['config']);
+    		    if(is_array($collData['config'])&&is_array($collData['config']['field_list'])){
+    		        foreach($collData['config']['field_list'] as $v){
+    		            $fieldList[]=$v['name'];
+    		        }
+    		        $fieldList=array_unique($fieldList);
+    		        $fieldList=array_filter($fieldList);
+    		    }
+    		}
+    		
     		$this->assign('tgSelect',$tgSelect);
     		$this->assign('taskData',$taskData);
+    		$this->assign('fieldList',$fieldList);
     		if(request()->isAjax()){
     			return view('add_ajax');
     		}else{
@@ -557,7 +571,7 @@ class Task extends BaseController {
     		exit();
     	}
     	$taskData['config']=unserialize($taskData['config']);
-    	model('Task')->loadConfig($taskData['config']);
+    	model('Task')->loadConfig($taskData);
     	
     	$mcoll=model('Collector');
     	$collData=$mcoll->where(array('task_id'=>$taskData['id'],'module'=>$taskData['module']))->find();
@@ -682,7 +696,7 @@ class Task extends BaseController {
     		
     		$taskData['config']=unserialize($taskData['config']);
     		
-    		$mtask->loadConfig($taskData['config']);
+    		$mtask->loadConfig($taskData);
     		
     		$acoll='\\skycaiji\\admin\\event\\C'.strtolower($collData['module']);
     		$acoll=new $acoll();

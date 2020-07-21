@@ -18,30 +18,8 @@ class Init{
 		
 		$curController=strtolower(request()->controller());
 		if('store'==$curController){
-			
-			$httpOrigin=strtolower(request()->server('HTTP_ORIGIN'));
-			$httpOrigin=rtrim($httpOrigin,'/');
-			
-			$allowOrigin='';
-			if(in_array($httpOrigin,config('allow_origins'))){
-				
-				$allowOrigin=$httpOrigin;
-			}else{
-				
-				if(model('Provider')->where(array('domain'=>$httpOrigin,'enable'=>1))->count()>0){
-					
-					$allowOrigin=$httpOrigin;
-				}
-			}
-			
-			
-			header('Access-Control-Allow-Origin:'.$allowOrigin);
-			
-			header('Access-Control-Allow-Credentials:true');
-			
-			header('Access-Control-Allow-Methods:POST,GET');
-			
-			
+		    
+		    controller('Store','controller')->_checkCors(true);
 		}
 		/*自动登录*/
 		$muser=model('User');

@@ -23,8 +23,10 @@ list=null;while((list=reP.exec($(toObj).val()))!=null){var num=parseInt(list[1])
 if(options.group){sign=group}
 sign=sign.replace('{:num}',max+1);insertAtCaret($(toObj),sign)}}
 function cpMatchN(fromObj,toObj,options){if(!options){options={}}
-var sign=window.tpl_lang.sign_match;var txt=$(fromObj).val();var reP=new RegExp("\\(\\?<content(\\d*)>.*?\\)",'g');txt=txt.replace(reP,sign.replace('{:num}',"$1"));var reSign=new RegExp(sign.replace('{:num}','(\\d*)').replace('[','\\[').replace(']','\\]'),'g');var list=null;var hasSign=!1;while((list=reSign.exec(txt))!=null){hasSign=!0;var each=list[0];if($(toObj).val().indexOf(each)<0){insertAtCaret($(toObj),each)}}
-if(!hasSign){if(options.def){sign=sign.replace('{:num}','');if($(toObj).val().indexOf(sign)<0){insertAtCaret($(toObj),sign)}}}}
+var sign=window.tpl_lang.sign_match;var rule='';if(fromObj){rule=$(fromObj).val()}else if(options.rule){rule=options.rule}
+var reP=new RegExp("\\(\\?<content(\\d*)>.*?\\)",'g');rule=rule.replace(reP,sign.replace('{:num}',"$1"));var reSign=new RegExp(sign.replace('{:num}','(\\d*)').replace('[','\\[').replace(']','\\]'),'g');var list=null;var hasSign=!1;var returnList=new Array();while((list=reSign.exec(rule))!=null){hasSign=!0;var each=list[0];if(!toObj){returnList.push(each)}else if($(toObj).is('select')){if($(toObj).find('option[value="'+each+'"]').length<=0){$(toObj).append('<option value="'+each+'">'+each+'</option>')}}else{if($(toObj).val().indexOf(each)<0){insertAtCaret($(toObj),each)}}}
+if(!hasSign){if(options.def){sign=sign.replace('{:num}','');if(!toObj){returnList.push(sign)}else if($(toObj).is('select')){if($(toObj).find('option[value="'+sign+'"]').length<=0){$(toObj).append('<option value="'+sign+'">'+sign+'</option>')}}else{if($(toObj).val().indexOf(sign)<0){insertAtCaret($(toObj),sign)}}}}
+if(!toObj){return returnList}}
 function cpWildcard(toObj,options){if(!options){options={}}
 var wildcard=window.tpl_lang.sign_wildcard;if(options.only){if($(toObj).val().indexOf(wildcard)<0){insertAtCaret($(toObj),wildcard)}}else{insertAtCaret($(toObj),wildcard)}}
 function windowStore(title,url,options){if(!options){options={}}

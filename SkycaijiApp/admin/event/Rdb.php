@@ -74,6 +74,7 @@ class Rdb extends Release{
 			$contTitle=$collFields['title'];
 			$contUrl=$collFields['url'];
 			$collFields=$collFields['fields'];
+			$this->init_download_img($this->task,$collFields);
 			$tableFields=array();
 			foreach ($this->config['db_table']['field'] as $tbName=>$tbFields){
 				foreach ($tbFields as $tbField=>$fieldVal){

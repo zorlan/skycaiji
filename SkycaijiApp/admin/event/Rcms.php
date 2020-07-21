@@ -70,10 +70,10 @@ class Rcms extends Release{
 			$this->rele_cms_list[$releCms]->init(null,$this->release);
 		}
 		$releCms=$this->rele_cms_list[$releCms];
-		
 		$addedNum=0;
 		
 		foreach ($collFieldsList as $collFieldsKey=>$collFields){
+		    $this->init_download_img($this->task,$collFields['fields']);
 			$return=$releCms->runExport($collFields['fields']);
 			if($return['id']>0){
 				$addedNum++;

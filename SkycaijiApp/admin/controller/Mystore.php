@@ -14,7 +14,39 @@ namespace skycaiji\admin\controller;
 use skycaiji\admin\model\FuncApp;
 class Mystore extends BaseController {
 	public function indexAction(){
-    	$this->redirect('Mystore/rule');
+    	$this->redirect('Mystore/store');
+	}
+	public function storeAction(){
+	    $url=input('url','','strip_tags');
+	    if(!empty($url)&&!is_official_url($url)){
+	        
+	        $provData=model('Provider')->where('url',$url)->find();
+	        if(empty($provData)){
+	            $this->error($url.' 平台未添加');
+	        }
+	        if(empty($provData['enable'])){
+	            $this->error($url.' 已设置为拒绝访问');
+	        }
+	        $url=$provData['url'];
+	        
+	        $url.=strpos($url, '?')===false?'?':'&';
+	        $url.='clientinfo='.urlencode($GLOBALS['_sc']['clientinfo']);
+	        
+	        $this->assign('provData',$provData);
+	    }
+	    if(empty($url)){
+	        $url='https://www.skycaiji.com/store';
+	    }
+	    
+	    if(!empty($url)){
+	        
+	    }
+	    
+	    $GLOBALS['_sc']['p_name']=lang('store');
+	    $GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Mystore/store'),'title'=>lang('store'))));
+	    
+	    $this->assign('url',$url);
+	    return $this->fetch();
 	}
 	public function ruleAction(){
 		$mrule=model('Rule');

@@ -36,7 +36,7 @@
 			       	</select>
 			       	<div id="img_name_custom" style="margin-top:5px;display:none;">
 			       		<div class="input-group">
-			       			<span class="input-group-addon">目录</span>
+			       			<span class="input-group-addon">路径</span>
 			       			<input type="text" name="name_custom_path" class="form-control" value="{$imgConfig['name_custom_path']}" />
 			       			<span class="input-group-addon" style="border-left:0;border-right:0;">名称</span>
 			       			<select name="name_custom_name" class="form-control">
@@ -48,9 +48,13 @@
 			       			<a href="javascript:;" data-val="[月]">[月]</a>&nbsp;
 			       			<a href="javascript:;" data-val="[日]">[日]</a>&nbsp;
 			       			<a href="javascript:;" data-val="[时]">[时]</a>&nbsp;
+			       			<a href="javascript:;" data-val="[分]">[分]</a>&nbsp;
+			       			<a href="javascript:;" data-val="[秒]">[秒]</a>&nbsp;
 			       			<a href="javascript:;" data-val="[前两位]" title="图片网址MD5码的前两位">[前两位]</a>&nbsp;
 			       			<a href="javascript:;" data-val="[后两位]" title="图片网址MD5码的后两位">[后两位]</a>&nbsp;
-			       			用/分隔子目录
+			       			<a href="javascript:;" data-val="[任务名]">[任务名]</a>&nbsp;
+			       			<a href="javascript:;" data-val="[任务ID]">[任务ID]</a>&nbsp;
+			       			用/分隔子目录，如需调用字段可在任务的更多设置中编辑
 			       		</div>
 			       	</div>
 			    </div>

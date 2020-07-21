@@ -11,13 +11,17 @@
 
 namespace skycaiji\admin\model;
 class Task extends BaseModel{
-	public function loadConfig($config){
+    public function loadConfig($taskData){
+        $config=$taskData['config'];
 		if(empty($config)){
 			$config=array();
 		}
 		if(!is_array($config)){
 			
 			$config=unserialize($config);
+		}
+		if(!is_array($config)){
+		    $config=array();
 		}
 		
 		static $global_config=null;
@@ -49,8 +53,16 @@ class Task extends BaseModel{
 			$GLOBALS['_sc']['c']['proxy']['open']=0;
 		}
 		
-		$GLOBALS['_sc']['c']['download_img']['img_path']=empty($config['img_path'])?$global_config['download_img']['img_path']:$config['img_path'];
-		$GLOBALS['_sc']['c']['download_img']['img_url']=empty($config['img_url'])?$global_config['download_img']['img_url']:$config['img_url'];
+		static $imgParams=array('img_path','img_url','img_name','name_custom_path','name_custom_name');
+		foreach ($imgParams as $imgParam){
+		    
+		    $GLOBALS['_sc']['c']['download_img'][$imgParam]=empty($config[$imgParam])?$global_config['download_img'][$imgParam]:$config[$imgParam];
+		}
+		if(empty($config['img_name'])){
+		    
+		    $GLOBALS['_sc']['c']['download_img']['name_custom_path']=$global_config['download_img']['name_custom_path'];
+		    $GLOBALS['_sc']['c']['download_img']['name_custom_name']=$global_config['download_img']['name_custom_name'];
+		}
 	}
 }
 

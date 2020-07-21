@@ -79,7 +79,8 @@ class Rfile extends Release {
 			
 			$addedNum=0;
 			foreach ($collFieldsList as $collFieldsKey=>$collFields){
-				
+			    
+			    $this->init_download_img($this->task,$collFields['fields']);
 				$addedNum++;
 				$curRow=$rowNum+$addedNum;
 				$collFields['fields']=is_array($collFields['fields'])?array_values($collFields['fields']):array();

@@ -21,7 +21,7 @@ return!0;else return!1}
 function modal(title,body,options){if(!options){options={}}
 if(document.getElementById('myModal')){$('#myModal').off();$('#myModal').modal('hide');$('#myModal').remove()}
 if(!document.getElementById('myModal')){var modal='<div class="modal '+(options.lg?' bs-example-modal-lg':'')+' myModal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog'+(options.lg?' modal-lg':'')+'"><div class="modal-content">'+'<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="font-size:24px;">&times;</button><h4 class="modal-title" id="myModalLabel"></h4></div><div class="modal-body" '+(options.bodyStyle?options.bodyStyle:'')+'></div>'+'<div class="modal-footer"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">'+tpl_lang.close+'</button></div></div></div></div>';$('body').append(modal)}
-$('#myModal .modal-title').html(title);$('#myModal .modal-body').html(body);$('#myModal').modal('show')}
+$('#myModal .modal-title').html(title);$('#myModal .modal-body').html(body);$('#myModal').modal('show');$('#myModal').on('hidden.bs.modal',function(e){if(options.hidden_func&&typeof(options.hidden_func)=='function'){options.hidden_func()}})}
 function htmlIsJson(html){if((/^\{(.+\:.+,*){1,}\}$/).test(html)||(/^\[(.+,*)+\]$/).test(html)){return!0}else{return!1}}
 function windowModal(title,url,options){if(!options){options={}}
 modal(title,'<img src="'+window.site_config.pub+'/static/images/loading.gif" />',options);var ajaxSet={type:'get',url:url,success:function(data){if(htmlIsJson(data)){$('#myModal').modal('hide');ajaxDataMsg(data)}else{modal(title,data,options)}},dataType:'html'};if(options.ajax){ajaxSet=$.extend(ajaxSet,options.ajax)}
@@ -32,7 +32,9 @@ function ajaxDataMsg(data){if(typeof data=='string'){data=eval('('+data+')')}
 if(data.code==1){toastr.success(data.msg)}else{toastr.error(data.msg)}
 if(data.url){setTimeout("window.location.href='"+data.url+"';",2500)}}
 function checkall(obj,chkName){var status=$(obj).is(":checked")?true:!1;$("input[name='"+chkName+"']:checkbox").prop('checked',status)}
-function url_base64encode(str){str=Base64.encode(str);str=str.replace('+','-').replace('/','_').replace('=','');return str}
+function url_base64encode(str){str=Base64.encode(str);str=str.replace(/\+/g,'-').replace(/\//g,'_').replace(/\=/g,'');return str}
+function url_base64decode(str){str=str.replace(/\-/g,'+').replace(/\_/g,'/');var mod4=str.length%4;if(mod4){str+=('====').substr(mod4)}
+str=Base64.decode(str);return str}
 function generateUUID(){var d=new Date().getTime();var uuid='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=(d+Math.random()*16)%16|0;d=Math.floor(d/16);return(c=='x'?r:(r&0x7|0x8)).toString(16)});return uuid}
 function refreshVerify(obj){var src=$(obj).attr('src');if(src.indexOf('version')>0){src=src.replace(/([\?\&]version\=)[\.\d]+/i,"$1"+Math.random())}else{src+=(src.indexOf('?')>-1?'&':'?')+'version='+Math.random()}
 $(obj).attr('src',src)}

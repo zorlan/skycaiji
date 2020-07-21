@@ -245,7 +245,7 @@ return [
     /**********************************自定义配置*********************************************/
     'cli_cache_config'=>array('view_replace_str','root_path','app_path','apps_path','plugin_path','root_url','root_website'),//cli模式下需要缓存的配置，否则会失效引起程序bug
     
-	'html_v'=>'20200501',//css和js版本
+	'html_v'=>'20200720',//css和js版本
 	
 	'root_path'=>realpath(ROOT_PATH),//根目录
 	'app_path'=>realpath(APP_PATH),//skycaijiApp目录

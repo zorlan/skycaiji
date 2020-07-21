@@ -1,0 +1,10 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<link rel="stylesheet" href="__PUBLIC__/static/css/store.css?{$Think.config.html_v}" />
+<script src="__PUBLIC__/static/js/admin/store.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="iframe-loading"><div class="loading">&nbsp;</div>页面加载中...</div>
+<iframe data-store-url="{$url}" data-provider-url="{$provData['url']}" id="iframe_main" class="iframe-main" width="100%" height="100%" frameborder="0" scrolling="yes"></iframe>
+<script type="text/javascript">storeClass.init_iframe();</script>
+{/block}

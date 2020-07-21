@@ -88,6 +88,22 @@
 	<div class="form-group form-group-sm">
  		<button type="submit" class="btn btn-primary btn-block">确定</button>
  	</div>
+	<div class="panel panel-default panel-sign-field">
+		<div class="panel-heading">
+			<div class="panel-title">
+				<a data-toggle="collapse" href="#c_p_sign_field_level_url">将{:cp_sign('match')}添加为字段</a>
+				<a href="javascript:;" class="glyphicon glyphicon-plus add-level-field" data-val="" title="添加"></a>
+			</div>
+		</div>
+		<div id="c_p_sign_field_level_url" class="panel-collapse collapse">
+			<div class="panel-body">
+				<div class="form-group">
+					<div class="c-p-sign-field-list"></div>
+					<p class="help-block">将“提取网址规则”中的{:cp_sign('match')}标签添加为字段</p>
+				</div>
+			</div>
+		</div>
+	</div>
 </form>
 <script type="text/javascript">
 {if condition="$level_url"}

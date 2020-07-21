@@ -156,6 +156,7 @@ return array(
 	'field_module_json'=>'JSON提取',
 	'field_module_merge'=>'字段组合',
 	'field_module_extract'=>'字段提取',
+    'field_module_sign'=>'[内容]标签',
 	
 	'process_module_html'=>'html标签过滤',
 	'process_module_replace'=>'内容替换',
@@ -172,6 +173,24 @@ return array(
 	'p_m_if_2'=>'满足条件不采集',
 	'p_m_if_3'=>'不满足条件采集',
 	'p_m_if_4'=>'不满足条件不采集',
+    
+    
+    'p_m_if_c_has'=>'包含',
+    'p_m_if_c_nhas'=>'不包含',
+    'p_m_if_c_eq'=>'等于',
+    'p_m_if_c_neq'=>'不等于',
+    'p_m_if_c_heq'=>'恒等于',
+    'p_m_if_c_nheq'=>'不恒等于',
+    'p_m_if_c_gt'=>'大于',
+    'p_m_if_c_egt'=>'大于等于',
+    'p_m_if_c_lt'=>'小于',
+    'p_m_if_c_elt'=>'小于等于',
+    'p_m_if_c_time_eq'=>'时间等于',
+    'p_m_if_c_time_egt'=>'时间大于等于',
+    'p_m_if_c_time_elt'=>'时间小于等于',
+    'p_m_if_c_regexp'=>'正则表达式',
+    'p_m_if_c_func'=>'使用函数',
+    
 		
 	'rele_set'=>'发布设置',
 	'rele_error_detect_null'=>'没有检测到本地CMS程序，您可以手动绑定数据',

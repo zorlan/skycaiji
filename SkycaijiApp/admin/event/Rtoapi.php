@@ -84,6 +84,7 @@ class Rtoapi extends Release{
 				$contTitle=$collFields['title'];
 				$contUrl=$collFields['url'];
 				$collFields=$collFields['fields'];
+				$this->init_download_img($this->task,$collFields);
 				
 				$params=array();
 				if(is_array($this->config['toapi']['param_name'])){

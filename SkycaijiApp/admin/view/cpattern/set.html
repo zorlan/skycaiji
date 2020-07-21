@@ -74,14 +74,14 @@
 	    	</div>
 	    	<div id="coll_pattern_request_headers" class="panel-collapse collapse">
 	      		<div class="panel-body">
-	      			<div class="form-group">
+	      			<div class="form-group" style="margin-bottom:0;">
 	       				<label class="control-label">开启</label>
 	       				<div class="input-group">
 	       					<label class="radio-inline"><input type="radio" name="config[request_headers][open]" value="1"> 是</label>
 	       					<label class="radio-inline"><input type="radio" name="config[request_headers][open]" value="0"> 否</label>
 	       				</div>
 		      		</div>
-	      			<div id="c_p_request_headers_open" style="display:none;">
+	      			<div id="c_p_request_headers_open" style="display:none;margin-top:15px;">
 	      			<div class="form-group">
 	       				<label class="control-label">UserAgent 浏览器标识</label>
 	       				<div class="input-group">
@@ -110,13 +110,10 @@
 	       				<label class="control-label">Referer 来源网址</label>
 						<input type="text" class="form-control" name="config[request_headers][referer]">
 	       			</div>
-	       			<div class="h-title">
-	     				<label class="control-label">自定义</label>
-	      				<a href="javascript:;" class="glyphicon glyphicon-plus add-request-header" title="添加"></a>
-	      			</div>
-	      			<div class="">
+	       			<div class="form-group">
+	     				<label class="control-label">自定义 <a href="javascript:;" class="glyphicon glyphicon-plus add-request-header" title="添加" style="font-size:12px;"></a></label>
 	      				<div class="table-responsive">
-			            	<table class="table table-bordered c-p-request-headers">
+			            	<table class="table c-p-request-headers" style="margin-bottom:0;">
 			                   <thead>
 			                       <tr>
 			                           <th class="col-xs-4">名称</th>
@@ -185,7 +182,7 @@
       					<a href="javascript:;" class="glyphicon glyphicon-plus add-level-url" title="添加"></a>
       				</div>
 		   			<div class="table-responsive">
-		            	<table id="c_p_level_urls" class="table table-hover">
+		            	<table id="c_p_level_urls" class="table table-hover" style="margin-bottom:0;">
 		                   <thead>
 		                       <tr>
 		                           <th>级别</th>
@@ -288,6 +285,13 @@
 			      				</div>
 				       		</div>
 						</div>
+						<div class="form-group">
+			     			<label class="control-label">将{:cp_sign('match')}添加为字段 <a href="javascript:;" class="glyphicon glyphicon-plus add-link-field" data-val="" title="添加" style="font-size:12px;"></a></label>
+							<div id="c_p_sign_field_link">
+								<div class="c-p-sign-field-list"></div>
+							</div>
+							<p class="help-block">将“提取网址规则”中的{:cp_sign('match')}标签添加为字段</p>
+						</div>
                     </div>
                 </div>
             </div>
@@ -318,7 +322,7 @@
                     </div>
                 </div>
             </div>
-            <div class="panel panel-default">
+            <div class="panel panel-default" style="margin-bottom:0;">
                 <div class="panel-heading">
                     <h4 class="panel-title">
                         <a data-toggle="collapse" href="#coll_pattern_link_post" class="collapsed" aria-expanded="false">POST模式</a>
@@ -335,9 +339,9 @@
 		       				<p class="help-block">开启后内容页网址中的get参数将以post形式提交</p>
 						</div>
 						<div class="form-group">
-							<label class="control-label">附加参数 <a href="javascript:;" class="glyphicon glyphicon-plus add-url-post" title="添加"></a></label>
+							<label class="control-label">附加参数 <a href="javascript:;" class="glyphicon glyphicon-plus add-url-post" title="添加" style="font-size:12px;"></a></label>
 							<div class="table-responsive">
-				            	<table class="table table-hover c-p-url-posts">
+				            	<table class="table table-hover c-p-url-posts" style="margin-bottom:0;">
 				                   <thead>
 				                       <tr>
 				                           <th class="col-xs-4">名称</th>
@@ -371,7 +375,7 @@
       					<a href="javascript:;" class="glyphicon glyphicon-plus add-relation-url" title="添加"></a>
       				</div>
 		   			<div class="table-responsive">
-		            	<table id="c_p_relation_urls" class="table table-hover">
+		            	<table id="c_p_relation_urls" class="table table-hover" style="margin-bottom:0;">
 		                   <thead>
 		                       <tr>
 		                           <th>名称</th>
@@ -411,7 +415,7 @@
 	      			<a href="javascript:;" onclick="c_pattern.add_default_fields()" style="float:right;font-weight:normal;">添加默认</a>
 	      		</div>
 	   			<div class="table-responsive">
-	            	<table class="table table-hover c-p-field-list" style="margin-bottom:10px;">
+	            	<table class="table table-hover c-p-field-list" style="margin-bottom:0px;">
 	                   <thead>
 	                       <tr>
 	                           <th>字段</th>
@@ -438,11 +442,11 @@
 		    </div>
 		    <div id="coll_pattern_process" class="panel-collapse collapse">
 		    	<div class="panel-body">
-		    		<div class="h-title">
+		    		<div class="h-title" style="border-bottom:0;">
 		     			<label class="control-label">通用数据处理</label>
 		      			<a href="javascript:;" class="glyphicon glyphicon-plus add-process" title="添加"></a>
 		      		</div>
-		    		<div class="panel-group c-p-process-accordion">
+		    		<div class="panel-group c-p-process-accordion" style="margin-bottom:0;">
 					</div>
 		    	</div>
 		    </div>
@@ -455,14 +459,14 @@
 		    </div>
 		    <div id="coll_pattern_paging" class="panel-collapse collapse">
 		    	<div class="panel-body">
-		      		<div class="form-group">
+		      		<div class="form-group" style="margin-bottom:0;">
 	       				<label class="control-label">开启分页</label>
 	       				<div class="input-group">
 	       					<label class="radio-inline"><input type="radio" name="config[paging][open]" value="1"> 是</label>
 	       					<label class="radio-inline"><input type="radio" name="config[paging][open]" value="0"> 否</label>
 	       				</div>
 		      		</div>
-		      		<div id="c_p_paging_open" style="display:none;">
+		      		<div id="c_p_paging_open" style="display:none;margin-top:15px;">
 	       			<div class="form-group">
 	       				<label class="control-label">
 	       					分页内容字段
@@ -595,9 +599,9 @@
 			<td><a href="javascript:;" class="name" data-val=""></a></td>
 			<td>
 				<input type="hidden" data-name="config[level_urls][]" />
-				<a href="javascript:;" class="delete">删除</a>
 				<a href="javascript:;" class="glyphicon glyphicon-arrow-up" style="font-size:12px;"></a>
 				<a href="javascript:;" class="glyphicon glyphicon-arrow-down" style="font-size:12px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-remove delete" style="font-size:12px;"></a>
 			</td>
 		</tr>
 		<tr id="coll_tpl_relation_url">
@@ -605,15 +609,15 @@
 			<td class="page"></td>
 			<td>
 				<input type="hidden" data-name="config[relation_urls][]" />
-				<a href="javascript:;" class="delete">删除</a>
 				<a href="javascript:;" class="glyphicon glyphicon-arrow-up" style="font-size:12px;"></a>
 				<a href="javascript:;" class="glyphicon glyphicon-arrow-down" style="font-size:12px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-remove delete" style="font-size:12px;"></a>
 			</td>
 		</tr>
 		<tr id="coll_tpl_field">
 			<td class="field-name" data-val=""></td>
-			<td class="field-source"></td>
-			<td class="field-module"></td>
+			<td class="field-source" data-val=""></td>
+			<td class="field-module" data-val=""></td>
 			<td>
 				<input type="hidden" data-name="config[field_list][]" />
 				<input type="hidden" data-name="config[field_process][]" />
@@ -633,7 +637,7 @@
 					<a data-toggle="collapse" style="color:inherit;"></a>
 					<input type="text" style="display:none;border-radius:2px;border:1px solid #ccc;line-height:16px;margin-left:2px;padding:1px 1px 1px 2px;" />
 				</div>
-				<div style="float:right;">
+				<div class="panel-title-ops" style="float:right;">
 					<a href="javascript:;" class="glyphicon glyphicon-tags" title="标题"></a>&nbsp;
 					<a href="javascript:;" class="glyphicon glyphicon-arrow-up"></a>
 					<a href="javascript:;" class="glyphicon glyphicon-arrow-down"></a>
@@ -645,6 +649,10 @@
 			<div class="panel-body">
 			</div>
 		</div>
+	</div>
+	<div id="coll_tpl_sign_field" class="c-p-sign-field">
+		<a href="javascript:;" class="field" data-val="" data-source="" title=""></a>
+		<em class="glyphicon glyphicon-remove-circle delete" data-val=""></em>
 	</div>
 </div>
 <link href="__PUBLIC__/static/css/jquery.datetimepicker.css" rel="stylesheet">

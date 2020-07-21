@@ -18,8 +18,8 @@
 					<th width="60" class="chk">{$Think.lang.select}</th>
 					<th class="url">源网址</th>
 					<th>已发布至</th>
-					<th>发布方式</th>
 					<th>任务名</th>
+					<th>发布方式</th>
 					<th>添加时间</th>
 					<th>{$Think.lang.op}</th>
 				</tr>
@@ -36,8 +36,8 @@
 							{$item['target']} {$item['desc']?$item['desc']:''}
 						{/if}
 					</td>
-					<td>{:lang('collected_rele_'.$item['release'])}</td>
 					<td><a href="{:url('Admin/Task/edit?id='.$item['task_id'])}" target="_blank">{$taskList[$item['task_id']]}</a></td>
+					<td>{:lang('collected_rele_'.$item['release'])}</td>
 					<td>{:date('Y-m-d H:i:s',$item['addtime'])}</td>
 					<td><a href="javascript:;" url="{:url('Collected/op?op=delete&id='.$item['id'])}" class="delete">删除</a></td>
 				</tr>

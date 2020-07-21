@@ -183,8 +183,17 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 				}
 			}elseif('custom'==$imgname){
 				
-				$imgname=model('Config')->convert_img_name_path($GLOBALS['_sc']['c']['download_img']['name_custom_path'],$url);
-				$imgname.='/'.$key.'.'.$prop;
+			    $customPath=$GLOBALS['_sc']['c']['download_img']['name_custom_path'];
+			    if(isset($GLOBALS['_sc']['c']['download_img']['_name_custom_path'])){
+			        $customPath=$GLOBALS['_sc']['c']['download_img']['_name_custom_path'];
+			    }
+			    $customName=$GLOBALS['_sc']['c']['download_img']['name_custom_name'];
+			    if(isset($GLOBALS['_sc']['c']['download_img']['_name_custom_name'])){
+			        $customName=$GLOBALS['_sc']['c']['download_img']['_name_custom_name'];
+			    }
+			    $customPath=model('Config')->convert_img_name_path($customPath,$url);
+			    $customName=model('Config')->convert_img_name_name($customName,$url);
+			    $imgname=$customPath.'/'.$customName.'.'.$prop;
 				$filename=$img_path.$imgname;
 				$isExists=file_exists($filename);
 			}else{
@@ -231,7 +240,6 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 					}
 					
 					$imgCode=get_html($url,$headers,$options,'utf-8');
-					
 					if(!empty($imgCode)){
 						
 						if(write_dir_file($filename,$imgCode)){
@@ -240,7 +248,7 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 					}
 					
 				}catch (\Exception $ex){
-					
+				    
 				}
 			}else{
 				
@@ -299,6 +307,80 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 	/*写入文件*/
 	public function write_file($filename,$data){
 		return write_dir_file($filename,$data);
+	}
+	
+	public function init_download_img($taskData,$collFields){
+	    if(!empty($GLOBALS['_sc']['c']['download_img']['download_img'])&&$GLOBALS['_sc']['c']['download_img']['img_name']=='custom'){
+	        
+	        if(empty($taskData)){
+	            $taskData=array();
+	        }
+	        if(empty($collFields)){
+	            $collFields=array();
+	        }
+	        
+	        $name_custom_path=$GLOBALS['_sc']['c']['download_img']['name_custom_path'];
+	        $check=model('Config')->check_img_name_path($name_custom_path);
+	        if($check['success']){
+	            $name_custom_path=$this->_convert_img_params($name_custom_path, $taskData, $collFields);
+	        }else{
+	            $name_custom_path='temp';
+	        }
+	        
+	        $GLOBALS['_sc']['c']['download_img']['_name_custom_path']=$name_custom_path;
+	        
+	        
+	        $name_custom_name=$GLOBALS['_sc']['c']['download_img']['name_custom_name'];
+	        $check=model('Config')->check_img_name_name($name_custom_name);
+	        if($check['success']){
+	            $name_custom_name=$this->_convert_img_params($name_custom_name, $taskData, $collFields);
+	        }else{
+	            $name_custom_name='';
+	        }
+	        
+	        $GLOBALS['_sc']['c']['download_img']['_name_custom_name']=$name_custom_name;
+	    }else{
+	        
+	        unset($GLOBALS['_sc']['c']['download_img']['_name_custom_path']);
+	        unset($GLOBALS['_sc']['c']['download_img']['_name_custom_name']);
+	    }
+	}
+	
+	private function _convert_img_params($str,$taskData,$collFields){
+	    if(empty($taskData)){
+	        $taskData=array();
+	    }
+	    if(empty($collFields)){
+	        $collFields=array();
+	    }
+	    
+	    $customParams=array(
+	        '[任务名]'=>$taskData['name'],
+	        '[任务ID]'=>$taskData['id']
+	    );
+	    
+        if(preg_match_all('/\[([^\[\]]+?)\]/', $str,$mparams)){
+            for($i=0;$i<count($mparams[0]);$i++){
+                $param=$mparams[0][$i];
+                if(preg_match('/^字段\:(.*)$/u',$mparams[1][$i],$mfield)){
+                    $customParams[$param]=$collFields[$mfield[1]]['value'];
+                }
+            }
+            foreach ($customParams as $k=>$v){
+                
+                $v=preg_replace('/[\/\s\r\n\~\`\!\@\#\$\%\^\&\*\(\)\+\=\{\}\[\]\|\\\\:\;\"\'\<\>\,\?]+/', '_', $v);
+                if(mb_strlen($v,'utf-8')>100){
+                    
+                    $v=mb_substr($v,0,100,'utf-8');
+                }
+                $v=preg_replace('/\_{2,}/', '_', $v);
+                $v=trim($v,'_');
+                $customParams[$k]=$v;
+            }
+            $str=str_replace(array_keys($customParams),$customParams,$str);
+        }
+        
+        return $str;
 	}
 }
 ?>

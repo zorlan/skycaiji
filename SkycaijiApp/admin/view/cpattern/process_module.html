@@ -68,6 +68,7 @@
 		<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="2" /> 检测到关键词不采集该条数据</label></div>
 		<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="3" /> 未检测到关键词将该字段值设为空</label></div>
 		<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="4" /> 未检测到关键词不采集该条数据</label></div>
+		<p class="help-block">检测到关键词：包含任意一个关键词即可触发<br>未检测到关键词：所有关键词都不包含即触发，只要包含任意一个关键词就不会触发</p>
 	</div>
 	<div class="c-p-process-module" module="if">
 		<section>
@@ -87,13 +88,13 @@
 		</div>
 		<div class="form-group">
     		<div class="table-responsive">
-            	<table class="table table-hover p-m-if-table">
+            	<table class="table table-hover p-m-if-table" style="margin-bottom:0;">
                    <thead>
                        <tr>
                            <th style="min-width:95px;">逻辑</th>
                            <th style="min-width:150px;">条件</th>
                            <th style="min-width:200px;">值</th>
-                           <th></th>
+                           <th style="max-width:90px;"></th>
                        </tr>
                    </thead>
                    <tbody>
@@ -106,21 +107,21 @@
                    	</td>
                    	<td>
                    		<select data-process="if:if_cond:" class="form-control">
-                   			<option value="has">包含</option>
-                   			<option value="nhas">不包含</option>
-                   			<option value="eq">等于</option>
-                   			<option value="neq">不等于</option>
-                   			<option value="heq">恒等于</option>
-                   			<option value="nheq">不恒等于</option>
-                   			<option value="gt">大于</option>
-                   			<option value="egt">大于等于</option>
-                   			<option value="lt">小于</option>
-                   			<option value="elt">小于等于</option>
-                   			<option value="time_eq">时间等于</option>
-                   			<option value="time_egt">时间大于等于</option>
-                   			<option value="time_elt">时间小于等于</option>
-                   			<option value="regexp">正则表达式</option>
-                   			<option value="func">使用函数</option>
+                   			<option value="has">{$Think.lang.p_m_if_c_has}</option>
+                   			<option value="nhas">{$Think.lang.p_m_if_c_nhas}</option>
+                   			<option value="eq">{$Think.lang.p_m_if_c_eq}</option>
+                   			<option value="neq">{$Think.lang.p_m_if_c_neq}</option>
+                   			<option value="heq">{$Think.lang.p_m_if_c_heq}</option>
+                   			<option value="nheq">{$Think.lang.p_m_if_c_nheq}</option>
+                   			<option value="gt">{$Think.lang.p_m_if_c_gt}</option>
+                   			<option value="egt">{$Think.lang.p_m_if_c_egt}</option>
+                   			<option value="lt">{$Think.lang.p_m_if_c_lt}</option>
+                   			<option value="elt">{$Think.lang.p_m_if_c_elt}</option>
+                   			<option value="time_eq">{$Think.lang.p_m_if_c_time_eq}</option>
+                   			<option value="time_egt">{$Think.lang.p_m_if_c_time_egt}</option>
+                   			<option value="time_elt">{$Think.lang.p_m_if_c_time_elt}</option>
+                   			<option value="regexp">{$Think.lang.p_m_if_c_regexp}</option>
+                   			<option value="func">{$Think.lang.p_m_if_c_func}</option>
                    		</select>
                    	</td>
                    	<td>
@@ -178,12 +179,21 @@
 					    	</div>
                   		</div>
                    	</td>
-                   	<td>
-                   		<a href="javascript:;" class="glyphicon glyphicon-remove p-m-if-del" style="margin-top:8px;"></a>
+                   	<td style="padding:0;padding-top:10px;">
+                   		<a href="javascript:;" class="glyphicon glyphicon-arrow-up" style="font-size:11px;"></a>
+                   		<a href="javascript:;" class="glyphicon glyphicon-arrow-down" style="font-size:11px;"></a>
+                   		<a href="javascript:;" class="glyphicon glyphicon-remove p-m-if-del" style="font-size:11px;"></a>
                    	</td>
                    </tr>
                    </tbody>
 				</table>
+				<p class="help-block">
+					执行顺序：从上至下判断，逻辑符“并且”的优先级高于“或者”<br>
+					例如（字母表示条件）：<br>
+					a && b || c && d && e || f || g && h && i && j 等价于<br>
+					 (a && b) || (c && d && e) || f || (g && h && i && j)<br>
+					从左到右执行， 括号中的条件都为真时才是真否则为假，整条语句中任意一个括号的结果为真最终结果为真，都为假最终结果为假
+				</p>
         	</div>
 		</div>
 		</section>

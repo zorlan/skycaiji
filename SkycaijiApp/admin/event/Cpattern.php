@@ -383,7 +383,7 @@ class Cpattern extends CpatternBase{
 				$newConfig['reg_source_cont_url']=str_replace ( '(*)', '[\s\S]*?', $newConfig['reg_source_cont_url'] );
 			}else{
 				
-				$newConfig['reg_source_cont_url']='\bhref=[\'\"](?P<match>[^\'\"\<\>]+?)[\'\"]';
+				$newConfig['reg_source_cont_url']='\bhref\s*=\s*[\'\"](?P<match>[^\'\"]*)[\'\"]';
 			}
 			
 			$config['url_merge']=$this->set_merge_default($newConfig['reg_source_cont_url'], $config['url_merge']);
@@ -440,7 +440,7 @@ class Cpattern extends CpatternBase{
 						$luv['reg_url']=str_replace ( '(*)', '[\s\S]*?', $luv['reg_url'] );
 					}else{
 						
-						$luv['reg_url']='\bhref=[\'\"](?P<match>[^\'\"\<\>]+?)[\'\"]';
+						$luv['reg_url']='\bhref\s*=\s*[\'\"](?P<match>[^\'\"]*)[\'\"]';
 					}
 					
 					$luv['url_merge']=$this->set_merge_default($luv['reg_url'], $luv['url_merge']);
@@ -824,13 +824,13 @@ class Cpattern extends CpatternBase{
 					}
 					if(!empty($paging_area)){
 						
-	
 						
 						if(!empty($this->config['paging']['url_complete'])){
 							
-							$paging_area=preg_replace_callback('/(?<=\bhref\=[\'\"])([^\'\"]*)(?=[\'\"])/i',function($matche_p_a) use ($base_url,$domain_url){
+							$paging_area=preg_replace_callback('/(\bhref\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche_p_a) use ($base_url,$domain_url){
 								
-								return \skycaiji\admin\event\Cpattern::create_complete_url($matche_p_a[1], $base_url, $domain_url);
+							    $matche_p_a[2]=\skycaiji\admin\event\Cpattern::create_complete_url($matche_p_a[2], $base_url, $domain_url);
+								return $matche_p_a[1].$matche_p_a[2].$matche_p_a[3];
 							},$paging_area);
 						}
 	
@@ -905,7 +905,7 @@ class Cpattern extends CpatternBase{
 		$field_params=$field_config['field'];
 		$module=strtolower($field_params['module']);
 	
-		if(!empty($field_params['source'])&&in_array($module, array('rule','xpath','json','auto'))){
+		if(!empty($field_params['source'])&&in_array($module, array('rule','xpath','json','auto','sign'))){
 			
 			$field_source_url='';
 			$source_echo_msg='——采集';
@@ -1025,6 +1025,9 @@ class Cpattern extends CpatternBase{
 				}
 			}elseif(in_array($module,$fieldArr2)){
 				$val=$this->$field_func($field_params,$html,$cur_url);
+			}elseif($module=='sign'){
+			    
+			    $val=$this->$field_func($field_params,empty($cont_url)?$cur_url:$cont_url);
 			}else{
 				$val=$this->$field_func($field_params,$html);
 			}
@@ -1053,11 +1056,11 @@ class Cpattern extends CpatternBase{
 			$loopIndex=$is_loop?$v_k:-1;
 			if(!empty($field_process)){
 				
-				$val=$this->process_field($val,$field_process,$cur_url_md5,$loopIndex,$cont_url_md5);
+			    $val=$this->process_field($field_name,$val,$field_process,$cur_url_md5,$loopIndex,$cont_url_md5);
 			}
 			if(!empty($this->config['common_process'])){
 				
-				$val=$this->process_field($val,$this->config['common_process'],$cur_url_md5,$loopIndex,$cont_url_md5);
+			    $val=$this->process_field($field_name,$val,$this->config['common_process'],$cur_url_md5,$loopIndex,$cont_url_md5);
 			}
 			if(isset($this->exclude_cont_urls[$cont_url_md5][$cur_url_md5])){
 				
@@ -1101,12 +1104,14 @@ class Cpattern extends CpatternBase{
 			}
 	
 			
-			$val=preg_replace_callback('/(?<=\bhref\=[\'\"])([^\'\"]*)(?=[\'\"])/i',function($matche) use ($base_url,$domain_url){
+			$val=preg_replace_callback('/(\bhref\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($base_url,$domain_url){
 				
-				return \skycaiji\admin\event\Cpattern::create_complete_url($matche[1], $base_url, $domain_url);
+			    $matche[2]=\skycaiji\admin\event\Cpattern::create_complete_url($matche[2], $base_url, $domain_url);
+			    return $matche[1].$matche[2].$matche[3];
 			},$val);
-			$val=preg_replace_callback('/(?<=\bsrc\=[\'\"])([^\'\"]*)(?=[\'\"])/i',function($matche) use ($base_url,$domain_url){
-				return \skycaiji\admin\event\Cpattern::create_complete_url($matche[1], $base_url, $domain_url);
+			$val=preg_replace_callback('/(\bsrc\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($base_url,$domain_url){
+			    $matche[2]=\skycaiji\admin\event\Cpattern::create_complete_url($matche[2], $base_url, $domain_url);
+				return $matche[1].$matche[2].$matche[3];
 			},$val);
 					
 			if($is_loop){
@@ -1123,7 +1128,7 @@ class Cpattern extends CpatternBase{
 			if(!empty($GLOBALS['_sc']['c']['download_img']['download_img'])&&!empty($val)){
 				
 				$valImgs=array();
-				if(preg_match_all('/<img[^<>]*\bsrc=[\'\"]*(\w+\:\/\/[^\'\"\s]+)[\'\"]*/i',$val,$imgUrls)){
+				if(preg_match_all('/<img\b[^<>]*\bsrc\s*=\s*[\'\"](\w+\:\/\/[^\'\"]+?)[\'\"]/i',$val,$imgUrls)){
 					
 					$valImgs=is_array($imgUrls[1])?$imgUrls[1]:array();
 				}
@@ -1228,6 +1233,16 @@ class Cpattern extends CpatternBase{
 			
 			return '';
 		}
+		$urlMd5=md5($cont_url);
+		
+		
+		if(!isset($this->cur_source_signs['relation_url'])){
+		    $this->cur_source_signs['relation_url']=array();
+		}
+		if(!isset($this->cur_source_signs['relation_url'][$urlMd5])){
+		    $this->cur_source_signs['relation_url'][$urlMd5]=array();
+		}
+		
 	
 		if(empty($relation_url['page'])){
 			
@@ -1237,9 +1252,12 @@ class Cpattern extends CpatternBase{
 					
 					return '';
 				}
-				$relationUrl=$this->rule_match_urls($relation_url, $html);
+				$relationUrlsMatches=$this->rule_match_urls($relation_url, $html,false,true);
+				$relationUrl=$relationUrlsMatches['urls'];
 				$relationUrl=(is_array($relationUrl)&&!empty($relationUrl))?reset($relationUrl):'';
 				$this->relation_url_list[$cont_url][$name]=$relationUrl;
+				
+				$this->cur_source_signs['relation_url'][$urlMd5][$name]=$relationUrlsMatches['matches'][md5($relationUrl)];
 			}else{
 				$relationUrl=$this->relation_url_list[$cont_url][$name];
 			}
@@ -1281,9 +1299,12 @@ class Cpattern extends CpatternBase{
 						
 						return '';
 					}
-					$relationUrl=$this->rule_match_urls($this->config['new_relation_urls'][$contPage], $html);
+					$relationUrlsMatches=$this->rule_match_urls($this->config['new_relation_urls'][$contPage], $html,false,true);
+					$relationUrl=$relationUrlsMatches['urls'];
 					$relationUrl=(is_array($relationUrl)&&!empty($relationUrl))?reset($relationUrl):'';
 					$this->relation_url_list[$cont_url][$contPage]=$relationUrl;
+					
+					$this->cur_source_signs['relation_url'][$urlMd5][$contPage]=$relationUrlsMatches['matches'][md5($relationUrl)];
 				}else{
 					$relationUrl=$this->relation_url_list[$cont_url][$contPage];
 				}
@@ -1305,10 +1326,12 @@ class Cpattern extends CpatternBase{
 						
 						return '';
 					}
-					$relationUrl=$this->rule_match_urls($this->config['new_relation_urls'][$page],$relationHtml);
+					$relationUrlsMatches=$this->rule_match_urls($this->config['new_relation_urls'][$page],$relationHtml,false,true);
+					$relationUrl=$relationUrlsMatches['urls'];
 					$relationUrl=(is_array($relationUrl)&&!empty($relationUrl))?reset($relationUrl):'';
-	
 					$this->relation_url_list[$cont_url][$page]=$relationUrl;
+					
+					$this->cur_source_signs['relation_url'][$urlMd5][$page]=$relationUrlsMatches['matches'][md5($relationUrl)];
 				}else{
 					$relationUrl=$this->relation_url_list[$cont_url][$page];
 				}
@@ -1454,8 +1477,19 @@ class Cpattern extends CpatternBase{
 	
 	/*统一：获取网址列表*/
 	public function _get_urls($source_url,$config,$is_level=false){
-		$is_level=$is_level?'多级':'';
-	
+	    $sourceType=$is_level?'level_url':'';
+	    $sourceName=$sourceType?$config['name']:'';
+	    
+	    $is_level=$is_level?'多级':'';
+	    
+	    
+	    if(!isset($this->cur_source_signs[$sourceType])){
+	        $this->cur_source_signs[$sourceType]=array();
+	    }
+	    if(!isset($this->cur_source_signs[$sourceType][$sourceName])){
+	        $this->cur_source_signs[$sourceType][$sourceName]=array();
+	    }
+	    
 		$html=$this->get_html($source_url);
 		if(empty($html)){
 			return $this->error($is_level.'页面为空');
@@ -1468,7 +1502,9 @@ class Cpattern extends CpatternBase{
 			return $this->error("未提取到{$is_level}区域内容！");
 		}
 	
-		$cont_urls=$this->rule_match_urls($config, $html);
+		$contUrlsMatches=$this->rule_match_urls($config, $html,false,true);
+		
+		$cont_urls=$contUrlsMatches['urls'];
 		$cont_urls1=array();
 	
 		
@@ -1488,7 +1524,13 @@ class Cpattern extends CpatternBase{
 		foreach ($cont_urls as $cont_url){
 			if(!$op_not_complete){
 				
-				$cont_url=$this->create_complete_url($cont_url, $base_url, $domain_url);
+			    $oldContMd5=md5($cont_url);
+			    $cont_url=$this->create_complete_url($cont_url, $base_url, $domain_url);
+			    $newContMd5=md5($cont_url);
+			    if($oldContMd5!=$newContMd5){
+			        
+			        $contUrlsMatches['matches'][$newContMd5]=$contUrlsMatches['matches'][$oldContMd5];
+			    }
 			}
 			if(!empty($config['url_must'])){
 				
@@ -1518,6 +1560,17 @@ class Cpattern extends CpatternBase{
 		if(empty($cont_urls)){
 			return $this->error("未获取到".($is_level?$is_level:'内容')."网址！");
 		}else{
+		    
+		    $contUrlsMd5=array();
+		    foreach ($cont_urls as $k=>$v){
+		        $contUrlsMd5[]=md5($v);
+		    }
+		    foreach ($contUrlsMatches['matches'] as $k=>$v){
+		        if(!in_array($k,$contUrlsMd5)){
+		            unset($contUrlsMatches['matches'][$k]);
+		        }
+		    }
+		    
 			if(!empty($this->config['url_reverse'])){
 				
 				$cont_urls=array_reverse($cont_urls);
@@ -1536,12 +1589,18 @@ class Cpattern extends CpatternBase{
 					
 					$postParams=implode('&', $postParams);
 					foreach ($cont_urls as $k=>$v){
+					    $vMd5=md5($v);
 						$v.=strpos($v,'?')===false?'?':'&';
 						$v.=$postParams;
 						$cont_urls[$k]=$v;
+						
+						$contUrlsMatches['matches'][md5($v)]=$contUrlsMatches['matches'][$vMd5];
+						unset($contUrlsMatches['matches'][$vMd5]);
 					}
 				}
 			}
+			
+			$this->cur_source_signs[$sourceType][$sourceName]=$contUrlsMatches['matches'];
 			return array_values($cont_urls);
 		}
 	}
@@ -1778,6 +1837,19 @@ class Cpattern extends CpatternBase{
 					$field_vals_list=$this->getFields($cont_url);
 	
 					$is_loop=empty($this->first_loop_field)?false:true;
+					$loopExcludeNum=0;
+					if($is_loop){
+					    
+					    if(isset($this->exclude_cont_urls[$md5_cont_url])){
+					        
+					        $loopExcludeNum=0;
+					        foreach($this->exclude_cont_urls[$md5_cont_url] as $k=>$v){
+					            
+					            $loopExcludeNum+=count((array)$v);
+					        }
+					        $this->echo_msg($echo_str.'通过数据处理筛除了'.$loopExcludeNum.'条数据','black');
+					    }
+					}
 					if(!empty($field_vals_list)){
 						$is_real_time=false;
 						if(!empty($GLOBALS['_sc']['c']['caiji']['real_time'])&&!empty($GLOBALS['_sc']['real_time_release'])){
@@ -1808,19 +1880,9 @@ class Cpattern extends CpatternBase{
 									$this->echo_msg($echo_str.'已过滤'.count((array)$loop_exists_urls).'条重复数据','black');
 								}
 							}
-							if(isset($this->exclude_cont_urls[$md5_cont_url])){
-								
-								$excludeNum=0;
-								foreach($this->exclude_cont_urls[$md5_cont_url] as $k=>$v){
-									
-									$excludeNum+=count((array)$v);
-								}
-								
-								$this->echo_msg($echo_str.'通过数据处理排除了'.$excludeNum.'条数据','black');
-							}
 							$field_vals_list=array_values($field_vals_list);
 						}
-	
+						
 						foreach ($field_vals_list as $field_vals){
 							$collected_error='';
 							$collected_data=array('url'=>$cont_url,'fields'=>$field_vals);
@@ -1879,7 +1941,7 @@ class Cpattern extends CpatternBase{
 						
 						
 						controller('ReleaseBase','event')->record_collected(
-						$cont_url,array('id'=>1,'target'=>'','desc'=>'循环入库'),array('task_id'=>$this->collector['task_id'],'module'=>$this->release['module']),null,false
+						    $cont_url,array('id'=>1,'target'=>'','desc'=>'循环入库'.($loopExcludeNum>0?('，数据处理筛除了'.$loopExcludeNum.'条数据'):'')),array('task_id'=>$this->collector['task_id'],'module'=>$this->release['module']),null,false
 						);
 					}
 				}else{

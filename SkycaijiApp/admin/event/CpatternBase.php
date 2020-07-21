@@ -30,6 +30,7 @@ class CpatternBase extends Collector{
 	public $used_paging_urls=array();
 	public $cur_level_urls=array();
 	public $cur_source_url='';
+	public $cur_source_signs=array();
 	public $html_cache_list=array();
 	public $show_opened_tools=false;
 	
@@ -86,105 +87,162 @@ class CpatternBase extends Collector{
 	 * @param array $config 配置参数
 	 * @param string $html 源码
 	 * @param bool $whole 完全匹配模式
+	 * @param bool $returnMatch 返回匹配到的数据
 	 * 
 	 */
-	public function rule_match_urls($config,$html,$whole=false){
-		$cont_urls=array();
-		if(!empty($config['reg_url'])&&!empty($config['url_merge'])){
-			
-			$sign_match=$this->sign_addslashes(cp_sign('match','(?P<num>\d*)'));
-			if(preg_match_all('/'.$sign_match.'/i', $config['url_merge'],$match_signs)){
-				
-				$url_merge=true;
-				if(empty($config['reg_url_module'])){
-					
-					if(preg_match('/\(\?P<match\d*>/i', $config['reg_url'])){
-						
-						if(preg_match_all('/'.$config['reg_url'].'/i',$html,$cont_urls,PREG_SET_ORDER)){
-							if($config['url_merge']==cp_sign('match')){
-								
-								$url_merge=false;
-								foreach ($cont_urls as $k=>$v){
-									$cont_urls[$k]=$v['match'];
-								}
-							}
-						}else{
-							$cont_urls=array();
-						}
-					}else{
-						
-						if($whole){
-							
-							if(preg_match_all('/'.$config['reg_url'].'/i',$html,$cont_urls)){
-								$cont_urls=$cont_urls[0];
-							
-								if($config['url_merge']==cp_sign('match')){
-									
-									$url_merge=false;
-								}else{
-									
-									foreach ($cont_urls as $k=>$v){
-										$cont_urls[$k]=array(
-											'match'=>$v
-										);
-									}
-								}
-							}else{
-								$cont_urls=array();
-							}
-						}
-					}
-				}elseif(in_array($config['reg_url_module'],array('xpath','json'))){
-					
-					if('xpath'==$config['reg_url_module']){
-						
-						$cont_urls=$this->rule_module_xpath_data ( array (
-								'xpath' => $config['reg_url'],
-								'xpath_attr' => 'href',
-								'xpath_multi'=>true,
-								'xpath_multi_type'=>'loop'
-						),$html);
-						$cont_urls=is_array($cont_urls)?$cont_urls:array();
-					}elseif('json'==$config['reg_url_module']){
-						
-						$cont_urls=$this->rule_module_json_data(array('json'=>$config['reg_url'],'json_arr'=>'_original_'),$html);
-						if(empty($cont_urls)){
-							$cont_urls=array();
-						}elseif(!is_array($cont_urls)){
-							$cont_urls=array($cont_urls);
-						}
-					}
-						
-					if($config['url_merge']==cp_sign('match')){
-						
-						$url_merge=false;
-					}else{
-						
-						foreach ($cont_urls as $k=>$v){
-							$cont_urls[$k]=array(
-								'match'=>$v
-							);
-						}
-					}
-				}
-		
-				if($url_merge){
-					
-					foreach ($cont_urls as $k=>$v){
-						$re_match=array();
-						foreach($match_signs['num'] as $ms_k=>$ms_v){
-							
-							$re_match[$ms_k]=$v['match'.$ms_v];
-						}
-						
-						$cont_urls[$k]=str_replace($match_signs[0], $re_match, $config['url_merge']);
-					}
-				}
-			}
-		}
-		$cont_urls=is_array($cont_urls)?array_unique($cont_urls):array();
-		$cont_urls=array_values($cont_urls);
-		return $cont_urls;
+	public function rule_match_urls($config,$html,$whole=false,$returnMatch=false){
+	    $cont_urls=array();
+	    $cont_urls_matches=array();
+	    if(!empty($config['reg_url'])&&!empty($config['url_merge'])){
+	        
+	        $sign_match=$this->sign_addslashes(cp_sign('match','(?P<num>\d*)'));
+	        if(preg_match_all('/'.$sign_match.'/i', $config['url_merge'],$match_signs)){
+	            
+	            $url_merge=true;
+	            if(empty($config['reg_url_module'])){
+	                
+	                if(preg_match('/\(\?P<match\d*>/i', $config['reg_url'])){
+	                    
+	                    if(preg_match_all('/'.$config['reg_url'].'/i',$html,$cont_urls,PREG_SET_ORDER)){
+	                        if($config['url_merge']==cp_sign('match')){
+	                            
+	                            if($returnMatch){
+	                                
+	                                $cont_urls_matches=$cont_urls;
+	                            }
+	                            $url_merge=false;
+	                            foreach ($cont_urls as $k=>$v){
+	                                $cont_urls[$k]=$v['match'];
+	                            }
+	                        }else{
+	                            if($returnMatch){
+	                                
+	                                $cont_urls_matches=$cont_urls;
+	                            }
+	                        }
+	                    }else{
+	                        $cont_urls=array();
+	                    }
+	                }else{
+	                    
+	                    if($whole){
+	                        
+	                        if(preg_match_all('/'.$config['reg_url'].'/i',$html,$cont_urls)){
+	                            $cont_urls=$cont_urls[0];
+	                            
+	                            if($config['url_merge']==cp_sign('match')){
+	                                
+	                                $url_merge=false;
+	                                if($returnMatch){
+	                                    
+	                                    foreach ($cont_urls as $k=>$v){
+	                                        $cont_urls_matches[$k]=array(
+	                                            'match'=>$v
+	                                        );
+	                                    }
+	                                }
+	                            }else{
+	                                
+	                                foreach ($cont_urls as $k=>$v){
+	                                    $cont_urls[$k]=array(
+	                                        'match'=>$v
+	                                    );
+	                                }
+	                                if($returnMatch){
+	                                    
+	                                    $cont_urls_matches=$cont_urls;
+	                                }
+	                            }
+	                        }else{
+	                            $cont_urls=array();
+	                        }
+	                    }
+	                }
+	            }elseif(in_array($config['reg_url_module'],array('xpath','json'))){
+	                
+	                if('xpath'==$config['reg_url_module']){
+	                    
+	                    $cont_urls=$this->rule_module_xpath_data ( array (
+	                        'xpath' => $config['reg_url'],
+	                        'xpath_attr' => 'href',
+	                        'xpath_multi'=>true,
+	                        'xpath_multi_type'=>'loop'
+	                    ),$html);
+	                    $cont_urls=is_array($cont_urls)?$cont_urls:array();
+	                }elseif('json'==$config['reg_url_module']){
+	                    
+	                    $cont_urls=$this->rule_module_json_data(array('json'=>$config['reg_url'],'json_arr'=>'_original_'),$html);
+	                    if(empty($cont_urls)){
+	                        $cont_urls=array();
+	                    }elseif(!is_array($cont_urls)){
+	                        $cont_urls=array($cont_urls);
+	                    }
+	                }
+	                
+	                if($config['url_merge']==cp_sign('match')){
+	                    
+	                    $url_merge=false;
+	                    if($returnMatch){
+	                        
+	                        foreach ($cont_urls as $k=>$v){
+	                            $cont_urls_matches[$k]=array(
+	                                'match'=>$v
+	                            );
+	                        }
+	                    }
+	                }else{
+	                    
+	                    foreach ($cont_urls as $k=>$v){
+	                        $cont_urls[$k]=array(
+	                            'match'=>$v
+	                        );
+	                    }
+	                    if($returnMatch){
+	                        
+	                        $cont_urls_matches=$cont_urls;
+	                    }
+	                }
+	            }
+	            
+	            if($url_merge){
+	                
+	                foreach ($cont_urls as $k=>$v){
+	                    $re_match=array();
+	                    foreach($match_signs['num'] as $ms_k=>$ms_v){
+	                        
+	                        $re_match[$ms_k]=$v['match'.$ms_v];
+	                    }
+	                    
+	                    $cont_urls[$k]=str_replace($match_signs[0], $re_match, $config['url_merge']);
+	                }
+	            }
+	        }
+	    }
+	    
+	    if($returnMatch){
+	        
+	        $return=array('urls'=>array(),'matches'=>array());
+	        foreach($cont_urls as $k=>$v){
+	            if(in_array($v, $return['urls'])){
+	                continue;
+	            }
+	            $return['urls'][]=$v;
+	            foreach ($cont_urls_matches[$k] as $kk=>$kv){
+	                
+	                if(stripos($kk,'match')!==0){
+	                    unset($cont_urls_matches[$k][$kk]);
+	                }
+	            }
+	            $return['matches'][md5($v)]=$cont_urls_matches[$k];
+	        }
+	        return $return;
+	    }else{
+	        
+	        $cont_urls=is_array($cont_urls)?array_unique($cont_urls):array();
+	        $cont_urls=array_values($cont_urls);
+	        return $cont_urls;
+	    }
+	    
 	}
 	
 	
@@ -399,13 +457,14 @@ class CpatternBase extends Collector{
 	}
 	
 	/*自动获取*/
-	public function field_module_auto($field_params,&$html,$cur_url){
+	public function field_module_auto($field_params,$html,$cur_url){
 		switch (strtolower($field_params['auto'])){
 			case 'title':$val=$this->get_title($html);break;
 			case 'content':$val=$this->get_content($html);break;
 			case 'keywords':$val=$this->get_keywords($html);break;
 			case 'description':$val=$this->get_description($html);break;
 			case 'url':$val=$cur_url;break;
+			case 'html':$val=$html;break;
 		}
 		return $val;
 	}
@@ -580,7 +639,7 @@ class CpatternBase extends Collector{
 				if(!empty($extract_field_val['img'])){
 					$val=reset($extract_field_val['img']);
 				}else{
-					if(preg_match('/<img[^<>]*\bsrc=[\'\"](?P<url>[^\'\"]+?)[\'\"]/i',$field_html,$cover)){
+					if(preg_match('/<img\b[^<>]*\bsrc\s*=\s*[\'\"](?P<url>[^\'\"]+?)[\'\"]/i',$field_html,$cover)){
 						$cover=$cover['url'];
 						$cover=$this->create_complete_url($cover, $base_url, $domain_url);
 						$val=$cover;
@@ -621,6 +680,52 @@ class CpatternBase extends Collector{
 		}
 		return $val;
 	}
+	
+	public function field_module_sign($field_params,$cont_url){
+	    $val='';
+	    $urlMd5=md5($cont_url);
+	    $sourceType=$field_params['source'];
+	    $sourceName='';
+	    if(preg_match('/^(level_url|relation_url):(.+)$/i', $sourceType,$sourceType)){
+	        $sourceName=$sourceType[2];
+	        $sourceType=$sourceType[1];
+	    }else{
+	        $sourceType='';
+	        $sourceName='';
+	    }
+	    
+	    if(!empty($field_params['sign'])&&!empty($this->cur_source_signs[$sourceType])){
+	        $matches=null;
+	        if(empty($sourceType)){
+	            
+	            $matches=$this->cur_source_signs[$sourceType][$sourceName][$urlMd5];
+	        }elseif($sourceType=='level_url'){
+	            
+	            if(!empty($this->cur_level_urls[$sourceName])){
+	                $matches=$this->cur_source_signs[$sourceType][$sourceName][md5($this->cur_level_urls[$sourceName])];
+	            }else{
+	                $matches=null;
+	            }
+	        }elseif($sourceType=='relation_url'){
+	            
+	            $matches=$this->cur_source_signs[$sourceType][$urlMd5][$sourceName];
+	        }
+	        if(!empty($matches)){
+	            $sign_match=$this->sign_addslashes(cp_sign('match','(?P<num>\d*)'));
+	            if(preg_match_all('/'.$sign_match.'/i', $field_params['sign'],$match_signs)){
+	                
+	                $re_match=array();
+	                foreach($match_signs['num'] as $ms_k=>$ms_v){
+	                    $re_match[$ms_k]=$matches['match'.$ms_v];
+	                }
+	                
+	                $val=str_replace($match_signs[0], $re_match, $field_params['sign']);
+	            }
+	        }
+	    }
+	    return $val;
+	}
+	
 	/*数据处理方法*/
 	public function process_f_html($fieldVal,$params){
 		$htmlAllow=array_filter(explode(',',$params['html_allow']));
@@ -738,7 +843,7 @@ class CpatternBase extends Collector{
 		}
 		return $fieldVal;
 	}
-	public function process_f_filter($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5){
+	public function process_f_filter($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName=''){
 		static $key_list=array();
 		if(!empty($params['filter_list'])){
 			$listMd5=md5($params['filter_list']);
@@ -773,13 +878,13 @@ class CpatternBase extends Collector{
 							
 							if(empty($this->first_loop_field)){
 								
-								$this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]='filter:'.$filterStr;
+							    $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=json_encode(array('field'=>$fieldName,'type'=>'filter','filter'=>$filterStr));
 							}else{
 								
 								if(!isset($this->exclude_cont_urls[$contUrlMd5][$curUrlMd5])){
 									$this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=array();
 								}
-								$this->exclude_cont_urls[$contUrlMd5][$curUrlMd5][$loopIndex]='filter:'.$filterStr;
+								$this->exclude_cont_urls[$contUrlMd5][$curUrlMd5][$loopIndex]=json_encode(array('field'=>$fieldName,'type'=>'filter','filter'=>$filterStr));
 							}
 							break;
 						}
@@ -815,13 +920,13 @@ class CpatternBase extends Collector{
 						
 						if(empty($this->first_loop_field)){
 							
-							$this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]='filter:';
+						    $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=json_encode(array('field'=>$fieldName,'type'=>'filter','filter'=>''));
 						}else{
 							
 							if(!isset($this->exclude_cont_urls[$contUrlMd5][$curUrlMd5])){
 								$this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=array();
 							}
-							$this->exclude_cont_urls[$contUrlMd5][$curUrlMd5][$loopIndex]='filter:';
+							$this->exclude_cont_urls[$contUrlMd5][$curUrlMd5][$loopIndex]=json_encode(array('field'=>$fieldName,'type'=>'filter','filter'=>''));
 						}
 					}
 				}
@@ -832,130 +937,136 @@ class CpatternBase extends Collector{
 		}
 		return $fieldVal;
 	}
-	public function process_f_if($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5){
+	public function process_f_if($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName=''){
 		static $func_list=array();
 		
 		if(is_array($params['if_logic'])&&!empty($params['if_logic'])){
 			
-			$resultOr=array();
-			$resultAnd=array();
+			$ifOrList=array();
+			$ifAndList=array();
+			
 			foreach($params['if_logic'] as $ifk=>$iflv){
-				if(empty($iflv)||empty($params['if_cond'][$ifk])){
-					
-					continue;
-				}
-				$ifVal=$params['if_val'][$ifk];
-				$ifCond=$params['if_cond'][$ifk];
-				$result=false;
-				switch($ifCond){
-					case 'regexp':
-						if(preg_match('/'.$ifVal.'/', $fieldVal)){
-							$result=true;
-						}
-						break;
-					case 'func':
-						$funcName=$params['if_addon']['func'][$ifk];
-						$isTurn=$params['if_addon']['turn'][$ifk];
-						$isTurn=$isTurn?true:false;
-						
-						$result=$this->execute_plugin_func('processIf', $funcName, $fieldVal, $ifVal);
-						$result=$result?true:false;
-						if($isTurn){
-							$result=$result?false:true;
-						}
-						
-						break;
-					case 'has':$result=stripos($fieldVal,$ifVal)!==false?true:false;break;
-					case 'nhas':$result=stripos($fieldVal,$ifVal)===false?true:false;break;
-					case 'eq':$result=$fieldVal==$ifVal?true:false;break;
-					case 'neq':$result=$fieldVal!=$ifVal?true:false;break;
-					case 'heq':$result=$fieldVal===$ifVal?true:false;break;
-					case 'nheq':$result=$fieldVal!==$ifVal?true:false;break;
-					case 'gt':$result=$fieldVal>$ifVal?true:false;break;
-					case 'egt':$result=$fieldVal>=$ifVal?true:false;break;
-					case 'lt':$result=$fieldVal<$ifVal?true:false;break;
-					case 'elt':$result=$fieldVal<=$ifVal?true:false;break;
-					case 'time_eq':
-					case 'time_egt':
-					case 'time_elt':
-						$fieldTime=is_numeric($fieldVal)?$fieldVal:strtotime($fieldVal);
-						$valTime=is_numeric($ifVal)?$ifVal:strtotime($ifVal);
-						if($ifCond=='time_eq'){
-							
-							$result=$fieldTime==$valTime?true:false;
-						}elseif($ifCond=='time_egt'){
-							
-							$result=$fieldTime>=$valTime?true:false;
-						}elseif($ifCond=='time_elt'){
-							
-							$result=$fieldTime<=$valTime?true:false;
-						}
-						break;
-				}
-				if('or'==$iflv){
-					if(!empty($resultAnd)){
-						
-						$resultOr[]=$resultAnd;
-					}
-					$resultAnd=array();
-					$resultOr[]=$result;
-				}elseif('and'==$iflv){
-					
-					$resultAnd[]=$result;
-				}
+			    if('or'==$iflv){
+			        if(!empty($ifAndList)){
+			            
+			            $ifOrList[]=$ifAndList;
+			        }
+			        $ifAndList=array();
+			        $ifAndList[]=$ifk;
+			    }elseif('and'==$iflv){
+			        
+			        $ifAndList[]=$ifk;
+			    }
 			}
-			if(!empty($resultAnd)){
-				
-				$resultOr[]=$resultAnd;
+			if(!empty($ifAndList)){
+			    
+			    $ifOrList[]=$ifAndList;
 			}
-			if(is_array($resultOr)&&!empty($resultOr)){
-				$isTrue=false;
-				foreach ($resultOr as $results){
-					if(is_array($results)){
-						
-						$andResult=true;
-						foreach ($results as $result){
-							if(!$result){
-								
-								$andResult=false;
-								break;
-							}
-						}
-						$results=$andResult;
-					}
-					if($results){
-						
-						$isTrue=true;
-						break;
-					}
-				}
-		
-				$exclude='';
-		
-				switch ($params['if_type']){
-					case '1':$exclude=$isTrue?'':'if:1';break;
-					case '2':$exclude=$isTrue?'if:2':'';break;
-					case '3':$exclude=!$isTrue?'':'if:3';break;
-					case '4':$exclude=!$isTrue?'if:4':'';break;
-				}
-		
-				if($exclude){
-					
-					if(!isset($this->exclude_cont_urls[$contUrlMd5])){
-						$this->exclude_cont_urls[$contUrlMd5]=array();
-					}
-					
-					if(empty($this->first_loop_field)){
-						
-						$this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=$exclude;
-					}else{
-						
-						if(!isset($this->exclude_cont_urls[$contUrlMd5][$curUrlMd5])){
-							$this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=array();
-						}
-						$this->exclude_cont_urls[$contUrlMd5][$curUrlMd5][$loopIndex]=$exclude;
-					}
-				}
+			if(is_array($ifOrList)&&!empty($ifOrList)){
+        		$isTrue=false;
+        		$breakCond='';
+        		
+        		foreach ($ifOrList as $ifAndList){
+        		    $ifAndResult=true;
+        	        foreach ($ifAndList as $ifIndex){
+        		        $ifLogic=$params['if_logic'][$ifIndex];
+        		        $ifCond=$params['if_cond'][$ifIndex];
+        		        if(empty($ifLogic)||empty($ifCond)){
+        		            
+        		            continue;
+        		        }
+        		        $ifVal=$params['if_val'][$ifIndex];
+        		        $result=false;
+        		        $breakCond=lang('p_m_if_c_'.$ifCond).':'.$ifVal;
+        		        switch($ifCond){
+        		            case 'regexp':
+        		                if(preg_match('/'.$ifVal.'/', $fieldVal)){
+        		                    $result=true;
+        		                }
+        		                break;
+        		            case 'func':
+        		                $funcName=$params['if_addon']['func'][$ifIndex];
+        		                $isTurn=$params['if_addon']['turn'][$ifIndex];
+        		                $isTurn=$isTurn?true:false;
+        		                
+        		                $result=$this->execute_plugin_func('processIf', $funcName, $fieldVal, $ifVal);
+        		                $result=$result?true:false;
+        		                if($isTurn){
+        		                    $result=$result?false:true;
+        		                }
+        		                $breakCond=lang('p_m_if_c_'.$ifCond).':'.$funcName.($isTurn?'取反':'');
+        		                break;
+        		            case 'has':$result=stripos($fieldVal,$ifVal)!==false?true:false;break;
+        		            case 'nhas':$result=stripos($fieldVal,$ifVal)===false?true:false;break;
+        		            case 'eq':$result=$fieldVal==$ifVal?true:false;break;
+        		            case 'neq':$result=$fieldVal!=$ifVal?true:false;break;
+        		            case 'heq':$result=$fieldVal===$ifVal?true:false;break;
+        		            case 'nheq':$result=$fieldVal!==$ifVal?true:false;break;
+        		            case 'gt':$result=$fieldVal>$ifVal?true:false;break;
+        		            case 'egt':$result=$fieldVal>=$ifVal?true:false;break;
+        		            case 'lt':$result=$fieldVal<$ifVal?true:false;break;
+        		            case 'elt':$result=$fieldVal<=$ifVal?true:false;break;
+        		            case 'time_eq':
+        		            case 'time_egt':
+        		            case 'time_elt':
+        		                $fieldTime=is_numeric($fieldVal)?$fieldVal:strtotime($fieldVal);
+        		                $valTime=is_numeric($ifVal)?$ifVal:strtotime($ifVal);
+        		                if($ifCond=='time_eq'){
+        		                    
+        		                    $result=$fieldTime==$valTime?true:false;
+        		                }elseif($ifCond=='time_egt'){
+        		                    
+        		                    $result=$fieldTime>=$valTime?true:false;
+        		                }elseif($ifCond=='time_elt'){
+        		                    
+        		                    $result=$fieldTime<=$valTime?true:false;
+        		                }
+        		                break;
+        		        }
+        		        if(!$result){
+        		            
+        		            $ifAndResult=false;
+        		            break;
+        		        }
+        		    }
+        		    
+        		    if($ifAndResult){
+        		        
+        		        $isTrue=true;
+        		        break;
+        		    }
+        		}
+        		
+        		$exclude=null;
+        		
+        		switch ($params['if_type']){
+        		    case '1':$exclude=$isTrue?null:array('if'=>'1');break;
+        		    case '2':$exclude=$isTrue?array('if'=>'2'):null;break;
+        		    case '3':$exclude=!$isTrue?null:array('if'=>'3');break;
+        		    case '4':$exclude=!$isTrue?array('if'=>'4'):null;break;
+        		}
+        		
+        		if(!empty($exclude)){
+        		    $exclude['type']='if';
+        		    $exclude['field']=$fieldName;
+        		    $exclude['cond']=$breakCond;
+        		    $exclude=json_encode($exclude);
+        		    
+        		    if(!isset($this->exclude_cont_urls[$contUrlMd5])){
+        		        $this->exclude_cont_urls[$contUrlMd5]=array();
+        		    }
+        		    
+        		    if(empty($this->first_loop_field)){
+        		        
+        		        $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=$exclude;
+        		    }else{
+        		        
+        		        if(!isset($this->exclude_cont_urls[$contUrlMd5][$curUrlMd5])){
+        		            $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=array();
+        		        }
+        		        $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5][$loopIndex]=$exclude;
+        		    }
+        		}
 			}
 		}
 		return $fieldVal;
@@ -1015,11 +1126,11 @@ class CpatternBase extends Collector{
 		return $fieldVal;
 	}
 	/*数据处理*/
-	public function process_field($fieldVal,$process,$curUrlMd5,$loopIndex,$contUrlMd5){
+	public function process_field($fieldName,$fieldVal,$process,$curUrlMd5,$loopIndex,$contUrlMd5){
 		if(empty($process)){
 			return $fieldVal;
 		}
-		static $funcs=array('func','filter','if');
+		static $condFuncs=array('filter','if');
 		foreach ($process as $params){
 			
 			if(empty($this->first_loop_field)){
@@ -1035,8 +1146,11 @@ class CpatternBase extends Collector{
 			}
 			$funcName='process_f_'.$params['module'];
 			if(method_exists($this, $funcName)){
-				if(in_array($params['module'],$funcs)){
-					$fieldVal=$this->$funcName($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5);
+			    if(in_array($params['module'],$condFuncs)){
+				    
+				    $fieldVal=$this->$funcName($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName);
+			    }elseif($params['module']=='func'){
+			        $fieldVal=$this->$funcName($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5);
 				}else{
 					$fieldVal=$this->$funcName($fieldVal,$params);
 				}
@@ -1166,35 +1280,40 @@ class CpatternBase extends Collector{
 	}
 	/*排除内容网址的提示信息*/
 	public function exclude_url_msg($val){
-		$val=explode(':', $val);
-		$type='';
-		if(is_array($val)){
-			$type=$val[0];
-			$val=$val[1];
-		}else{
-			$type=$val;
-			$val='';
-		}
+	    try{
+	        $val=json_decode($val,true);
+	    }catch (\Exception $ex){
+	        $val=array();
+	    }
+	    if(!is_array($val)){
+	        $val=array();
+	    }
+	    $type=$val['type'];
 		$msg='排除网址';
 		if($type=='filter'){
 			
-			if(empty($val)){
-				$msg='关键词过滤';
+		    if(empty($val['filter'])){
+			    $msg='字段:'.$val['field'].'»关键词过滤:未检测到关键词';
 			}else{
-				$msg='关键词过滤：'.$val;
+			    $msg='字段:'.$val['field'].'»关键词过滤:'.$val['filter'];
 			}
 		}elseif($type=='if'){
-			$msg='条件';
+		    $msg='字段:'.$val['field'].'»条件';
 			
-			switch ($val){
+			switch ($val['if']){
 				case '1':$msg.='假';break;
 				case '2':$msg.='真';break;
 				case '3':$msg.='假';break;
 				case '4':$msg.='真';break;
 			}
-			if(lang('?p_m_if_'.$val)){
-				$msg.='：'.lang('p_m_if_'.$val);
+			$msg.='(';
+			if(lang('?p_m_if_'.$val['if'])){
+			    $msg.=lang('p_m_if_'.$val['if']);
 			}
+			if(!empty($val['cond'])){
+			    $msg.='»'.$val['cond'];
+			}
+			$msg.=')';
 		}
 		return $msg;
 	}
@@ -1531,12 +1650,14 @@ class CpatternBase extends Collector{
 			
 			$base_url=$this->match_base_url($url, $html);
 			$domain_url=$this->match_domain_url($url, $html);
-			$html=preg_replace_callback('/(?<=\bhref\=[\'\"])([^\'\"]*)(?=[\'\"])/i',function($matche) use ($base_url,$domain_url){
+			$html=preg_replace_callback('/(\bhref\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($base_url,$domain_url){
 				
-				return \skycaiji\admin\event\Cpattern::create_complete_url($matche[1], $base_url, $domain_url);
+			    $matche[2]=\skycaiji\admin\event\Cpattern::create_complete_url($matche[2], $base_url, $domain_url);
+			    return $matche[1].$matche[2].$matche[3];
 			},$html);
-			$html=preg_replace_callback('/(?<=\bsrc\=[\'\"])([^\'\"]*)(?=[\'\"])/i',function($matche) use ($base_url,$domain_url){
-				return \skycaiji\admin\event\Cpattern::create_complete_url($matche[1], $base_url, $domain_url);
+			$html=preg_replace_callback('/(\bsrc\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($base_url,$domain_url){
+			    $matche[2]=\skycaiji\admin\event\Cpattern::create_complete_url($matche[2], $base_url, $domain_url);
+				return $matche[1].$matche[2].$matche[3];
 			},$html);
 		}
 		if($openCache){

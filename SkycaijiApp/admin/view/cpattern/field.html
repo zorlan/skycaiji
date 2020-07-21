@@ -7,7 +7,7 @@
    			<div class="input-group-btn c-p-field-source" title="选择数据源">
 	   			<select name="field[source]" class="form-control slt-field-source">
 					<optgroup label="选择数据源">
-						<option value="">默认页</option>
+						<option value="">内容页</option>
 						<option value="source_url">起始页</option>
 					</optgroup>
 				</select>
@@ -22,6 +22,7 @@
 				<option value="xpath">{$Think.lang.field_module_xpath}</option>
 				<option value="json">{$Think.lang.field_module_json}</option>
 				<option value="auto">{$Think.lang.field_module_auto}</option>
+				<option value="sign">{$Think.lang.field_module_sign}</option>
 				<optgroup label="数据生成">
 					<option value="words">{$Think.lang.field_module_words}</option>
 					<option value="num">{$Think.lang.field_module_num}</option>
@@ -82,15 +83,18 @@
 				    <label class="radio-inline">
 				        <input type="radio" name="field[auto]" value="url">页面网址
 				    </label>
+				    <label class="radio-inline">
+				        <input type="radio" name="field[auto]" value="html">源码
+				    </label>
 				</div>
 			</div>
 			<div class="c-p-field-module" module="xpath" style="display:none;">
 				<div class="form-group">
-					<label>规则：</label>
+					<label>规则</label>
 					<textarea name="field[xpath]" class="form-control" rows="3">{$field['xpath']}</textarea>
 				</div>
 				<div class="form-group">
-					<label>属性：</label>
+					<label>属性</label>
 					<select name="field[xpath_attr]" class="form-control">
 						<option value="">无</option>
 						<option value="innerHtml">innerHtml</option>
@@ -247,6 +251,13 @@
 						</select>
 						<textarea name="field[extract_json_arr_implode]" class="form-control" rows="1" placeholder="输入分隔符" style="margin-top:5px;">{$field['extract_json_arr_implode']}</textarea>
 					</div>
+				</div>
+			</div>
+			<div class="c-p-field-module" module="sign" style="display:none;">
+				<div class="form-group">
+					<textarea name="field[sign]" class="form-control" rows="3" placeholder="填入数据源“提取网址规则”中的{:cp_sign('match')}标签">{$field['sign']}</textarea>
+					<div id="c_p_field_sign_list" style="margin-top:5px;"></div>
+					<p class="help-block"></p>
 				</div>
 			</div>
 		</div>

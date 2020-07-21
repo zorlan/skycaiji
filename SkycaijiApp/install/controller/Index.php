@@ -32,6 +32,11 @@ class Index extends BaseController{
 	
 	/*环境检测*/
 	public function step1Action(){
+	    try{
+	        clear_dir(config('root_path').'/runtime');
+	    }catch(\Exception $ex){
+	        
+	    }
 		
 		$LocSystem=new \skycaiji\install\event\LocSystem();
 		$setting=$LocSystem->environment();

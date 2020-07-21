@@ -183,6 +183,10 @@ class Cpattern extends BaseController {
     			case 'list':if(empty($field['list']))$this->error('随机抽取不能为空！');break;
     			case 'extract':if(empty($field['extract']))$this->error('请选择字段！');break;
     			case 'merge':if(empty($field['merge']))$this->error('字段组合不能为空！');break;
+    			case 'sign':
+    			    if($field['source']=='source_url')$this->error('抱歉，起始页无法使用'.lang('field_module_sign'));
+    			    if(empty($field['sign']))$this->error('请输入'.lang('field_module_sign'));
+    			    break;
     		}
     		
 			$modules = array (
@@ -196,7 +200,8 @@ class Cpattern extends BaseController {
 				'time' => array ('time_format','time_start','time_end','time_stamp'),
 				'list' => 'list',
 				'extract' =>array('extract','extract_module','extract_rule','extract_xpath','extract_xpath_attr','extract_xpath_attr_custom','extract_json','extract_json_arr','extract_json_arr_implode'),
-				'merge' => 'merge'
+				'merge' => 'merge',
+			    'sign' => 'sign'
 			);
     		$returnField=array('name'=>$field['name'],'source'=>$field['source'],'module'=>$field['module']);
     		
@@ -212,7 +217,25 @@ class Cpattern extends BaseController {
     		$field=input('field','','url_b64decode');
     		$objid=input('objid');
     		$field=$field?json_decode($field,true):array();
+    		if(!is_array($field)){
+    		    $field=array();
+    		}
     		$field['time_format']=$field['time_format']?$field['time_format']:'[年]/[月]/[日] [时]:[分]';
+    		
+    		
+    		$sortField=array();
+    		foreach(array('source','module') as $k){
+    		    if(isset($field[$k])){
+    		        $sortField[$k]=$field[$k];
+    		        unset($field[$k]);
+    		    }
+    		}
+    		
+    		foreach ($field as $k=>$v){
+    		    $sortField[$k]=$v;
+    		}
+    		$field=$sortField;
+    		
     		$this->assign('field',$field);
     		$this->assign('objid',$objid);
     		return $this->fetch();
@@ -340,7 +363,7 @@ class Cpattern extends BaseController {
     		
     		$this->success('',null,array('level_url'=>$level_url,'objid'=>$objid));
     	}else{
-    		$level_url=input('level_url','','url_b64decode');
+    	    $level_url=input('level_url','','url_b64decode');
     		$objid=input('objid');
     		$level_url=$level_url?json_decode($level_url,true):array();
     		$this->assign('level_url',$level_url);
@@ -392,8 +415,7 @@ class Cpattern extends BaseController {
     	
     	$op=input('op');
     	$taskData=model('Task')->getById($eCpattern->collector['task_id']);
-
-    	model('Task')->loadConfig($taskData['config']);
+    	model('Task')->loadConfig($taskData);
 
     	$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Collector/set?task_id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('Cpattern/test&op='.$op.'&coll_id='.$coll_id),'title'=>'测试')));
     	
@@ -440,17 +462,41 @@ class Cpattern extends BaseController {
     		
     		$input_urls=array();
     		foreach ($eCpattern->config['new_field_list'] as $field){
-    			if('source_url'==strtolower($field['field']['source'])){
-    				
-    				$input_urls['source_url']=input('source_url');
-    				$input_urls['source_url']=$input_urls['source_url']?$input_urls['source_url']:'';
+    		    if(empty($field['field']['source'])){
+    		        
+    		        if($field['field']['module']=='sign'){
+    		            if(empty($eCpattern->config['level_urls'])){
+    		                $input_urls['source_url']=input('source_url','');
+    		            }else{
+    		                
+    		                $endLevelNum=count($eCpattern->config['level_urls']);
+    		                $endLevel=$eCpattern->config['level_urls'][$endLevelNum-1];
+    		                $input_urls['level_url'][$endLevelNum]=array('level'=>$endLevelNum,'name'=>$endLevel['name'],'url'=>input('level_'.$endLevelNum));
+    		            }
+    		        }
+    		    }elseif('source_url'==strtolower($field['field']['source'])){
+    		        
+    		        $input_urls['source_url']=input('source_url','');
     			}elseif(preg_match('/level_url:/i', $field['field']['source'])){
     				
     				foreach($eCpattern->config['level_urls'] as $levIx=>$levVal){
-    					if($field['field']['source']==('level_url:'.$levVal['name'])){
-    						
-    						$level=$levIx+1;
-    						$input_urls['level_url'][$level]=array('level'=>$level,'name'=>$levVal['name'],'url'=>input('level_'.$level));
+    				    if($field['field']['source']==('level_url:'.$levVal['name'])){
+    				        
+    				        $level=$levIx+1;
+    					    if($field['field']['module']=='sign'){
+    					        
+    					        if($level==1){
+    					            
+    					            $input_urls['source_url']=input('source_url','');
+    					        }else{
+    					            
+    					            $prevLevel=$level-1;
+    					            $input_urls['level_url'][$prevLevel]=array('level'=>$prevLevel,'name'=>$eCpattern->config['level_urls'][$prevLevel-1]['name'],'url'=>input('level_'.$prevLevel));
+    					        }
+    					    }else{
+    					        
+    					        $input_urls['level_url'][$level]=array('level'=>$level,'name'=>$levVal['name'],'url'=>input('level_'.$level));
+    					    }
     						break;
     					}
     				}
@@ -489,6 +535,50 @@ class Cpattern extends BaseController {
     				}
     			}
     			
+    			$signLevels=array();
+    			$signCont=false;
+    			foreach($eCpattern->config['new_field_list'] as $fieldConfig){
+    			    if($fieldConfig['field']['module']=='sign'){
+    			        
+    			        if(empty($fieldConfig['field']['source'])){
+    			            $signCont=true;
+    			        }elseif(preg_match('/^level_url:(.*+)$/i', $fieldConfig['field']['source'],$levelName)){
+    			            
+    			            $levelName=$levelName[1];
+    			            $signLevels[$levelName]=$levelName;
+    			        }
+    			    }
+    			}
+    			
+    			if(!empty($signLevels)){
+    			    
+    			    foreach ($eCpattern->config['level_urls'] as $k=>$v){
+    			        if(in_array($v['name'],$signLevels)){
+    			            if($k==0){
+    			                
+    			                $eCpattern->getLevelUrls($eCpattern->cur_source_url,$k+1,true);
+    			            }else{
+    			                
+    			                $prevLevelUrl=$eCpattern->config['level_urls'][$k-1];
+    			                $eCpattern->getLevelUrls($eCpattern->cur_level_urls[$prevLevelUrl['name']],$k+1,true);
+    			            }
+    			        }
+    			    }
+    			}
+    			
+    			if($signCont){
+    			    
+    			    if(empty($eCpattern->config['level_urls'])){
+    			        
+    			        $eCpattern->getContUrls($eCpattern->cur_source_url);
+    			    }else{
+    			        
+    			        $endLevelNum=count($eCpattern->config['level_urls']);
+    			        $endLevel=$eCpattern->config['level_urls'][$endLevelNum-1];
+    			        $eCpattern->getContUrls($eCpattern->cur_level_urls[$endLevel['name']]);
+    			    }
+    			}
+    			
     			$val_list=$eCpattern->getFields($cont_url);
     			if(empty($eCpattern->first_loop_field)){
     				
@@ -509,7 +599,7 @@ class Cpattern extends BaseController {
     					foreach ($eCpattern->exclude_cont_urls[$md5Url] as $k=>$v){
     						$num+=count((array)$v);
     					}
-    					$msg='通过数据处理排除了'.$num.'条数据';
+    					$msg='通过数据处理筛除了'.$num.'条数据';
     				}
     			}
 

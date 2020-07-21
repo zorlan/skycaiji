@@ -17,51 +17,14 @@ class Store extends BaseController {
 		if(empty($GLOBALS['_sc']['user'])){
 			$this->dispatchJump(false,lang('user_error_is_not_admin'),url('Admin/Index/index',null,null,true));
 		}else{
-			
-			if(request()->isAjax()){
-				
-				$token=$this->_getToken();
-				if(empty($token)){
-					$token=md5(request()->server('HTTP_ORIGIN').date('Y-m-d H:i:s',time()).rand(1,1000000));
-					session('store_token',array('token'=>$token,time=>time()));
-				}
-				$this->dispatchJump(true,$token);
-			}else{
-				$this->dispatchJump(false,'无效的操作！');
+			$token=$this->_getToken();
+			if(empty($token)){
+				$token=md5(request()->server('HTTP_ORIGIN').date('Y-m-d H:i:s',time()).rand(1,1000000));
+				session('store_token',array('token'=>$token,time=>time()));
 			}
-		}
-	}
-	public function indexAction(){
-		$url=input('url','','strip_tags');
-		if(!empty($url)&&!is_official_url($url)){
 			
-			$provData=model('Provider')->where('url',$url)->find();
-			if(empty($provData)){
-				$this->error($url.' 平台未添加');
-			}
-			if(empty($provData['enable'])){
-				$this->error($url.' 已设置为拒绝访问');
-			}
-			$url=$provData['url'];
-			
-			$url.=strpos($url, '?')===false?'?':'&';
-			$url.='clientinfo='.urlencode($GLOBALS['_sc']['clientinfo']);
-
-			$this->assign('provData',$provData);
+			$this->dispatchJump(true,$token);
 		}
-		if(empty($url)){
-			$url='https://www.skycaiji.com/store';
-		}
-		
-		if(!empty($url)){
-			
-		}
-
-		$GLOBALS['_sc']['p_name']=lang('store');
-		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Store/index'),'title'=>lang('store'))));
-		
-		$this->assign('url',$url);
-		return $this->fetch();
 	}
 	/*安装规则*/
 	public function installRuleAction(){
@@ -252,21 +215,19 @@ class Store extends BaseController {
 	}
 	/*站点验证*/
 	public function siteCertificationAction(){
-		if(request()->isAjax()){
-			$op=input('op');
-			if($op=='set_key'){
-				
-				$key=input('post.key');
-				if(empty($key)){
-					$this->dispatchJump(false,'密钥错误');
-				}
-				cache('site_certification',array('key'=>$key,'time'=>NOW_TIME));
-				$this->dispatchJump(true);
-			}else{
-				$this->dispatchJump(false,'操作错误！');
+	    $this->_checkRequest();
+	    
+		$op=input('op');
+		if($op=='set_key'){
+			
+			$key=input('post.key');
+			if(empty($key)){
+				$this->dispatchJump(false,'密钥错误');
 			}
+			cache('site_certification',array('key'=>$key,'time'=>NOW_TIME));
+			$this->dispatchJump(true);
 		}else{
-			$this->dispatchJump(false,'无效的操作！');
+			$this->dispatchJump(false,'错误操作！');
 		}
 	}
 	
@@ -334,28 +295,16 @@ class Store extends BaseController {
 	/*验证请求源*/
 	protected function _checkRequest(){
 		
-		$token=input('token');
+		
+	    $token=request()->server('HTTP_X_STORE_TOKEN');
 		$sessionToken=$this->_getToken();
 		if(empty($token)||empty($sessionToken)||$token!=$sessionToken){
 			$this->dispatchJump(false,'token验证失败，请刷新页面或清除缓存');
 		}
 		
-		if(!request()->isAjax()){
-			
-			$origin=strtolower(request()->server('HTTP_ORIGIN'));
-			$origin=rtrim($origin,'/');
-			if(empty($origin)){
-				$this->dispatchJump(false,'未知来源');
-			}
-			
-			$provData=model('Provider')->where(array('domain'=>$origin))->find();
-			if(empty($provData)){
-				$this->dispatchJump(false,'未知的第三方来源：'.$origin);
-			}elseif($provData['enable']!=1){
-				$this->dispatchJump(false,'未受信任的第三方来源：'.$origin);
-			}
-		}
+		$this->_checkCors(false);
 	}
+	
 	protected function _getToken(){
 		$storeToken=session('store_token');
 		$token=null;
@@ -365,5 +314,83 @@ class Store extends BaseController {
 			$token=$storeToken['token'];
 		}
 		return $token;
+	}
+	
+	
+	public function _checkCors($openCorsHeader=true){
+	    $action=request()->action();
+	    if($action=='update'){
+	        
+	        return;
+	    }
+	    
+	    
+	    $httpOrigin=strtolower(request()->server('HTTP_ORIGIN'));
+	    if(empty($httpOrigin)){
+	        $httpOrigin='';
+	    }else{
+	        if(preg_match('/^\w+\:\/\//', $httpOrigin)){
+	            $httpOrigin=rtrim($httpOrigin,'/');
+	        }else{
+	            
+	            $httpOrigin='';
+	        }
+	    }
+	    
+	    $isAllowOrigin=false;
+	    
+	    $provData=null;
+	    
+	    if(!empty($httpOrigin)){
+	        if(in_array($httpOrigin,config('allow_origins'))){
+	            
+	            $isAllowOrigin=true;
+	        }else{
+	            
+	            $provData=model('Provider')->where(array('domain'=>$httpOrigin))->find();
+	            if(!empty($provData)&&$provData['enable']==1){
+	                
+	                $isAllowOrigin=true;
+	            }
+	        }
+	        if($isAllowOrigin&&$openCorsHeader){
+	            
+	            
+	            header('Access-Control-Allow-Origin:'.$httpOrigin);
+	            
+	            header('Access-Control-Allow-Credentials:true');
+	            
+	            header('Access-Control-Allow-Methods:POST,GET');
+	            
+	            header('Access-Control-Allow-Headers:X-Requested-With,X-Store-Token,Content-Type');
+	            
+	            
+	        }
+	    }
+	    
+	    
+	    
+	    $httpWith=request()->server('HTTP_X_REQUESTED_WITH');
+	    if(empty($httpWith)||strtolower($httpWith)!='xmlhttprequest'){
+	        
+	        $this->dispatchJump(false,'不是ajax请求');
+	    }
+	    
+	    if(empty($httpOrigin)){
+	        
+	        $this->dispatchJump(false,'未知来源');
+	    }else{
+	        
+	        if(!$isAllowOrigin){
+	            
+	            if(empty($provData)){
+	                
+	                $this->dispatchJump(false,'未知的第三方来源：'.$httpOrigin);
+	            }else{
+	                
+	                $this->dispatchJump(false,'未受信任的第三方来源：'.$httpOrigin);
+	            }
+	        }
+	    }
 	}
 }

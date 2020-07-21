@@ -42,9 +42,16 @@ class Api extends BaseController{
 		}
 		define('IS_COLLECTING', 1);
 		$mcache=CacheModel::getInstance();
-		if($mcache->getCache('auto_collecting')){
-			
-			$this->error('有任务正在自动采集');
+		$autoCacheData=$mcache->getCache('auto_collecting');
+		if($autoCacheData){
+		    
+		    
+		    if((time()-intval($autoCacheData['dateline']))>60*($GLOBALS['_sc']['c']['caiji']['interval']+15)){
+		        
+		    }else{
+		        
+                $this->error('有任务正在自动采集');
+		    }
 		}
 		$mcache->setCache('auto_collecting',1);
 		register_shutdown_function('remove_auto_collecting');

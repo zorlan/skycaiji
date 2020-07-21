@@ -236,7 +236,7 @@ class Release extends BaseController{
 			$this->echo_msg(lang('task_error_empty_task'));
     		exit();
 		}
-		model('Task')->loadConfig($taskData['config']);
+		model('Task')->loadConfig($taskData);
 		
 		$collData=model('Collector')->where(array('task_id'=>$taskData['id'],'module'=>$taskData['module']))->find();
 		if(empty($collData)){

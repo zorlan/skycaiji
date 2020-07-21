@@ -137,49 +137,111 @@ class Config extends BaseModel {
 	
 	public function check_img_name_path($path){
 		static $check_list=array(); 
-		if(!isset($check_list[$path])){
+		$pathMd5=md5($path);
+		if(!isset($check_list[$pathMd5])){
 			$return=array('success'=>false,'msg'=>'');
 			if(!empty($path)){
-				if(!preg_match('/^(\w+|\-|\/|(\[(年|月|日|时|前两位|后两位)\]))+$/u',$path)){
-					$return['msg']='图片名称自定义目录只能输入字母、数字、- 、/ 或 标签';
+				if(!preg_match('/^(\w+|\-|\/|(\[(年|月|日|时|分|秒|前两位|后两位|任务名|任务ID)\])|(\[字段\:[^\/\[\]]+?\]))+$/u',$path)){
+					$return['msg']='图片名称自定义路径只能输入字母、数字、下划线、/ 或 使用标签';
 				}else{
 					if(preg_match('/^\/+$/', $path)){
-						$return['msg']='图片名称自定义目录不能只由/组成';
+						$return['msg']='图片名称自定义路径不能只由/组成';
 					}else{
 						$return['success']=true;
 					}
 				}
 			}
-			$check_list[$path]=$return;
+			$check_list[$pathMd5]=$return;
 		}else{
-			$return=$check_list[$path];
+		    $return=$check_list[$pathMd5];
 		}
-		
 		return $return;
 	}
 	
 	public function convert_img_name_path($path,$url){
-		$check=$this->check_img_name_path($path);
-		if($check['success']){
-			$md5=md5($url);
-			static $tags=array('[年]','[月]','[日]','[时]','[前两位]','[后两位]');
-			$tagsRe=array(
-				date('Y',NOW_TIME),
-				date('m',NOW_TIME),
-				date('d',NOW_TIME),
-				date('H',NOW_TIME),
-				substr($md5,0,2),
-				substr($md5,-2,2),
-			);
-			$path=preg_replace('/\/{2,}/', '/', $path);
-			$path=str_replace($tags, $tagsRe, $path);
-			$path=trim($path,'/');
-		}else{
-			$path='temp';
+	    if(!empty($path)){
+    		$md5=md5($url);
+    		static $tags=array('[年]','[月]','[日]','[时]','[分]','[秒]','[前两位]','[后两位]');
+    		$tagsRe=array(
+    			date('Y',NOW_TIME),
+    			date('m',NOW_TIME),
+    			date('d',NOW_TIME),
+    		    date('H',NOW_TIME),
+    		    date('i',NOW_TIME),
+    		    date('s',NOW_TIME),
+    			substr($md5,0,2),
+    			substr($md5,-2,2),
+    		);
+    		$path=str_replace($tags, $tagsRe, $path);
+    		$path=preg_replace('/[\s\r\n\~\`\!\@\#\$\%\^\&\*\(\)\+\=\{\}\[\]\|\\\\:\;\"\'\<\>\,\?]+/', '_', $path);
+    		$path=preg_replace('/\_{2,}/', '_', $path);
+    		$path=preg_replace('/\/{2,}/', '/', $path);
+    		$path=trim($path,'_');
+    		$path=trim($path,'/');
+	    }
+		if(empty($path)){
+		    $path='temp';
 		}
 		return $path;
 	}
 	
+	public function check_img_name_name($name){
+	    static $check_list=array(); 
+	    $nameMd5=md5($name);
+	    if(!isset($check_list[$nameMd5])){
+	        $return=array('success'=>false,'msg'=>'');
+	        if(!empty($name)){
+	            if(!preg_match('/^(\w+|\-|(\[(年|月|日|时|分|秒|前两位|后两位|任务名|任务ID|图片网址MD5码|图片原名)\])|(\[字段\:[^\/\[\]]+?\]))+$/u',$name)){
+	                $return['msg']='图片名称自定义名称只能输入字母、数字、下划线 或 使用标签';
+	            }else{
+	               $return['success']=true;
+	            }
+	        }
+	        $check_list[$nameMd5]=$return;
+	    }else{
+	        $return=$check_list[$nameMd5];
+	    }
+	    
+	    return $return;
+	}
+	
+	public function convert_img_name_name($name,$url){
+        $md5=md5($url);
+        if(!empty($name)){
+            $urlname='';
+            if(preg_match('/([^\/]+?)\./', $url,$urlname)){
+                $urlname=$urlname[1];
+            }else{
+                $urlname='';
+            }
+            if(empty($urlname)){
+                
+                $urlname=$md5;
+            }
+            
+            static $tags=array('[年]','[月]','[日]','[时]','[分]','[秒]','[前两位]','[后两位]','[图片网址MD5码]','[图片原名]');
+            $tagsRe=array(
+                date('Y',NOW_TIME),
+                date('m',NOW_TIME),
+                date('d',NOW_TIME),
+                date('H',NOW_TIME),
+                date('i',NOW_TIME),
+                date('s',NOW_TIME),
+                substr($md5,0,2),
+                substr($md5,-2,2),
+                $md5,
+                $urlname
+            );
+            $name=str_replace($tags, $tagsRe, $name);
+            $name=preg_replace('/[\/\s\r\n\~\`\!\@\#\$\%\^\&\*\(\)\+\=\{\}\[\]\|\\\\:\;\"\'\<\>\,\?]+/', '_', $name);
+            $name=preg_replace('/\_{2,}/', '_', $name);
+            $name=trim($name,'_');
+        }
+        if(empty($name)){
+            $name=$md5;
+        }
+        return $name;
+    }
 	
 	public function get_img_config_from_caiji($caijiConfig){
 		$config=array();
