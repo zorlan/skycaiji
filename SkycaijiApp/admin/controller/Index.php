@@ -19,7 +19,7 @@ class Index extends BaseController{
 	/*后台运行采集，会无限运行下去*/
 	public function backstageAction(){
 		$key=input('key');
-		$cacheKey=CacheModel::getInstance()->getCache('admin_index_backstage_key', 'data');
+		$cacheKey=CacheModel::getInstance()->getCache('collect_backstage_key', 'data');
 		if(empty($key)||$key!=$cacheKey){
 			
 			
@@ -37,7 +37,7 @@ class Index extends BaseController{
 			$this->error('不是后台运行方式');
 		}
 		
-		if($caijiConfig['server']=='cli'){
+		if($mconfig->server_is_cli(true,$caijiConfig['server'])){
 			
 			cli_command_exec('collect backstage');
 		}else{
@@ -56,6 +56,8 @@ class Index extends BaseController{
 			ignore_user_abort(true);
 			set_time_limit(0);
 			
+			CacheModel::getInstance()->setCache('collect_backstage_time',time());
+			
 			try{
 				get_html(url('Admin/Api/collect?backstage=1',null,false,true),null,array('timeout'=>3));
 			}catch(\Exception $ex){
@@ -71,7 +73,7 @@ class Index extends BaseController{
 					
 					
 					
-					$cacheKey=CacheModel::getInstance()->getCache('admin_index_backstage_key', 'data');
+					$cacheKey=CacheModel::getInstance()->getCache('collect_backstage_key', 'data');
 					if(empty($key)||$key!=$cacheKey){
 						
 						
@@ -111,16 +113,25 @@ class Index extends BaseController{
 			
 		}
 	}
+	
 	/*访问执行采集*/
 	public function caijiAction(){
-		if(empty($GLOBALS['_sc']['c']['caiji']['auto'])){
+	    if(is_empty(g_sc_c('caiji','auto'))){
 			$this->error('请先开启自动采集','Admin/Setting/caiji');
 		}
+		
+		$checkCollectWait=\skycaiji\admin\model\Config::check_collect_wait();
+		if($checkCollectWait){
+		    $this->error($checkCollectWait['msg'],'Admin/Index/caiji',null,$checkCollectWait['wait']);
+		}
+		
 		@get_html(url('Admin/Api/collect?backstage=1',null,false,true),null,array('timeout'=>3));
-		$waitTime=$GLOBALS['_sc']['c']['caiji']['interval']*60;
+		
+		$waitTime=g_sc('c_caiji_interval')*60;
 		$waitTime=$waitTime>0?$waitTime:60;
 		$this->success('正在采集...','Admin/Index/caiji',null,$waitTime);
 	}
+	
 	/*任务api发布*/
 	public function apiTaskAction(){
 		controller('admin/Api','controller')->taskAction();
@@ -128,25 +139,30 @@ class Index extends BaseController{
 	
 	public function loginAction(){
 		if(request()->isPost()){
-			if(!check_usertoken()){
-				$this->error(lang('usertoken_error'),'Admin/Index/login');
-			}
-			
 			$mcacheLogin=CacheModel::getInstance('login');
-			$config_login=$GLOBALS['_sc']['c']['site']['login'];
+			$config_login=g_sc_c('site','login');
 			$clientIpMd5=md5(request()->ip());
+			$nowTime=time();
 			if(!empty($config_login['limit'])){
 				
-				$ipLoginData=$mcacheLogin->getCache($clientIpMd5,'data');
-				if((NOW_TIME-$ipLoginData['lastdate'])<($config_login['time']*3600)&&$ipLoginData['failed']>=$config_login['failed']){
+			    try{
+			        $ipLoginData=$mcacheLogin->getCache($clientIpMd5,'data');
+			        if(!is_array($ipLoginData)){
+			            $ipLoginData=array();
+			        }
+			    }catch (\Exception $ex){
+			        
+			        $this->error($ex->getMessage());
+			    }
+			    if(($nowTime-$ipLoginData['lastdate'])<($config_login['time']*3600)&&$ipLoginData['failed']>=$config_login['failed']){
 					
 					$this->error("您已登录失败{$ipLoginData['failed']}次，被锁定{$config_login['time']}小时");
 				}
 			}
 			if(input('post.sublogin')){
-				$username=strtolower(trim(input('post.username')));
+			    $username=User::lower_username(input('post.username'));
 				$pwd=trim(input('post.password'));
-				if($GLOBALS['_sc']['c']['site']['verifycode']){
+				if(g_sc_c('site','verifycode')){
 					
 					$verifycode=trim(input('post.verifycode'));
 					$check=check_verify($verifycode);
@@ -154,7 +170,6 @@ class Index extends BaseController{
 						$this->error($check['msg']);
 					}
 				}
-				
 				
 				$check=User::right_username($username);
 				if(!$check['success']){
@@ -164,9 +179,14 @@ class Index extends BaseController{
 				if(!$check['success']){
 					$this->error($check['msg']);
 				}
-		
+				
 				$muser=new \skycaiji\admin\model\User();
-				$userData=$muser->where('username',$username)->find();
+				try{
+				    $userData=$muser->where('username',$username)->find();
+				}catch (\Exception $ex){
+				    
+				    $this->error($ex->getMessage());
+				}
 				if(empty($userData)||$userData['password']!=\skycaiji\admin\model\User::pwd_encrypt($pwd,$userData['salt'])){
 					
 					if(!empty($config_login['limit'])){
@@ -174,17 +194,17 @@ class Index extends BaseController{
 						$ipLoginData=$mcacheLogin->getCache($clientIpMd5,'data');
 						if(!empty($ipLoginData)){
 							
-							if((NOW_TIME-$ipLoginData['lastdate'])<($config_login['time']*3600)){
+						    if(($nowTime-$ipLoginData['lastdate'])<($config_login['time']*3600)){
 								
 								$ipLoginData['failed']++;
 							}else{
 								
-								$ipLoginData['lastdate']=NOW_TIME;
+							    $ipLoginData['lastdate']=$nowTime;
 								$ipLoginData['failed']=1;
 							}
 						}else{
 							
-							$ipLoginData['lastdate']=NOW_TIME;
+						    $ipLoginData['lastdate']=$nowTime;
 							$ipLoginData['failed']=1;
 						}
 						$ipLoginData['ip']=request()->ip();
@@ -196,17 +216,10 @@ class Index extends BaseController{
 		
 				if(input('post.auto')){
 					
-					cookie('login_history',$username.'|'.md5($username.$userData['password']),array('expire'=>3600*24*15));
+				    cookie('login_history',intval($userData['uid']).'|'.$muser->generate_key($userData),array('expire'=>3600*24*15));
 				}
-				session('user_id',$userData['uid']);
-
-				$userGroup=model('Usergroup')->getById($userData['groupid']);
 				
-				if(model('Usergroup')->is_admin($userGroup)){
-					session('is_admin',true);
-				}else{
-					session('is_admin',null);
-				}
+				$muser->setLoginSession($userData);
 				
 				$serverinfo=input('_serverinfo');
 				if(empty($serverinfo)){
@@ -232,16 +245,19 @@ class Index extends BaseController{
 	/*退出*/
 	public function logoutAction(){
 		\think\Cookie::delete('login_history');
-		unset($GLOBALS['_sc']['user']);
-		session('user_id',null);
-		session('is_admin',null);
+		set_g_sc('user',null);
+		model('User')->setLoginSession(null);
 		$this->success(lang('op_success'),'Admin/Index/index');
 	}
 	/*验证码*/
 	public function verifyAction(){
+	    $len=g_sc_c('site','verifycode_len');
+	    $len=intval($len);
+	    $len=min(max(3,$len),20);
+	    
 		$config=array(
 			'fontSize'=>30,	
-			'length'=>3,	
+		    'length'=>$len,	
 			'fontttf'=>'5.ttf',
 			'useCurve'=>true,
 			'useNoise'=>true 
@@ -251,6 +267,28 @@ class Index extends BaseController{
 		$captcha = new \think\captcha\Captcha($config);
 		return $captcha->entry();
 	}
+	
+	public function verify_img_errorAction(){
+	    
+	    $LocSystem=new \skycaiji\install\event\LocSystem();
+	    $LocSystem=$LocSystem->environmentPhp();
+	    $gd=$LocSystem['gd'];
+	    $error='';
+	    if(empty($gd['loaded'])){
+	        
+	        $error='php未启用gd模块';
+	    }elseif(!empty($gd['lack'])){
+	        
+	        $error='php未启用gd模块(需支持'.$gd['lack'].')';
+	    }
+	    if($error){
+	        $error='图片验证码错误：'.$error;
+	        $this->error($error);
+	    }else{
+	        $this->success('');
+	    }
+	}
+	
 	/*找回密码*/
 	public function find_passwordAction(){
 		$username=trim(input('post.username'));
@@ -281,10 +319,7 @@ class Index extends BaseController{
 				}
 				if($step===1){
 					
-					if(!check_usertoken()){
-						$this->error(lang('usertoken_error'),'Admin/Index/find_password');
-					}
-					if($GLOBALS['_sc']['c']['site']['verifycode']){
+					if(g_sc_c('site','verifycode')){
 						
 						$verifycode=trim(input('verifycode'));
 						$check=check_verify($verifycode);
@@ -361,25 +396,26 @@ class Index extends BaseController{
 		}else{
 			if($step===2){
 				$emailStatus=array('success'=>false,'msg'=>'');
-				if(empty($GLOBALS['_sc']['c']['email'])){
+				if(is_empty(g_sc_c('email'))){
 					$emailStatus['msg']=lang('config_error_none_email');
 				}else{
 					$waitTime=60;
 					$waitSname='send_yzm_wait';
 					
-					$passTime=abs(NOW_TIME-session($waitSname));
+					$nowTime=time();
+					$passTime=abs($nowTime-session($waitSname));
 					if($passTime<=$waitTime){
 						$emailStatus['msg']=lang('find_pwd_email_wait',array('seconds'=>$waitTime-$passTime));
 					}else{
 						$expire=config('yzm_expire');
 						$minutes=floor($expire/60);
 						$yzm=mt_rand(100000,999999);
-						session($waitSname,NOW_TIME);
-						$mailReturn=send_mail($GLOBALS['_sc']['c']['email'], $stepSession['user']['email'], $stepSession['user']['username'],lang('find_pwd_email_subject'),lang('find_pwd_email_body',array('yzm'=>$yzm,'minutes'=>$minutes)));
+						session($waitSname,$nowTime);
+						$mailReturn=send_mail(g_sc_c('email'), $stepSession['user']['email'], $stepSession['user']['username'],lang('find_pwd_email_subject'),lang('find_pwd_email_body',array('yzm'=>$yzm,'minutes'=>$minutes)));
 						if($mailReturn===true){
 							$yzmSname='send_yzm.'.md5($username);
 							session(array('name'=>$yzmSname,'expire'=>$expire));
-							session($yzmSname,array('yzm'=>$yzm,'time'=>NOW_TIME));
+							session($yzmSname,array('yzm'=>$yzm,'time'=>$nowTime));
 							$emailStatus['success']=true;
 							$emailStatus['msg']=lang('find_pwd_sended',array('email'=>preg_replace('/.{2}\@/', '**@', $stepSession['user']['email'])));
 						}else{
@@ -401,19 +437,5 @@ class Index extends BaseController{
 			$this->assign('step',$step);
 			return $this->fetch();
 		}
-	}
-	/*验证站点*/
-	public function site_certificationAction(){
-		$keyFile=cache('site_certification');
-		$key=$keyFile['key'];
-		if(abs(NOW_TIME-$keyFile['time'])>60){
-			
-			$key='';
-		}
-		exit($key);
-	}
-	/*客户端信息*/
-	public function clientinfoAction(){
-		return json(clientinfo());
 	}
 }

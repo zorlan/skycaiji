@@ -27,28 +27,18 @@ class App extends BaseController {
 		
 		$navPacks=array();
 		if(is_array($appData['config']['packs'])){
-			$manageUrl=url('App/manage?app='.$app);
-			$manageUrl.=strpos($manageUrl,'?')===false?'?':'&';
-			foreach ($appData['config']['packs'] as $k=>$v){
-				if($v['type']=='nav'){
-					$v['nav_link']=str_replace(array('{app}','{apps}'), array(config('root_website').'/app/'.$app.'/',config('root_website').'/app/'),$v['nav_link']);
-					if(!preg_match('/^\w+\:\/\//', $v['nav_link'])){
-						
-						$v['nav_link']=$appUrl.$v['nav_link'];
-					}
-					
-					if(isset($navid)&&$navid==$k){
-						
-						$v['is_current']=true;
-					}
-					$navPacks[$k]=$v;
-				}
-			}
+		    $navPacks=$mapp->convert_packs($appData['config']['packs'],$app,'nav',$navid);
 		}
+		$storeUrl='';
 		$provData=null;
 		$mprov=model('Provider');
 		if($appData['provider_id']>0){
 			$provData=$mprov->where('id',$appData['provider_id'])->find();
+			$storeUrl=$provData?$provData['url']:'';
+		}
+		if(empty($storeUrl)&&\skycaiji\admin\model\Provider::is_official_url($appData['config']['website'])){
+		    
+		    $storeUrl=1;
 		}
 		
 		$appClass=$mapp->app_class($app);
@@ -66,7 +56,7 @@ class App extends BaseController {
 		$this->assign('navid',$navid);
 		$this->assign('navPacks',$navPacks);
 		$this->assign('appData',$appData);
-		$this->assign('provData',$provData);
+		$this->assign('storeUrl',$storeUrl);
 		return $this->fetch();
 	}
 	/*协议*/

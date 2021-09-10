@@ -10,7 +10,7 @@
  */
 
 namespace skycaiji\admin\model;
-class Taskgroup extends BaseModel{
+class Taskgroup extends \skycaiji\common\model\BaseModel{
 	/**
 	 * 获取分级分组
 	 */

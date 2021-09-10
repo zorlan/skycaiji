@@ -1,0 +1,43 @@
+<style type="text/css">
+#win_input_urls>.panel{margin-bottom:10px;}
+</style>
+<div id="win_test_url">
+	<div class="form-group">
+	  	<div class="input-group">
+	  		<div class="input-group-btn">
+		    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><em class="test-tips" style="font-style:normal">抓取字段</em> <span class="caret"></span></button>
+		        <ul class="dropdown-menu">
+		        	<li><a href="javascript:;" data-test="get_fields" data-title="抓取字段">抓取字段</a></li>
+		        	<li><a href="javascript:;" data-test="get_signs" data-title="内容标签">内容标签</a></li>
+		        	<li><a href="javascript:;" data-test="get_html" data-title="抓取源码">抓取源码</a></li>
+		        	<li><a href="javascript:;" data-test="get_elements" data-title="分析网页">分析网页</a></li>
+		        	<li><a href="javascript:;" data-test="get_paging_urls" data-title="抓取分页">抓取分页</a></li>
+		        	<li><a href="javascript:;" data-test="get_relation_urls" data-title="抓取关联页">抓取关联页</a></li>
+		        </ul>
+		    </div>
+	  		<input type="text" class="form-control" name="test_url" value="{$test_url}" placeholder="输入内容页网址" />
+	  		<div class="input-group-addon test-page-sources" style="padding:0;border:0;width:110px;display:none;">
+				<select class="form-control" name="page_source">
+					<option value="">页面类型</option>
+					{foreach $pageSources as $k=>$v}
+					<option value="{$k}"{if $k=='url'} selected="selected"{/if}>{$v}</option>
+					{/foreach}
+				</select>
+			</div>
+	 		<div class="input-group-btn"><button type="button" class="btn btn-default test-sub">确定</button></div>
+	  	</div>
+	</div>
+	<input type="hidden" name="url_params" value="{$urlParams}" />
+  	<div id="win_input_urls" style="display:none;"></div>
+	<div class="field-vals"></div>
+</div>
+<script type="text/javascript">
+'use strict';//严格模式
+
+$.getScript("__PUBLIC__/static/js/admin/cpattern_test.js?{$Think.config.html_v}", function() {
+	var cpTestUrl=new CpTestUrl("{$collData['id']}","{$test}");
+	$(document).ready(function(){
+		cpTestUrl.init();
+	});
+}); 
+</script>

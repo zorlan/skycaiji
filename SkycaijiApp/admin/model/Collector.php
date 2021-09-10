@@ -11,18 +11,18 @@
 
 namespace skycaiji\admin\model;
 
-class Collector extends BaseModel{
+class Collector extends \skycaiji\common\model\BaseModel{
 	
 	public function add_new($data){
-		$data['addtime']=NOW_TIME;
-		$data['uptime']=NOW_TIME;
+	    $data['addtime']=time();
+	    $data['uptime']=time();
 		$this->isUpdate(false)->allowField(true)->save($data);
 		return $this->id;
 	}
 	
 	public function edit_by_id($id,$data){
 		unset($data['addtime']);
-		$data['uptime']=NOW_TIME;
+		$data['uptime']=time();
 		
 		$this->strict(false)->where(array('id'=>$id))->update($data);
 	}
@@ -129,6 +129,48 @@ class Collector extends BaseModel{
 			}
 		}
 		return true;
+	}
+	
+	public function compatible_config($config){
+	    if(!is_array($config)){
+	        $config=array();
+	    }
+	    
+	    if(!isset($config['area'])){
+	        
+	        if(!empty($config['area_start'])||!empty($config['area_end'])) {
+	            
+	            $config['area']=$config['area_start'] . (!empty($config['area_end']) ? '(?<nr>[\s\S]+?)' : '(?<nr>[\s\S]+)') . $config['area_end'];
+	        }
+	    }
+	    
+	    if(!isset($config['url_web'])){
+	        
+	        if(!empty($config['url_post'])&&isset($config['url_posts'])){
+	            
+	            \util\Funcs::filter_key_val_list($config['url_posts']['names'], $config['url_posts']['vals']);
+	            
+	            $config['url_web']=array('open'=>1,'form_method'=>'post','form_names'=>$config['url_posts']['names'],'form_vals'=>$config['url_posts']['vals']);
+	            
+	            if(is_array($config['level_urls'])){
+	                foreach ($config['level_urls'] as $k=>$v){
+	                    $v['url_web']=$config['url_web'];
+	                    $config['level_urls'][$k]=$v;
+	                }
+	            }
+	        }
+	    }
+	    return $config;
+	}
+	
+	public static function echo_msg_end_js(){
+	    return '<script type="text/javascript" data-echo-msg-is-end="1">window.parent.window.collectorEchoMsg("end");</script>';
+	}
+	
+	public static function echo_msg_log_filename($logid){
+	    $logid=md5($logid);
+	    $filename=RUNTIME_PATH.'echo_msg/'.substr($logid,0,2).'/'.substr($logid,2);
+	    return $filename;
 	}
 }
 

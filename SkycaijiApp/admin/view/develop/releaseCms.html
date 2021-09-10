@@ -6,9 +6,10 @@
 <div class="box box-default">
 	<div class="box-body">
 		<form id="form_cms" method="post" ajax-submit="true" action="{:url('Admin/Develop/releaseCms')}">
+		{:html_usertoken()}
 		    {if condition="$config['is_edit']"}
 		    {if $is_old_plugin}
-		    <div class="alert alert-error">
+		    <div class="alert alert-danger">
 		    	{:lang('release_upgrade')}
 		    </div>
 		    {else/}
@@ -21,7 +22,6 @@
 			    	<button type="button" class="btn btn-default btn-block dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">插件另存为 <span class="caret"></span></button>
 			        <ul class="dropdown-menu" style="width:100%;text-align:center;background:#f4f4f4;">
 			        	<li><a href="{:url('Admin/Develop/export?type=release&app='.$config['app'])}" target="_blank">导出至本地</a></li>
-			        	<li><a href="{:url('Admin/Develop/save2store?type=release&app='.$config['app'])}" title="云端存储，保存插件更方便！" onclick="windowModal('保存到云端',$(this).attr('href'));return false;">上传至云端</a></li>
 			        </ul>
 		        </div>
 		    </div>
@@ -52,7 +52,7 @@
 		        </div>
 		    </div>
 		    <div class="form-group">
-		        <label>插件功能标识</label>
+		        <label>功能标识</label>
 		        <input type="text" name="identifier" class="form-control">
 		        <p class="help-block">表示该插件的作用，只能输入字母或数字</p>
 		    </div>

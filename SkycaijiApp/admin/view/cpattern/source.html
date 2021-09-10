@@ -6,7 +6,8 @@
 #form_source .source-params textarea{vertical-align:middle}
 </style>
 <form id="form_source" method="post" action="{:url('Cpattern/source')}">
-<input type="hidden" name="sub" value="1" />
+{:html_usertoken()}
+<input type="hidden" name="is_submit" value="1" />
 <input type="hidden" name="source[type]" value="custom" />
 <input type="hidden" name="source[uid]" value="{$source['uid']}" />
 <ul class="nav nav-tabs c-p-source-tab">
@@ -25,7 +26,7 @@
     	<div class="input-group" style="margin-bottom:10px;">
    			<span class="input-group-addon">网址格式</span>
 			<input type="text" class="form-control" name="source[url]" id="source_url"/>
-   			<div class="input-group-addon" style="background:#fff;"><a href="javascript:;" onclick='cpMatch("#source_url",{only:1})'>{:cp_sign('match')}</a></div>
+   			<div class="input-group-addon" style="background:#fff;"><a href="javascript:;" id="source_url_sign">{:cp_sign('match')}</a></div>
 		</div>
 		<div class="input-group-addon" ><span class="glyphicon glyphicon-arrow-up"></span> 将 {:cp_sign('match')} 替换成 <span class="glyphicon glyphicon-arrow-down"></span></div>
 		<div class="radio form-inline form-group form-group-sm" source-param="num">

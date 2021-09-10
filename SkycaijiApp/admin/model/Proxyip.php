@@ -11,12 +11,12 @@
 
 namespace skycaiji\admin\model;
 
-class Proxyip extends BaseModel {
+class Proxyip extends \skycaiji\common\model\BaseModel {
 	public $name='proxy_ip';
 	public $setting;
 	public function __construct($data=[]){
 		parent::__construct($data);
-		$this->setting=$GLOBALS['_sc']['c']['proxy'];
+		$this->setting=g_sc_c('proxy');
 	}
 	/*数据库ip转换成get_html格式的ip*/
 	public function to_proxy_ip($proxyDbIp){
@@ -45,21 +45,24 @@ class Proxyip extends BaseModel {
 		if(!empty($this->setting['open'])){
 			
 			$cond=array();
+			$order=null;
 			if(!empty($this->setting['use'])){
 				
 				if($this->setting['use']=='num'){
 					
 					$cond['num']=array('lt',$this->setting['use_num']);
+					$order='no desc';
 				}elseif($this->setting['use']=='time'){
 					
-					$cond['time']=array(array('eq',0),array('gt',time()-$this->setting['use_time']*60), 'or') ;
+				    $cond['time']=array(array('eq',0),array('gt',time()-$this->setting['use_time']*60), 'or') ;
+				    $order='no desc';
 				}
 			}else{
 				
 				$cond['num']=array('lt',1);
 			}
 			$cond['invalid']=0;
-			$proxyipData=$this->where($cond)->find();
+			$proxyipData=$this->where($cond)->order($order)->find();
 			
 			if(empty($proxyipData)&&!empty($this->setting['api']['open'])){
 				
@@ -69,12 +72,12 @@ class Proxyip extends BaseModel {
 					if($this->where('invalid',0)->count()<=0){
 						
 						$this->add_api_ips($this->setting);
-						$proxyipData=$this->where($cond)->find();
+						$proxyipData=$this->where($cond)->order($order)->find();
 					}
 				}elseif($apiInsert=='end'){
 					
 					$this->add_api_ips($this->setting);
-					$proxyipData=$this->where($cond)->find();
+					$proxyipData=$this->where($cond)->order($order)->find();
 				}
 			}
 
@@ -91,9 +94,8 @@ class Proxyip extends BaseModel {
 					
 					$this->strict(false)->where('1=1')->update(array('num'=>0));
 				}
-				$proxyipData=$this->where($cond)->find();
+				$proxyipData=$this->where($cond)->order($order)->find();
 			}
-
 			if(!empty($proxyipData)){
 				
 				$upData=array();
@@ -121,18 +123,18 @@ class Proxyip extends BaseModel {
 	}
 	/*ip失败次数*/
 	public function set_ip_failed($proxy_ip){
-		if(empty($this->setting['failed'])||$this->setting['failed']<=0){
-			
-			return;
-		}
 		if(empty($proxy_ip)){
 			return;
 		}
 		$upData=array();
-		$upData['failed']=$proxy_ip['failed']+1;
-		if($upData['failed']>=$this->setting['failed']){
-			
-			$upData['invalid']=1;
+		$upData['failed']=intval($proxy_ip['failed'])+1;
+		
+		if(!empty($this->setting['failed'])){
+		    
+		    if($upData['failed']>=$this->setting['failed']){
+		        
+		        $upData['invalid']=1;
+		    }
 		}
 		$this->strict(false)->where(array('ip'=>$proxy_ip['ip']))->update($upData);
 	}
@@ -176,12 +178,12 @@ class Proxyip extends BaseModel {
 		}
 		return null;
 	}
-	
+	/*转换api匹配格式*/
 	public function convert_format($format){
 		static $list=array();
 		$md5=md5($format);
 		if(!isset($list[$md5])){
-			$format=preg_replace('/\\\*([\'\/])/',"\\\\$1",$format);
+		    $format=controller('admin/Cpattern','event')->correct_reg_pattern($format);
 			$format=str_replace(array('[ip]','[端口]','[用户名]','[密码]','(*)')
 				,array('(?P<ip>(\d+\.){3}\d+)','(?P<port>\d+)','(?P<user>[^\s\\\'\"\<\>\,]*)','(?P<pwd>[^\s\\\'\"\<\>\,]*)','[\s\S]*?')
 				,$format);
@@ -192,10 +194,11 @@ class Proxyip extends BaseModel {
 		}
 		return $format;
 	}
-	
+	/*转换成数据库形式*/
 	public function ips_format2db($ipList,$default=array()){
 		$ipList=is_array($ipList)?$ipList:array();
 		$default=is_array($default)?$default:array();
+		$nowTime=time();
 		foreach ($ipList as $k=>$ip){
 			if(empty($ip)||empty($ip['ip'])){
 				unset($ipList[$k]);
@@ -208,7 +211,7 @@ class Proxyip extends BaseModel {
 			}
 			$ip['ip']=$ip['ip'].':'.$ip['port'];
 			$ip['type']=$default['type'];
-			$ip['addtime']=NOW_TIME;
+			$ip['addtime']=$nowTime;
 			unset($ip['port']);
 			$ipList[$k]=$ip;
 		}

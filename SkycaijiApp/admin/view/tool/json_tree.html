@@ -1,70 +1,47 @@
 {extend name="common:main" /}
 {block name="cssjs"}
-<style type="text/css">
-#json_tree{width:100%;overflow:hidden;}
-#json_tree ul{list-style:none;margin:0px;padding:0px;padding-left:20px;}
-#json_tree li{padding:0;margin:0;}
-#json_tree .tree{cursor:pointer;margin-left:-16px;margin-right:2px;}
-
-#json_tree .node{color:#7F007F;}
-#json_tree .val{}
-</style>
-<script src="__PUBLIC__/static/js/admin/json_tree.js?{$Think.config.html_v}"></script>
+<script src="__PUBLIC__/static/js/admin/tool_json_tree.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
 <div class="box box-default">
 	<div class="box-body">
 		<div class="form-group">
 			<div class="input-group">
-				<textarea id="txt_json" rows="2" class="form-control" placeholder="输入网址或json字符串，网址必须以http://或https://开头"></textarea>
+				<textarea id="txt_data" rows="2" class="form-control" placeholder="输入网址或json字符串，网址必须以http://或https://开头">{$data|htmlspecialchars}</textarea>
 				<a href="javascript:;" class="input-group-addon" id="btn_tree">确定</a>
 			</div>
 		</div>
-		<div id="json_tree"></div>
+		<div id="tool_json_tree"></div>
 	</div>
 </div>
 <script type="text/javascript">
 'use strict';//严格模式
 $(document).ready(function(){
-	jsonTree.treeId='#json_tree';
-	jsonTree.treeClass='.tree';
-	
 	$('#btn_tree').bind('click',function(){
-		var data=$('#txt_json').val();
-		
-		if((/^\w+\:\/\//).test(data)){
-			$('#json_tree').html('<div class="loading"></div>');
-			//是网址
-			$.ajax({
+		window.tool_json_tree.treeId='#tool_json_tree';
+		var data=$('#txt_data').val();
+		if(dataIsJson(data)){
+			//是json字符串
+			window.tool_json_tree.load(data);
+		}else{
+			$('#tool_json_tree').html('<div class="loading"></div>');
+			ajaxOpen({
 				type: 'POST',
 				dataType: 'json',
-				url:ulink('Tool/json_tree'),
-				data: {'url':data},
+				url: ulink('Tool/json_tree'),
+				data: {data:data},
 				success: function (data) {
 					data=data.data.json;
-					jsonTree.load(data);
-				}
-			});
-		}else if(htmlIsJson(data)){
-			//是json字符串
-			jsonTree.load(data);
-		}else{
-			//匹配jsonp格式
-			$.ajax({
-				type: 'POST',
-				dataType: 'json',
-				url:ulink('Tool/json_tree'),
-				data: {'html':data},
-				success: function (data) {
-					if(data.data&&data.data.json){
-						jsonTree.load(data.data.json);
-					}else{
-						toastr.error('请输入网址或json字符串！');
-					}
+					window.tool_json_tree.load(data);
 				}
 			});
 		}
 	});
+
+	if($('#txt_data').val()){
+		//有数据自动提交
+		$('#btn_tree').trigger('click');
+	}
 });
 </script>
 {/block}

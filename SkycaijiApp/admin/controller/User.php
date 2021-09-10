@@ -24,8 +24,9 @@ class User extends BaseController {
     	$this->assign('pagenav',$pagenav);
     	$userList=$userList->all();
     	
-    	$GLOBALS['_sc']['p_name']=lang('user_list');
-    	$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list'))));
+    	set_g_sc('p_title',lang('user_list'));
+    	set_g_sc('p_name',lang('user_list'));
+    	set_g_sc('p_nav',breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list')))));
     	
     	$groupList=model('Usergroup')->column('*','id');
     	$this->assign('userList',$userList);
@@ -37,11 +38,7 @@ class User extends BaseController {
     	$muser=model('User');
     	$musergroup=model('Usergroup');
     	if(request()->isPost()){
-    		if(!check_usertoken()){
-    			$this->error(lang('usertoken_error'),'Admin/User/add');
-    		}
-    		
-    		if($GLOBALS['_sc']['c']['site']['verifycode']){
+    		if(g_sc_c('site','verifycode')){
     			
     			$verifycode=trim(input('verifycode'));
     			$check=check_verify($verifycode);
@@ -65,9 +62,9 @@ class User extends BaseController {
     		$newData['password']=\skycaiji\admin\model\User::pwd_encrypt($newData['password'],$newData['salt']);
     		$newGroup=$musergroup->getById($newData['groupid']);
     		if($musergroup->user_level_limit($newGroup['level'])){
-    			$this->error('您不能添加“'.$GLOBALS['_sc']['user']['group']['name'].'”用户组');
+    		    $this->error('您不能添加“'.g_sc('user','group','name').'”用户组');
     		}
-    		$newData['regtime']=NOW_TIME;
+    		$newData['regtime']=time();
     		$muser->isUpdate(false)->allowField(true)->save($newData);
     		if($muser->uid>0){
     			$this->success(lang('op_success'),'User/list');
@@ -75,9 +72,10 @@ class User extends BaseController {
     			$this->error(lang('op_failed'));
     		}
     	}else{
-    		$subGroupList=$musergroup->get_sub_level($GLOBALS['_sc']['user']['groupid']);
-    		$GLOBALS['_sc']['p_name']=lang('user_add');
-    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list')),array('url'=>url('User/add'),'title'=>lang('user_add'))));
+    	    $subGroupList=$musergroup->get_sub_level(g_sc('user','groupid'));
+    		set_g_sc('p_title',lang('user_add'));
+    		set_g_sc('p_name',lang('user_add'));
+    		set_g_sc('p_nav',breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list')),array('url'=>url('User/add'),'title'=>lang('user_add')))));
     		$this->assign('subGroupList',$subGroupList);
     		return $this->fetch();
     	}
@@ -95,16 +93,13 @@ class User extends BaseController {
     	}
     	$userData['group']=$musergroup->getById($userData['groupid']);
     	
-    	$isOwner=($GLOBALS['_sc']['user']['uid']==$userData['uid'])?true:false;
+    	$isOwner=(g_sc('user','uid')==$userData['uid'])?true:false;
     	if(!$isOwner&&$musergroup->user_level_limit($userData['group']['level'])){
     		
     		$this->error('您不能编辑“'.$userData['group']['name'].'”组的用户');
     	}
     	if(request()->isPost()){
-    		if(!check_usertoken()){
-    			$this->error(lang('usertoken_error'),'Admin/User/edit?uid='.$userData['uid']);
-    		}
-    		if($GLOBALS['_sc']['c']['site']['verifycode']){
+    		if(g_sc_c('site','verifycode')){
     			
     			$verifycode=trim(input('verifycode'));
     			$check=check_verify($verifycode);
@@ -135,7 +130,7 @@ class User extends BaseController {
     		}
     		$newGroup=$musergroup->getById($newData['groupid']);
     		if($musergroup->user_level_limit($newGroup['level'])){
-    			$this->error('您不能改为“'.$GLOBALS['_sc']['user']['group']['name'].'”用户组');
+    		    $this->error('您不能改为“'.g_sc('user','group','name').'”用户组');
     		}
     		if($isOwner||empty($newData['groupid'])){
     			
@@ -143,15 +138,22 @@ class User extends BaseController {
     		}
     		
     		$muser->strict(false)->where(array('uid'=>$uid))->update($newData);
-    		$this->success(lang('op_success'),'User/list');
     		
+    		if($isOwner){
+    		    
+    		    $userData=$muser->getByUid($uid);
+    		    $muser->setLoginSession($userData);
+    		}
+    		
+    		$this->success(lang('op_success'),'User/list');
     	}else{
     		$this->assign('userData',$userData);
-    		$subGroupList=$musergroup->get_sub_level($GLOBALS['_sc']['user']['groupid']);
+    		$subGroupList=$musergroup->get_sub_level(g_sc('user','groupid'));
     		$this->assign('subGroupList',$subGroupList);
     		$this->assign('isOwner',$isOwner);
-    		$GLOBALS['_sc']['p_name']=lang('user_edit').'：'.$userData['username'];
-    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list')),array('url'=>url('User/edit?uid='.$userData['uid']),'title'=>$userData['username'])));
+    		set_g_sc('p_title','用户:'.$userData['username']);
+    		set_g_sc('p_name',lang('user_edit').'：'.$userData['username']);
+    		set_g_sc('p_nav',breadcrumb(array(array('url'=>url('User/list'),'title'=>lang('user_list')),array('url'=>url('User/edit?uid='.$userData['uid']),'title'=>$userData['username']))));
     		return $this->fetch();
     	}
     }
@@ -166,7 +168,7 @@ class User extends BaseController {
     	if(empty($userData)){
     		$this->error(lang('user_error_empty_user'));
     	}
-    	if($userData['uid']==$GLOBALS['_sc']['user']['uid']){
+    	if($userData['uid']==g_sc('user','uid')){
     		
     		$this->error('不能删除自己');
     	}

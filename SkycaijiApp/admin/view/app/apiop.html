@@ -12,7 +12,7 @@ function apiop_show_msg(msg,success){
 	var apiName={'install':'安装','uninstall':'卸载','upgrade':'升级'};
 	var apiUrl='{$apiUrl}';
 	var op='{$op}';
-	$.ajax({
+	ajaxOpen({
 		type:'get',
 		dataType:'json',
 		url:apiUrl,
@@ -20,7 +20,7 @@ function apiop_show_msg(msg,success){
 			if(typeof(data)=='object'){
 				if(data.status==1){
 					//接口执行成功
-					$.ajax({
+					ajaxOpen({
 						type:'get',
 						dataType:'json',
 						url:"{:url('App/'.$op.'?success=1&app='.$app)}",

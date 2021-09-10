@@ -5,7 +5,7 @@ COPY . /var/www
 WORKDIR /var/www
 
 RUN apt-get update
-RUN apt-get install -y zip unzip zlib1g-dev
+RUN apt-get install -y zip unzip libzip-dev git
 RUN docker-php-ext-install zip
 RUN docker-php-ext-install pcntl
 RUN curl -sS https://getcomposer.org/installer | php

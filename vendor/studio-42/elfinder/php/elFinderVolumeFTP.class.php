@@ -112,6 +112,7 @@ class elFinderVolumeFTP extends elFinderVolumeDriver
             'tmbPath' => '',
             'tmpPath' => '',
             'separator' => '/',
+            'checkSubfolders' => -1,
             'dirMode' => 0755,
             'fileMode' => 0644,
             'rootCssClass' => 'elfinder-navbar-root-ftp',
@@ -194,8 +195,9 @@ class elFinderVolumeFTP extends elFinderVolumeDriver
 
         if (empty($this->options['alias'])) {
             $this->options['alias'] = $this->options['user'] . '@' . $this->options['host'];
-            // $num = elFinder::$volumesCnt-1;
-            // $this->options['alias'] = $this->root == '/' || $this->root == '.' ? 'FTP folder '.$num : basename($this->root);
+            if (!empty($this->options['netkey'])) {
+                elFinder::$instance->updateNetVolumeOption($this->options['netkey'], 'alias', $this->options['alias']);
+            }
         }
 
         $this->rootName = $this->options['alias'];
@@ -209,7 +211,7 @@ class elFinderVolumeFTP extends elFinderVolumeDriver
             $this->ftpListOption = $this->options['ftpListOption'];
         }
 
-        return $this->connect();
+        return $this->needOnline? $this->connect() : true;
 
     }
 
@@ -382,7 +384,10 @@ class elFinderVolumeFTP extends elFinderVolumeDriver
             $lastyear = date('Y') - 1;
         }
 
-        $info = preg_split("/\s+/", $raw, 9);
+        $info = preg_split("/\s+/", $raw, 8);
+        if (isset($info[7])) {
+        	list($info[7], $info[8]) = explode(' ', $info[7], 2);
+        }
         $stat = array();
 
         if (!isset($this->ftpOsUnix)) {
@@ -829,31 +834,45 @@ class elFinderVolumeFTP extends elFinderVolumeDriver
                 $res = array(
                     'name' => $this->root,
                     'mime' => 'directory',
-                    'dirs' => $this->_subdirs($path)
+                    'dirs' => -1
                 );
-                if ($this->isMyReload()) {
+                if ($this->needOnline && (($this->ARGS['cmd'] === 'open' && $this->ARGS['target'] === $this->encode($this->root)) || $this->isMyReload())) {
+                    $check = array(
+                        'ts' => true,
+                        'dirs' => true,
+                    );
                     $ts = 0;
                     foreach ($this->ftpRawList($path) as $str) {
-                        if (($stat = $this->parseRaw($str, $path))) {
-                            if (!empty($stat['ts'])) {
+                        $info = preg_split('/\s+/', $str, 9);
+                        if ($info[8] === '.') {
+                            $info[8] = 'root';
+                            if ($stat = $this->parseRaw(join(' ', $info), $path)) {
+                                unset($stat['name']);
+                                $res = array_merge($res, $stat);
+                                if ($res['ts']) {
+                                    $ts = 0;
+                                    unset($check['ts']);
+                                }
+                            }
+                        }
+                        if ($check && ($stat = $this->parseRaw($str, $path))) {
+                            if (isset($stat['ts']) && !empty($stat['ts'])) {
                                 $ts = max($ts, $stat['ts']);
+                            }
+                            if (isset($stat['dirs']) && $stat['mime'] === 'directory') {
+                                $res['dirs'] = 1;
+                                unset($stat['dirs']);
+                            }
+                            if (!$check) {
+                                break;
                             }
                         }
                     }
                     if ($ts) {
                         $res['ts'] = $ts;
                     }
+                    $this->cache[$outPath] = $res;
                 }
-                return $res;
-            }
-            // stat of system root
-            if ($path === $this->separator) {
-                $res = array(
-                    'name' => $this->separator,
-                    'mime' => 'directory',
-                    'dirs' => 1
-                );
-                $this->cache[$outPath] = $res;
                 return $res;
             }
 

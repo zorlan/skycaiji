@@ -11,16 +11,14 @@
 
 namespace skycaiji\admin\controller;
 
-use skycaiji\admin\model\FuncApp;
 /*采集器：规则采集*/
 class Cpattern extends BaseController {
 	/**
 	 * 起始页网址
 	 */
     public function sourceAction(){
-    	$is_sub=input('sub');
-    	if(request()->isPost()&&$is_sub){
-    		$source=input('source/a','','trim');
+    	if(request()->isPost()&&input('is_submit')){
+    	    $source=input('source/a',array(),'trim');
     		if($source['type']=='custom'){
     			
     			if(preg_match_all('/^\w+\:\/\/[^\r\n]+/im',$source['urls'],$urls)){
@@ -157,9 +155,9 @@ class Cpattern extends BaseController {
      * 字段
      */
     public function fieldAction(){
-    	if(request()->isPost()){
+    	if(request()->isPost()&&input('is_submit')){
     		$objid=input('post.objid');
-    		$field=input('post.field/a',null,'trim');
+    		$field=input('post.field/a',array(),'trim');
     		if(empty($field['name'])){
     			$this->error('请输入字段名称');
     		}
@@ -172,7 +170,6 @@ class Cpattern extends BaseController {
     			case 'auto':if(empty($field['auto']))$this->error('请选择自动获取的类型');break;
     			case 'xpath':if(empty($field['xpath']))$this->error('XPath规则不能为空！');break;
     			case 'json':if(empty($field['json']))$this->error('提取规则不能为空！');break;
-    			case 'page':if(empty($field['page']))$this->error('请选择页面！');if(empty($field['page_rule']))$this->error('规则不能为空！');break;
     			case 'num':
     				$randNum=0;
     				$field['num_start']=intval($field['num_start']);
@@ -194,12 +191,11 @@ class Cpattern extends BaseController {
 				'auto' =>'auto',
 				'xpath' =>array('xpath','xpath_multi','xpath_multi_type','xpath_multi_str','xpath_attr','xpath_attr_custom'),
 				'json' =>array('json','json_arr','json_arr_implode','json_loop'),
-				'page' =>array('page','page_rule','page_rule_merge','page_rule_multi','page_rule_multi_str'),
 				'words' =>'words',
 				'num' => array('num_start','num_end'),
 				'time' => array ('time_format','time_start','time_end','time_stamp'),
 				'list' => 'list',
-				'extract' =>array('extract','extract_module','extract_rule','extract_xpath','extract_xpath_attr','extract_xpath_attr_custom','extract_json','extract_json_arr','extract_json_arr_implode'),
+			    'extract' =>array('extract','extract_module','extract_rule','extract_rule_merge','extract_rule_multi','extract_rule_multi_str','extract_xpath','extract_xpath_attr','extract_xpath_attr_custom','extract_xpath_multi','extract_xpath_multi_str','extract_json','extract_json_arr','extract_json_arr_implode'),
 				'merge' => 'merge',
 			    'sign' => 'sign'
 			);
@@ -241,9 +237,21 @@ class Cpattern extends BaseController {
     		return $this->fetch();
     	}
     }
-    /**
-     * 数据处理
-     */
+    /*复制字段*/
+    public function clone_fieldAction(){
+        if(request()->isPost()){
+            $field=input('field','','url_b64decode');
+            $field=$field?json_decode($field,true):array();
+            $process=input('process','','url_b64decode');
+            $process=$process?json_decode($process,true):'';
+            
+            $this->success('',null,array('field'=>$field,'process'=>$process));
+        }else{
+            $this->error('复制失败');
+        }
+    }
+    
+    /*数据处理*/
     public function processAction(){
     	$type=input('type');
 
@@ -252,9 +260,9 @@ class Cpattern extends BaseController {
 	    
 	    
 	    $transApiLangs=null;
-	    if(!empty($GLOBALS['_sc']['c']['translate'])&&!empty($GLOBALS['_sc']['c']['translate']['open'])){
+	    if(!is_empty(g_sc_c('translate'))&&!is_empty(g_sc_c('translate','open'))){
 	    	
-	    	$transApiLangs=\util\Translator::get_api_langs($GLOBALS['_sc']['c']['translate']['api']);
+	        $transApiLangs=\util\Translator::get_api_langs(g_sc_c('translate','api'));
 	    	$transApiLangs=$transApiLangs?$transApiLangs:null;
 	    }
 	    $this->assign('transApiLangs',$transApiLangs);
@@ -270,16 +278,11 @@ class Cpattern extends BaseController {
     			return $this->fetch();
     		}elseif($op=='sub'){
     			
-    			$process=input('process/a',null,'trim');
-    			$process=array_array_map('trim', $process);
+    		    $process=trim_input_array('process');
     			if(empty($process)){
     				$process='';
     			}else{
-    				foreach($process as $k=>$v){
-    					if(!empty($v['title'])){
-    						$process[$k]['title']=str_replace(array("'",'"'),'',strip_tags($v['title']));
-    					}
-    				}
+    			    $process=controller('admin/Cpattern','event')->set_process($process);
     			}
     			$objid=input('objid','');
     			$this->success('',null,array('process'=>$process,'process_json'=>empty($process)?'':json_encode($process),'objid'=>$objid));
@@ -290,45 +293,53 @@ class Cpattern extends BaseController {
     			return $this->fetch();
     		}elseif($op=='load'){
     			
-    			$process=input('process/a',null,'trim');
-    			$process=array_array_map('trim', $process);
+    		    $process=trim_input_array('process');
     			$this->assign('process',$process);
     			return $this->fetch('process_load');
     		}
     	}
     }
-    /*获取函数插件列表*/
-    public function process_funcAction(){
-    	$module=input('module');
-    	if(empty($module)){
-    		$this->error('模块错误');
-    	}
-    	$mfuncApp=new FuncApp();
-    	
-    	$cacheName='cpattern_process_func_methods_'.$module;
-    	$cacheFuncs=cache($cacheName);
-    	
-    	$enableApps=$mfuncApp->where(array('module'=>$module,'enable'=>1))->column('uptime','app');
-    	$enableApps=md5(serialize($enableApps));
-    	
-    	$apps=array();
-    	if(empty($cacheFuncs)||$enableApps!=$cacheFuncs['key']||abs(time()-$cacheFuncs['time'])>600){
-    		
-    		$appList=$mfuncApp->where(array('module'=>$module,'enable'=>1))->column('uptime','app');
-    		$apps=array();
-    		if(!empty($appList)){
-    			foreach ($appList as $k=>$v){
-    				$appClass=$mfuncApp->get_app_class($module, $k);
-    				if(!empty($appClass['methods'])){
-    					$apps[$k]=$appClass;
-    				}
-    			}
-    		}
-    		cache($cacheName,array('list'=>$apps,'time'=>time(),'key'=>md5(serialize($appList))));
-    	}else{
-    		$apps=$cacheFuncs['list'];
-    	}
-    	$this->success('',null,$apps);
+    /*复制数据处理*/
+    public function clone_processAction(){
+        $op=input('op','');
+        if(empty($op)||$op=='copy'){
+            
+            if(request()->isPost()){
+                
+                $process=trim_input_array('process');
+                if(is_array($process)){
+                    
+                    $process=reset($process);
+                }else{
+                    $process=array();
+                }
+                
+                $msg='';
+                if($op=='copy'){
+                    
+                    cache('cpattern_clone_process_data',$process);
+                    $msg='已拷贝，可在任意数据处理中粘贴';
+                }else{
+                    $msg='已复制';
+                }
+                
+                $this->success($msg,null,$process);
+            }else{
+                $this->error('无效的操作');
+            }
+        }elseif($op=='paste'){
+            
+            
+            $process=cache('cpattern_clone_process_data');
+            
+            if(!empty($process)){
+                $this->success('已粘贴',null,$process);
+            }else{
+                $this->error('请先拷贝一个处理内容');
+            }
+        }else{
+            $this->error('无效的操作');
+        }
     }
     /**
      * 内容分页
@@ -337,7 +348,7 @@ class Cpattern extends BaseController {
     public function paging_fieldAction(){
     	if(request()->isPost()){
     		$objid=input('post.objid');
-    		$pagingField=input('post.paging_field/a',null,'trim');
+    		$pagingField=trim_input_array('post.paging_field');
     		if(empty($pagingField['field'])){
     			$this->error('请选择字段');
     		}
@@ -348,18 +359,21 @@ class Cpattern extends BaseController {
     		$pagingField=$pagingField?json_decode($pagingField,true):'';
     		$this->assign('pagingField',$pagingField);
     		$this->assign('objid',$objid);
+    		$this->assign('isLoop',input('is_loop'));
     		return $this->fetch();
     	}
     }
     /*多级网址规则*/
     public function level_urlAction(){
-    	if(request()->isPost()){
+    	if(request()->isPost()&&input('is_submit')){
     		$objid=input('post.objid');
-    		$level_url=input('post.level_url/a',null,'trim');
+    		$level_url=trim_input_array('post.level_url');
     		if(empty($level_url['name'])){
     			$this->error('请输入名称');
     		}
-    		$this->_check_name($level_url['name'],'多级名称');
+    		$this->_check_name($level_url['name'],'多级页名称');
+    		
+    		$level_url=controller('admin/Cpattern','event')->set_config_url_web($level_url);
     		
     		$this->success('',null,array('level_url'=>$level_url,'objid'=>$objid));
     	}else{
@@ -371,11 +385,22 @@ class Cpattern extends BaseController {
     		return $this->fetch();
     	}
     }
+    /*复制多级页*/
+    public function clone_level_urlAction(){
+        if(request()->isPost()){
+            $levelUrl=input('level_url','','url_b64decode');
+            $levelUrl=$levelUrl?json_decode($levelUrl,true):array();
+            
+            $this->success('',null,array('level_url'=>$levelUrl));
+        }else{
+            $this->error('复制失败');
+        }
+    }
     /*关联网址规则*/
     public function relation_urlAction(){
-    	if(request()->isPost()){
+        if(request()->isPost()&&input('is_submit')){
     		$objid=input('post.objid');
-    		$relation_url=input('post.relation_url/a',null,'trim');
+    		$relation_url=trim_input_array('post.relation_url');
     		if(empty($relation_url['name'])){
     			$this->error('请输入名称');
     		}
@@ -384,6 +409,9 @@ class Cpattern extends BaseController {
     		if(empty($relation_url['url_rule'])){
     			$this->error('请输入提取网址规则');
     		}
+    		
+    		$relation_url=controller('admin/Cpattern','event')->set_config_url_web($relation_url);
+    		
     		$this->success('',null,array('relation_url'=>$relation_url,'objid'=>$objid));
     	}else{
     		$relation_url=input('relation_url','','url_b64decode');
@@ -394,374 +422,243 @@ class Cpattern extends BaseController {
     		return $this->fetch();
     	}
     }
-    /*测试*/
-    public function testAction(){
-    	set_time_limit(600);
-    	
-    	$coll_id=input('coll_id/d',0);
-    	$mcoll=model('Collector');
-    	$collData=$mcoll->where(array('id'=>$coll_id))->find();
-    	if(empty($collData)){
-    		$this->error(lang('coll_error_empty_coll'));
-    	}
-    	if(!in_array($collData['module'],config('allow_coll_modules'))){
-    		$this->error(lang('coll_error_invalid_module'));
-    	}
-    	$this->assign('collData',$collData);
-    	
-    	
-    	$eCpattern=controller('admin/Cpattern','event');
-    	$eCpattern->init($collData);
-    	
-    	$op=input('op');
-    	$taskData=model('Task')->getById($eCpattern->collector['task_id']);
-    	model('Task')->loadConfig($taskData);
-
-    	$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Collector/set?task_id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('Cpattern/test&op='.$op.'&coll_id='.$coll_id),'title'=>'测试')));
-    	
-    	if('source_urls'==$op){
-    		
-    		$source_urls=array();
-    		foreach ($eCpattern->config['source_url'] as $k => $v) {
-    			if(empty($v)){
-    				continue;
-    			}
-    			$source_urls[$v] = $eCpattern->convert_source_url ( $v );
-    		}
-    		if(!$eCpattern->config['source_is_url']){
-    			
-    			$source_urls1=array();
-    			foreach ($source_urls as $k=>$v){
-    				if (is_array ( $v )) {
-    					$source_urls1 = array_merge ( $source_urls1, $v );
-    				} else {
-    					$source_urls1 [] = $v;
-    				}
-    			}
-    			$source_urls=$source_urls1;
-    		}
-    		$eCpattern->assign('source_urls',$source_urls);
-    		$eCpattern->assign('config',$eCpattern->config);
-    		return $eCpattern->fetch('cpattern:test_source_urls');
-    	}elseif('cont_urls'==$op){
-    		
-    		$source_url=input('source_url','','trim');
-    		$curLevel=input('level/d',0);
-    		$curLevel=$curLevel>0?$curLevel:0;
-    			
-    		$levelData=$eCpattern->collLevelUrls($source_url,$curLevel);
-    		
-    		$eCpattern->success('',null,array('urls'=>$levelData['urls'],'levelName'=>$levelData['levelName'],'nextLevel'=>$levelData['nextLevel']));
-    	}elseif('cont_url'==$op){
-    		
-    		$GLOBALS['_sc']['p_name']='测试抓取';
-    		$cont_url=input('cont_url','','trim');
-    		$test=input('test');
-    		
-    		$url_post=$eCpattern->config['url_post'];
-    		
-    		$input_urls=array();
-    		foreach ($eCpattern->config['new_field_list'] as $field){
-    		    if(empty($field['field']['source'])){
-    		        
-    		        if($field['field']['module']=='sign'){
-    		            if(empty($eCpattern->config['level_urls'])){
-    		                $input_urls['source_url']=input('source_url','');
-    		            }else{
-    		                
-    		                $endLevelNum=count($eCpattern->config['level_urls']);
-    		                $endLevel=$eCpattern->config['level_urls'][$endLevelNum-1];
-    		                $input_urls['level_url'][$endLevelNum]=array('level'=>$endLevelNum,'name'=>$endLevel['name'],'url'=>input('level_'.$endLevelNum));
-    		            }
-    		        }
-    		    }elseif('source_url'==strtolower($field['field']['source'])){
-    		        
-    		        $input_urls['source_url']=input('source_url','');
-    			}elseif(preg_match('/level_url:/i', $field['field']['source'])){
-    				
-    				foreach($eCpattern->config['level_urls'] as $levIx=>$levVal){
-    				    if($field['field']['source']==('level_url:'.$levVal['name'])){
-    				        
-    				        $level=$levIx+1;
-    					    if($field['field']['module']=='sign'){
-    					        
-    					        if($level==1){
-    					            
-    					            $input_urls['source_url']=input('source_url','');
-    					        }else{
-    					            
-    					            $prevLevel=$level-1;
-    					            $input_urls['level_url'][$prevLevel]=array('level'=>$prevLevel,'name'=>$eCpattern->config['level_urls'][$prevLevel-1]['name'],'url'=>input('level_'.$prevLevel));
-    					        }
-    					    }else{
-    					        
-    					        $input_urls['level_url'][$level]=array('level'=>$level,'name'=>$levVal['name'],'url'=>input('level_'.$level));
-    					    }
-    						break;
-    					}
-    				}
-    			}
-    		}
-
-    		$eCpattern->assign('cont_url',$cont_url);
-    		$eCpattern->assign('url_post',$url_post);
-    		$eCpattern->assign('input_urls',$input_urls);
-    		$eCpattern->assign('test',$test);
-    		if(request()->isAjax()){
-    			return view('cpattern:test_cont_url_ajax');
-    		}else{
-    			return $eCpattern->fetch('cpattern:test_cont_url');
-    		}
-    	}elseif(in_array($op, array('get_fields','get_paging_urls','get_relation_urls','get_html'))){
-    		
-    		$cont_url=input('cont_url','','trim');
-    		if(!preg_match('/^\w+\:\/\//',$cont_url)){
-    			
-    			$cont_url='http://'.$cont_url;
-    		}
-    		$html='get_fields'==$op?'':$eCpattern->get_html($cont_url,false,$eCpattern->config['url_post']);
-    		if('get_fields'==$op){
-    			
-    			if(input('?source_url')){
-    				
-    				$eCpattern->cur_source_url=input('source_url');
-    			}
-    			foreach (input('param.') as $k=>$v){
-    				
-    				if(preg_match('/^level_(\d+)$/',$k,$mLevel)){
-    					
-    					$mLevel=intval($mLevel[1])-1;
-    					$eCpattern->cur_level_urls[$eCpattern->config['level_urls'][$mLevel]['name']]=$v;
-    				}
-    			}
-    			
-    			$signLevels=array();
-    			$signCont=false;
-    			foreach($eCpattern->config['new_field_list'] as $fieldConfig){
-    			    if($fieldConfig['field']['module']=='sign'){
-    			        
-    			        if(empty($fieldConfig['field']['source'])){
-    			            $signCont=true;
-    			        }elseif(preg_match('/^level_url:(.*+)$/i', $fieldConfig['field']['source'],$levelName)){
-    			            
-    			            $levelName=$levelName[1];
-    			            $signLevels[$levelName]=$levelName;
-    			        }
-    			    }
-    			}
-    			
-    			if(!empty($signLevels)){
-    			    
-    			    foreach ($eCpattern->config['level_urls'] as $k=>$v){
-    			        if(in_array($v['name'],$signLevels)){
-    			            if($k==0){
-    			                
-    			                $eCpattern->getLevelUrls($eCpattern->cur_source_url,$k+1,true);
-    			            }else{
-    			                
-    			                $prevLevelUrl=$eCpattern->config['level_urls'][$k-1];
-    			                $eCpattern->getLevelUrls($eCpattern->cur_level_urls[$prevLevelUrl['name']],$k+1,true);
-    			            }
-    			        }
-    			    }
-    			}
-    			
-    			if($signCont){
-    			    
-    			    if(empty($eCpattern->config['level_urls'])){
-    			        
-    			        $eCpattern->getContUrls($eCpattern->cur_source_url);
-    			    }else{
-    			        
-    			        $endLevelNum=count($eCpattern->config['level_urls']);
-    			        $endLevel=$eCpattern->config['level_urls'][$endLevelNum-1];
-    			        $eCpattern->getContUrls($eCpattern->cur_level_urls[$endLevel['name']]);
-    			    }
-    			}
-    			
-    			$val_list=$eCpattern->getFields($cont_url);
-    			if(empty($eCpattern->first_loop_field)){
-    				
-    				$val_list=array($val_list);
-    			}
-
-    			$md5Url=md5($cont_url);
-    			$msg='';
-    			if(isset($eCpattern->exclude_cont_urls[$md5Url])){
-    				if(empty($eCpattern->first_loop_field)){
-    					
-    					$msg=reset($eCpattern->exclude_cont_urls[$md5Url]);
-    					$msg=$eCpattern->exclude_url_msg($msg);
-    					$this->error('中断采集 &gt; '.$msg);
-    				}else{
-    					
-    					$num=0;
-    					foreach ($eCpattern->exclude_cont_urls[$md5Url] as $k=>$v){
-    						$num+=count((array)$v);
-    					}
-    					$msg='通过数据处理筛除了'.$num.'条数据';
-    				}
-    			}
-
-    			foreach ($val_list as $v_k=>$vals){
-    				foreach ($vals as $k=>$v){
-    					$vals[$k]=$v['value'];
-    				}
-    				$val_list[$v_k]=$vals;
-    			}
-    			$eCpattern->success($msg,null,$val_list);
-    		}elseif('get_paging_urls'==$op){
-    			
-    			$paging_urls=$eCpattern->getPagingUrls($cont_url,$html,true);
-    			if(empty($paging_urls)){
-    				$eCpattern->error('没有抓取到分页链接');
-    			}else{
-    				$eCpattern->success('',null,$paging_urls);
-    			}
-    		}elseif('get_html'==$op){
-    			if(empty($html)){
-    				exit('没有抓取到源码');
-    			}else{
-    				
-    				exit($html);
-    			}
-    		}elseif('get_relation_urls'==$op){
-    			
-    			$url_list=array();
-    			foreach ($eCpattern->config['new_relation_urls'] as $k=>$v){
-    				$url_list[$v['name']]=$eCpattern->getRelationUrl($v['name'], $cont_url, $html);
-    			}
-    			if(empty($url_list)){
-    				$eCpattern->error('没有关联页');
-    			}else{
-    				$eCpattern->success('',null,$url_list);
-    			}
-    		}
-    	}elseif('match'==$op){
-    		
-    		$GLOBALS['_sc']['p_name']='模拟匹配';
-    		if(request()->isPost()){
-    			$type=strtolower(input('type'));
-    			$content=input('content','','trim');
-    			$match=input('match','','trim');
-    			if(empty($content)){
-    				$eCpattern->error('请输入网址或内容');
-    			}
-    			if(empty($match)){
-    				$eCpattern->error('请输入规则');
-    			}
-    			if(preg_match('/^\w+\:\/\//', $content)){
-    				
-    				$content=$eCpattern->get_html($content);
-    			}
-    			if(empty($content)){
-    				$eCpattern->error('内容空');
-    			}
-    			$val='';
-    			switch ($type){
-    				case 'rule':
-    					
-    					$match=$eCpattern->convert_sign_match($match);
-    					$match=preg_replace('/\\\*([\'\/])/', "\\\\$1",$match);
-    					$match=str_replace('(*)', '[\s\S]*?', $match); 
-    
-    					$rule_merge=$eCpattern->set_merge_default($match, '');
-    					$val=$eCpattern->field_module_rule(array('reg_rule'=>$match,'rule_merge'=>$rule_merge), $content);
-    					
-    					if(empty($val)){
-    						if(preg_match('/'.$match.'/i', $content,$val)){
-    							$val=$val[0];
-    						}
-    					}
-    					break;
-    				case 'xpath':
-    					$val=$eCpattern->field_module_xpath(array('xpath'=>$match,'xpath_attr'=>''), $content);
-    					break;
-    				case 'json':
-    					$val=$eCpattern->field_module_json(array('json'=>$match,'json_arr_implode'=>"\r\n"), $content);
-    					$val=trim($val);
-    					break;
-    			}
-    			if(empty($val)){
-    				$eCpattern->error('没有获取到数据');
-    			}else{
-    				$eCpattern->success($val);
-    			}
-    		}else{
-    			if(request()->isAjax()){
-    				return view('cpattern:test_match_ajax');
-    			}else{
-    				return $eCpattern->fetch('cpattern:test_match');
-    			}
-    		}
-    	}elseif('elements'==$op){
-    		
-    		$cont_url=input('cont_url','','trim');
-    		
-    		$this->redirect('Cpattern/browser?coll_id='.$coll_id.'&url='.rawurlencode($cont_url));
-    	}
+    /*复制关联页*/
+    public function clone_relation_urlAction(){
+        if(request()->isPost()){
+            $relationUrl=input('relation_url','','url_b64decode');
+            $relationUrl=$relationUrl?json_decode($relationUrl,true):array();
+            
+            $this->success('',null,array('relation_url'=>$relationUrl));
+        }else{
+            $this->error('复制失败');
+        }
     }
     /*编辑规则：简单模式*/
     public function easymodeAction(){
     	$taskId=input('task_id/d',0);
-    	$collId=model('Collector')->where('task_id',$taskId)->value('id');
-    	$this->assign('taskId',$taskId);
-    	$this->assign('collId',$collId);
-    	return $this->fetch();
-    }
-    /*浏览器*/
-    public function browserAction(){
     	
-    	$coll_id=input('coll_id/d',0);
     	$mcoll=model('Collector');
-    	$collData=$mcoll->where(array('id'=>$coll_id))->find();
+    	
+    	$taskData=model('Task')->getById($taskId);
+    	
+    	$collId=$mcoll->where('task_id',$taskId)->value('id');
+    	$collData=$mcoll->where(array('id'=>$collId))->find();
     	if(empty($collData)){
-    		$collData=array();
+    	    $collData=array();
     	}else{
-    		$collData=$collData->toArray();
+    	    $collData=$collData->toArray();
     	}
-    	 
     	
     	$eCpattern=controller('admin/Cpattern','event');
     	$eCpattern->init($collData);
     	
-    	$url=input('url','','trim');
-    	if(!preg_match('/^\w+\:\/\//',$url)){
-    		
-    		$url='http://'.$url;
-    	}
-    	$html=$eCpattern->get_html($url,false,$eCpattern->config['url_post']);
+    	$pageSources=$eCpattern->page_source_options();
     	
-    	$jsonHtml=convert_html2json($html,true);
+    	set_g_sc('p_title','简单模式_任务:'.$taskData['name']);
     	
-    	$config=$eCpattern->config;
-    	$config=is_array($config)?$config:array();
-    	
-    	
-    	if(empty($jsonHtml)){
-    		
-    		$html=preg_replace('/<script[^<>]*?>[\s\S]*?<\/script>/i', '', $html);
-    		$html=preg_replace('/<meta[^<>]*charset[^<>]*?>/i', '', $html);
-    		$html=preg_replace('/<meta[^<>]*http-equiv\s*=\s*[\'\"]{0,1}refresh\b[\'\"]{0,1}[^<>]*?>/i', '', $html);
-    		header("Content-type:text/html;charset=utf-8");
-    		$eCpattern->assign('html',$html);
-    		$eCpattern->assign('config',$config);
-    		
-    		return $eCpattern->fetch('cpattern:browser');
-    	}else{
-    		
-    		$GLOBALS['_sc']['p_name']='分析网页';
-    		$eCpattern->assign('jsonHtml',$jsonHtml);
-    		return $eCpattern->fetch('cpattern:browser_json');
-    	}
+    	$this->assign('taskId',$taskId);
+    	$this->assign('collId',$collId);
+    	$this->assign('pageSources',$pageSources);
+    	return $this->fetch();
+    }
+    /*获取父级页面的标签列表*/
+    public function parentPageSignsAction(){
+        if(request()->isPost()){
+            $level_urls=input('level_urls/a',array(),'url_b64decode');
+            $relation_urls=input('relation_urls/a',array(),'url_b64decode');
+            $urlConfig=input('url_config/a',array(),'trim');
+            $pageConfig=input('page_config/a',array(),'trim');
+            $isAreaOrUrl=input('is_area_or_url','');
+            
+            $pageType=input('page_type','','trim');
+            
+            $eCpattern=controller('admin/Cpattern','event');
+            
+            $levelSigns=array();
+            $relationSigns=array();
+            $urlSigns=array();
+            $pageSigns=array();
+            
+            $relationUrls=array();
+            
+            foreach ($level_urls as $k=>$v){
+                $v=$v?json_decode($v,true):array();
+                $levelSigns[$v['name']]=array(
+                    'area'=>$this->_get_rule_signs($v['area'],'',true,false),
+                    'url'=>$this->_get_rule_signs('',$v['url_rule'],false,true),
+                );
+            }
+            
+            if($pageType=='relation_url'){
+                
+                foreach ($relation_urls as $k=>$v){
+                    $v=$v?json_decode($v,true):array();
+                    $relationSigns[$v['name']]=array(
+                        'area'=>$this->_get_rule_signs($v['area'],'',true,false),
+                        'url'=>$this->_get_rule_signs('',$v['url_rule'],false,true),
+                    );
+                    $relationUrls[$v['name']]=$v;
+                }
+            }
+            
+            if($pageType=='relation_url'||$pageType=='url'){
+                if($pageType=='url'&&$isAreaOrUrl=='area'){
+                    
+                    $urlSigns=array(
+                        'area'=>$this->_get_rule_signs($urlConfig['area'],'',true,false),
+                    );
+                }else{
+                    $urlSigns=array(
+                        'area'=>$this->_get_rule_signs($urlConfig['area'],'',true,false),
+                        'url'=>$this->_get_rule_signs('',$urlConfig['url_rule'],false,true),
+                    );
+                }
+            }
+            
+            if($isAreaOrUrl=='area'){
+                $pageSigns=array(
+                    'area'=>$this->_get_rule_signs($pageConfig['area'],'',true,false),
+                );
+            }else{
+                $pageSigns=array(
+                    'area'=>$this->_get_rule_signs($pageConfig['area'],'',true,false),
+                    'url'=>$this->_get_rule_signs('',$pageConfig['url_rule'],false,true),
+                );
+            }
+            
+            if($pageType=='level_url'){
+                
+                if($pageConfig['name']&&isset($levelSigns[$pageConfig['name']])){
+                    
+                    $newLevelSigns=array();
+                    foreach($levelSigns as $k=>$v){
+                        if($pageConfig['name']==$k){
+                            
+                            $newLevelSigns['_cur_']=$pageSigns;
+                            break;
+                        }else{
+                            $newLevelSigns[$k]=$v;
+                        }
+                    }
+                    $levelSigns=$newLevelSigns;
+                }else{
+                    
+                    $levelSigns['_cur_']=$pageSigns;
+                }
+            }elseif($pageType=='relation_url'){
+                
+                $newRelationSigns=array();
+                $newRelationSigns['_cur_']=$pageSigns;
+                $relationUrls[$pageConfig['name']]=$pageConfig;
+                $relationParentPages=$eCpattern->relation_parent_pages($pageConfig['name'],$relationUrls);
+                foreach ($relationParentPages as $relationParentPage){
+                    
+                    $newRelationSigns[$relationParentPage]=$relationSigns[$relationParentPage];
+                }
+                $relationSigns=$newRelationSigns;
+            }
+            
+            $levelSigns=array_reverse($levelSigns,true);
+            
+            $allSigns=array();
+            
+            foreach ($relationSigns as $k=>$v){
+                if($k=='_cur_'){
+                    $allSigns[]=array('name'=>'当前关联页','signs'=>$v,'cur'=>true);
+                }else{
+                    $allSigns[]=array('name'=>'关联页:'.$k,'signs'=>$v);
+                }
+            }
+            if($pageType=='relation_url'||$pageType=='url'){
+                $allSigns[]=array('name'=>($pageType=='url'?'当前':'').'内容页','signs'=>$urlSigns,'cur'=>($pageType=='url'?true:false));
+            }
+            foreach ($levelSigns as $k=>$v){
+                if($k=='_cur_'){
+                    $allSigns[]=array('name'=>'当前多级页','signs'=>$v,'cur'=>true);
+                }else{
+                    $allSigns[]=array('name'=>'多级页:'.$k,'signs'=>$v);
+                }
+            }
+            $existSigns=array();
+            
+            foreach ($allSigns as $ask=>$asv){
+                $asv=is_array($asv)?$asv:array();
+                $signs=$asv['signs'];
+                $newSigns=array('area'=>array(),'url'=>array(),'area_global'=>array(),'url_global'=>array());
+                if(!is_array($signs)){
+                    $signs=array();
+                }
+                if(!is_array($signs['area'])){
+                    $signs['area']=array();
+                }
+                if(!is_array($signs['url'])){
+                    $signs['url']=array();
+                }
+                
+                foreach ($signs['url'] as $k=>$v){
+                    if(!in_array($v, $existSigns)){
+                        
+                        $existSigns[]=$v;
+                        $newSigns['url_global'][]=$v;
+                    }
+                }
+                foreach ($signs['area'] as $k=>$v){
+                    if(!in_array($v, $existSigns)){
+                        
+                        $existSigns[]=$v;
+                        $newSigns['area_global'][]=$v;
+                    }
+                }
+                
+                $newSigns['area']=$signs['area'];
+                $newSigns['url']=$signs['url'];
+                
+                $asv['signs']=$newSigns;
+                
+                $allSigns[$ask]=$asv;
+            }
+            
+            $this->success('',null,$allSigns);
+        }else{
+            $this->error();
+        }
     }
     /*名称命名规范*/
     public function _check_name($name,$nameStr=''){
-    	if(!preg_match('/^[\x{4e00}-\x{9fa5}\w\-]+$/u', $name)){
-    		$this->error(($nameStr?$nameStr:'名称').'只能由汉字、字母、数字和下划线组成');
-    		return false;
-    	}else{
-    		return true;
-    	}
+        if(!preg_match('/^[\x{4e00}-\x{9fa5}\w\-]+$/u', $name)){
+            $this->error(($nameStr?$nameStr:'名称').'只能由汉字、字母、数字和下划线组成');
+            return false;
+        }else{
+            return true;
+        }
+    }
+    
+    
+    private function _get_rule_signs($areaRule,$urlRule,$areaDef=true,$urlDef=true){
+        $eCpattern=controller('admin/Cpattern','event');
+        
+        $areaRule=$areaRule?$areaRule:'';
+        $urlRule=$urlRule?$urlRule:'';
+        
+        $areaRule=$eCpattern->convert_sign_match($areaRule);
+        $urlRule=$eCpattern->convert_sign_match($urlRule);
+        
+        $areaSigns=$eCpattern->rule_str_signs($areaRule);
+        $urlSigns=$eCpattern->rule_str_signs($urlRule);
+        
+        if(empty($areaSigns)){
+            $areaSigns=$areaDef?array(cp_sign('match')):array();
+        }
+        if(empty($urlSigns)){
+            $urlSigns=$urlDef?array(cp_sign('match')):array();
+        }
+        
+        foreach ($areaSigns as $k=>$v){
+            if(in_array($v,$urlSigns)){
+                
+                unset($areaSigns[$k]);
+            }
+        }
+        return array_merge($areaSigns,$urlSigns);
     }
 }

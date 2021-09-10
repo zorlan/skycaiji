@@ -26,10 +26,10 @@
 			<li class="dropdown user user-menu">
         		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
             		<span class="glyphicon glyphicon-user"></span>
-              		<span>{$GLOBALS['_sc']['user']['username']}</span>
+              		<span>{:g_sc('user','username')}</span>
             	</a>
             	<ul class="dropdown-menu">
-            		<li><a href="{:url('User/edit?uid='.$GLOBALS['_sc']['user']['uid'])}">{$Think.lang.user_edit}</a></li>
+            		<li><a href="{:url('User/edit?uid='.g_sc('user','uid'))}">{$Think.lang.user_edit}</a></li>
 				  	<li><a href="{:url('Admin/Index/logout')}">{$Think.lang.logout}</a></li>
           		</ul>
 			</li>
@@ -52,6 +52,7 @@
 		<ul class="treeview-menu">
 			<li><a href="{:url('Admin/Setting/caiji')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_caiji}</a></li>
 			<li><a href="{:url('Admin/Setting/site')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_site}</a></li>
+			<li><a href="{:url('Admin/Setting/store')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_store}</a></li>
 			<li><a href="{:url('Admin/Setting/email')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_email}</a></li>
 		</ul>
 	</li>
@@ -86,7 +87,7 @@
 			</span>
 		</a>
 		<ul class="treeview-menu">
-			<li><a href="{:url('Admin/Mystore/store')}"><i class="fa fa-circle-o"></i> 云平台</a></li>
+			<li><a href="{:url('Admin/Mystore/store')}" target="_blank"><i class="fa fa-circle-o"></i> 云平台</a></li>
 			<li><a href="{:url('Admin/Provider/list')}"><i class="fa fa-circle-o"></i> 第三方</a></li>
 			<li class="treeview menu-open">
 				<a href="#"><i class="fa fa-circle-o"></i> 已下载
@@ -147,7 +148,7 @@
 				</ul>
 			</li>
 			<li><a href="{:url('Admin/Tool/fileManager')}"><i class="fa fa-circle-o"></i> 文件管理</a></li>
-			<li><a href="{:url('Admin/Tool/json_tree')}" target="_blank"><i class="fa fa-circle-o"></i> JSON解析</a></li>
+			<li><a href="{:url('Admin/Tool/json_tree')}"><i class="fa fa-circle-o"></i> JSON解析</a></li>
 			<li><a href="{:url('Admin/Tool/logs')}"><i class="fa fa-circle-o"></i> 错误日志</a></li>
 			<li class="treeview{$curSubm['checkfile']}{$curSubm['checkdb']}">
 				<a href="#"><i class="fa fa-circle-o"></i> 校验
@@ -183,10 +184,10 @@
 </aside>
 <div class="content-wrapper">
 	<section class="content-header">
-	<h1>{$GLOBALS['_sc']['p_name']}</h1>
+	<h1>{:g_sc('p_name')}</h1>
 	<ol class="breadcrumb">
 		<li><a href="{:url('Admin/Backstage/index')}"><i class="fa fa-dashboard"></i> {$Think.lang.admincp}</a></li>
-		{$GLOBALS['_sc']['p_nav']}
+		{:g_sc('p_nav')}
 	</ol>
 	</section>
 	<section class="content">

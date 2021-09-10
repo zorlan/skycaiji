@@ -18,7 +18,7 @@ class Rdb extends Release{
 	 * @param unknown $config
 	 */
 	public function setConfig($config){
-		$db=input('db/a','','trim');
+	    $db=input('db/a',array(),'trim');
 		foreach ($db as $k=>$v){
 			if(empty($v)&&'pwd'!=$k){
 				
@@ -26,7 +26,7 @@ class Rdb extends Release{
 			}
 		}
 		$config['db']=$db;
-		$config['db_table']=input('db_table/a','','trim');
+		$config['db_table']=input('db_table/a',array(),'trim');
 		
 		if(is_array($config['db_table'])&&is_array($config['db_table']['field'])){
 			foreach($config['db_table']['field'] as $tbName=>$tbFields){
@@ -48,6 +48,8 @@ class Rdb extends Release{
 	public function export($collFieldsList,$options=null){
 		
 		$db_config=$this->get_db_config($this->config['db']);
+		$db_config['fields_strict']=false;
+		
 		$db_key=md5(serialize($db_config));
 		if(empty($this->db_conn_list[$db_key])){
 			
@@ -180,8 +182,8 @@ class Rdb extends Release{
 					
 					$mdb->commit();
 					reset($autoidList);
-					list($firstTable,$firstId) = each($autoidList);
-					$firstId=intval($firstId);
+					$firstTable=key($autoidList);
+					$firstId=intval($autoidList[$firstTable]);
 					if($firstId>0){
 						$addedNum++;
 						$returnData['id']=$firstId;

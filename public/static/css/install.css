@@ -91,5 +91,6 @@ body {
 .install-wrapper{}
 .install-wrapper .glyphicon-ok{color:green;}
 .install-wrapper .glyphicon-remove{color:red;}
+.install-wrapper .glyphicon-info-sign{color:#f39c12;}
 
 .table-noborder * td{border:0!important;vertical-align:middle!important;}

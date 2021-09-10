@@ -11,13 +11,13 @@
 	</head>
 	<body>
 		<script type="text/javascript">var elfinderPath="__PUBLIC__/elfinder/";</script>
-		<script data-main="__PUBLIC__/elfinder/main.default.js" src="__PUBLIC__/elfinder/require.js"></script>
+		<script data-main="__PUBLIC__/elfinder/main.default.js" src="__PUBLIC__/elfinder/require.min.js"></script>
 		<script>
 			define('elFinderConfig', {
 				// elFinder options (REQUIRED)
 				// Documentation for client options:
 				defaultOpts : {
-					url : "{:url('Tool/elfinder?op=connect')}" // connector URL (REQUIRED)
+					url : "{:url('Tool/elfinder?op=connect&'.url_usertoken())}" // connector URL (REQUIRED)
 					,commandsOptions : {
 						edit : {
 							extraOptions : {

@@ -76,8 +76,10 @@ class Collected extends BaseController {
 	   				$taskList=model('Task')->where(array('id'=>array('in',$taskIds)))->column('name','id');
 	   			}
 	   		}
-	   		$GLOBALS['_sc']['p_name']=lang('collected_list');
-			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Collected/list'),'title'=>'已采集数据'),array('url'=>url('Collected/list'),'title'=>'数据列表')));
+	   		
+	   		set_g_sc('p_title',lang('collected_list'));
+	   		set_g_sc('p_name',lang('collected_list'));
+	   		set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Collected/list'),'title'=>'已采集数据'),array('url'=>url('Collected/list'),'title'=>'数据列表'))));
    		}
    		$this->assign('search',$search);
 		$this->assign('dataList',$dataList);
@@ -115,7 +117,7 @@ class Collected extends BaseController {
 			$this->success(lang('delete_success'));
 		}elseif($op=='deleteall'){
 			
-			$ids=input('ids/a',0,'intval');
+			$ids=input('ids/a',array(),'intval');
 			if(is_array($ids)&&count($ids)>0){
 				$mcollected->where(array('id'=>array('in',$ids)))->delete();
 			}
@@ -124,8 +126,9 @@ class Collected extends BaseController {
 	}
 	/*图表显示*/
 	public function chartAction(){
-		$GLOBALS['_sc']['p_name']='已采集数据：统计图表';
-		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Collected/list'),'title'=>'已采集数据'),array('url'=>url('Collected/chart'),'title'=>'统计图表')));
+	    set_g_sc('p_title','已采集数据：统计图表');
+	    set_g_sc('p_name','已采集数据：统计图表');
+	    set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Collected/list'),'title'=>'已采集数据'),array('url'=>url('Collected/chart'),'title'=>'统计图表'))));
 		
 		return $this->fetch();
 	}

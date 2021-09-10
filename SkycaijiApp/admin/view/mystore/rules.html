@@ -1,6 +1,5 @@
 {extend name="common:main" /}
 {block name="cssjs"}
-<script src="__PUBLIC__/static/js/admin/store.js?{$Think.config.html_v}"></script>
 <script src="__PUBLIC__/static/js/admin/mystore.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
@@ -12,8 +11,8 @@
     	<li><a href="{:url('Mystore/funcApp')}">函数插件</a></li>
     	<li class="nav-tab-right">
 	    	<div class="nav-check-update">
-	    		<a href="javascript:;" onclick="check_rules_update()">检测更新</a>
-	    		<input type="checkbox" id="auto_check" {:empty($GLOBALS['_sc']['c']['store_auto_check_rule'])?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
+	    		<a href="javascript:;" id="check_update">检测更新</a>
+	    		<input type="checkbox" id="auto_check" {:is_empty(g_sc_c('store_auto_check_rule'))?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
 	    	</div>
     	</li>
 	</ul>
@@ -21,14 +20,15 @@
 		<div class="tab-pane active">
 		    <div class="table-responsive">
 				<form id="form_list" method="post" ajax-submit="true" action="{:url('Mystore/ruleOp')}">
+				{:html_usertoken()}
 				<table id="list_table" class="table table-hover datatable">
 					<thead>
 						<tr>
 							<th class="chk">{$Think.lang.select}</th>
 							<th class="sorting{$orderClass['name']}" data-order="name" title="名称{$orderSort['name']}">名称</th>
-							<th>采集模块</th>
-							<th class="sorting{$orderClass['addtime']}" data-order="addtime" title="添加时间{$orderSort['addtime']}">添加时间</th>
-							<th class="sorting{$orderClass['uptime']}" data-order="uptime" title="更新时间{$orderSort['uptime']}">更新时间</th>
+							<th>模块</th>
+							<th class="sorting{$orderClass['addtime']}" data-order="addtime" title="本地添加时间{$orderSort['addtime']}">本地添加</th>
+							<th class="sorting{$orderClass['uptime']}" data-order="uptime" title="平台更新时间{$orderSort['uptime']}">平台更新</th>
 							<th>平台</th>
 							<th>{$Think.lang.op}</th>
 						</tr>
@@ -37,18 +37,12 @@
 					{foreach name="ruleList" item="rule"}
 						<tr data-rule-id="{$rule['id']}">
 							<td class="chk"><input type="checkbox" name="ids[]" value="{$rule['id']}" /></td>
-							<td>{$rule['name']}</td>
+							<td><div class="name">{$rule['name']}</div></td>
 							<td>{:lang('task_module_'.$rule['module'])}</td>
 							<td>{:date('Y-m-d H:i',$rule['addtime'])}</td>
 							<td>{:date('Y-m-d H:i',$rule['uptime'])}</td>
-							<td class="store-info">
-								<a href="{$rule['store_url']}" data-is-store-url="1" class="store-detail">
-									{if empty($rule['provider_id'])}
-										官方
-									{else /}
-										第三方
-									{/if}
-								</a>
+							<td>
+								<a href="javascript:;" data-url="{$rule['_store_url']}" class="store-detail">{$rule['_is_provider']?'第三方':'官方'}</a>
 							</td>
 							<td><a href="javascript:;" url="{:url('Mystore/ruleOp?op=delete&id='.$rule['id'])}" class="delete">删除</a></td>
 						</tr>
@@ -77,6 +71,6 @@
 	</div>
 </div>
 <script type="text/javascript">
-init_rules();
+myStoreClass.init_rules();
 </script>
 {/block}

@@ -27,6 +27,16 @@ abstract class Release extends ReleaseBase{
 			$this->error(lang('task_error_empty_task'));
 		}
 	}
+	public function doExport($collFieldsList,$options=null){
+	    $addedNum=0;
+	    try{
+	        $addedNum=$this->export($collFieldsList,$options);
+	    }catch (\Exception $ex){
+	        
+	        $this->echo_msg($ex->getMessage());
+	    }
+	    return $addedNum;
+	}
 	/**
 	 * 优化设置页面post过来的config
 	 * @param unknown $config 页面配置

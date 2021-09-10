@@ -1,9 +1,9 @@
 /*!
  * elFinder - file manager for web
- * Version 2.1.46 (2019-01-14)
+ * Version 2.1.59 (2021-06-14)
  * http://elfinder.org
  * 
- * Copyright 2009-2019, Studio 42
+ * Copyright 2009-2021, Studio 42
  * Licensed under a 3-clauses BSD license
  */
 
@@ -944,8 +944,42 @@ ul.elfinder-help-integrations a:hover {
     z-index: 100;
 }
 
-/* common container */
-.elfinder {
+/* style reset */
+div.elfinder *,
+div.elfinder :after,
+div.elfinder :before {
+    box-sizing: content-box;
+}
+
+div.elfinder fieldset {
+    display: block;
+    margin-inline-start: 2px;
+    margin-inline-end: 2px;
+    padding-block-start: 0.35em;
+    padding-inline-start: 0.75em;
+    padding-inline-end: 0.75em;
+    padding-block-end: 0.625em;
+    min-inline-size: min-content;
+    border-width: 2px;
+    border-style: groove;
+    border-color: threedface;
+    border-image: initial;
+}
+
+div.elfinder legend {
+    display: block;
+    padding-inline-start: 2px;
+    padding-inline-end: 2px;
+    border-width: initial;
+    border-style: none;
+    border-color: initial;
+    border-image: initial;
+    width: auto;
+    margin-bottom: 0;
+}
+
+/* base container */
+div.elfinder {
     padding: 0;
     position: relative;
     display: block;
@@ -1150,6 +1184,12 @@ ul.elfinder-help-integrations a:hover {
     opacity: .8;
 }
 
+.elfinder div.elfinder-bottomtray > div {
+    top: initial;
+    right: initial;
+    left: initial;
+}
+
 .elfinder.elfinder-ltr div.elfinder-bottomtray {
     left: 0;
 }
@@ -1165,6 +1205,24 @@ ul.elfinder-help-integrations a:hover {
     padding: 2px 4px;
 }
 
+/* progressbar */
+.elfinder-ui-progressbar {
+    pointer-events: none;
+    position: absolute;
+    width: 0;
+    height: 2px;
+    top: 0px;
+    border-radius: 2px;
+    filter: blur(1px);
+}
+
+.elfinder-ltr .elfinder-ui-progressbar {
+    left: 0;
+}
+
+.elfinder-rtl .elfinder-ui-progressbar {
+    right: 0;
+}
 /* File: /css/contextmenu.css */
 /* menu and submenu */
 .elfinder .elfinder-contextmenu,
@@ -1337,6 +1395,10 @@ ul.elfinder-help-integrations a:hover {
     overflow: hidden;
 }
 
+.elfinder-touch .elfinder-button-icon.elfinder-contextmenu-icon {
+    transform-origin: center center;
+}
+
 /* command icon in rtl/ltr enviroment */
 .elfinder .elfinder-contextmenu-ltr .elfinder-contextmenu-icon {
     left: 8px;
@@ -1374,10 +1436,9 @@ ul.elfinder-help-integrations a:hover {
 /* command extra icon's <a>, <span> tag */
 .elfinder .elfinder-contextmenu-extra-icon a,
 .elfinder .elfinder-contextmenu-extra-icon span {
-    display: inline-block;
+    position: relative;
     width: 100%;
     height: 100%;
-    padding: 20px;
     margin: 0;
     color: transparent !important;
     text-decoration: none;
@@ -2447,7 +2508,7 @@ ul.elfinder-help-integrations a:hover {
 }
 
 .elfinder .elfinder-cwd table td {
-    padding: 4px 12px;
+    padding: 0 12px;
     white-space: pre;
     overflow: hidden;
     text-align: right;
@@ -2516,6 +2577,12 @@ tr.elfinder-cwd-file td .elfinder-cwd-select {
 
 .elfinder-rtl .elfinder-cwd-view-list.elfinder-has-checkbox .elfinder-cwd-file-wrapper {
     margin-right: 8px;
+}
+
+.elfinder-cwd-view-list .elfinder-cwd-filename {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    display: inline-block;
 }
 
 .elfinder-ltr .elfinder-cwd-view-list .elfinder-cwd-filename {
@@ -2871,7 +2938,6 @@ tr.elfinder-cwd-file td .elfinder-cwd-select {
 /* content */
 .std42-dialog .ui-dialog-content {
     padding: .3em .5em;
-    box-sizing: border-box;
 }
 
 .elfinder .std42-dialog .ui-dialog-content,
@@ -2977,10 +3043,46 @@ tr.elfinder-cwd-file td .elfinder-cwd-select {
 
 .elfinder-dialog-notify .ui-dialog-titlebar {
     height: 5px;
+    overflow: hidden;
 }
 
-.elfinder-dialog-notify .ui-dialog-titlebar-close {
+.elfinder.elfinder-touch > .elfinder-dialog-notify .ui-dialog-titlebar {
+    height: 10px;
+}
+
+.elfinder > .elfinder-dialog-notify .ui-dialog-titlebar .elfinder-titlebar-button {
+    top: 2px;
+}
+
+.elfinder.elfinder-touch > .elfinder-dialog-notify .ui-dialog-titlebar .elfinder-titlebar-button {
+    top: 4px;
+}
+
+.elfinder > .elfinder-dialog-notify .ui-dialog-titlebar .elfinder-titlebar-button {
+    left: -18px;
+    right: 18px;
+}
+
+.elfinder > .elfinder-dialog-notify .ui-dialog-titlebar .elfinder-titlebar-button.elfinder-titlebar-button-right {
+    left: 18px;
+    right: -18px;
+}
+
+.ui-dialog-titlebar .elfinder-ui-progressbar {
+    position: absolute;
+    top: 17px;
+}
+
+.elfinder-touch .ui-dialog-titlebar .elfinder-ui-progressbar {
+    top: 26px;
+}
+
+.elfinder-dialog-notify.elfinder-titlebar-button-hide .ui-dialog-titlebar-close {
     display: none;
+}
+
+.elfinder-dialog-notify.elfinder-dialog-minimized.elfinder-titlebar-button-hide .ui-dialog-titlebar span.elfinder-dialog-title {
+    max-width: initial;
 }
 
 .elfinder-dialog-notify .ui-dialog-content {
@@ -3029,6 +3131,22 @@ tr.elfinder-cwd-file td .elfinder-cwd-select {
     -moz-border-radius: 2px;
     -webkit-border-radius: 2px;
     border-radius: 2px;
+}
+
+.elfinder-notify-cancel {
+    position: relative;
+    top: -18px;
+    right: calc(-50% + 15px);
+}
+
+.elfinder-notify-cancel .ui-icon-close {
+    background-position: -80px -128px;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    border: none;
+    background-position: -80px -128px;
+    cursor: pointer;
 }
 
 /* icons */
@@ -4098,6 +4216,12 @@ button.elfinder-info-button {
     color: #fff;
 }
 
+.elfinder-quicklook-info-progress {
+    width: 0;
+    height: 4px;
+    border-radius: 2px;
+}
+
 /* file icon */
 .elfinder-quicklook .elfinder-cwd-icon {
     position: absolute;
@@ -4132,7 +4256,7 @@ button.elfinder-info-button {
 }
 
 .elfinder-ltr .elfinder-quicklook .elfinder-cwd-icon:after {
-    left: -20px;
+    left: -42px;
 }
 
 .elfinder-ltr .elfinder-navdock .elfinder-quicklook .elfinder-cwd-icon:after {
@@ -4146,13 +4270,14 @@ button.elfinder-info-button {
 
 .elfinder-rtl .elfinder-quicklook .elfinder-cwd-icon:after {
     left: auto;
-    right: 46px;
+    right: 42px;
 }
 
 /* image in preview */
-.elfinder-quicklook-preview img {
+.elfinder-quicklook-preview > img,
+.elfinder-quicklook-preview > div > canvas {
     display: block;
-    margin: 0 auto;
+    margin: auto;
 }
 
 /* navigation bar on quicklook window bottom */
@@ -4232,6 +4357,26 @@ button.elfinder-info-button {
     display: none;
 }
 
+/* text encoding selector */
+.elfinder-quicklook-encoding {
+    height: 40px;
+}
+.elfinder-quicklook-encoding > select {
+    color: #fff;
+    background: #000;
+    border: 0;
+    font-size: 12px;
+    max-width: 100px;
+    display: inline-block;
+    position: relative;
+    top: 6px;
+    left: 5px;
+}
+.elfinder-navdock .elfinder-quicklook .elfinder-quicklook-encoding {
+    display: none;
+}
+
+
 /* text files preview wrapper */
 .elfinder-quicklook-preview-text-wrapper {
     width: 100%;
@@ -4266,6 +4411,7 @@ pre.elfinder-quicklook-preview-text.prettyprint {
     margin: 0;
     padding: 3px 9px;
     border: none;
+    overflow: visible;
     -o-tab-size: 4;
     -moz-tab-size: 4;
     tab-size: 4;
@@ -4318,6 +4464,13 @@ embed.elfinder-quicklook-preview-audio {
 .elfinder-quicklook-preview-video {
     width: 100%;
     height: 100%;
+}
+
+/* video.js error message */
+.elfinder-quicklook-preview .vjs-error .vjs-error-display .vjs-modal-dialog-content {
+    font-size: 12pt;
+    padding: 0;
+    color: #fff;
 }
 
 /* allow user select */
@@ -4693,14 +4846,30 @@ embed.elfinder-quicklook-preview-audio {
 }
 
 .elfinder-touch .elfinder-button-icon {
-    -moz-transform-origin: top left;
-    -moz-transform: scale(1.25);
-    zoom: 1.25;
+    transform: scale(1.25);
+    transform-origin: top left;
+}
+
+.elfinder-rtl.elfinder-touch .elfinder-button-icon {
+    transform-origin: top right;
 }
 
 .elfinder-touch .elfinder-button-text {
-    -moz-transform: translate(3px, 3px);
+    transform: translate(3px, 3px);
     top: -5px;
+}
+
+.elfinder-rtl.elfinder-touch .elfinder-button-text {
+    transform: translate(-3px, 3px);
+}
+
+.elfinder-touch .elfinder-button-icon.elfinder-contextmenu-extra-icon {
+    transform: scale(2);
+    transform-origin: 12px 8px;
+}
+
+.elfinder-rtl.elfinder-touch .elfinder-button-icon.elfinder-contextmenu-extra-icon {
+    transform-origin: 4px 8px;
 }
 
 /* buttons icons */
@@ -4938,6 +5107,21 @@ embed.elfinder-quicklook-preview-audio {
     -ms-transform: scale(-1, 1);
     -webkit-transform: scale(-1, 1);
     transform: scale(-1, 1);
+}
+
+.elfinder-rtl.elfinder-touch .elfinder-button-icon-back,
+.elfinder-rtl.elfinder-touch .elfinder-button-icon-forward,
+.elfinder-rtl.elfinder-touch .elfinder-button-icon-getfile,
+.elfinder-rtl.elfinder-touch .elfinder-button-icon-help,
+.elfinder-rtl.elfinder-touch .elfinder-button-icon-redo,
+.elfinder-rtl.elfinder-touch .elfinder-button-icon-rename,
+.elfinder-rtl.elfinder-touch .elfinder-button-icon-search,
+.elfinder-rtl.elfinder-touch .elfinder-button-icon-undo,
+.elfinder-rtl.elfinder-touch .elfinder-button-icon-view-list,
+.elfinder-rtl.elfinder-touch .ui-icon-search {
+    -ms-transform: scale(-1.25, 1.25) translateX(16px);
+    -webkit-transform: scale(-1.25, 1.25) translateX(16px);
+    transform: scale(-1.25, 1.25) translateX(16px);
 }
 
 /* button with dropdown menu*/

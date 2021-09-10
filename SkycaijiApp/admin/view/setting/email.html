@@ -1,10 +1,12 @@
 {extend name="common:main" /}
 {block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/setting.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
 <div class="box box-default">
 	<div class="box-body">
 		<form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('Admin/Setting/email')}">
+		{:html_usertoken()}	
 			<input type="hidden" name="is_test" value="" />
 		   	<div class="form-group">
 		        <label>{$Think.lang.set_email_sender}</label>
@@ -44,19 +46,6 @@
 	</div>
 </div>
 <script type="text/javascript">
-$('#form_set [name="type"]').each(function(){
-	if($(this).val()=="{$emailConfig['type']}"){
-		$(this).attr('checked', 'checked');
-	}
-});
-
-$('#btn_test').bind('click',function(){
-	$('#form_set [name="is_test"]').val(1);
-	$('#form_set').submit();
-});
-$('#form_set button[type="submit"]').bind('click',function(){
-	$('#form_set [name="is_test"]').val(0);
-});
-
+settingClass.email_init({$emailConfig|json_encode});
 </script>
 {/block}

@@ -14,8 +14,8 @@ namespace skycaiji\admin\controller;
 class Provider extends BaseController {
 	/*第三方平台*/
 	public function listAction(){
-		$url=input('url');
-		$title=input('title');
+		$url=input('url','');
+		$title=input('title','');
 		
 		$mprovider=model('Provider');
 		
@@ -31,11 +31,18 @@ class Provider extends BaseController {
 		$pagenav=$list->render();
 		$list=$list->all();
 		
-		$GLOBALS['_sc']['p_name']='第三方平台';
-		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Provider/list'),'title'=>'第三方平台')));
+		set_g_sc('p_title','第三方平台');
+		set_g_sc('p_name','第三方平台');
+		set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Provider/list'),'title'=>'第三方平台'))));
 		
+		$this->assign('cacheTip',cache('provider_tip_close'));
 		$this->assign('list',$list);
 		$this->assign('pagenav',$pagenav);
+		
+		$this->assign('search',array(
+		    'url'=>$url,
+		    'title'=>$title
+		));
 		
 		return $this->fetch();
 	}
@@ -71,12 +78,15 @@ class Provider extends BaseController {
 			$this->assign('proData',$proData);
 		}
 		if(request()->isPost()){
+		    $sameAsPwd=input('same_as_pwd');
 			$url=input('url','','strip_tags');
 			$title=input('title');
 			$sort=input('sort/d',0);
+			$sort=min($sort,999999);
+			$authkey=input('authkey','','trim');
 			$enable=input('enable/d',0);
 			
-			$domain=\skycaiji\admin\model\Provider::match_domain($url);
+			$domain=\skycaiji\admin\model\Provider::match_domain_http($url);
 			if(empty($domain)){
 				$this->error('网址格式错误');
 			}
@@ -100,6 +110,11 @@ class Provider extends BaseController {
 				$this->error($domain.' 域名已存在');
 			}
 			
+			$check=$mprovider->checkAuthkey($authkey,$sameAsPwd);
+			if(!$check['success']){
+			    $this->error($check['msg'],'',$check['data']);
+			}
+			
 			if(empty($title)){
 				$html=get_html($url,null,array('timeout'=>3));
 				if(preg_match('/<title[^<>]*>(.*?)<\/title>/i', $html,$title)){
@@ -113,6 +128,7 @@ class Provider extends BaseController {
     			'url'=>$url,
     			'title'=>$title,
 				'domain'=>$domain,
+			    'authkey'=>$authkey,
 				'enable'=>$enable,
     			'sort'=>$sort
     		);
@@ -131,13 +147,76 @@ class Provider extends BaseController {
 	}
 	
 	public function saveallAction(){
-		$newsort=input('newsort/a');
+	    $newsort=input('newsort/a',array());
 		$mprovider=model('Provider');
 		if(is_array($newsort)&&count($newsort)>0){
 			foreach ($newsort as $key=>$val){
-				$mprovider->strict(false)->where('id',intval($key))->update(array('sort'=>intval($val)));
+			    $val=min(intval($val),999999);
+			    $mprovider->strict(false)->where('id',intval($key))->update(array('sort'=>$val));
 			}
 		}
 		$this->success('保存成功','Provider/list');
+	}
+	
+	
+	public function tip_closeAction(){
+	    cache('provider_tip_close',1);
+	    $this->success();
+	}
+	
+	
+	public function authkeysAction(){
+	    $url=input('url','');
+	    $title=input('title','');
+	    
+	    $mprovider=model('Provider');
+	    
+	    $cond=array();
+	    if(!empty($url)){
+	        $cond['url']=array('like','%'.$url.'%');
+	    }
+	    if(!empty($title)){
+	        $cond['title']=array('like','%'.$title.'%');
+	    }
+	    
+	    $list=$mprovider->where($cond)->order('sort desc')->paginate(20,false,paginate_auto_config());
+	    $pagenav=$list->render();
+	    $list=$list->all();
+	    
+	    $this->assign('list',$list);
+	    $this->assign('pagenav',$pagenav);
+	    
+	    $this->assign('search',array(
+	        'url'=>$url,
+	        'title'=>$title
+	    ));
+	    
+	    return $this->fetch();
+	}
+	
+	
+	public function authkeys_saveAction(){
+	    if(request()->isPost()){
+	        $sameAsPwd=input('same_as_pwd');
+	        $authkeys=input('authkeys/a','','trim');
+	        $authkeys=is_array($authkeys)?$authkeys:array();
+	        
+	        $mprov=model('Provider');
+	        foreach ($authkeys as $provId=>$authkey){
+	            $check=$mprov->checkAuthkey($authkey,$sameAsPwd);
+	            if(!$check['success']){
+	                $check['data']['prov_id']=$provId;
+	                $this->error($check['msg'],'',$check['data']);
+	            }
+	        }
+	        
+	        foreach ($authkeys as $provId=>$authkey){
+	            model('Provider')->strict(false)->where('id',$provId)->update(array('authkey'=>$authkey));
+	        }
+	        
+	        $this->success('修改成功');
+	    }else{
+	        $this->error('操作失败');
+	    }
 	}
 }

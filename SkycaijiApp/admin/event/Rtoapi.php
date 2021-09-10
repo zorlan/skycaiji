@@ -18,7 +18,7 @@ class Rtoapi extends Release{
 	 * @param unknown $config
 	 */
 	public function setConfig($config){
-		$toapi=input('toapi/a','','trim');
+	    $toapi=input('toapi/a',array(),'trim');
 		if(empty($toapi['url'])){
 			$this->error('请输入接口地址');
 		}
@@ -31,7 +31,7 @@ class Rtoapi extends Release{
 		$toapi['param_val']=is_array($toapi['param_val'])?$toapi['param_val']:array();
 		$toapi['param_addon']=is_array($toapi['param_addon'])?$toapi['param_addon']:array();
 		if(is_array($toapi['param_name'])){
-			$toapi['param_name']=array_array_map('trim', $toapi['param_name']);
+		    $toapi['param_name']=\util\Funcs::array_array_map('trim', $toapi['param_name']);
 			foreach ($toapi['param_name'] as $k=>$v){
 				if(empty($v)){
 					

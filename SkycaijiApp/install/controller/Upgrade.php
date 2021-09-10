@@ -15,11 +15,11 @@ use skycaiji\install\event\UpgradeDb;
 class Upgrade extends BaseController{
 	public function __construct(){
 		parent::__construct();
-		if(session_status()!==2){
+		if(session_status()!==PHP_SESSION_ACTIVE){
 			session_start();
 		}
 
-		$mconfig=model('admin/Config');
+		$mconfig=model('common/Config');
 		$dbVersion=$mconfig->getVersion();
 		if(version_compare($dbVersion,SKYCAIJI_VERSION,'>=')){
 			

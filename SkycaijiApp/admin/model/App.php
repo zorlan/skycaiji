@@ -11,9 +11,9 @@
 
 namespace skycaiji\admin\model;
 
-class App extends BaseModel{
+class App extends \skycaiji\common\model\BaseModel{
 	/*检测是否是应用并获取配置文件实例化*/
-	public function app_class($app,$includeClass=true){
+	public function app_class($app,$includeClass=true,$configKey=null){
 		static $passPaths=array('.','..','common','admin','skycaiji','vendor');
 		if($this->right_app($app)){
 			
@@ -49,7 +49,14 @@ class App extends BaseModel{
 					}
 
 					if($appClass){
-						$appClass->config=$this->clear_config($appClass->config);
+					    if(!property_exists($appClass,'config')){
+					        $appClass->config=array();
+					    }
+				        $appClass->config=$this->clear_config($appClass->config);
+				        if(!empty($configKey)){
+				            
+				            return $appClass->config[$configKey];
+				        }
 						return $appClass;
 					}
 				}
@@ -158,6 +165,32 @@ class App extends BaseModel{
 		$filename=$this->config_filename($app);
 		unlink($filename);
 	}
+	/*转换扩展*/
+	public function convert_packs($packs,$app,$returnType=null,$navid=null){
+	    $packs=is_array($packs)?$packs:array();
+	    $appUrl=config('root_website').'/app/'.$app.'/';
+	    $returnPacks=array();
+	    foreach ($packs as $k=>$v){
+	        if($v['type']=='nav'){
+	            $v['nav_link']=str_replace(array('{app}','{apps}'), array($appUrl,config('root_website').'/app/'),$v['nav_link']);
+	            if(!preg_match('/^\w+\:\/\//', $v['nav_link'])){
+	                
+	                $v['nav_link']=$appUrl.$v['nav_link'];
+	            }
+	            $v['name']=htmlspecialchars($v['name'],ENT_QUOTES);
+	            if(isset($navid)&&$navid==$k){
+	                
+	                $v['is_current']=true;
+	            }
+	            $packs[$k]=$v;
+	        }
+	        if($returnType&&$returnType==$v['type']){
+	            $returnPacks[$k]=$packs[$k];
+	        }
+	    }
+	    return $returnType?$returnPacks:$packs;
+	}
+	
 	private function _array_map($callback, $arr1){
 		if(is_array($arr1)){
 			$arr=array();

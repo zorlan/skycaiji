@@ -73,7 +73,7 @@ class Readability {
             //libxml_use_internal_errors(true);
             // 会有些错误信息，不过不要紧 :^)
             if (!@$this->DOM->loadHTML('<?xml encoding="'.Readability::DOM_DEFAULT_CHARSET.'">'.$source)) {
-                throw new Exception("Parse HTML Error!");
+                throw new \Exception("Parse HTML Error!");
             }
 
             foreach ($this->DOM->childNodes as $item) {
@@ -84,7 +84,7 @@ class Readability {
 
             // insert proper
             $this->DOM->encoding = Readability::DOM_DEFAULT_CHARSET;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             // ...
         }
     }
@@ -124,7 +124,7 @@ class Readability {
         $Tags = $RootNode->getElementsByTagName($TagName);
         
         //Note: always index 0, because removing a tag removes it from the results as well.
-        while($Tag = $Tags->item(0)){
+        while(($Tag = $Tags->item(0))!=false){
             $parentNode = $Tag->parentNode;
             $parentNode->removeChild($Tag);
         }
@@ -140,7 +140,7 @@ class Readability {
         $Tags = $RootNode->getElementsByTagName("*");
 
         $i = 0;
-        while($Tag = $Tags->item($i++)) {
+        while(($Tag = $Tags->item($i++))!=false) {
             $Tag->removeAttribute($Attr);
         }
 
@@ -160,7 +160,7 @@ class Readability {
         // Study all the paragraphs and find the chunk that has the best score.
         // A score is determined by things like: Number of <p>'s, commas, special classes, etc.
         $i = 0;
-        while($paragraph = $allParagraphs->item($i++)) {
+        while(($paragraph = $allParagraphs->item($i++))!=false) {
             $parentNode   = $paragraph->parentNode;
             $contentScore = intval($parentNode->getAttribute(Readability::ATTR_CONTENT_SCORE));
             $className    = $parentNode->getAttribute("class");
@@ -263,7 +263,7 @@ class Readability {
 
         if ($images->length){
 			$i = 0;
-			while($leadImage = $images->item($i++)) {
+			while(($leadImage = $images->item($i++))!=false) {
 				$imgsrc = $leadImage->getAttribute("src");
 				$imgdatasrc = $leadImage->getAttribute("data-src");
 				$imgsrclast =  $imgsrc ? $imgsrc : $imgdatasrc;
@@ -315,9 +315,9 @@ class Readability {
 
         // 多个数据，以数组的形式返回
         return Array(
-            'lead_image_url' => $this->getLeadImageUrl($Target),
-            'word_count' => mb_strlen(strip_tags($content), Readability::DOM_DEFAULT_CHARSET),
-            'title' => $ContentTitle ? $ContentTitle : null,
+            //'lead_image_url' => $this->getLeadImageUrl($Target),
+            //'word_count' => mb_strlen(strip_tags($content), Readability::DOM_DEFAULT_CHARSET),
+            //'title' => $ContentTitle ? $ContentTitle : null,
             'content' => $content
         );
     }

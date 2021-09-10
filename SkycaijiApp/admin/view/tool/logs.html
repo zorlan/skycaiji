@@ -1,6 +1,5 @@
 {extend name="common:main" /}
 {block name="cssjs"}
-
 {/block}
 {block name="content"}
 <div class="box box-default">
@@ -25,11 +24,26 @@
 </div>
 
 <script type="text/javascript">
+'use strict';
 $('#log_list a[data-file]').bind('click',function(){
 	var file=$(this).attr('data-file');
 	var url=ulink('Tool/log?file=_file_',{_file_:file});
-	windowIframe('日志：'+file,url,{lg:1});
+	var uploadTxt='上报日志';
+	windowIframe('日志：'+file+' <button type="button" id="upload_log" class="btn btn-sm btn-default" style="padding:3px 5px;">'+uploadTxt+'</button>',url,{lg:1});
+	$('#upload_log').bind('click',function(){
+		$(this).text(uploadTxt+'...');
+		$(this).attr('disabled',true);
+		ajaxOpen({
+			type: 'post',
+			dataType: 'json',
+			url:ulink('Tool/log?upload=1&file=_file_',{_file_:file}),
+			success: function (data) {
+				$('#upload_log').text(uploadTxt);
+				$('#upload_log').attr('disabled',false);
+				ajaxDataMsg(data);
+			}
+		});
+	});
 });
-
 </script>
 {/block}

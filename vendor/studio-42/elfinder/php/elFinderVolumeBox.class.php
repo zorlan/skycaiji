@@ -26,12 +26,12 @@ class elFinderVolumeBox extends elFinderVolumeDriver
     /**
      * @var string The base URL for authorization requests
      */
-    const AUTH_URL = 'https://www.box.com/api/oauth2/authorize';
+    const AUTH_URL = 'https://account.box.com/api/oauth2/authorize';
 
     /**
      * @var string The base URL for token requests
      */
-    const TOKEN_URL = 'https://www.box.com/api/oauth2/token';
+    const TOKEN_URL = 'https://api.box.com/oauth2/token';
 
     /**
      * @var string The base URL for upload requests
@@ -75,6 +75,13 @@ class elFinderVolumeBox extends elFinderVolumeDriver
     private $tmbPrefix = '';
 
     /**
+     * Path to access token file for permanent mount
+     *
+     * @var string
+     */
+    private $aTokenFile = '';
+
+    /**
      * hasCache by folders.
      *
      * @var array
@@ -100,7 +107,7 @@ class elFinderVolumeBox extends elFinderVolumeDriver
             'tmbPath' => '',
             'tmbURL' => '',
             'tmpPath' => '',
-            'acceptedName' => '#^[^/\\?*:|"<>]*[^./\\?*:|"<>]$#',
+            'acceptedName' => '#^[^\\\/]+$#',
             'rootCssClass' => 'elfinder-navbar-root-box',
         );
         $this->options = array_merge($this->options, $opts);
@@ -191,10 +198,15 @@ class elFinderVolumeBox extends elFinderVolumeDriver
 
         $decoded = $this->_bd_curlExec($curl, true, array('Content-Length: ' . strlen($fields)));
 
-        return (object)array(
+        $res = (object)array(
             'expires' => time() + $decoded->expires_in - 30,
-            'data' => $decoded,
+            'initialToken' => '',
+            'data' => $decoded
         );
+        if (!empty($decoded->refresh_token)) {
+            $res->initialToken = md5($client_id . $decoded->refresh_token);
+        }
+        return $res;
     }
 
     /**
@@ -206,14 +218,6 @@ class elFinderVolumeBox extends elFinderVolumeDriver
     protected function _bd_refreshToken()
     {
         if (!property_exists($this->token, 'expires') || $this->token->expires < time()) {
-            if (!$token = $this->session->get('BoxTokens')) {
-                $token = $this->token;
-            }
-            if (empty($token->data->refresh_token)) {
-                $this->session->remove('BoxTokens');
-                throw new \Exception(elFinder::ERROR_REAUTH_REQUIRE);
-            }
-
             if (!$this->options['client_id']) {
                 $this->options['client_id'] = ELFINDER_BOX_CLIENTID;
             }
@@ -221,6 +225,32 @@ class elFinderVolumeBox extends elFinderVolumeDriver
             if (!$this->options['client_secret']) {
                 $this->options['client_secret'] = ELFINDER_BOX_CLIENTSECRET;
             }
+
+            if (empty($this->token->data->refresh_token)) {
+                throw new \Exception(elFinder::ERROR_REAUTH_REQUIRE);
+            } else {
+                $refresh_token = $this->token->data->refresh_token;
+                $initialToken = $this->_bd_getInitialToken();
+            }
+
+            $lock = '';
+            $aTokenFile = $this->aTokenFile? $this->aTokenFile : $this->_bd_getATokenFile();
+            if ($aTokenFile && is_file($aTokenFile)) {
+                $lock = $aTokenFile . '.lock';
+                if (file_exists($lock)) {
+                    // Probably updating on other instance
+                    return true;
+                }
+                touch($lock);
+                $GLOBALS['elFinderTempFiles'][$lock] = true;
+            }
+
+            $postData = array(
+                'client_id' => $this->options['client_id'],
+                'client_secret' => $this->options['client_secret'],
+                'grant_type' => 'refresh_token',
+                'refresh_token' => $refresh_token
+            );
 
             $url = self::TOKEN_URL;
 
@@ -230,32 +260,67 @@ class elFinderVolumeBox extends elFinderVolumeDriver
                 // General options.
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_POST => true, // i am sending post data
-                CURLOPT_POSTFIELDS => 'client_id=' . urlencode($this->options['client_id'])
-                    . '&client_secret=' . urlencode($this->options['client_secret'])
-                    . '&grant_type=refresh_token'
-                    . '&refresh_token=' . urlencode($token->data->refresh_token),
-
+                CURLOPT_POSTFIELDS => http_build_query($postData),
                 CURLOPT_URL => $url,
             ));
 
-            $decoded = $this->_bd_curlExec($curl);
+            $decoded = $error = '';
+            try {
+                $decoded = $this->_bd_curlExec($curl, true, array(), $postData);
+            } catch (Exception $e) {
+                $error = $e->getMessage();
+            }
+            if (!$decoded && !$error) {
+                $error = 'Tried to renew the access token, but did not get a response from the Box server.';
+            }
+            if ($error) {
+                $lock && unlink($lock);
+                throw new \Exception('Box access token update failed. ('.$error.') If this message appears repeatedly, please notify the administrator.');
+            }
 
             if (empty($decoded->access_token)) {
-                throw new \Exception(elFinder::ERROR_REAUTH_REQUIRE);
+                if ($aTokenFile) {
+                    if (is_file($aTokenFile)) {
+                        unlink($aTokenFile);
+                    }
+                }
+                $err = property_exists($decoded, 'error')? ' ' . $decoded->error : '';
+                $err .= property_exists($decoded, 'error_description')? ' ' . $decoded->error_description : '';
+                throw new \Exception($err? $err : elFinder::ERROR_REAUTH_REQUIRE);
             }
 
             $token = (object)array(
-                'expires' => time() + $decoded->expires_in - 30,
+                'expires' => time() + $decoded->expires_in - 300,
+                'initialToken' => $initialToken,
                 'data' => $decoded,
             );
 
-            $this->session->set('BoxTokens', $token);
-            $this->options['accessToken'] = json_encode($token);
             $this->token = $token;
+            $json = json_encode($token);
 
-            if (!empty($this->options['netkey'])) {
-                elFinder::$instance->updateNetVolumeOption($this->options['netkey'], 'accessToken', $this->options['accessToken']);
+            if (!empty($decoded->refresh_token)) {
+                if (empty($this->options['netkey']) && $aTokenFile) {
+                    file_put_contents($aTokenFile, json_encode($token), LOCK_EX);
+                    $this->options['accessToken'] = $json;
+                } else if (!empty($this->options['netkey'])) {
+                    // OAuth2 refresh token can be used only once,
+                    // so update it if it is the same as the token file
+                    if ($aTokenFile && is_file($aTokenFile)) {
+                        if ($_token = json_decode(file_get_contents($aTokenFile))) {
+                            if ($_token->data->refresh_token === $refresh_token) {
+                                file_put_contents($aTokenFile, $json, LOCK_EX);
+                            }
+                        }
+                    }
+                    $this->options['accessToken'] = $json;
+                    // update session value
+                    elFinder::$instance->updateNetVolumeOption($this->options['netkey'], 'accessToken', $json);
+                    $this->session->set('BoxTokens', $token);
+                } else {
+                    throw new \Exception(ERROR_CREATING_TEMP_DIR);
+                }
             }
+            $lock && unlink($lock);
         }
 
         return true;
@@ -341,13 +406,15 @@ class elFinderVolumeBox extends elFinderVolumeDriver
      * @throws \Exception
      * @return mixed
      */
-    protected function _bd_curlExec($curl, $decodeOrParent = true, $headers = array())
+    protected function _bd_curlExec($curl, $decodeOrParent = true, $headers = array(), $postData = array())
     {
-        $headers = array_merge(array(
-            'Authorization: Bearer ' . $this->token->data->access_token,
-        ), $headers);
+        if ($this->token) {
+            $headers = array_merge(array(
+                'Authorization: Bearer ' . $this->token->data->access_token,
+            ), $headers);
+        }
 
-        $result = elFinder::curlExec($curl, array(), $headers);
+        $result = elFinder::curlExec($curl, array(), $headers, $postData);
 
         if (!$decodeOrParent) {
             return $result;
@@ -355,10 +422,16 @@ class elFinderVolumeBox extends elFinderVolumeDriver
 
         $decoded = json_decode($result);
 
-        if (!empty($decoded->error_code)) {
+        if ($error = !empty($decoded->error_code)) {
             $errmsg = $decoded->error_code;
             if (!empty($decoded->message)) {
                 $errmsg .= ': ' . $decoded->message;
+            }
+            throw new \Exception($errmsg);
+        } else if ($error = !empty($decoded->error)) {
+            $errmsg = $decoded->error;
+            if (!empty($decoded->error_description)) {
+                $errmsg .= ': ' . $decoded->error_description;
             }
             throw new \Exception($errmsg);
         }
@@ -546,6 +619,39 @@ class elFinderVolumeBox extends elFinderVolumeDriver
         return true;
     }
 
+    /**
+     * Get AccessToken file path
+     *
+     * @return string  ( description_of_the_return_value )
+     */
+    protected function _bd_getATokenFile()
+    {
+        $tmp = $aTokenFile = '';
+        if (!empty($this->token->data->refresh_token)) {
+            if (!$this->tmp) {
+                $tmp = elFinder::getStaticVar('commonTempPath');
+                if (!$tmp) {
+                    $tmp = $this->getTempPath();
+                }
+                $this->tmp = $tmp;
+            }
+            if ($tmp) {
+                $aTokenFile = $tmp . DIRECTORY_SEPARATOR . $this->_bd_getInitialToken() . '.btoken';
+            }
+        }
+        return $aTokenFile;
+    }
+
+    /**
+     * Get Initial Token (MD5 hash)
+     *
+     * @return string
+     */
+    protected function _bd_getInitialToken()
+    {
+        return (empty($this->token->initialToken)? md5($this->options['client_id'] . (!empty($this->token->data->refresh_token)? $this->token->data->refresh_token : $this->token->data->access_token)) : $this->token->initialToken);
+    }
+
     /*********************************************************************/
     /*                        OVERRIDE FUNCTIONS                         */
     /*********************************************************************/
@@ -575,9 +681,15 @@ class elFinderVolumeBox extends elFinderVolumeDriver
 
         if (isset($options['id'])) {
             $this->session->set('nodeId', $options['id']);
-        } elseif ($_id = $this->session->get('nodeId')) {
+        } else if ($_id = $this->session->get('nodeId')) {
             $options['id'] = $_id;
             $this->session->set('nodeId', $_id);
+        }
+
+        if (!empty($options['tmpPath'])) {
+            if ((is_dir($options['tmpPath']) || mkdir($this->options['tmpPath'])) && is_writable($options['tmpPath'])) {
+                $this->tmp = $options['tmpPath'];
+            }
         }
 
         try {
@@ -585,20 +697,41 @@ class elFinderVolumeBox extends elFinderVolumeDriver
                 return array('exit' => true, 'body' => '{msg:errNetMountNoDriver}');
             }
 
-            if (isset($_GET['code'])) {
+            $itpCare = isset($options['code']);
+            $code = $itpCare? $options['code'] : (isset($_GET['code'])? $_GET['code'] : '');
+            if ($code) {
                 try {
-                    // Obtain the token using the code received by the Box.com API
-                    $this->session->set('BoxTokens',
-                        $this->_bd_obtainAccessToken($options['client_id'], $options['client_secret'], $_GET['code']));
+                    if (!empty($options['id'])) {
+                        // Obtain the token using the code received by the Box.com API
+                        $this->session->set('BoxTokens',
+                            $this->_bd_obtainAccessToken($options['client_id'], $options['client_secret'], $code));
 
-                    $out = array(
-                        'node' => $options['id'],
-                        'json' => '{"protocol": "box", "mode": "done", "reset": 1}',
-                        'bind' => 'netmount',
-
-                    );
-
-                    return array('exit' => 'callback', 'out' => $out);
+                        $out = array(
+                            'node' => $options['id'],
+                            'json' => '{"protocol": "box", "mode": "done", "reset": 1}',
+                            'bind' => 'netmount'
+                        );
+                    } else {
+                        $nodeid = ($_GET['host'] === '1')? 'elfinder' : $_GET['host'];
+                        $out = array(
+                            'node' => $nodeid,
+                            'json' => json_encode(array(
+                                'protocol' => 'box',
+                                'host' => $nodeid,
+                                'mode' => 'redirect',
+                                'options' => array(
+                                    'id' => $nodeid,
+                                    'code'=> $code
+                                )
+                            )),
+                            'bind' => 'netmount'
+                        );
+                    }
+                    if (!$itpCare) {
+                        return array('exit' => 'callback', 'out' => $out);
+                    } else {
+                        return array('exit' => true, 'body' => $out['json']);
+                    }
                 } catch (Exception $e) {
                     $out = array(
                         'node' => $options['id'],
@@ -640,34 +773,20 @@ class elFinderVolumeBox extends elFinderVolumeDriver
                 }
 
                 if ($result === false) {
-                    $cdata = '';
-                    $innerKeys = array('cmd', 'host', 'options', 'pass', 'protocol', 'user');
-                    $this->ARGS = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-                    foreach ($this->ARGS as $k => $v) {
-                        if (!in_array($k, $innerKeys)) {
-                            $cdata .= '&' . $k . '=' . rawurlencode($v);
-                        }
-                    }
-                    if (empty($options['url'])) {
-                        $options['url'] = elFinder::getConnectorUrl();
-                    }
-                    $callback = $options['url']
-                        . '?cmd=netmount&protocol=box&host=box.com&user=init&pass=return&node=' . $options['id'] . $cdata;
+                    $redirect = elFinder::getConnectorUrl();
+                    $redirect .= (strpos($redirect, '?') !== false? '&' : '?') . 'cmd=netmount&protocol=box&host=' . ($options['id'] === 'elfinder'? '1' : $options['id']);
 
                     try {
                         $this->session->set('BoxTokens', (object)array('token' => null));
-
-                        $url = self::AUTH_URL . '?' . http_build_query(array('response_type' => 'code', 'client_id' => $options['client_id'], 'redirect_uri' => elFinder::getConnectorUrl() . '?cmd=netmount&protocol=box&host=1'));
-
-                        $url .= '&oauth_callback=' . rawurlencode($callback);
+                        $url = self::AUTH_URL . '?' . http_build_query(array('response_type' => 'code', 'client_id' => $options['client_id'], 'redirect_uri' => $redirect));
                     } catch (Exception $e) {
                         return array('exit' => true, 'body' => '{msg:errAccess}');
                     }
 
-                    $html = '<input id="elf-volumedriver-box-host-btn" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" value="{msg:btnApprove}" type="button" onclick="window.open(\'' . $url . '\')">';
+                    $html = '<input id="elf-volumedriver-box-host-btn" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" value="{msg:btnApprove}" type="button">';
                     $html .= '<script>
-							$("#' . $options['id'] . '").elfinder("instance").trigger("netmount", {protocol: "box", mode: "makebtn"});
-						</script>';
+                            $("#' . $options['id'] . '").elfinder("instance").trigger("netmount", {protocol: "box", mode: "makebtn", url: "' . $url . '"});
+                        </script>';
 
                     return array('exit' => true, 'body' => $html);
                 } else {
@@ -690,11 +809,12 @@ class elFinderVolumeBox extends elFinderVolumeDriver
                     $folders = json_encode($folders);
 
                     $expires = empty($this->token->data->refresh_token) ? (int)$this->token->expires : 0;
-                    $json = '{"protocol": "box", "mode": "done", "folders": ' . $folders . ', "expires": ' . $expires . '}';
+                    $mnt2res = empty($this->token->data->refresh_token) ? '' : ', "mnt2res": 1';
+                    $json = '{"protocol": "box", "mode": "done", "folders": ' . $folders . ', "expires": ' . $expires . $mnt2res . '}';
                     $html = 'Box.com';
                     $html .= '<script>
-							$("#' . $options['id'] . '").elfinder("instance").trigger("netmount", ' . $json . ');
-							</script>';
+                            $("#' . $options['id'] . '").elfinder("instance").trigger("netmount", ' . $json . ');
+                            </script>';
 
                     return array('exit' => true, 'body' => $html);
                 }
@@ -705,7 +825,11 @@ class elFinderVolumeBox extends elFinderVolumeDriver
 
         if ($_aToken = $this->session->get('BoxTokens')) {
             $options['accessToken'] = json_encode($_aToken);
+            if ($this->options['path'] === 'root' || !$this->options['path']) {
+                $this->options['path'] = '/';
+            }
         } else {
+            $this->session->remove('BoxTokens');
             $this->setError(elFinder::ERROR_NETMOUNT, $options['host'], implode(' ', $this->error()));
 
             return array('exit' => true, 'error' => $this->error());
@@ -745,7 +869,7 @@ class elFinderVolumeBox extends elFinderVolumeDriver
     public function debug()
     {
         $res = parent::debug();
-        if (!empty($this->options['accessToken'])) {
+        if (!empty($this->options['netkey']) && !empty($this->options['accessToken'])) {
             $res['accessToken'] = $this->options['accessToken'];
         }
 
@@ -771,22 +895,62 @@ class elFinderVolumeBox extends elFinderVolumeDriver
             return $this->setError('Required option `accessToken` is undefined.');
         }
 
-        try {
-            $this->token = json_decode($this->options['accessToken']);
-            $this->_bd_refreshToken();
-        } catch (Exception $e) {
-            $this->token = null;
-            $this->session->remove('BoxTokens');
-
-            return $this->setError($e->getMessage());
+        if (!empty($this->options['tmpPath'])) {
+            if ((is_dir($this->options['tmpPath']) || mkdir($this->options['tmpPath'])) && is_writable($this->options['tmpPath'])) {
+                $this->tmp = $this->options['tmpPath'];
+            }
         }
 
-        if (empty($options['netkey'])) {
+        $error = false;
+        try {
+            $this->token = json_decode($this->options['accessToken']);
+            if (!is_object($this->token)) {
+                throw new Exception('Required option `accessToken` is invalid JSON.');
+            }
+
             // make net mount key
-            $_tokenKey = isset($this->token->data->refresh_token) ? $this->token->data->refresh_token : $this->token->data->access_token;
-            $this->netMountKey = md5(implode('-', array('box', $this->options['path'], $_tokenKey)));
-        } else {
-            $this->netMountKey = $options['netkey'];
+            if (empty($this->options['netkey'])) {
+                $this->netMountKey = $this->_bd_getInitialToken();
+            } else {
+                $this->netMountKey = $this->options['netkey'];
+            }
+
+            if ($this->aTokenFile = $this->_bd_getATokenFile()) {
+                if (empty($this->options['netkey'])) {
+                    if ($this->aTokenFile) {
+                        if (is_file($this->aTokenFile)) {
+                            $this->token = json_decode(file_get_contents($this->aTokenFile));
+                            if (!is_object($this->token)) {
+                                unlink($this->aTokenFile);
+                                throw new Exception('Required option `accessToken` is invalid JSON.');
+                            }
+                        } else {
+                            file_put_contents($this->aTokenFile, json_encode($this->token), LOCK_EX);
+                        }
+                    }
+                } else if (is_file($this->aTokenFile)) {
+                    // If the refresh token is the same as the permanent volume
+                    $this->token = json_decode(file_get_contents($this->aTokenFile));
+                }
+            }
+
+            $this->needOnline && $this->_bd_refreshToken();
+        } catch (Exception $e) {
+            $this->token = null;
+            $error = true;
+            $this->setError($e->getMessage());
+        }
+
+        if ($this->netMountKey) {
+            $this->tmbPrefix = 'box' . base_convert($this->netMountKey, 16, 32);
+        }
+
+        if ($error) {
+            if (empty($this->options['netkey']) && $this->tmbPrefix) {
+                // for delete thumbnail 
+                $this->netunmount(null, null);
+            }
+            return false;
         }
 
         // normalize root path
@@ -796,27 +960,22 @@ class elFinderVolumeBox extends elFinderVolumeDriver
 
         $this->root = $this->options['path'] = $this->_normpath($this->options['path']);
 
-        $this->options['root'] == '' ? $this->options['root'] = 'Box.com' : $this->options['root'];
+        $this->options['root'] = ($this->options['root'] == '')? 'Box.com' : $this->options['root'];
 
         if (empty($this->options['alias'])) {
-            list(, $itemId) = $this->_bd_splitPath($this->options['path']);
-            $this->options['alias'] = ($this->options['path'] === '/') ? $this->options['root'] :
-                $this->_bd_query($itemId, $fetch_self = true)->name . '@Box.com';
-        }
-
-        $this->rootName = $this->options['alias'];
-
-        $this->tmbPrefix = 'box' . base_convert($this->netMountKey, 10, 32);
-
-        if (!empty($this->options['tmpPath'])) {
-            if ((is_dir($this->options['tmpPath']) || mkdir($this->options['tmpPath'])) && is_writable($this->options['tmpPath'])) {
-                $this->tmp = $this->options['tmpPath'];
+            if ($this->needOnline) {
+                list(, $itemId) = $this->_bd_splitPath($this->options['path']);
+                $this->options['alias'] = ($this->options['path'] === '/') ? $this->options['root'] :
+                    $this->_bd_query($itemId, $fetch_self = true)->name . '@Box';
+                if (!empty($this->options['netkey'])) {
+                    elFinder::$instance->updateNetVolumeOption($this->options['netkey'], 'alias', $this->options['alias']);
+                }
+            } else {
+                $this->options['alias'] = $this->options['root'];
             }
         }
 
-        if (!$this->tmp && ($tmp = elFinder::getStaticVar('commonTempPath'))) {
-            $this->tmp = $tmp;
-        }
+        $this->rootName = $this->options['alias'];
 
         // This driver dose not support `syncChkAsTs`
         $this->options['syncChkAsTs'] = false;
@@ -896,7 +1055,16 @@ class elFinderVolumeBox extends elFinderVolumeDriver
         $this->options['searchExDirReg'] = $searchExDirReg;
 
         if ($search) {
-            return $search[0];
+            $f = false;
+            foreach($search as $f) {
+                if ($f['name'] !== $name) {
+                    $f = false;
+                }
+                if ($f) {
+                    break;
+                }
+            }
+            return $f;
         }
 
         return false;
@@ -1106,27 +1274,8 @@ class elFinderVolumeBox extends elFinderVolumeDriver
      **/
     protected function getSharedWebContentLink($raw)
     {
-        $fExtension = pathinfo($raw->name, PATHINFO_EXTENSION);
-        list($fType) = explode('/', self::mimetypeInternalDetect($raw->name));
-
-        if ($raw->shared_link->url && ($fType == 'image' || $fType == 'video' || $fType == 'audio')) {
-            if ($fExtension == 'jpg' && $fType == 'image') {
-                $url = 'https://app.box.com/representation/file_version_' . $raw->file_version->id . '/image_2048_' . $fExtension . '/1.' . $fExtension . '?shared_name=' . basename($raw->shared_link->url);
-
-                return $url;
-            } elseif ($fExtension !== 'jpg' && $fType == 'image') {
-                $url = 'https://app.box.com/representation/file_version_' . $raw->file_version->id . '/image_2048/1.' . $fExtension . '?shared_name=' . basename($raw->shared_link->url);
-
-                return $url;
-            } elseif ($fType == 'video') {
-                $url = 'https://app.box.com/representation/file_version_' . $raw->file_version->id . '/video_480.' . $fExtension . '?shared_name=' . basename($raw->shared_link->url);
-
-                return $url;
-            } elseif ($fType == 'audio') {
-                $url = 'https://app.box.com/index.php?rm=preview_stream&amp&file_version_' . $raw->file_version->id . '/audio/mpeg:' . $raw->name . '&shared_name=' . basename($raw->shared_link->url);
-
-                return $url;
-            }
+        if ($raw->shared_link->url) {
+            return sprintf('https://app.box.com/index.php?rm=box_download_shared_file&shared_name=%s&file_id=f_%s', basename($raw->shared_link->url), $raw->id);
         } elseif ($raw->shared_link->download_url) {
             return $raw->shared_link->download_url;
         }
@@ -1384,7 +1533,8 @@ class elFinderVolumeBox extends elFinderVolumeDriver
                 $cache['height'] = $size[1];
                 $ret = array('dim' => $size[0] . 'x' . $size[1]);
                 $srcfp = fopen($work, 'rb');
-                if ($subImgLink = $this->getSubstituteImgLink(elFinder::$currentArgs['target'], $size, $srcfp)) {
+                $target = isset(elFinder::$currentArgs['target'])? elFinder::$currentArgs['target'] : '';
+                if ($subImgLink = $this->getSubstituteImgLink($target, $size, $srcfp)) {
                     $ret['url'] = $subImgLink;
                 }
             }
@@ -1431,6 +1581,16 @@ class elFinderVolumeBox extends elFinderVolumeDriver
                 'headers' => array('Authorization: Bearer ' . $this->token->data->access_token),
             );
 
+            // to support range request
+            if (func_num_args() > 2) {
+                $opts = func_get_arg(2);
+            } else {
+                $opts = array();
+            }
+            if (!empty($opts['httpheaders'])) {
+                $data['headers'] = array_merge($opts['httpheaders'], $data['headers']);
+            }
+
             return elFinder::getStreamByUrl($data);
         }
 
@@ -1448,7 +1608,7 @@ class elFinderVolumeBox extends elFinderVolumeDriver
      */
     protected function _fclose($fp, $path = '')
     {
-        fclose($fp);
+        is_resource($fp) && fclose($fp);
         if ($path) {
             unlink($this->getTempFile($path));
         }

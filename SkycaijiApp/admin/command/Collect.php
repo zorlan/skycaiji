@@ -23,8 +23,10 @@ class Collect extends Command{
         $this->setName('collect')
         	->addArgument('op', Argument::OPTIONAL, "op")
             ->addOption('cli_user', null, Option::VALUE_REQUIRED, 'cli user')
-            ->addOption('task_id', null, Option::VALUE_REQUIRED, 'collect:task_id')
+            ->addOption('task_id', null, Option::VALUE_REQUIRED, 'task:task_id')
             ->addOption('task_ids', null, Option::VALUE_REQUIRED, 'batch:task_ids')
+            ->addOption('rele_id', null, Option::VALUE_REQUIRED, 'test:rele_id')
+            ->addOption('logid', null, Option::VALUE_REQUIRED, 'logid')
         	->setDescription('collect task');
     }
 
@@ -34,9 +36,12 @@ class Collect extends Command{
     	if(is_array($cacheConfig)){
     		\think\Config::set($cacheConfig);
     	}
+    	
+    	\skycaiji\common\model\Config::set_url_compatible();
+    	
     	$op=$input->getArgument('op');
     	
-    	static $loginOps=array('task','batch');
+    	static $loginOps=array('task','batch','test');
     	
     	if(in_array($op, $loginOps)){
     		
@@ -48,23 +53,30 @@ class Collect extends Command{
     			if(!empty($cliUser[0])){
     				
     				$muser=new \skycaiji\admin\model\User();
-    				$user=$muser->where('username',$cliUser[0])->find();
+    				$user=$muser->getByUid($cliUser[0]);
     				if(!empty($user)){
-    					$user['username']=strtolower($user['username']);
     					
-    					if($user['username']==$cliUser[0]&&$cliUser[1]==md5($user['username'].$user['password'])){
-    						session('user_id',$user['uid']);
+    				    if($cliUser[1]==$muser->generate_key($user)){
+    					    $muser->setLoginSession($user);
     					}
     				}
     			}
     		}
-
-    		if(!session('?user_id')){
+    		$sUserlogin=session('user_login');
+    		if(empty($sUserlogin)){
     			$this->error_msg('抱歉，必须传入账号信息！');
     		}
     	}
     	
+    	
+    	$logid='';
+    	if ($input->hasOption('logid')){
+    	    $logid=$input->getOption('logid');
+    	    $logid=base64_decode($logid);
+    	}
+    	
     	$rootUrl=\think\Config::get('root_website').'/index.php?s=';
+    	
     	
     	if('task'==$op){
     		
@@ -75,6 +87,7 @@ class Collect extends Command{
     		}
 
     		$curUrl=$rootUrl.'/admin/task/collect&backstage=1&id='.urlencode($taskId);
+    		$curUrl=$this->url_append_logid($curUrl,$logid);
     		\think\Request::create($curUrl);
     		
     		define('BIND_MODULE', "admin/task/collect");
@@ -87,17 +100,33 @@ class Collect extends Command{
     			$taskIds=$input->getOption('task_ids');
     		}
     		$curUrl=$rootUrl.'/admin/task/collectBatch&backstage=1&ids='.urlencode($taskIds);
+    		$curUrl=$this->url_append_logid($curUrl,$logid);
     		\think\Request::create($curUrl);
     		
     		define('BIND_MODULE', "admin/task/collectBatch");
     		\think\App::run()->send();
+    	}elseif('test'==$op){
+    	    
+    	    $releId=0;
+    	    if ($input->hasOption('rele_id')){
+    	        $releId=$input->getOption('rele_id');
+    	        $releId=intval($releId);
+    	    }
+    	    
+    	    $curUrl=$rootUrl.'/admin/release/test&backstage=1&id='.urlencode($releId);
+    	    $curUrl=$this->url_append_logid($curUrl,$logid);
+    	    \think\Request::create($curUrl);
+    	    
+    	    define('BIND_MODULE', "admin/release/test");
+    	    \think\App::run()->send();
     	}elseif('backstage'==$op){
     		
     		set_time_limit(0);
-			$curKey=CacheModel::getInstance()->getCache('admin_index_backstage_key', 'data');
-    		do{
-    			
-				$cacheKey=CacheModel::getInstance()->getCache('admin_index_backstage_key', 'data');
+			$curKey=CacheModel::getInstance()->getCache('collect_backstage_key', 'data');
+			do{
+			    
+			    CacheModel::getInstance()->setCache('collect_backstage_time',time());
+				$cacheKey=CacheModel::getInstance()->getCache('collect_backstage_key', 'data');
 				if(empty($curKey)||$curKey!=$cacheKey){
 					
 					
@@ -107,7 +136,7 @@ class Collect extends Command{
     			$mconfig=new \skycaiji\admin\model\Config();
 				$caijiConfig=$mconfig->getConfig('caiji','data');
 
-    			if($caijiConfig['server']!='cli'){
+				if(!$mconfig->server_is_cli(true,$caijiConfig['server'])){
     				$this->error_msg('不是cli命令行模式');
     			}
     			if(empty($caijiConfig['auto'])){
@@ -117,23 +146,24 @@ class Collect extends Command{
     				$this->error_msg('不是后台运行方式');
     			}
     			
-    			$url=$rootUrl.'/admin/api/collect&backstage=1';
-
-    			try{
-    				
-    				\util\Curl::get($url,null,array('timeout'=>3));
-    			}catch(\Exception $ex){
-    				
+    			$checkCollectWait=\skycaiji\admin\model\Config::check_collect_wait();
+    			if(!$checkCollectWait){
+    			    $url=$rootUrl.'/admin/api/collect&backstage=1';
+    			    
+    			    try{
+    			        
+    			        \util\Curl::get($url,null,array('timeout'=>3));
+    			    }catch(\Exception $ex){
+    			        
+    			    }
     			}
     			
-    			$waitTime=$caijiConfig['interval']*60;
-    			$waitTime=$waitTime>0?$waitTime:60;
-    			sleep($waitTime);
-    			
+    			sleep(60);
     		}while(1==1);
     	}elseif('auto'==$op){
     		
     		$curUrl=$rootUrl.'/admin/api/collect&backstage=1';
+    		$curUrl=$this->url_append_logid($curUrl,$logid);
     		\think\Request::create($curUrl);
     		
     		define('BIND_MODULE', "admin/api/collect");
@@ -143,5 +173,13 @@ class Collect extends Command{
     
     protected function error_msg($msg){
     	exit($msg);
+    }
+    
+    
+    protected function url_append_logid($url,$logid){
+        if(!empty($logid)){
+            $url=$url.(strpos($url,'?')===false?'?':'&').'logid='.urlencode($logid);
+        }
+        return $url;
     }
 }

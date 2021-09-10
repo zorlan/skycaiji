@@ -1,113 +1,166 @@
 {extend name="common:main" /}
 {block name="cssjs"}
-
+<script src="__PUBLIC__/static/js/admin/setting.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
 <form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('Admin/Setting/download_img')}">
+{:html_usertoken()}
 <div class="nav-tabs-custom">
 	{include file="setting/caiji_nav" /}
 	<div class="tab-content">
 		<div class="tab-pane active" style="padding:0px 5px;">
 		    <div class="form-group">
-		        <label>开启功能</label>
+		        <label>全局开启</label>
 		        <div class="input-group">
 			        <label class="radio-inline"><input type="radio" name="download_img" value="1">是</label>
-					<label class="radio-inline"><input type="radio" name="download_img" value="0">否</label>
+					<label class="radio-inline"><input type="radio" name="download_img" value="0" checked="checked">否</label>
 		        </div>
-		        <p class="help-block">将远程图片下载到本地服务器</p>
+		        <p class="help-block">将网页中的图片下载到本地，可单独在任务»更多设置中控制开关</p>
 		    </div>
-		    <div id="set_download_img" style="display:none;">
-		        <div class="form-group">
-		        	<label>图片保存目录（绝对路径）</label>
-		        	<input type="text" name="img_path" class="form-control" placeholder="默认{:config('root_path')}\data\images" value="{$imgConfig['img_path']}">
-			   		<p class="help-block">可设置为服务器中的任意文件夹（必须开启读写权限），如果保存到本程序中，目录必须在data文件夹里</p>	        
-			    </div>
-			    <div class="form-group">
-		        	<label>图片链接地址（绝对地址）</label>
-		        	<input type="text" name="img_url" class="form-control" placeholder="默认{:config('root_website')}/data/images" value="{:htmlspecialchars($imgConfig['img_url'],ENT_QUOTES)}">
-			    	<p class="help-block">网页中可访问的图片网址目录，请务必对应到图片保存目录，否则图片无法显示</p>
-			    </div>
-			    <div class="form-group">
-		        	<label>图片名称</label>
-			       	<select name="img_name" class="form-control">
-			       		<option value="">按时间生成（方便日期归类）</option>
-			       		<option value="url">按网址生成（防止重复下载）</option>
-			       		<option value="custom">自定义</option>
-			       	</select>
-			       	<div id="img_name_custom" style="margin-top:5px;display:none;">
-			       		<div class="input-group">
-			       			<span class="input-group-addon">路径</span>
-			       			<input type="text" name="name_custom_path" class="form-control" value="{$imgConfig['name_custom_path']}" />
-			       			<span class="input-group-addon" style="border-left:0;border-right:0;">名称</span>
-			       			<select name="name_custom_name" class="form-control">
-					       		<option value="">图片网址MD5码</option>
-					       	</select>
-				       	</div>
-			       		<div class="help-block name-custom-path">
-			       			<a href="javascript:;" data-val="[年]">[年]</a>&nbsp;
-			       			<a href="javascript:;" data-val="[月]">[月]</a>&nbsp;
-			       			<a href="javascript:;" data-val="[日]">[日]</a>&nbsp;
-			       			<a href="javascript:;" data-val="[时]">[时]</a>&nbsp;
-			       			<a href="javascript:;" data-val="[分]">[分]</a>&nbsp;
-			       			<a href="javascript:;" data-val="[秒]">[秒]</a>&nbsp;
-			       			<a href="javascript:;" data-val="[前两位]" title="图片网址MD5码的前两位">[前两位]</a>&nbsp;
-			       			<a href="javascript:;" data-val="[后两位]" title="图片网址MD5码的后两位">[后两位]</a>&nbsp;
-			       			<a href="javascript:;" data-val="[任务名]">[任务名]</a>&nbsp;
-			       			<a href="javascript:;" data-val="[任务ID]">[任务ID]</a>&nbsp;
-			       			用/分隔子目录，如需调用字段可在任务的更多设置中编辑
-			       		</div>
+		    <div class="form-group">
+	        	<label>下载间隔（毫秒，1000毫秒=1秒）</label>
+	        	<input type="number" name="interval_img" class="form-control" />
+		   		<p class="help-block">可防止下载太快造成目标网站响应超时或宕机，留空或0表示不限制</p>        
+		    </div>
+		    <div class="form-group">
+		        <label>下载data:image编码格式图片</label>
+		        <div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="data_image" value="1">是</label>
+					<label class="radio-inline"><input type="radio" name="data_image" value="0" checked="checked">否</label>
+		        </div>
+		        <p class="help-block">将&lt;img src="data:image/*;base64"&gt;非url形式的编码数据保存为图片</p>
+		    </div>
+
+	        <div class="form-group">
+	        	<label>图片保存目录（绝对路径）</label>
+	        	<input type="text" name="img_path" class="form-control" placeholder="默认：{:config('root_path')}{:DS}data{:DS}images" />
+		   		<p class="help-block">可设置为服务器中的任意文件夹（必须开启读写权限），如果保存到本程序中，目录必须在data文件夹里</p>	        
+		    </div>
+		    <div class="form-group">
+	        	<label>图片链接地址（绝对地址）</label>
+	        	<input type="text" name="img_url" class="form-control" placeholder="默认：{:config('root_website')}/data/images" />
+		    	<p class="help-block">网页中可访问的图片网址目录，请务必对应到图片保存目录，否则图片无法显示</p>
+		    </div>
+		    <div class="form-group">
+	        	<label>图片名称</label>
+		       	<select name="img_name" class="form-control">
+		       		<option value="">{$Think.lang.down_img_name_}</option>
+		       		<option value="url">{$Think.lang.down_img_name_url}</option>
+		       		<option value="custom">{$Think.lang.down_img_name_custom}</option>
+		       	</select>
+		       	<div id="img_name_custom" style="margin-top:5px;display:none;">
+		       		<div class="input-group">
+		       			<span class="input-group-addon">路径</span>
+		       			<input type="text" name="name_custom_path" class="form-control" />
+		       			<span class="input-group-addon" style="border-left:0;border-right:0;">名称</span>
+		       			<select name="name_custom_name" class="form-control">
+				       		<option value="">{$Think.lang.down_img_name_custom_name_}</option>
+				       	</select>
 			       	</div>
-			    </div>
-			    <div class="form-group">
-		        	<label>下载超时（秒）</label>
-		        	<input type="number" name="img_timeout" class="form-control" value="{$imgConfig['img_timeout']}">
-			   		<p class="help-block">多少秒内未下载完，跳过下载该图片，留空或0表示不限制</p>	        
-			    </div>
-			    <div class="form-group">
-		        	<label>下载间隔（秒）</label>
-		        	<input type="number" name="img_interval" class="form-control" value="{$imgConfig['img_interval']}">
-			   		<p class="help-block">可防止下载太快造成目标网站响应超时或宕机，留空或0表示不限制</p>        
-			    </div>
-			    <div class="form-group">
-		        	<label>限制大小（MB）</label>
-		        	<input type="number" name="img_max" class="form-control" value="{$imgConfig['img_max']}">
-			   		<p class="help-block">超过兆数的图片不下载，留空或0表示不限制</p>        
-			    </div>
+		       		<div class="help-block name-custom-path">
+		       			<ul class="in-line-mg">
+		       				<li><a href="javascript:;" data-val="[年]">[年]</a></li>
+		       				<li><a href="javascript:;" data-val="[月]">[月]</a></li>
+		       				<li><a href="javascript:;" data-val="[日]">[日]</a></li>
+		       				<li><a href="javascript:;" data-val="[时]">[时]</a></li>
+		       				<li><a href="javascript:;" data-val="[分]">[分]</a></li>
+		       				<li><a href="javascript:;" data-val="[秒]">[秒]</a></li>
+		       				<li><a href="javascript:;" data-val="[前两位]" title="图片网址MD5码的前两位">[前两位]</a></li>
+		       				<li><a href="javascript:;" data-val="[后两位]" title="图片网址MD5码的后两位">[后两位]</a></li>
+		       				<li><a href="javascript:;" data-val="[任务名]">[任务名]</a></li>
+		       				<li><a href="javascript:;" data-val="[任务ID]">[任务ID]</a></li>
+		       				<li>用/分隔子目录，如需调用字段可在任务的更多设置中编辑</li>
+		       			</ul>
+		       		</div>
+		       	</div>
+		    </div>
+		    <div class="form-group">
+	        	<label>系统编码</label>
+				<div class="input-group input-select-custom">
+					<div class="input-group-btn">
+						<select name="charset" class="form-control">
+				       		<option value="">默认</option>
+				       		<option value="utf-8">utf-8</option>
+				       		<option value="gbk">gbk</option>
+				       		<option value="gb2312">gb2312</option>
+				       		<option value="custom">自定义</option>
+				       	</select>
+					</div>
+		       		<input type="text" name="charset_custom" class="form-control" />
+				</div>
+		    	<p class="help-block">如果保存后的图片路径或名称乱码，需设置服务器系统编码，一般windows默认gbk，linux默认utf-8</p>
+		    </div>
+		    <div class="form-group">
+	        	<label>扩展图片后缀</label>
+	        	<input type="text" name="more_suffix" class="form-control" placeholder="选填" />
+		   		<p class="help-block">默认识别后缀 jpg, jpeg, gif, png, bmp，未知后缀名自动保存为jpg格式，如需支持其他格式图片请输入后缀名（多个用逗号分隔）</p>	        
+		    </div>
+		    <div class="form-group">
+	        	<label>下载超时（秒）</label>
+	        	<input type="number" name="img_timeout" class="form-control" />
+		   		<p class="help-block">多少秒内未下载完，跳过下载该图片，留空或0表示不限制</p>	        
+		    </div>
+		    <div class="form-group">
+	        	<label>失败等待（秒）</label>
+	        	<input type="number" name="wait" class="form-control" />
+		   		<p class="help-block">下载图片失败，等待一段时间再继续</p>        
+		    </div>
+		    <div class="form-group">
+	        	<label>失败重试</label>
+	        	<input type="number" name="retry" class="form-control" />
+		   		<p class="help-block">下载失败重试次数，留空或0表示不重试</p>        
+		    </div>
+		    <div class="form-group">
+	        	<label>限制大小（MB）</label>
+	        	<input type="number" name="img_max" class="form-control" />
+		   		<p class="help-block">超过兆数的图片不下载，留空或0表示不限制</p>        
 		    </div>
     	</div>
-	</div>
+    </div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading">
+    	<h4 class="panel-title"><a data-toggle="collapse" href="#panel_img_func" aria-expanded="false" class="collapsed">使用函数</a></h4>
+   	</div>
+    <div class="panel-collapse collapse" id="panel_img_func">
+    	<div class="panel-body" style="padding-top:5px;">
+    		<p class="help-block">图片下载后使用函数</p>
+	        <div class="form-group">
+	        	<label>函数名</label>
+		   		<select name="img_func" class="form-control">
+		   			<option value="">不使用</option>
+		       	</select>
+			</div>
+			<div class="form-group">
+				<label>传入参数</label>
+				<textarea name="img_func_param" rows="2" class="form-control" data-placeholder="默认传入[图片:文件名]"></textarea>
+				<div class="help-block">
+					一行一个值，可输入任何内容或
+					<div class="dropup dropup-img-params" style="display:inline;">
+						<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							调用图片参数
+							<span class="caret"></span>
+						</a>
+						<ul class="dropdown-menu">
+							<li><a href="javascript:;" data-val="[图片:文件名]">[图片:文件名]（包含路径和名称）</a></li>
+							<li><a href="javascript:;" data-val="[图片:路径]">[图片:路径]（保存的目录）</a></li>
+							<li><a href="javascript:;" data-val="[图片:名称]">[图片:名称]（保存的名称）</a></li>
+							<li><a href="javascript:;" data-val="[图片:链接]">[图片:链接]（保存后的链接）</a></li>
+							<li><a href="javascript:;" data-val="[图片:网址]">[图片:网址]（图片源网址）</a></li>
+						</ul>
+					</div>
+					&nbsp;请按函数传参，否则运行出错！<a href="javascript:;" onclick="pluginFuncTips('downloadImg')">扩展函数</a>
+				</div>
+			</div>
+    	</div>
+    </div>
 </div>
 <div class="form-group">
 	<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
 </div>
 </form>
-		
+
 <script type="text/javascript">
-'use strict';//严格模式
-
-$('#form_set [name="download_img"]').bind('click',function(){
-	if($(this).val()>0){
-		$('#set_download_img').show();
-	}else{
-		$('#set_download_img').hide();
-	}
-});
-
-$('#form_set [name="img_name"]').bind('change',function(){
-	if($(this).val()=='custom'){
-		$('#img_name_custom').show();
-	}else{
-		$('#img_name_custom').hide();
-	}
-});
-
-$('#form_set').on('click','.name-custom-path a[data-val]',function(){
-	insertAtCaret($('[name="name_custom_path"]'),$(this).attr('data-val'));
-});
-
-
-$('#form_set [name="download_img"][value="{$imgConfig["download_img"]|intval}"]').trigger("click");
-$('#form_set [name="img_name"]').val('{$imgConfig["img_name"]}').trigger('change');
-$('#form_set [name="name_custom_name"]').val('{$imgConfig["name_custom_name"]}');
+settingClass.down_img_init({$imgConfig|json_encode});
 </script>
 {/block}

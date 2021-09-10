@@ -30,7 +30,7 @@ class Backstage extends BaseController{
 			'os'=>php_uname('s').' '.php_uname('r'),
 			'php'=>PHP_VERSION,
 			'db'=>config('database.type'),
-			'version'=>$GLOBALS['_sc']['c']['version']?$GLOBALS['_sc']['c']['version']:constant("SKYCAIJI_VERSION"),
+		    'version'=>g_sc_c('version')?g_sc_c('version'):constant("SKYCAIJI_VERSION"),
 			'server'=>$_SERVER["SERVER_SOFTWARE"],
 			'upload_max'=>ini_get('upload_max_filesize')
 		);
@@ -42,33 +42,35 @@ class Backstage extends BaseController{
 		
 		$runInfo['auto_status']='良好';
 		/*设置采集状态*/
-		if($GLOBALS['_sc']['c']['caiji']['auto']){
+		if(g_sc_c('caiji','auto')){
 			
 			$lastTime=cache('last_collect_time');
-			$taskAutoCount=model('Task')->where('auto',1)->count();
-			if($taskAutoCount<=0){
+			$autoTaskCount=model('Task')->where('auto',1)->count();
+			if($autoTaskCount<=0){
 				
 				$serverData['caiji']='<a href="'.url('Admin/Task/list').'">未设置自动采集任务</a>';
 				$runInfo['auto_status']='无任务';
 			}else{
-				
+			    
+			    $runInfo['auto_status']='运行良好';
 				if($lastTime>0){
-					$runInfo['auto_status']='运行良好';
-					$serverData['caiji']='最近采集：'.date('Y-m-d H:i:s',$lastTime).' &nbsp;';
-					if($GLOBALS['_sc']['c']['caiji']['run']=='backstage'){
-						
-						if(NOW_TIME-$lastTime>60*($GLOBALS['_sc']['c']['caiji']['interval']+15)){
-							
-							$serverData['caiji'].='<p class="help-block">自动采集似乎停止了，请<a href="'.
-								url('Admin/Setting/caiji').'">重新保存设置</a>以便激活采集</p>';
-							$runInfo['auto_status']='停止运行';
-						}
-					}
+				    $serverData['caiji']='最近采集：'.date('Y-m-d H:i:s',$lastTime).' &nbsp;';
 				}
+				if(g_sc_c('caiji','run')=='backstage'){
+					
+				    $collectBackstageTime=CacheModel::getInstance()->getCache('collect_backstage_time','data');
+				    $collectBackstageTime=intval($collectBackstageTime);
+				    if((time()-$collectBackstageTime)>60*3){
+				        
+				        $runInfo['auto_status']='停止运行';
+				        $serverData['caiji'].='<p class="help-block">自动采集停止了，请重新<a href="'.url('Admin/Setting/caiji').'">保存设置</a>以便激活采集</p>';
+				    }
+				}
+				
 				$serverData['caiji'].='<a href="javascript:;" id="a_collect_now">实时采集</a>';
 			}
 		}else{
-			$runInfo['auto_status']='已停止';
+			$runInfo['auto_status']='未开启';
 			$serverData['caiji']='<a href="'.url('Admin/Setting/caiji').'">未开启自动采集</a>';
 		}
 		
@@ -82,14 +84,29 @@ class Backstage extends BaseController{
 		$systemData=$LocSystem->environment();
 		
 		$systemWarning=array('php'=>array(),'path_write'=>array(),'path_read'=>array());
+		
 		if(is_array($systemData['php'])){
 			foreach ($systemData['php'] as $k=>$v){
-				if(empty($v[1])){
+				if(empty($v['loaded'])){
 					
-					$systemWarning['php'][$v[0]]=$v[0];
+				    $systemWarning['php'][$v['name']]=$v['name'];
+				}elseif(!empty($v['lack'])){
+				    
+				    $systemWarning['php'][$v['name']]=$v['name'].' (需支持'.$v['lack'].')';
 				}
 			}
 		}
+		
+		if(model('Config')->server_is_cli()||g_sc_c('page_render','tool')){
+		    
+		    $procFuncs=array('proc_open','proc_get_status','proc_terminate','proc_close');
+		    foreach ($procFuncs as $procFunc){
+		        if(!function_exists($procFunc)){
+		            $systemWarning['php'][$procFunc]=$procFunc;
+		        }
+		    }
+		}
+		
 		if(is_array($systemData['path'])){
 			foreach ($systemData['path'] as $k=>$v){
 				if(empty($v[1])){
@@ -114,36 +131,113 @@ class Backstage extends BaseController{
 		}
 		
 		
-		
 		$adminIndexData=cache('backstage_admin_index');
 		
 		
-		$timeout=NOW_TIME-(3600*24*30);
+		$timeout=time()-(3600*24*30);
 		$mcacheSource=CacheModel::getInstance('source_url');
 		$mcacheSource->db()->where('dateline','<',$timeout)->delete();
 		$mcacheLevel=CacheModel::getInstance('level_url');
 		$mcacheLevel->db()->where('dateline','<',$timeout)->delete();
 
-		$timeout=NOW_TIME-(3600*24);
+		$timeout=time()-(3600*24);
 		$mcacheCont=CacheModel::getInstance('cont_url');
 		$mcacheCont->db()->where('dateline','<',$timeout)->delete();
 		
-		$GLOBALS['_sc']['p_name']='后台管理';
-		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Backstage/index'),'title'=>'首页')));
+		$openBasedir=null;
+		if(!cache('ignore_open_basedir_tips')){
+		    
+		    $openBasedir=ini_get('open_basedir');
+		    if(!empty($openBasedir)){
+		        $openBasedir=explode(IS_WIN?';':':', $openBasedir);
+		        $openBasedir=implode('、', $openBasedir);
+		    }
+		}
+		
+		set_g_sc('p_name','后台管理');
+		set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Backstage/index'),'title'=>'首页'))));
 		
 		$this->assign('runInfo',$runInfo);
 		$this->assign('serverData',$serverData);
 		$this->assign('upgradeDb',$upgradeDb);
 		$this->assign('systemWarning',$systemWarning);
 		$this->assign('adminIndexData',$adminIndexData);
+		$this->assign('openBasedir',$openBasedir);
 		
 		return $this->fetch('backstage/index');
 	}
+	
+	
+	public function checkUpAction(){
+	    $info=array(
+	        'pageRenderInvalid'=>false,
+	        'phpInvalid'=>false,
+	    );
+	    
+	    $mconfig=model('Config');
+	    
+	    if($mconfig->server_is_cli()){
+	        
+	        $phpvInfo=$mconfig->exec_php_version(g_sc_c('caiji','server_php'));
+	        if(empty($phpvInfo)||!$phpvInfo['success']){
+	            $info['phpInvalid']=true;
+	        }
+	    }
+	    
+	    $autoTaskIds=model('Task')->where('auto',1)->column('id');
+	    if(!empty($autoTaskIds)){
+	        foreach ($autoTaskIds as $autoTaskId){
+	            $collConfig=model('Collector')->where('task_id',$autoTaskId)->value('config');
+	            
+	            $collConfig=unserialize($collConfig);
+	            if($collConfig['page_render']){
+	                
+	                $pageRender=g_sc_c('page_render');
+	                if(empty($pageRender['tool'])){
+	                    
+	                    $info['pageRenderInvalid']=true;
+	                }elseif($mconfig->page_render_is_chrome()){
+	                    
+	                    $chromeSoket=new \util\ChromeSocket($pageRender['chrome']['host'],$pageRender['chrome']['port'],$pageRender['timeout'],$pageRender['chrome']['filename'],$pageRender['chrome']);
+	                    $info['pageRenderInvalid']=$chromeSoket->hostIsOpen()?false:true;
+	                }
+	                break;
+	            }
+	        }
+	    }
+	    
+	    $this->success('','',$info);
+	}
+	
 	/*实时采集*/
 	public function collectAction(){
 		remove_auto_collecting();
 		controller('admin/Api','controller')->collectAction();
 	}
+	
+	/*检测更新*/
+	public function newVersionAction(){
+	    $version=curl_skycaiji('/client/info/version?v='.SKYCAIJI_VERSION);
+	    $version=json_decode($version,true);
+	    $version=is_array($version)?$version:array();
+	    $new_version=trim($version['new_version']);
+	    $cur_version=g_sc_c('version');
+	    
+	    
+	    if(version_compare($new_version,$cur_version,'>')){
+	        
+	        $version['is_new_version']=true;
+	    }
+	    
+	    $cacheIx=cache('backstage_admin_index');
+	    if(empty($cacheIx)||$cacheIx['ver']!=$version['admin_index_ver']){
+	        $version['is_new_admin_index']=true;
+	    }
+	    
+	    $this->success('',null,$version);
+	}
+	
+	
 	/*获取推送消息*/
 	public function adminIndexAction(){
 		$refresh=input('refresh');
@@ -151,8 +245,9 @@ class Backstage extends BaseController{
 		$data=is_array($data)?$data:array();
 		if($refresh||empty($data['html'])){
 			
-			$data=get_html('https://www.skycaiji.com/store/client/adminIndex?v='.SKYCAIJI_VERSION,null,null,'utf-8');
+			$data=curl_skycaiji('/client/info/push?v='.SKYCAIJI_VERSION);
 			$data=json_decode($data,true);
+			$data=is_array($data)?$data:array();
 			
 			$data=array(
 				'ver'=>$data['ver'],
@@ -230,8 +325,10 @@ class Backstage extends BaseController{
 					}
 				}
 			}
-
-			$count=$mcache->db()->where('ctype',$taskType)->count();
+			
+			
+			$count0=$mcache->db()->where('ctype',0)->count();
+			$count1=$mcache->db()->where('ctype',1)->count();
 
 			$this->assign('list',$list);
 			$this->assign('cacheList',$cacheList);
@@ -239,7 +336,7 @@ class Backstage extends BaseController{
 			$this->assign('pagenav',$pagenav);
 			$html=$this->fetch('bk_task_list')->getContent();
 
-			$this->success('',null,array('html'=>$html,'count'=>$count));
+			$this->success('',null,array('html'=>$html,'count0'=>$count0,'count1'=>$count1));
 		}elseif('collected'==$op){
 			$taskId=input('tid/d');
 			if($taskId<=0){
@@ -274,6 +371,12 @@ class Backstage extends BaseController{
 	}
 	
 	
+	public function ignoreOpenBasedirAction(){
+	    cache('ignore_open_basedir_tips',1);
+	    $this->success();
+	}
+	
+	
 	public function createJsLangAction(){
 		$langs=array();
 		$langs['zh-cn']='zh-cn';
@@ -291,12 +394,13 @@ class Backstage extends BaseController{
 			$tpl_lang=array_merge($common_lang,$module_lang);
 	
 			$tpl_lang='var tpl_lang='.json_encode($tpl_lang).';';
-	
+			
 			write_dir_file(config('root_path').'/public/static/js/langs/'.$lv.'.js',$tpl_lang);
-			echo "ok{$lv}<br>";
+			echo "ok:{$lv}<br>";
 		}
 	}
-	/* 排查重复的语言变量 */
+	
+	
 	public function checkRepeatLangAction() {
 		$file = config ( 'app_path' ) . '/admin/lang/zh-cn.php';
 		$txt = file_get_contents ( $file );
@@ -311,5 +415,4 @@ class Backstage extends BaseController{
 		}
 		print_r ( $repeatList );
 	}
-	
 }

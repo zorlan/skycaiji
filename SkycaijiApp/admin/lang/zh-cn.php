@@ -13,25 +13,23 @@ return array(
 	'admincp'=>'后台',
 	
 	'sign_wildcard'=>'(*)',
-	'sign_match'=>'[内容{:num}]',
+	'sign_match'=>'[内容{:id}]',
 	'tips_sign_wildcard'=>'通配符可匹配任意字符',
-	'tips_sign_match'=>'匹配任意字符并保存为标签以供调用，等同于捕获组：(?&lt;content编号&gt;.*?)',
-	'tips_sign_match_only'=>'匹配任意字符并保存为标签以供调用，等同于捕获组：(?&lt;content&gt;.*?)',
-	'tips_sign_group'=>'捕获组：(?&lt;content编号&gt;[\s\S]*?)，匹配正则并保存为[内容]标签以供调用',
-	'tips_sign_group_only'=>'捕获组：(?&lt;content&gt;[\s\S]*?)，匹配正则并保存为[内容]标签以供调用',
+	'tips_sign_match'=>'匹配任意字符并保存为标签以供调用，等同于捕获组：(?&lt;nr标识&gt;.*?)',
+	'tips_sign_match_only'=>'匹配任意字符并保存为标签以供调用，等同于捕获组：(?&lt;nr&gt;.*?)',
+	'tips_sign_group'=>'捕获组：(?&lt;nr标识&gt;[\s\S]*?)，匹配正则并保存为[内容]标签以供调用',
+	'tips_sign_group_only'=>'捕获组：(?&lt;nr&gt;[\s\S]*?)，匹配正则并保存为[内容]标签以供调用',
 	
 	'tips_regular'=>'可使用正则表达式',
 	
 	'setting'=>'设置',
-	'setting_site'=>'站点设置',
+    'setting_site'=>'站点设置',
 	'set_site_verifycode'=>'开启图片验证码',
-		
-	
 		
 	'setting_caiji'=>'采集设置',
 	'set_caiji_auto'=>'开启自动采集',
 	'set_caiji_run'=>'自动采集运行方式',
-	'set_caiji_interval'=>'每次采集间隔时间',
+	'set_caiji_interval'=>'采集运行间隔',
 	'set_caiji_num'=>'每次采集数量',
 	'set_caiji_timeout'=>'最大执行时间',
 	
@@ -45,8 +43,24 @@ return array(
 	'set_email_type'=>'SMTP端口类型',
 	'set_email_test_subject'=>'测试发送邮件',
 	'set_email_test_body'=>'恭喜，发送邮件成功！',
-		
-		
+    
+    
+    'setting_store'=>'云端设置',
+    'store_authkey_error'=>'通信密钥只能由字母和数字组成且长度在6-100位之间',
+    
+    
+    'down_img_m_'=>'本地存储',
+    'down_img_m_loc'=>'本地存储',
+    'down_img_m_func'=>'使用函数',
+    
+    'down_img_name_'=>'按时间生成（方便日期归类）',
+    'down_img_name_time'=>'按时间生成（方便日期归类）',
+    'down_img_name_url'=>'按网址生成（防止重复下载）',
+    'down_img_name_custom'=>'自定义',
+    
+    'down_img_name_custom_name_'=>'图片网址MD5码',
+    
+    
 	'config_error_none_email'=>'没有邮箱服务器配置，请在后台设置！',	
 
 
@@ -57,14 +71,14 @@ return array(
 	'user_username'=>'用户名',
 	'user_password'=>'密码',
 	'user_repassword'=>'确认密码',
-	'user_newpwd_tips'=>'如果您想修改密码，请在此输入新密码，否则留空',
+	'user_newpwd_tips'=>'如需修改密码，请在此输入新密码，否则留空',
 	'user_email'=>'邮箱',
 	'user_email_tips'=>'用于找回账号密码',
 	'user_groupid'=>'用户组',
-
+    
+    'user_error_has_username'=>'用户名已经存在！',
 	'user_error_edit_not_allow'=>'只有创始人才能编辑他人的账号！',
 	'user_error_delete_not_allow'=>'只有创始人才能删除账号！',
-	'user_error_email'=>'邮箱格式错误！',
 	'user_error_groupid'=>'不是允许的用户组！',
 	'user_error_del_founder'=>'不能删除创始人账号！',
 
@@ -76,14 +90,14 @@ return array(
 	'user_login_in'=>'登录中...',
 	'user_auto_login'=>'正在自动登录...',
 	
-	'usertoken_error'=>'用户token错误，请刷新界面重新获取或清除浏览器缓存！',
+	'usertoken_error'=>'用户token错误，请刷新页面或重新登录！',
 	
 	'task'=>'任务',
 	'task_add'=>'添加任务',
 	'task_edit'=>'编辑任务',
 	'task_list'=>'任务列表',
-	'task_change_list'=>'切换列表模式',
-	'task_change_folder'=>'切换分组模式',
+	'task_change_list'=>'列表模式',
+	'task_change_folder'=>'分组模式',
 
 	'task_name'=>'任务名称',
 	'task_tg'=>'任务分组',
@@ -101,12 +115,11 @@ return array(
 	'task_root'=>'根目录',
 	'task_loading'=>'正在载入数据',
 	'task_none_data'=>'无数据',
-	'task_caiji_ing'=>'正在采集',
 	'task_set_task'=>'任务设置',
 	'task_set_collector'=>'采集器设置',
 	'task_set_release'=>'发布设置',
-		
-		
+	
+	
 	'task_error_null_id'=>'请输入任务id',
 	'task_error_empty_task'=>'不存在任务',
 	'task_error_null_tgid'=>'请输入分组id',
@@ -158,9 +171,10 @@ return array(
 	'field_module_extract'=>'字段提取',
     'field_module_sign'=>'[内容]标签',
 	
-	'process_module_html'=>'html标签过滤',
+    'process_module_html'=>'html标签过滤',
+    'process_module_insert'=>'插入内容',
 	'process_module_replace'=>'内容替换',
-	'process_module_filter'=>'关键词过滤',
+    'process_module_filter'=>'关键词过滤',
 	'process_module_if'=>'条件判断',
 	'process_module_translate'=>'翻译',
 	'process_module_tool'=>'工具箱',
@@ -219,6 +233,7 @@ return array(
 		
 	'error_unknown_database'=>'未知的数据库',
 	'error_null_input'=>'请输入{:str}',
+    'error_open_basedir'=>'您的网站开启了目录访问限制(open_basedir)，请检查是否因该问题导致目录无法读写！',
 	
 	'collected'=>'已采集数据',	
 	'collected_list'=>'已采集数据列表',
@@ -260,7 +275,6 @@ return array(
 	'yzm_error_please_input'=>'请输入激活码',
 	'yzm_error_timeout'=>'激活码已过期！请重新发送',
 	'yzm_error_yzm'=>'激活码错误',
-	
 		
 	'admincp_style'=>'界面',	
 	'admincp_sidebar_mini'=>'菜单最小化',
@@ -314,15 +328,14 @@ return array(
 	'separator'=>'：',
 	'redirecting'=>'跳转中...',
 	'close'=>'关闭',
-	'return_home'=>'{:time}秒钟后返回<a href="{:url}">页面</a>',
-		
-		
 		
 	'tips_match'=>'示例：&lt;div id=&quot;a&quot;&gt;[内容1]&lt;/div&gt;(*)&lt;div id=&quot;b&quot;&gt;[内容2]&lt;/div&gt;',
 	'tips_matchn'=>'示例：[内容1] [内容2]',
-	'tips_match_only'=>'示例：&lt;div id=&quot;content&quot;&gt;[内容]&lt;/div&gt;',
-	'tips_match_url'=>'示例：&lt;a href=&quot;http://demo.com/[内容1]/[内容2]&quot;&gt;(*)&lt;/a&gt;',
-	'tips_matchn_url'=>'示例：http://www.demo.com/[内容1]-[内容2].html',
+    'tips_match_only'=>'示例：&lt;div id=&quot;content&quot;&gt;[内容]&lt;/div&gt;',
+    'tips_match_area'=>'示例：&lt;div id=&quot;a&quot;&gt;[内容123]&lt;/div&gt;(*)&lt;div id=&quot;b&quot;&gt;[内容abc]&lt;/div&gt;',
+    'tips_matchn_area'=>'示例：[内容123] [内容abc]',
+	'tips_match_url'=>'示例：&lt;a href=&quot;http://demo.com/[内容123]/[内容abc]&quot;&gt;(*)&lt;/a&gt;',
+	'tips_matchn_url'=>'示例：http://www.demo.com/[内容123]-[内容abc].html',
 		
 	'release_upgrade'=>'插件版本过低，请升级插件 <a href="https://www.skycaiji.com/manual/doc/release_upgrade" target="_blank">升级教程</a>',
 );

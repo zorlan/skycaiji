@@ -1,5 +1,6 @@
 {if condition="$op=='move'"}
 <form id="form_op" method="post" ajax-submit="true" role="form" action="{:url('Taskgroup/op')}">
+{:html_usertoken()}
 <input type="hidden" name="id" value="{$tgData['id']}" />
 <input type="hidden" name="op" value="{$op}" />
 <input type="hidden" name="referer" value="{$_SERVER['HTTP_REFERER']}" />
@@ -12,7 +13,7 @@
 		{/foreach}
 	</select>
 </div>
-<button type="submit" class="btn btn-primary">{$Think.lang.submit}</button>
+<button type="submit" class="btn btn-primary btn-block">{$Think.lang.submit}</button>
 </form>
 {/if}
 <script type="text/javascript">

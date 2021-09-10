@@ -100,6 +100,10 @@ class elFinderPluginWatermark extends elFinderPlugin
 
     public function onUpLoadPreSave(&$thash, &$name, $src, $elfinder, $volume)
     {
+        if (!$src) {
+            return false;
+        }
+
         $opts = $this->getCurrentOpts($volume);
 
         if (!$this->iaEnabled($opts, $elfinder)) {
@@ -116,6 +120,9 @@ class elFinderPluginWatermark extends elFinderPlugin
         }
         if (extension_loaded('exif') && function_exists('exif_imagetype')) {
             $imageType = exif_imagetype($src);
+            if ($imageType === false) {
+                return false;
+            }
         } else {
             $srcImgInfo = getimagesize($src);
             if ($srcImgInfo === false) {
@@ -229,15 +236,16 @@ class elFinderPluginWatermark extends elFinderPlugin
         // check interlace
         $opts['interlace'] = ($opts['interlace'] & $imgTypes[$imageType]);
 
-        if (class_exists('Imagick', false)) {
-            return $this->watermarkPrint_imagick($src, $watermark, $dest_x, $dest_y, $quality, $transparency, $watermarkImgInfo, $opts);
-        } else {
+        // Repeated use of Imagick::compositeImage() may cause PHP to hang, so disable it
+        //if (class_exists('Imagick', false)) {
+        //    return $this->watermarkPrint_imagick($src, $watermark, $dest_x, $dest_y, $quality, $transparency, $watermarkImgInfo, $opts);
+        //} else {
             elFinder::expandMemoryForGD(array($watermarkImgInfo, $srcImgInfo));
             return $this->watermarkPrint_gd($src, $watermark, $dest_x, $dest_y, $quality, $transparency, $watermarkImgInfo, $srcImgInfo, $opts);
-        }
+        //}
     }
 
-    private function watermarkPrint_imagick($src, $watermark, $dest_x, $dest_y, $quality, $transparency, $watermarkImgInfo, $opts)
+    private function watermarkPrint_imagick($src, $watermarkSrc, $dest_x, $dest_y, $quality, $transparency, $watermarkImgInfo, $opts)
     {
 
         try {
@@ -246,7 +254,7 @@ class elFinderPluginWatermark extends elFinderPlugin
             $img = new Imagick($src);
 
             // Open the watermark
-            $watermark = new Imagick($watermark);
+            $watermark = new Imagick($watermarkSrc);
 
             // zoom
             if ($opts['ratio']) {

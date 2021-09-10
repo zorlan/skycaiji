@@ -74,7 +74,7 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 			return '';
 		}
 		$val=$collFieldVal['value'];
-		if(!empty($GLOBALS['_sc']['c']['download_img']['download_img'])){
+		if(!is_empty(g_sc_c('download_img','download_img'))){
 			
 			if(!empty($collFieldVal['img'])){
 				
@@ -96,9 +96,14 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 					$curI++;
 					if($curI<$total){
 						
-						if(!empty($GLOBALS['_sc']['c']['download_img']['img_interval'])){
-							sleep($GLOBALS['_sc']['c']['download_img']['img_interval']);
-						}
+					    $millisecond=g_sc_c('download_img','interval_img');
+					    if(empty($millisecond)&&g_sc_c('download_img','img_interval')>0){
+					        
+					        $millisecond=g_sc_c('download_img','img_interval')*1000;
+					    }
+					    if($millisecond>0){
+					        usleep($millisecond*1000);
+					    }
 					}
 				}
 			}
@@ -107,11 +112,12 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 	}
 	/*下载图片*/
 	public function download_img($url){
+	    static $retryCur=0;
 		static $imgPaths=array();
 		static $imgUrls=array();
 		
-		$img_path=$GLOBALS['_sc']['c']['download_img']['img_path'];
-		$img_url=$GLOBALS['_sc']['c']['download_img']['img_url'];
+		$img_path=g_sc_c('download_img','img_path');
+		$img_url=g_sc_c('download_img','img_url');
 		
 		if(!isset($imgPaths[$img_path])){
 			if(empty($img_path)){
@@ -138,32 +144,76 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 		if(empty($url)){
 			return '';
 		}
-		if(!preg_match('/^\w+\:\/\//',$url)){
+		
+		$isDataImage=stripos($url, 'data:image/')===0?true:false;
+		
+		if(!preg_match('/^\w+\:\/\//',$url)&&!$isDataImage){
 			
 			return $url;
 		}
 		
-		if(!empty($GLOBALS['_sc']['c']['caiji']['robots'])){
-			
-			if(!model('Collector')->abide_by_robots($url)){
-				$this->echo_msg('robots拒绝访问的网址：'.$url);
-				return $url;
-			}
+		if($isDataImage&&is_empty(g_sc_c('download_img','data_image'))){
+		    
+		    return $url;
 		}
 		
+		if(!$isDataImage){
+		    
+		    if(!is_empty(g_sc_c('caiji','robots'))){
+		        
+		        if(!model('Collector')->abide_by_robots($url)){
+		            $this->echo_msg('robots拒绝访问的网址：'.$url);
+		            return $url;
+		        }
+		    }
+		}
+		
+		
 		static $imgList=array();
+		static $imgSuffixes=null;
+		if(!isset($imgSuffixes)){
+		    $imgSuffixes=array('jpg','jpeg','gif','png','bmp');
+		    $moreSuffix=g_sc_c('download_img','more_suffix');
+		    if(!empty($moreSuffix)){
+		        $moreSuffix=explode(',', $moreSuffix);
+		        if(is_array($moreSuffix)){
+		            $imgSuffixes=array_merge($imgSuffixes,$moreSuffix);
+		        }
+		    }
+		}
 		$key=md5($url);
 		if(!isset($imgList[$key])){
 			
-			if(preg_match('/\.(jpg|jpeg|gif|png|bmp)\b/i',$url,$prop)){
-				$prop=strtolower($prop[1]);
-			}else{
-				$prop='jpg';
+		    $prop='';
+		    $dataImageCode='';
+		    if($isDataImage){
+		        
+		        if(preg_match('/^data\:image\/(.+?)\;base64\,(.*)$/i',$url,$prop)){
+		            $dataImageCode=base64_decode(trim($prop[2]));
+		            $prop=strtolower($prop[1]);
+		        }else{
+		            $prop='';
+		        }
+		    }else{
+		        
+		        if(preg_match('/\.([a-zA-Z][\w\-]+)([\?\#]|$)/',$url,$prop)){
+		            $prop=strtolower($prop[1]);
+		        }else{
+		            $prop='';
+		        }
+		    }
+		    if(!in_array($prop, $imgSuffixes)){
+		        
+		        $prop='';
+		    }
+			if(empty($prop)){
+			    $prop='jpg';
 			}
+			
 			$filename='';
 			$imgurl='';
 			$isExists=false;
-			$imgname=$GLOBALS['_sc']['c']['download_img']['img_name'];
+			$imgname=g_sc_c('download_img','img_name');
 			
 			if('url'==$imgname){
 				
@@ -172,6 +222,7 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 				
 				$imgname=substr($key,0,2).'/'.substr($key,-2,2).'/'.$key.'.'.$prop;
 				$filename=$img_path.$imgname;
+				$filename=$this->_convert_img_charset($filename);
 				$isExists=file_exists($filename);
 				
 				if(!$isExists){
@@ -179,83 +230,194 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 					
 					$imgname=substr($key,0,2).'/'.substr($key,2).'.'.$prop;
 					$filename=$img_path.$imgname;
+					$filename=$this->_convert_img_charset($filename);
 					$isExists=file_exists($filename);
 				}
 			}elseif('custom'==$imgname){
 				
-			    $customPath=$GLOBALS['_sc']['c']['download_img']['name_custom_path'];
-			    if(isset($GLOBALS['_sc']['c']['download_img']['_name_custom_path'])){
-			        $customPath=$GLOBALS['_sc']['c']['download_img']['_name_custom_path'];
+			    $customPath=g_sc_c('download_img','name_custom_path');
+			    if(!is_null(g_sc_c('download_img','_name_custom_path'))){
+			        $customPath=g_sc_c('download_img','_name_custom_path');
 			    }
-			    $customName=$GLOBALS['_sc']['c']['download_img']['name_custom_name'];
-			    if(isset($GLOBALS['_sc']['c']['download_img']['_name_custom_name'])){
-			        $customName=$GLOBALS['_sc']['c']['download_img']['_name_custom_name'];
+			    $customName=g_sc_c('download_img','name_custom_name');
+			    if(!is_null(g_sc_c('download_img','_name_custom_name'))){
+			        $customName=g_sc_c('download_img','_name_custom_name');
 			    }
 			    $customPath=model('Config')->convert_img_name_path($customPath,$url);
 			    $customName=model('Config')->convert_img_name_name($customName,$url);
 			    $imgname=$customPath.'/'.$customName.'.'.$prop;
-				$filename=$img_path.$imgname;
+			    $filename=$img_path.$imgname;
+			    $filename=$this->_convert_img_charset($filename);
 				$isExists=file_exists($filename);
 			}else{
 				
-				$imgname=date('Y-m-d',NOW_TIME).'/'.$key.'.'.$prop;
+				$imgname=date('Y-m-d',time()).'/'.$key.'.'.$prop;
 				$filename=$img_path.$imgname;
+				$filename=$this->_convert_img_charset($filename);
 				$isExists=file_exists($filename);
 			}
 			$imgurl=$img_url.$imgname;
 			
 			if(!$isExists){
 				
-				$mproxy=model('Proxyip');
-				try {
-					$options=array();
-					$headers=array();
-
-					if(!empty($GLOBALS['_sc']['task_request_headers'])&&!empty($GLOBALS['_sc']['task_request_headers']['request_headers']['download_img'])){
-						
-						$headers=$GLOBALS['_sc']['task_request_headers']['headers'];
-						if(!empty($headers['useragent'])){
-							
-							$options['useragent']=$headers['useragent'];
-						}
-						unset($headers['useragent']);
-					}
-					
-					if(!empty($GLOBALS['_sc']['c']['download_img']['img_timeout'])){
-						
-						$options['timeout']=$GLOBALS['_sc']['c']['download_img']['img_timeout'];
-					}
-					if(!empty($GLOBALS['_sc']['c']['proxy']['open'])){
-						
-						$proxyIp=$mproxy->get_usable_ip();
-						$proxyIp=$mproxy->to_proxy_ip($proxyIp);
-						if(!empty($proxyIp)){
-							
-							$options['proxy']=$proxyIp;
-						}
-					}
-					if(!empty($GLOBALS['_sc']['c']['download_img']['img_max'])){
-						
-						$options['max_bytes']=intval($GLOBALS['_sc']['c']['download_img']['img_max'])*1024*1024;
-					}
-					
-					$imgCode=get_html($url,$headers,$options,'utf-8');
-					if(!empty($imgCode)){
-						
-						if(write_dir_file($filename,$imgCode)){
-							$imgList[$key]=$imgurl;
-						}
-					}
-					
-				}catch (\Exception $ex){
-				    
-				}
+			    if($isDataImage){
+			        
+			        if(!empty($dataImageCode)){
+			            if(write_dir_file($filename,$dataImageCode)){
+			                $imgList[$key]=$imgurl;
+			            }
+			        }
+			    }else{
+			        
+			        $mproxy=model('Proxyip');
+			        $proxyDbIp=null;
+			        try {
+			            $options=array();
+			            $headers=array();
+			            
+			            if(!is_empty(g_sc('task_img_headers'))){
+			                
+			                $headers=g_sc('task_img_headers');
+			            }
+			            
+			            if(!is_empty(g_sc_c('download_img','img_timeout'))){
+			                
+			                $options['timeout']=g_sc_c('download_img','img_timeout');
+			            }
+			            if(!is_empty(g_sc_c('proxy','open'))){
+			                
+			                $proxyDbIp=$mproxy->get_usable_ip();
+			                $proxyIp=$mproxy->to_proxy_ip($proxyDbIp);
+			                if(!empty($proxyIp)){
+			                    
+			                    $options['proxy']=$proxyIp;
+			                }
+			            }
+			            if(!is_empty(g_sc_c('download_img','img_max'))){
+			                
+			                $options['max_bytes']=intval(g_sc_c('download_img','img_max'))*1024*1024;
+			            }
+			            
+			            $imgCodeInfo=get_html($url,$headers,$options,'utf-8',null,true);
+			            if(!empty($imgCodeInfo['ok'])){
+			                
+			                $retryCur=0;
+			                if(!empty($imgCodeInfo['html'])){
+			                    
+			                    if(preg_match('/\bcontent-type\s*\:\s*image\s*\/(\w+)/i', $imgCodeInfo['header'],$mImgProp)){
+			                        
+			                        $mImgProp=strtolower($mImgProp[1]);
+			                        if($prop!=$mImgProp){
+			                            
+			                            if(in_array($mImgProp,$imgSuffixes)){
+			                                
+			                                static $sameImgProp=array('jpg','jpeg');
+			                                if(!in_array($prop,$sameImgProp)||!in_array($mImgProp,$sameImgProp)){
+			                                    
+			                                    $imgname.='.'.$mImgProp;
+			                                    $imgurl.='.'.$mImgProp;
+			                                    $filename.='.'.$mImgProp;
+			                                    
+			                                    if(file_exists($filename)){
+			                                        
+			                                        $isExists=true;
+			                                        $imgList[$key]=$imgurl;
+			                                    }
+			                                }
+			                            }
+			                        }
+			                    }
+			                    if(!$isExists){
+			                        if(write_dir_file($filename,$imgCodeInfo['html'])){
+			                            $imgList[$key]=$imgurl;
+			                            
+			                            $funcName=g_sc_c('download_img','img_func');
+			                            if(!empty($funcName)){
+			                                
+			                                $paramVals=array(
+			                                    '[图片:文件名]'=>$filename,
+			                                    '[图片:路径]'=>$img_path,
+			                                    '[图片:名称]'=>$imgname,
+			                                    '[图片:链接]'=>$imgurl,
+			                                    '[图片:网址]'=>$url
+			                                );
+			                                $return=model('FuncApp')->execute_func('downloadImg',$funcName,$filename,g_sc_c('download_img','img_func_param'),$paramVals);
+			                                if($return['success']){
+			                                    
+			                                    if($return['data']&&preg_match('/^\w+\:\/\//',$return['data'])){
+			                                        
+			                                        $imgList[$key]=$return['data'];
+			                                    }
+			                                }elseif($return['msg']){
+			                                    
+			                                    $this->echo_msg($return['msg']);
+			                                }
+			                            }
+			                        }
+			                    }
+			                }
+			            }else{
+			                
+			                if($retryCur<=0){
+			                    $this->echo_msg('<div class="clear"><span class="left">图片下载失败：</span><a href="'.$url.'" target="_blank" class="lurl">'.$url.'</a></div>','red');
+			                }
+			                
+			                
+			                if(!empty($proxyDbIp)){
+			                    $mproxy->set_ip_failed($proxyDbIp);
+			                }
+			                
+			                $failedWait=intval(g_sc_c('download_img','wait'));
+			                if($failedWait>0){
+			                    
+			                    sleep($failedWait);
+			                }
+			                
+			                $retryMax=intval(g_sc_c('download_img','retry'));
+			                if($retryMax>0){
+			                    
+			                    if($retryCur<$retryMax){
+			                        
+			                        $retryCur++;
+			                        $this->echo_msg(($retryCur>1?'，':'重试：').'第'.$retryCur.'次','black',true,'','display:inline;');
+			                        return $this->download_img($url);
+			                    }else{
+			                        $retryCur=0;
+			                        $this->echo_msg('图片无效','red',true,'','display:inline;margin-left:10px;');
+			                    }
+			                }
+			            }
+			        }catch (\Exception $ex){
+			            
+			        }
+			    }
 			}else{
 				
 				$imgList[$key]=$imgurl;
 			}
 		}
 		return empty($imgList[$key])?$url:$imgList[$key];
+	}
+	
+	private function _convert_img_charset($filename){
+	    static $charset=null;
+	    if(!isset($charset)){
+	        $charset=g_sc_c('download_img','charset');
+	        $charset=empty($charset)?'':strtolower($charset);
+	        if($charset=='custom'){
+	            
+	            $charset=g_sc_c('download_img','charset_custom');
+	            $charset=empty($charset)?'':strtolower($charset);
+	        }
+	        if($charset=='utf-8'){
+	            
+	            $charset='';
+	        }
+	    }
+	    if(!empty($charset)&&!empty($filename)){
+	        $filename=iconv('utf-8',$charset.'//IGNORE',$filename);
+	    }
+	    return $filename;
 	}
 	/*获取采集器字段*/
 	public function get_coll_fields($taskId,$taskModule){
@@ -280,12 +442,11 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 	}
 	/*隐藏采集字段（删除字段）*/
 	public function hide_coll_fields($hideFields,&$collFields){
-		if(!empty($hideFields)&&!empty($collFields)&&is_array($hideFields)){
-			foreach ($collFields as $k=>$v){
-				foreach ($hideFields as $hideField){
-					unset($collFields[$k]['fields'][$hideField]);
-				}
-			}
+	    
+	    if(!empty($hideFields)&&is_array($hideFields)&&is_array($collFields)&&is_array($collFields['fields'])){
+		    foreach ($hideFields as $hideField){
+		        unset($collFields['fields'][$hideField]);
+		    }
 		}
 	}
 	
@@ -299,18 +460,26 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 		}
 		return $val;
 	}
-	/*任意编码转换成utf8*/
-	public function auto_convert2utf8($arr){
-		$arr=array_array_map('auto_convert2utf8',$arr);
-		return $arr;
+	/**
+	 * 任意编码转换成utf8
+	 * @param mixed $val 字符串或数组
+	 */
+	public function auto_convert2utf8($val){
+	    if(is_array($val)){
+	        $val=\util\Funcs::array_array_map('auto_convert2utf8',$val);
+	    }else{
+	        $val=auto_convert2utf8($val);
+	    }
+	    return $val;
 	}
 	/*写入文件*/
 	public function write_file($filename,$data){
 		return write_dir_file($filename,$data);
 	}
 	
+	/*初始化下载图片*/
 	public function init_download_img($taskData,$collFields){
-	    if(!empty($GLOBALS['_sc']['c']['download_img']['download_img'])&&$GLOBALS['_sc']['c']['download_img']['img_name']=='custom'){
+	    if(!is_empty(g_sc_c('download_img','download_img'))&&g_sc_c('download_img','img_name')=='custom'){
 	        
 	        if(empty($taskData)){
 	            $taskData=array();
@@ -319,7 +488,7 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 	            $collFields=array();
 	        }
 	        
-	        $name_custom_path=$GLOBALS['_sc']['c']['download_img']['name_custom_path'];
+	        $name_custom_path=g_sc_c('download_img','name_custom_path');
 	        $check=model('Config')->check_img_name_path($name_custom_path);
 	        if($check['success']){
 	            $name_custom_path=$this->_convert_img_params($name_custom_path, $taskData, $collFields);
@@ -327,10 +496,10 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 	            $name_custom_path='temp';
 	        }
 	        
-	        $GLOBALS['_sc']['c']['download_img']['_name_custom_path']=$name_custom_path;
+	        set_g_sc(['c','download_img','_name_custom_path'],$name_custom_path);
 	        
 	        
-	        $name_custom_name=$GLOBALS['_sc']['c']['download_img']['name_custom_name'];
+	        $name_custom_name=g_sc_c('download_img','name_custom_name');
 	        $check=model('Config')->check_img_name_name($name_custom_name);
 	        if($check['success']){
 	            $name_custom_name=$this->_convert_img_params($name_custom_name, $taskData, $collFields);
@@ -338,11 +507,11 @@ class ReleaseBase extends \skycaiji\admin\controller\BaseController{
 	            $name_custom_name='';
 	        }
 	        
-	        $GLOBALS['_sc']['c']['download_img']['_name_custom_name']=$name_custom_name;
+	        set_g_sc(['c','download_img','_name_custom_name'],$name_custom_name);
 	    }else{
 	        
-	        unset($GLOBALS['_sc']['c']['download_img']['_name_custom_path']);
-	        unset($GLOBALS['_sc']['c']['download_img']['_name_custom_name']);
+	        set_g_sc(['c','download_img','_name_custom_path'],null);
+	        set_g_sc(['c','download_img','_name_custom_name'],null);
 	    }
 	}
 	

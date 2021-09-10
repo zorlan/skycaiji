@@ -6,10 +6,10 @@
     <a href="{:url('Admin/index/index')}">蓝天采集器</a>
   </div>
   <div class="login-box-body">
-    <p class="login-box-msg"><a href="https://www.skycaiji.com">SkyCaiji</a> V{:constant('SKYCAIJI_VERSION')} 后台管理</p>
+    <p class="login-box-msg"><a href="https://www.skycaiji.com" target="_blank">SkyCaiji</a> V{:constant('SKYCAIJI_VERSION')} 后台管理</p>
 
 	<form action="{:url('Admin/index/login')}" ajax-submit="true" method="post">
-		{:html_usertoken()}
+	{:html_usertoken()}
 		<input type="hidden" name="sublogin" value="1" />
 		{if condition="input('?_serverinfo')"}
 		<input type="hidden" name="_serverinfo" value="1" />
@@ -26,11 +26,11 @@
         	<input type="password" name="password" class="form-control" autocomplete="off" placeholder="{$Think.lang.user_password}">
         	<span class="glyphicon glyphicon-lock form-control-feedback"></span>
       	</div>
-		{if condition="$GLOBALS['_sc']['c']['site']['verifycode']"}	
+		{if condition="g_sc_c('site','verifycode')"}	
 		<div class="form-group">
 			<div class="input-group">
 				<input type="text" name="verifycode" class="form-control" placeholder="{$Think.lang.verifycode}" />
-				<div class="input-group-btn"><img src="{:url('Admin/Index/verify')}" class="verify-img" onclick="refreshVerify(this)" /></div>
+				<div class="input-group-btn"><img src="{:url('Admin/Index/verify')}" class="verify-img" onclick="refreshVerify(this)" onerror="verifyImgError()" /></div>
 			</div>
 		</div>
 		{/if}
@@ -48,17 +48,4 @@
 	</form>
   </div>
 </div>
-<script type="text/javascript">
-(function(){
-	if(!navigator.cookieEnabled){
-		//禁用了cookie
-		if(window.self === window.top){
-			modal('请启用Cookie','抱歉，您的浏览器禁止了Cookie，这将影响蓝天采集器的使用，请在浏览器设置中启用Cookie，开启后刷新界面重试！');
-		}else{
-			//是iframe
-			modal('请启用第三方Cookie','抱歉，您的浏览器禁止了第三方Cookie，这将影响蓝天采集器的使用，请在浏览器设置中启用第三方Cookie，开启后刷新界面重试！');
-		}
-	}
-})();
-</script>
 {include file="common:footer_public" /}

@@ -18,7 +18,7 @@ class Rdiy extends Release{
 	 * @param unknown $config
 	 */
 	public function setConfig($config){
-		$diy=input('diy/a','','trim');
+	    $diy=input('diy/a',array(),'trim');
 		if(!in_array($diy['type'],array('app','code'))){
 			$this->error('类型错误');
 		}
@@ -65,17 +65,14 @@ class Rdiy extends Release{
 					$releDiy=$this->rele_diy_list[$releDiy];
 				}elseif(model('ReleaseApp')->oldFileExists($appName,'diy')){
 					
-					$this->echo_msg(lang('release_upgrade'));
-					exit();
+				    $this->echo_msg_exit(lang('release_upgrade'));
 				}
 			}
 			if(empty($releDiy)){
-				$this->echo_msg('没有自定义插件：'.$appName);
-				exit();
+			    $this->echo_msg_exit('没有自定义插件：'.$appName);
 			}
 		}catch (\Exception $ex){
-			$this->echo_msg($ex->getMessage());
-			exit();
+		    $this->echo_msg_exit($ex->getMessage());
 		}
 		
 		$addedNum=0;

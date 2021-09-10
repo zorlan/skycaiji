@@ -11,60 +11,11 @@
 
 namespace skycaiji\admin\model;
 
-class User extends BaseModel{
-	/*用户名是否正确*/
-	public static function right_username($username,$name='username'){
-		$return=array('name'=>$name);
-		if(!preg_match('/^.{3,15}$/i', $username)){
-			$return['msg']=lang('user_error_username');
-		}else{
-			$return['success']=true;
-		}
-		return $return;
-	}
-	/*邮箱是否正确*/
-	public static function right_email($email,$name='email'){
-		$return=array('name'=>$name,'field'=>'email');
-		if(!preg_match('/^[^\s]+\@([\w\-]+\.){1,}\w+$/i', $email)){
-			$return['msg']=lang('user_error_email');
-		}else{
-			$return['success']=true;
-		}
-		return $return;
-	}
-	/**
-	 * 密码格式是否正确
-	 * @param string $pwd
-	 * @param string $name
-	 * @return Ambigous <multitype:, multitype:string , multitype:boolean string >
-	 */
-	public static function right_pwd($pwd,$name='password'){
-		$return=array('name'=>$name);
-		if(!preg_match('/^[a-zA-Z0-9\`\~\!\@\#\$\%\^\*\(\)\-\_\+\=\|\{\}\[\]\:\;\,\.\?\&\'\"\<\>]{6,30}$/i', $pwd)){
-			$return['msg']=lang('user_error_password');
-		}else{
-			$return['success']=true;
-		}
-		return $return;
-	}
-	/**
-	 * 验证密码是否一致
-	 * @param string $pwd
-	 * @param string $repwd
-	 * @param string $name
-	 * @return multitype:string |multitype:boolean string
-	 */
-	public static function right_repwd($pwd,$repwd,$name='repassword'){
-		if($pwd!=$repwd){
-			return array('msg'=>lang('user_error_repassword'),'name'=>$name);
-		}else{
-			return array('success'=>true,'name'=>$name);
-		}
-	}
+class User extends \skycaiji\common\model\User{
 	/*用户组*/
 	public static function right_groupid($groupid,$name='groupid'){
 		$return=array('name'=>$name);
-		$count=model('Usergroup')->where('id',$groupid)->count();
+		$count=model('admin/Usergroup')->where('id',$groupid)->count();
 		if(empty($count)||$count<=0){
 			$return['msg']=lang('user_error_groupid');
 		}else{
@@ -96,24 +47,6 @@ class User extends BaseModel{
 			$check['success']=true;
 		}
 		return $check;
-	}
-	/*获取随机盐*/
-	public static function rand_salt($len=20){
-		$salt="QWERTYUIOPASDFGHJKLZXCVBNM1234567890qwertyuiopasdfghjklzxcvbnm";
-		$salt=str_shuffle($salt);
-		if($len>=strlen($salt)){
-			return $salt;
-		}else{
-			return substr($salt,mt_rand(0,strlen($salt)-$len-1),$len);
-		}
-	}
-	/*密码加密*/
-	public static function pwd_encrypt($pwd,$salt=''){
-		$pwd=sha1($pwd);
-		if(!empty($salt)){
-			$pwd.=$salt;
-		}
-		return md5($pwd);
 	}
 
 	/*检测用户名正确且是否存在*/
@@ -176,6 +109,48 @@ class User extends BaseModel{
 			return $check;
 		}
 		return array('success'=>true);
+	}
+	
+	/*用户名小写化*/
+	public static function lower_username($username){
+	    
+	    $name=$username?$username:'';
+	    $name=trim($name);
+	    $name=strtolower($name);
+	    return $name;
+	}
+	
+	/*生成用户唯一标识*/
+	public function generate_key($userData){
+	    $key='';
+	    if(!empty($userData)){
+	        $username=self::lower_username($userData['username']);
+	        $key=md5($username.':'.$userData['password']);
+	    }
+	    return $key;
+	}
+	
+	/*设置登录session*/
+	public function setLoginSession($userData){
+	    if(empty($userData)){
+	        
+	        session('user_login',null);
+	        session('is_admin',null);
+	    }else{
+	        
+	        session('user_login',array(
+	            'uid'=>$userData['uid'],
+	            'key'=>$this->generate_key($userData)
+	        ));
+	        
+	        $mUg=model('admin/Usergroup');
+	        $isAdmin=null;
+	        $userGroup=$mUg->getById($userData['groupid']);
+	        if($mUg->is_admin($userGroup)){
+                $isAdmin=true;
+            }
+            session('is_admin',$isAdmin);
+	    }
 	}
 }
 

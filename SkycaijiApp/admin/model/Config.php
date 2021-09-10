@@ -11,88 +11,46 @@
 
 namespace skycaiji\admin\model;
 
-class Config extends BaseModel {
-    protected $pk = 'cname';
+class Config extends \skycaiji\common\model\Config {
     
-	public function convertData($configItem){
-		if(!empty($configItem)){
-			switch($configItem['ctype']){
-				case 1:$configItem['data']=intval($configItem['data']);break;
-				case 2:$configItem['data']=unserialize($configItem['data']);break;
-			}
-		}
-		return $configItem;
-	}
-	/**
-	 * 获取
-	 * @param string $cname 名称
-	 * @param string $key 数据键名
-	 * @return mixed
-	 */
-	public function getConfig($cname,$key=null){
-		
-		$item=$this->where('cname',$cname)->find();
-		if(!empty($item)){
-			$item=$item->toArray();
-			$item=$this->convertData($item);
-		}
-		return $key?$item[$key]:$item;
-	}
-	/**
-	 * 设置
-	 * @param string $cname 名称
-	 * @param string $value 数据
-	 */
-	public function setConfig($cname,$value){
-		$data=array('cname'=>$cname,'ctype'=>0);
-		if(is_array($value)){
-			$data['ctype']=2;
-			$data['data']=serialize($value);
-		}elseif(is_integer($value)){
-			$data['ctype']=1;
-			$data['data']=intval($value);
-		}else{
-			$data['data']=$value;
-		}
-		$data['dateline']=time();
-		$this->insert($data,true);
-		
-		
-		$this->cacheConfigList();
-	}
-	/*缓存所有配置*/
-	public function cacheConfigList(){
-		$keyConfig='cache_config_all';
-		$configDbList=$this->column('*');
-		$configDbList=empty($configDbList)?array():$configDbList;
-		$configList=array();
-		foreach ($configDbList as $configItem){
-			$configItem=$this->convertData($configItem);
-			$configList[$configItem['cname']]=$configItem['data'];
-		}
-		cache($keyConfig,array('list'=>$configList));
-	}
 	public function getConfigList(){
 		$keyConfig='cache_config_all';
 		$cacheConfig=cache($keyConfig);
+		if(!is_array($cacheConfig)){
+		    $cacheConfig=array();
+		}
 		$configList=$cacheConfig['list'];
 		return is_array($configList)?$configList:array();
 	}
 	
-	/*设置版本号*/
-	public function setVersion($version){
-		$version=trim(strtoupper($version),'V');
-		$this->setConfig('version', $version);
+	
+	public function server_is_cli($isInput=false,$val=null){
+	    $value='';
+	    if(empty($isInput)){
+	        
+	        $value=g_sc_c('caiji','server');
+	    }else{
+	        
+	        $value=$val;
+	    }
+	    $value=$value=='cli'?true:false;
+	    return $value;
 	}
-	/*获取数据库的版本*/
-	public function getVersion(){
-		$dbVersion=$this->where("`cname`='version'")->find();
-		if(!empty($dbVersion)){
-			$dbVersion=$this->convertData($dbVersion);
-			$dbVersion=$dbVersion['data'];
-		}
-		return $dbVersion;
+	
+	
+	public function page_render_is_chrome($isInput=false,$val=null){
+	    $value='';
+	    if(empty($isInput)){
+	        
+	        $value=g_sc_c('page_render','tool');
+	    }else{
+	        
+	        $value=$val;
+	    }
+	    $value=$value=='chrome'?true:false;
+	    return $value;
 	}
+	
 	/*检查图片路径*/
 	public function check_img_path($imgPath){
 		$return=array('success'=>false,'msg'=>'');
@@ -102,7 +60,7 @@ class Config extends BaseModel {
 				$return['msg']='图片目录必须为绝对路径！';
 			}else{
 				if(!is_dir($imgPath)){
-					$return['msg']='图片目录不存在！';
+				    $return['msg']='图片目录不存在！'.(self::check_basedir_limited($imgPath)?lang('error_open_basedir'):'');
 				}else{
 					$imgPath=realpath($imgPath);
 					$root_path=rtrim(realpath(config('root_path')),'\\\/');
@@ -134,7 +92,7 @@ class Config extends BaseModel {
 		}
 		return $return;
 	}
-	
+	/*检查自定义图片名的路径设置*/
 	public function check_img_name_path($path){
 		static $check_list=array(); 
 		$pathMd5=md5($path);
@@ -157,18 +115,19 @@ class Config extends BaseModel {
 		}
 		return $return;
 	}
-	
+	/*转换自定义图片名的路径*/
 	public function convert_img_name_path($path,$url){
 	    if(!empty($path)){
     		$md5=md5($url);
     		static $tags=array('[年]','[月]','[日]','[时]','[分]','[秒]','[前两位]','[后两位]');
+    		$nowTime=time();
     		$tagsRe=array(
-    			date('Y',NOW_TIME),
-    			date('m',NOW_TIME),
-    			date('d',NOW_TIME),
-    		    date('H',NOW_TIME),
-    		    date('i',NOW_TIME),
-    		    date('s',NOW_TIME),
+    		    date('Y',$nowTime),
+    		    date('m',$nowTime),
+    		    date('d',$nowTime),
+    		    date('H',$nowTime),
+    		    date('i',$nowTime),
+    		    date('s',$nowTime),
     			substr($md5,0,2),
     			substr($md5,-2,2),
     		);
@@ -184,7 +143,7 @@ class Config extends BaseModel {
 		}
 		return $path;
 	}
-	
+	/*检查自定义图片名的名称设置*/
 	public function check_img_name_name($name){
 	    static $check_list=array(); 
 	    $nameMd5=md5($name);
@@ -204,29 +163,36 @@ class Config extends BaseModel {
 	    
 	    return $return;
 	}
-	
+	/*转换自定义图片名的名称*/
 	public function convert_img_name_name($name,$url){
         $md5=md5($url);
         if(!empty($name)){
             $urlname='';
-            if(preg_match('/([^\/]+?)\./', $url,$urlname)){
+            if(preg_match('/([^\/]+?)(\.[a-zA-Z][\w\-]+){0,1}([\?\#]|$)/', $url,$urlname)){
+                
                 $urlname=$urlname[1];
+                if(mb_strlen($urlname,'utf-8')>100){
+                    
+                    $urlname=mb_substr($urlname,0,100,'utf-8');
+                }
             }else{
                 $urlname='';
             }
+            
             if(empty($urlname)){
                 
                 $urlname=$md5;
             }
             
             static $tags=array('[年]','[月]','[日]','[时]','[分]','[秒]','[前两位]','[后两位]','[图片网址MD5码]','[图片原名]');
+            $nowTime=time();
             $tagsRe=array(
-                date('Y',NOW_TIME),
-                date('m',NOW_TIME),
-                date('d',NOW_TIME),
-                date('H',NOW_TIME),
-                date('i',NOW_TIME),
-                date('s',NOW_TIME),
+                date('Y',$nowTime),
+                date('m',$nowTime),
+                date('d',$nowTime),
+                date('H',$nowTime),
+                date('i',$nowTime),
+                date('s',$nowTime),
                 substr($md5,0,2),
                 substr($md5,-2,2),
                 $md5,
@@ -242,7 +208,8 @@ class Config extends BaseModel {
         }
         return $name;
     }
-	
+    
+	/*从采集设置中提取出图片本地化设置*/
 	public function get_img_config_from_caiji($caijiConfig){
 		$config=array();
 		if(!empty($caijiConfig)){
@@ -257,7 +224,8 @@ class Config extends BaseModel {
 		return $config;
 	}
 	
-	public function detect_php_exe(){
+	/*检测出php可执行文件路径*/
+	public static function detect_php_exe(){
 		static $php_filename=null;
 		
 		if(!isset($php_filename)){
@@ -290,11 +258,125 @@ class Config extends BaseModel {
 						}
 					}
 				}
-			}else{
-				$php_filename='php';
+			}
+			if(empty($php_filename)){
+			    $php_filename='php';
 			}
 		}
 		return $php_filename;
+	}
+	
+	public function exec_php_version($phpFile){
+	    $return=false;
+	    if(empty($phpFile)){
+	        
+	        $phpFile=self::detect_php_exe();
+	    }
+	    if(!empty($phpFile)){
+	        $return=array('success'=>false,'msg'=>'');
+	        $phpFile=self::cli_safe_filename($phpFile);
+            $phpFile.=' -v';
+            $info=proc_open_exec($phpFile,'all',3,true);
+            $info=is_array($info)?$info:array();
+            $info['output']=trim($info['output']);
+            $info['error']=trim($info['error']);
+            
+            if(is_array($info['status'])&&$info['status']['running']){
+                
+                if($info['error']){
+                    $return['msg']=$info['error'];
+                }elseif($info['output']){
+                    $return['success']=true;
+                    $return['msg']=('测试成功，PHP信息：'.$info['output']);
+                }else{
+                    $return['success']=true;
+                }
+            }elseif($info['error']){
+                $return['msg']=$info['error'];
+            }
+	    }
+	    return $return;
+	}
+	
+	public static function cli_safe_filename($filename){
+	    if(!empty($filename)){
+	        if(IS_WIN){
+	            
+	            $filename='"'.$filename.'"';
+	        }else{
+	            
+	            if(preg_match('/(?<!\\\)\s/', $filename)){
+	                $filename=preg_replace('/(?<!\\\)(\s)/', "\\\\$1", $filename);
+	            }
+	        }
+	    }
+	    return $filename;
+	}
+	
+	/*open_basedir目录保护，检查目录是否受限*/
+	public static function check_basedir_limited($path){
+	    $openBasedir=ini_get('open_basedir');
+	    if(empty($openBasedir)){
+	        return false;
+	    }
+	    if(empty($path)){
+	        return false;
+	    }
+	    if(file_exists($path)){
+	        
+	        return false;
+	    }
+	    $path=str_replace('\\', '/', $path);
+	    $path=rtrim($path,'/').'/';
+	    
+	    $openBasedir=explode(IS_WIN?';':':', $openBasedir);
+	    if(is_array($openBasedir)){
+	        foreach ($openBasedir as $dir){
+	            if(empty($dir)){
+	                continue;
+	            }
+	            $dir=str_replace('\\', '/', $dir);
+	            $dir=rtrim($dir,'/').'/';
+	            if(stripos($path, $dir)===0){
+	                
+	                return false;
+	            }
+	        }
+	    }
+	    return true;
+	}
+	
+	
+	public static function check_collect_wait(){
+	    $return=false;
+	    $lastCollectTime=cache('last_collect_time');
+	    if(g_sc('c_caiji_interval')>0){
+	        
+	        $waitTime=(60*g_sc('c_caiji_interval'))-abs(time()-$lastCollectTime);
+	        if($waitTime>0){
+	            $return=array(
+	                'msg'=>'再次采集需等待'.self::wait_time_tips($waitTime),
+	                'wait'=>$waitTime
+	            );
+	        }
+	    }
+	    return $return;
+	}
+	
+	public static function wait_time_tips($seconds){
+	    $seconds=intval($seconds);
+	    if($seconds>0){
+	        if($seconds<60){
+	            $seconds.='秒';
+	        }else{
+	            $seconds=$seconds/60;
+	            $seconds=substr(sprintf("%.3f", $seconds), 0, -2);
+	            $seconds.='分钟';
+	        }
+	    }else{
+	        $seconds='';
+	    }
+	    return $seconds;
 	}
 }
 ?>

@@ -1,52 +1,134 @@
 <div id="win_test_match">
-	<form method="post" action="{:url('Cpattern/test')}">
+	<form method="post" action="{:url('cpattern_test/match')}">
+	{:html_usertoken()}
 	<input type="hidden" name="coll_id" value="{$collData['id']}" />
-	<input type="hidden" name="op" value="match" />
 	<div class="form-group">
-		<label>输入网址或内容</label>
-		<textarea rows="5" class="form-control" name="content"></textarea>
-		<p class="help-block">网址必须以http://或https://开头</p>
+		<label>模拟类型</label>
+		<select class="form-control" name="input_type">
+			<option value="content">内容</option>
+			<option value="url">网址</option>
+		</select>
+	</div>
+	<div id="input_type_content">
+		<div class="form-group">
+			<label>输入内容</label>
+			<textarea rows="5" class="form-control" name="content"></textarea>
+		</div>
+	</div>
+	<div id="input_type_url" style="display:none;">
+		<div class="form-group">
+			<label>输入网址</label>
+			<input type="text" name="url" class="form-control" />
+			<p class="help-block">网址必须以http://或https://开头</p>
+		</div>
+		<div class="form-group">
+			<label class="control-label">页面编码</label>
+			<div class="input-group input-select-custom">
+				<div class="input-group-btn">
+				    <select name="charset" class="form-control">		
+						<option value="">默认为采集器设置»网页编码</option>
+						<option value="utf-8">utf-8</option>
+						<option value="gbk">gbk</option>
+						<option value="gb2312">gb2312</option>
+						<option value="custom">自定义</option>
+					</select>
+				</div>
+				<input type="text" class="form-control" name="charset_custom">
+			</div>
+		</div>
+		<div class="form-group">
+	    	<label class="control-label">请求方式</label>
+	    	<select name="form_method" class="form-control">
+	     		<option value="">GET</option>
+	     		<option value="post">POST</option>
+	     	</select>
+	    </div>
+	    <div class="form-group form">
+			<label class="control-label">发送数据 <a href="javascript:;" class="glyphicon glyphicon-plus add" title="添加" style="font-size:12px;"></a></label>
+           	<table class="table table-bordered table-hover" style="margin-bottom:0;">
+                  <thead>
+                      <tr>
+                          <td>名称</td>
+                          <td>值</td>
+                          <td>删除</td>
+                      </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+			</table>
+		</div>
+		<div class="form-group">
+	    	<label class="control-label">使用全局请求头</label>
+	    	<div class="input-group">
+		        <label class="radio-inline"><input type="radio" name="header_global" value="" checked="checked">默认</label>
+		        <label class="radio-inline"><input type="radio" name="header_global" value="y">强制使用</label>
+				<label class="radio-inline"><input type="radio" name="header_global" value="n">强制禁用</label>
+	        </div>
+	        <p class="help-block">默认使用采集器设置»请求头信息»抓取页面中的设置（受全局开启状态影响）</p>
+	    </div>
+		<div class="form-group header">
+			<label class="control-label">请求头信息 <a href="javascript:;" class="glyphicon glyphicon-plus add" title="添加" style="font-size:12px;"></a></label>
+           	<table class="table table-bordered table-hover" style="margin-bottom:0;">
+                  <thead>
+                      <tr>
+                          <td>名称</td>
+                          <td>值</td>
+                          <td>删除</td>
+                      </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+			</table>
+			<p class="help-block">添加新的或者覆盖已有的请求头信息</p>
+		</div>
 	</div>
 	<div class="form-group">
-		<label>方式</label>
+		<label>获取方式</label>
 		<select class="form-control" name="type">
-			<option value="rule">规则匹配</option>
+			<option value="rule" checked="checked">规则匹配</option>
 			<option value="xpath">XPath匹配</option>
 			<option value="json">JSON提取</option>
 		</select>
 	</div>
-	<div class="form-group">
-		<label>输入规则</label>
-		<textarea class="form-control" name="match"></textarea>
-		<p class="help-block">输入所选方式的规则</p>
+
+	<div class="form-group" id="type_rule">
+		{include file="cpattern:field_rule" _type="rule" _name_pre="" _allow_loop="" /}
 	</div>
+	<div class="form-group" id="type_xpath" style="display:none;">
+		{include file="cpattern:field_rule" _type="xpath" _name_pre="" _allow_loop="" /}
+	</div>
+	<div class="form-group" id="type_json" style="display:none;">
+		{include file="cpattern:field_rule" _type="json" _name_pre="" _allow_loop="" /}
+	</div>
+
+
 	<div class="form-group">
 		<button type="submit" class="btn btn-default btn-block">开始测试</button>
 	</div>
 	</form>
-	
 	<div class="form-group test-match-val" style="display:none;">
-		<label>匹配结果</label>
-		<textarea rows="3" class="form-control"></textarea>
+		<div><label>匹配结果</label><a href="javascript:;" class="visualize" style="margin-left:5px;display:none;">预览</a></div>
+		<textarea id="test_match_val" rows="10" class="form-control"></textarea>
 	</div>
+	
+	<table style="display:none">
+		<tr id="tpl_tr_form">
+			<td><input type="text" name="form_names[]" class="form-control" /></td>
+			<td><input type="text" name="form_vals[]" class="form-control" /></td>
+			<td><a href="javascript:;" class="glyphicon glyphicon-remove delete" style="margin-top:8px;"></a></td>
+		</tr>
+		<tr id="tpl_tr_header">
+			<td><input type="text" name="header_names[]" class="form-control" /></td>
+			<td><input type="text" name="header_vals[]" class="form-control" /></td>
+			<td><a href="javascript:;" class="glyphicon glyphicon-remove delete" style="margin-top:8px;"></a></td>
+		</tr>
+	</table>
 </div>
 
 <script type="text/javascript">
-$('#win_test_match form').bind('submit',function(){
-	$.ajax({
-		type:'post',
-		url:$(this).attr('action'),
-		dataType:'json',
-		data:$(this).serialize(),
-		success:function(data){
-			if(data.code==1){
-				$('#win_test_match .test-match-val').show().find('textarea').val(data.msg);
-			}else{
-				toastr.error(data.msg);
-			}
-		}
-	});
-	return false;
-});
+'use strict';//严格模式
 
+$.getScript("__PUBLIC__/static/js/admin/cpattern_test.js?{$Think.config.html_v}", function() {
+	CpTestMatch();
+}); 
 </script>

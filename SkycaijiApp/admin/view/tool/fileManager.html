@@ -7,7 +7,7 @@
 {/block}
 {block name="content"}
 <div id="ifrManager" style="width:100%;overflow:hidden;">
-<iframe src="{:url('Tool/elfinder')}" style="width:100%;height:100%;padding:0;margin:0;border:0;"></iframe>
+<iframe src="{:url('Tool/elfinder?'.url_usertoken())}" style="width:100%;height:100%;padding:0;margin:0;border:0;"></iframe>
 </div>
 <script type="text/javascript">
 var ifrHeight=$(document.body).height()-$('#ifrManager').offset().top;

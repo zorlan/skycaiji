@@ -25,7 +25,7 @@ class Release extends BaseController{
 		}
 		$releData=$mrele->where(array('task_id'=>$taskData['id']))->find();
 		if(request()->isPost()){
-			$newData=array('task_id'=>$taskData['id'],'addtime'=>NOW_TIME,'config'=>array());
+			$newData=array('task_id'=>$taskData['id'],'addtime'=>time(),'config'=>array());
 			if($releaseId>0){
 				
 				$importRele=$mrele->where(array('id'=>$releaseId))->find();
@@ -60,17 +60,31 @@ class Release extends BaseController{
     			$this->error(lang('op_failed'));
     		}
 		}else{
-			$GLOBALS['_sc']['p_name']=lang('rele_set');
-			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Task/edit?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('Release/set?task_id='.$taskData['id']),'title'=>lang('rele_set'))));
+		    set_g_sc('p_title',lang('rele_set').'_任务:'.$taskData['name']);
+		    set_g_sc('p_name',lang('rele_set'));
+		    set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Task/edit?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('Release/set?task_id='.$taskData['id']),'title'=>lang('rele_set')))));
 
 			$this->assign('taskData',$taskData);
+			
+			
 			if(!empty($releData)){
 				
+			    $releData=$releData->toArray();
 				$releData['config']=unserialize($releData['config']);
-				$config=$releData['config'];
-				$this->assign('config',$config);
-				$this->assign('releData',$releData);
+			}else{
+			    $releData=array();
 			}
+			if(!is_array($releData['config'])){
+			    $releData['config']=array();
+			}
+			foreach (config('release_modules') as $v){
+			    if(!is_array($releData['config'][$v])){
+			        $releData['config'][$v]=array();
+			    }
+			}
+			$this->assign('config',$releData['config']);
+			$this->assign('releData',$releData);
+			
 			$apiRootUrl=config('root_website');
 
 			if(stripos(\think\Request::instance()->root(),'/index.php?s=')!==false){
@@ -166,7 +180,7 @@ class Release extends BaseController{
 	 * 设置可不先入库进行测试绑定
 	 * */
 	public function cmsBindAction(){
-		$cmsSet=input('cms/a');
+	    $cmsSet=input('cms/a',array());
 		$taskId=input('task_id/d',0);
 		$cmsPath=$cmsSet['path'];
 		if(empty($cmsPath)){
@@ -176,7 +190,13 @@ class Release extends BaseController{
 		$acms=controller('admin/Rcms','event');
 		$cmsName=$acms->cms_name($cmsPath);
 		if(empty($cmsName)){
-			$this->error('未知的cms程序，请确保路径存在，如需指定CMS程序请在路径结尾加上@CMS程序名，例如：@discuz');
+		    list($cmsPath,$cmsName)=explode('@', $cmsPath);
+		    $msg='未知的cms程序，请确保路径存在，如需指定CMS程序请在路径结尾加上@CMS程序名，例如：@discuz';
+		    if(\skycaiji\admin\model\Config::check_basedir_limited($cmsPath)){
+		        
+		        $msg.='<br/>注意：'.lang('error_open_basedir');
+		    }
+		    $this->error($msg);
 		}
 		$cmsApp=$cmsSet['app'];
 
@@ -221,44 +241,54 @@ class Release extends BaseController{
 		$this->assign('cmsApp',$cmsApp);
 		return $this->fetch('cmsBind');
 	}
+	
 	public function testAction(){
-		set_time_limit(600);
-		$releId=input('id/d',0);
-		
-		$releData=model('Release')->getById($releId);
-		if(empty($releData)){
-			$this->echo_msg(lang('rele_error_empty_rele'));
-    		exit();
-		}
-		
-		$taskData=model('Task')->getById($releData['task_id']);
-		if(empty($taskData)){
-			$this->echo_msg(lang('task_error_empty_task'));
-    		exit();
-		}
-		model('Task')->loadConfig($taskData);
-		
-		$collData=model('Collector')->where(array('task_id'=>$taskData['id'],'module'=>$taskData['module']))->find();
-		if(empty($collData)){
-			$this->echo_msg(lang('coll_error_empty_coll'));
-    		exit();
-		}
-		
-		$acoll=controller('admin/C'.$collData['module'],'event');
-		$acoll->init($collData);
-		$fieldsList=$acoll->collect(1);
-		if(empty($fieldsList)||!is_array($fieldsList)){
-			$this->echo_msg('没有采集到数据','orange');
-		}else{
-			
-			$releObj=controller('admin/R'.strtolower($releData['module']),'event');
-			$releObj->init($releData);
-			if('api'==$releData['module']){
-				
-				$releObj->config['api']['cache_time']=0;
-			}
-			$releObj->export($fieldsList);
-		}
+	    set_time_limit(600);
+	    $releId=input('id/d',0);
+	    
+	    $this->_backstage_cli_collect('test --rele_id '.$releId);
+	    
+	    
+	    $releData=model('Release')->getById($releId);
+	    if(empty($releData)){
+	        $this->echo_msg_exit(lang('rele_error_empty_rele'));
+	    }
+	    
+	    $mtask=model('Task');
+	    $taskData=$mtask->getById($releData['task_id']);
+	    if(empty($taskData)){
+	        $this->echo_msg_exit(lang('task_error_empty_task'));
+	    }
+	    
+	    if(input('?backstage')){
+	        
+	        $mtask->backstage_task($taskData['id']);
+	    }
+	    
+	    $mtask->loadConfig($taskData);
+	    
+	    $collData=model('Collector')->where(array('task_id'=>$taskData['id'],'module'=>$taskData['module']))->find();
+	    if(empty($collData)){
+	        $this->echo_msg_exit(lang('coll_error_empty_coll'));
+	    }
+	    
+	    $acoll=controller('admin/C'.$collData['module'],'event');
+	    $acoll->init($collData);
+	    $fieldsList=$acoll->collect(1);
+	    if(empty($fieldsList)||!is_array($fieldsList)){
+	        $this->echo_msg('没有采集到数据','orange');
+	    }else{
+	        
+	        $releObj=controller('admin/R'.strtolower($releData['module']),'event');
+	        $releObj->init($releData);
+	        if('api'==$releData['module']){
+	            
+	            $releObj->config['api']['cache_time']=0;
+	        }
+	        $releObj->doExport($fieldsList);
+	    }
+	    
+	    $this->_echo_msg_end();
 	}
 	/*读取数据库表*/
 	public function dbTablesAction(){
@@ -285,7 +315,7 @@ class Release extends BaseController{
 	/*测试连接数据库*/
 	public function dbConnectAction(){
 		$op=input('op');
-		$db=input('db/a','','trim');
+		$db=input('db/a',array(),'trim');
 		
 		$no_check=array('db_pwd');
 		if('db_names'==$op){

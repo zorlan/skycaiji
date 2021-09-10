@@ -14,6 +14,8 @@ CREATE TABLE `skycaiji_app` (
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+/*Data for the table `skycaiji_app` */
+
 /*Table structure for table `skycaiji_collected` */
 
 DROP TABLE IF EXISTS `skycaiji_collected`;
@@ -36,6 +38,8 @@ CREATE TABLE `skycaiji_collected` (
   KEY `ix_titlemd5` (`titleMd5`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+/*Data for the table `skycaiji_collected` */
+
 /*Table structure for table `skycaiji_collector` */
 
 DROP TABLE IF EXISTS `skycaiji_collector`;
@@ -50,6 +54,8 @@ CREATE TABLE `skycaiji_collector` (
   `config` mediumtext,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+/*Data for the table `skycaiji_collector` */
 
 /*Table structure for table `skycaiji_config` */
 
@@ -66,7 +72,29 @@ CREATE TABLE `skycaiji_config` (
 
 /*Data for the table `skycaiji_config` */
 
-insert  into `skycaiji_config`(`cname`,`ctype`,`dateline`,`data`) values ('version',0,0,'2.2'),('caiji',2,0,'a:6:{s:6:"robots";i:1;s:4:"auto";i:0;s:3:"run";s:9:"backstage";s:3:"num";i:10;s:8:"interval";i:30;s:7:"timeout";i:60;}'),('site',2,0,'a:3:{s:10:"verifycode";i:1;s:8:"hidehome";i:0;s:5:"login";a:3:{s:5:"limit";i:1;s:6:"failed";i:20;s:4:"time";i:1;}}');
+insert  into `skycaiji_config`(`cname`,`ctype`,`dateline`,`data`) values ('version',0,0,'2.4'),('caiji',2,0,'a:12:{s:6:"robots";i:1;s:4:"auto";i:0;s:3:"run";s:9:"backstage";s:6:"server";s:0:"";s:10:"server_php";s:0:"";s:3:"num";i:10;s:8:"interval";i:30;s:7:"timeout";i:60;s:13:"interval_html";i:0;s:9:"real_time";i:1;s:5:"retry";i:0;s:4:"wait";i:0;}'),('site',2,0,'a:3:{s:10:"verifycode";i:1;s:8:"hidehome";i:0;s:5:"login";a:3:{s:5:"limit";i:1;s:6:"failed";i:20;s:4:"time";i:1;}}');
+
+/*Table structure for table `skycaiji_func_app` */
+
+DROP TABLE IF EXISTS `skycaiji_func_app`;
+
+CREATE TABLE `skycaiji_func_app` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `module` varchar(20) NOT NULL DEFAULT '',
+  `app` varchar(100) NOT NULL,
+  `name` varchar(100) NOT NULL DEFAULT '',
+  `desc` text,
+  `enable` tinyint(1) NOT NULL DEFAULT '0',
+  `addtime` int(11) NOT NULL DEFAULT '0',
+  `uptime` int(11) NOT NULL DEFAULT '0',
+  `provider_id` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ix_app` (`app`),
+  UNIQUE KEY `module_app` (`module`,`app`),
+  KEY `module_enable` (`module`,`enable`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+/*Data for the table `skycaiji_func_app` */
 
 /*Table structure for table `skycaiji_provider` */
 
@@ -77,11 +105,14 @@ CREATE TABLE `skycaiji_provider` (
   `title` varchar(255) NOT NULL DEFAULT '',
   `url` varchar(255) NOT NULL DEFAULT '',
   `domain` varchar(255) NOT NULL DEFAULT '',
+  `authkey` varchar(255) NOT NULL DEFAULT '',
   `enable` tinyint(4) NOT NULL DEFAULT '0',
   `sort` mediumint(9) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `domain` (`domain`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+/*Data for the table `skycaiji_provider` */
 
 /*Table structure for table `skycaiji_proxy_ip` */
 
@@ -95,8 +126,19 @@ CREATE TABLE `skycaiji_proxy_ip` (
   `failed` int(11) NOT NULL DEFAULT '0',
   `num` int(11) NOT NULL DEFAULT '0',
   `time` int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`ip`)
+  `type` varchar(20) NOT NULL DEFAULT '',
+  `addtime` int(11) NOT NULL DEFAULT '0',
+  `no` bigint(20) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`ip`),
+  KEY `no` (`no`),
+  KEY `addtime_no` (`addtime`,`no`),
+  KEY `ix_num` (`num`),
+  KEY `ix_time` (`time`),
+  KEY `num_no` (`num`,`no`),
+  KEY `time_no` (`time`,`no`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+/*Data for the table `skycaiji_proxy_ip` */
 
 /*Table structure for table `skycaiji_release` */
 
@@ -111,6 +153,8 @@ CREATE TABLE `skycaiji_release` (
   `config` mediumtext,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+/*Data for the table `skycaiji_release` */
 
 /*Table structure for table `skycaiji_release_app` */
 
@@ -130,6 +174,8 @@ CREATE TABLE `skycaiji_release_app` (
   UNIQUE KEY `ix_app` (`app`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+/*Data for the table `skycaiji_release_app` */
+
 /*Table structure for table `skycaiji_rule` */
 
 DROP TABLE IF EXISTS `skycaiji_rule`;
@@ -148,6 +194,8 @@ CREATE TABLE `skycaiji_rule` (
   KEY `store_id` (`store_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+/*Data for the table `skycaiji_rule` */
+
 /*Table structure for table `skycaiji_task` */
 
 DROP TABLE IF EXISTS `skycaiji_task`;
@@ -165,6 +213,8 @@ CREATE TABLE `skycaiji_task` (
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+/*Data for the table `skycaiji_task` */
+
 /*Table structure for table `skycaiji_taskgroup` */
 
 DROP TABLE IF EXISTS `skycaiji_taskgroup`;
@@ -176,6 +226,8 @@ CREATE TABLE `skycaiji_taskgroup` (
   `sort` mediumint(9) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+/*Data for the table `skycaiji_taskgroup` */
 
 /*Table structure for table `skycaiji_user` */
 
@@ -192,7 +244,9 @@ CREATE TABLE `skycaiji_user` (
   PRIMARY KEY (`uid`),
   UNIQUE KEY `username` (`username`),
   KEY `email` (`email`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
+/*Data for the table `skycaiji_user` */
 
 /*Table structure for table `skycaiji_usergroup` */
 

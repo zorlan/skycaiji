@@ -11,7 +11,7 @@
 
 namespace skycaiji\admin\model;
 
-class Release extends BaseModel{
+class Release extends \skycaiji\common\model\BaseModel{
 	public function getByTaskid($taskId){
 		static $dataList=array();
 		if(empty($taskId)){

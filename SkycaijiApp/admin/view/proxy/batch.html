@@ -1,4 +1,5 @@
 <form id="win_form_proxy_batch" method="post" action="{:url('Admin/Proxy/batch')}">
+{:html_usertoken()}	
 	<input type="hidden" name="is_test" />
     <div class="form-group">
 		<label>代理IP（一行一条）</label>
@@ -7,13 +8,13 @@
     <div class="form-group">
 		<label>匹配格式（对应上面每行的数据）</label>
     	<input type="text" name="format" value="[ip]:[端口]" class="form-control" />
-    	<div style="margin:5px 0;" class="format">
-    		<a href="javascript:;" data-val="[ip]">[ip]</a>
-    		&nbsp;<a href="javascript:;" data-val="[端口]">[端口]</a>
-    		&nbsp;<a href="javascript:;" data-val="[用户名]">[用户名]</a>
-    		&nbsp;<a href="javascript:;" data-val="[密码]">[密码]</a>
-    		&nbsp;<a href="javascript:;" data-val="(*)" title="匹配任意字符">(*)</a>通配符
-    	</div>
+    	<ul class="in-line-mg format" style="display:block;margin:5px 0;">
+    		<li><a href="javascript:;" data-val="[ip]">[ip]</a></li>
+    		<li><a href="javascript:;" data-val="[端口]">[端口]</a></li>
+    		<li><a href="javascript:;" data-val="[用户名]">[用户名]</a></li>
+    		<li><a href="javascript:;" data-val="[密码]">[密码]</a></li>
+    		<li><a href="javascript:;" data-val="(*)" title="匹配任意字符">(*)</a>通配符</li>
+    	</ul>
     </div>
 	<div class="form-group">
 		<label>代理类型</label>

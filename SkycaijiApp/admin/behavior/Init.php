@@ -15,49 +15,64 @@ use skycaiji\admin\controller\BaseController;
 class Init{
 	
 	public function run(){
-		
 		$curController=strtolower(request()->controller());
-		if('store'==$curController){
-		    
-		    controller('Store','controller')->_checkCors(true);
-		}
 		/*自动登录*/
 		$muser=model('User');
-		$s_userid=session('user_id');
-		if(!IS_CLI&&empty($s_userid)){
+		
+		$s_userlogin=session('user_login');
+		if(!IS_CLI&&empty($s_userlogin)){
 			
-			$login_history=cookie('login_history');
-			if(!empty($login_history)){
-				$login_history=explode('|', $login_history);
-				$user=$muser->where('username',$login_history[0])->find();
+			$loginHistory=cookie('login_history');
+			if(!empty($loginHistory)){
+				$loginHistory=explode('|', $loginHistory);
+				$user=$muser->getByUid($loginHistory[0]);
 				if(!empty($user)){
-					$user['username']=strtolower($user['username']);
 					
-					if($user['username']==$login_history[0]&&$login_history[1]==md5($user['username'].$user['password'])){
-						session('user_id',$user['uid']);
+				    if($loginHistory[1]==$muser->generate_key($user)){
+					    $muser->setLoginSession($user);
 					}
 				}
+				unset($user);
 			}
-			$s_userid=session('user_id');
+			$s_userlogin=session('user_login');
 		}
+		$s_userlogin=is_array($s_userlogin)?$s_userlogin:array();
+		$s_userid=intval($s_userlogin['uid']);
 		
+		$isAdmin=null;
+		$user=null;
 		if($s_userid>0){
-			$GLOBALS['_sc']['user']=$muser->getByUid($s_userid);
-			if(!empty($GLOBALS['_sc']['user'])){
-				$GLOBALS['_sc']['user']=$GLOBALS['_sc']['user']->toArray();
-				$GLOBALS['_sc']['user']['group']=model('Usergroup')->getById($GLOBALS['_sc']['user']['groupid']);
-				if(!empty($GLOBALS['_sc']['user']['group'])){
-					$GLOBALS['_sc']['user']['group']=$GLOBALS['_sc']['user']['group']->toArray();
-					if(model('Usergroup')->is_admin($GLOBALS['_sc']['user']['group'])){
-						session('is_admin',true);
-					}else{
-						session('is_admin',null);
+		    $userKeyIsRight=false;
+			$user=$muser->getByUid($s_userid);
+			if(!empty($user)){
+			    $user=$user->toArray();
+			    $user['group']=model('Usergroup')->getById($user['groupid']);
+			    if(!empty($user['group'])){
+			        $user['group']=$user['group']->toArray();
+			        if(model('Usergroup')->is_admin($user['group'])){
+					    $isAdmin=true;
 					}
 				}
+				if($s_userlogin['key']==$muser->generate_key($user)){
+				    
+				    $userKeyIsRight=true;
+				}
+			}
+			if(!$userKeyIsRight){
+			    
+			    $user=null;
 			}
 		}
+		if(empty($user)){
+		    
+		    $muser->setLoginSession(null);
+		}
 		
-		if(!empty($GLOBALS['_sc']['user'])&&session('is_admin')){
+		set_g_sc('user',$user);
+		
+		session('is_admin',$isAdmin);
+		
+		if(!is_empty(g_sc('user'))&&$isAdmin){
 			/*是管理员，进行下列操作*/
 			if('index'==$curController&&'index'==strtolower(request()->action())){
 				
@@ -89,13 +104,25 @@ class Init{
 			$mconfig->cacheConfigList();
 			$configList=$mconfig->getConfigList();
 		}
-		$GLOBALS['_sc']['c']=$configList;
+		set_g_sc('c',$configList);
+		set_g_sc('c_caiji_interval',intval(g_sc_c('caiji','interval')));
 		
-		if(!empty($GLOBALS['_sc']['c']['site']['closelog'])){
+		$timezone=g_sc_c('site','timezone');
+		if(!empty($timezone)){
+		    
+		    if(strpos($timezone, 'UTC')===0){
+		        
+		        
+		        $timezone=str_replace(array('UTC+','UTC-'), array('Etc/GMT-','Etc/GMT+'), $timezone);
+		    }
+		    date_default_timezone_set($timezone);
+		}
+		
+		if(!is_empty(g_sc_c('site','closelog'))){
 			
 			\think\Log::init(array('type'=>'test','level'=>array()));
 		}
-		if(!empty($GLOBALS['_sc']['c']['site']['dblong'])){
+		if(!is_empty(g_sc_c('site','dblong'))){
 			
 			$dbParams=config('database.params');
 			$dbParams[\PDO::ATTR_PERSISTENT]=true;
@@ -103,13 +130,13 @@ class Init{
 		}
 		
 		
-		if(empty($GLOBALS['_sc']['c']['download_img'])){
-			$GLOBALS['_sc']['c']['download_img']=$mconfig->get_img_config_from_caiji($GLOBALS['_sc']['c']['caiji']);
+		if(is_empty(g_sc_c('download_img'))){
+		    set_g_sc(['c','download_img'],$mconfig->get_img_config_from_caiji(g_sc_c('caiji')));
 		}
 		
-		$GLOBALS['_sc']['clientinfo']=clientinfo();
-		if(!empty($GLOBALS['_sc']['clientinfo'])){
-			$GLOBALS['_sc']['clientinfo']=base64_encode(json_encode($GLOBALS['_sc']['clientinfo']));
+		set_g_sc('clientinfo',clientinfo());
+		if(!is_empty(g_sc('clientinfo'))){
+		    set_g_sc('clientinfo',base64_encode(json_encode(g_sc('clientinfo'))));
 		}
 		
 		
@@ -120,7 +147,7 @@ class Init{
 			$usertoken=md5($usertoken);
 			session('usertoken',$usertoken);
 		}
-		$GLOBALS['_sc']['usertoken']=$usertoken;
+		set_g_sc('usertoken',$usertoken);
 	}
 }
 

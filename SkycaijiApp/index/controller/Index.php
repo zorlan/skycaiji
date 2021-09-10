@@ -11,17 +11,16 @@
 
 namespace skycaiji\index\controller;
 use skycaiji\common\controller\BaseController;
-use skycaiji\admin\model\Config;
 use think\Request;
 class Index extends BaseController {
     public function indexAction(){
-    	Request::instance()->root(config('root_url').'/index.php?s=');
+        \skycaiji\common\model\Config::set_url_compatible();
 
-		if(!file_exists(config('app_path').'/install/data/install.lock')){
+    	if(!file_exists(config('root_path').'/data/install.lock')&&!file_exists(config('app_path').'/install/data/install.lock')){
     		
     		$this->error('请先安装','install/index/index');
     	}else{
-    		$mconfig=new Config();
+    	    $mconfig=new \skycaiji\common\model\Config();
     		$siteConf=$mconfig->getConfig('site','data');
     		if(empty($siteConf['hidehome'])){
     			

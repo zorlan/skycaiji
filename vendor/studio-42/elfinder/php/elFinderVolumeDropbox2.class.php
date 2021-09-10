@@ -68,7 +68,7 @@ class elFinderVolumeDropbox2 extends elFinderVolumeDriver
             'aliasFormat' => '%s@Dropbox',
             'path' => '/',
             'separator' => '/',
-            'acceptedName' => '#^[^/\\?*:|"<>]*[^./\\?*:|"<>]$#',
+            'acceptedName' => '#^[^\\\/]+$#',
             'rootCssClass' => 'elfinder-navbar-root-dropbox',
             'publishPermission' => [
                 'requested_visibility' => 'public',
@@ -287,7 +287,6 @@ class elFinderVolumeDropbox2 extends elFinderVolumeDriver
         }
 
         try {
-            $this->session->start();
             $app = new DropboxApp($options['app_key'], $options['app_secret']);
             $dropbox = new Dropbox($app);
             $authHelper = $dropbox->getAuthHelper();
@@ -326,20 +325,25 @@ class elFinderVolumeDropbox2 extends elFinderVolumeDriver
                 }
             }
 
-            if ($options['user'] === 'init') {
+            if ((isset($options['user']) && $options['user'] === 'init') || (isset($_GET['host']) && $_GET['host'] == '1')) {
                 if (empty($options['url'])) {
                     $options['url'] = elFinder::getConnectorUrl();
                 }
 
-                $callback = $options['url']
-                    . '?cmd=netmount&protocol=dropbox2&host=1';
+                if (!empty($options['id'])) {
+                    $callback = $options['url']
+                            . (strpos($options['url'], '?') !== false? '&' : '?') . 'cmd=netmount&protocol=dropbox2&host=' . ($options['id'] === 'elfinder'? '1' : $options['id']);
+                }
 
-                if (!$aToken && empty($_GET['code'])) {
+                $itpCare = isset($options['code']);
+                $code = $itpCare? $options['code'] : (isset($_GET['code'])? $_GET['code'] : '');
+                $state = $itpCare? $options['state'] : (isset($_GET['state'])? $_GET['state'] : '');
+                if (!$aToken && empty($code)) {
                     $url = $authHelper->getAuthUrl($callback);
 
-                    $html = '<input id="elf-volumedriver-dropbox2-host-btn" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" value="{msg:btnApprove}" type="button" onclick="window.open(\'' . $url . '\')">';
+                    $html = '<input id="elf-volumedriver-dropbox2-host-btn" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" value="{msg:btnApprove}" type="button">';
                     $html .= '<script>
-                        $("#' . $options['id'] . '").elfinder("instance").trigger("netmount", {protocol: "dropbox2", mode: "makebtn"});
+                        $("#' . $options['id'] . '").elfinder("instance").trigger("netmount", {protocol: "dropbox2", mode: "makebtn", url: "' . $url . '"});
                     </script>';
                     if (empty($options['pass']) && $options['host'] !== '1') {
                         $options['pass'] = 'return';
@@ -356,20 +360,44 @@ class elFinderVolumeDropbox2 extends elFinderVolumeDriver
                         return ['exit' => 'callback', 'out' => $out];
                     }
                 } else {
-                    if (!empty($_GET['code']) && isset($_GET['state'])) {
-                        $tokenObj = $authHelper->getAccessToken($_GET['code'], $_GET['state'], $callback);
-                        $options['tokens'] = [
-                            'access_token' => $tokenObj->getToken(),
-                            'uid' => $tokenObj->getUid(),
-                        ];
-                        $this->session->set('Dropbox2Tokens', $options['tokens'])->set('Dropbox2AuthParams', $options);
-                        $out = [
-                            'node' => $options['id'],
-                            'json' => '{"protocol": "dropbox2", "mode": "done", "reset": 1}',
-                            'bind' => 'netmount',
-                        ];
-
-                        return ['exit' => 'callback', 'out' => $out];
+                    if ($code && $state) {
+                        if (!empty($options['id'])) {
+                            // see https://github.com/kunalvarma05/dropbox-php-sdk/issues/115
+                            $authHelper->getPersistentDataStore()->set('state', filter_var($state, FILTER_SANITIZE_STRING));
+                            $tokenObj = $authHelper->getAccessToken($code, $state, $callback);
+                            $options['tokens'] = [
+                                'access_token' => $tokenObj->getToken(),
+                                'uid' => $tokenObj->getUid(),
+                            ];
+                            unset($options['code'], $options['state']);
+                            $this->session->set('Dropbox2Tokens', $options['tokens'])->set('Dropbox2AuthParams', $options);
+                            $out = [
+                                'node' => $options['id'],
+                                'json' => '{"protocol": "dropbox2", "mode": "done", "reset": 1}',
+                                'bind' => 'netmount',
+                            ];
+                        } else {
+                            $nodeid = ($_GET['host'] === '1')? 'elfinder' : $_GET['host'];
+                            $out = [
+                                'node' => $nodeid,
+                                'json' => json_encode(array(
+                                    'protocol' => 'dropbox2',
+                                    'host' => $nodeid,
+                                    'mode' => 'redirect',
+                                    'options' => array(
+                                        'id' => $nodeid,
+                                        'code' => $code,
+                                        'state' => $state
+                                    )
+                                )),
+                                'bind' => 'netmount'
+                            ];
+                        }
+                        if (!$itpCare) {
+                            return array('exit' => 'callback', 'out' => $out);
+                        } else {
+                            return array('exit' => true, 'body' => $out['json']);
+                        }
                     }
                     $path = $options['path'];
                     $folders = [];
@@ -495,9 +523,11 @@ class elFinderVolumeDropbox2 extends elFinderVolumeDriver
             $this->netMountKey = md5($aToken . '-' . $this->options['path']);
 
             $errors = [];
-            if (!$this->service) {
+            if ($this->needOnline && !$this->service) {
                 $app = new DropboxApp($this->options['app_key'], $this->options['app_secret'], $aToken);
                 $this->service = new Dropbox($app);
+                // to check access_token
+                $this->service->getCurrentAccount();
             }
         } catch (DropboxClientException $e) {
             $errors[] = 'Dropbox error: ' . $e->getMessage();
@@ -505,9 +535,11 @@ class elFinderVolumeDropbox2 extends elFinderVolumeDriver
             $errors[] = $e->getMessage();
         }
 
-        if (!$this->service) {
+        if ($this->needOnline && !$this->service) {
             $errors[] = 'Dropbox Service could not be loaded.';
+        }
 
+        if ($errors) {
             return $this->setError($errors);
         }
 
@@ -519,7 +551,10 @@ class elFinderVolumeDropbox2 extends elFinderVolumeDriver
         $this->root = $this->options['path'] = $this->_normpath($this->options['path']);
 
         if (empty($this->options['alias'])) {
-            $this->options['alias'] = sprintf($this->options['aliasFormat'], ($this->options['path'] === '/') ? 'root' : $this->_basename($this->options['path']));
+            $this->options['alias'] = sprintf($this->options['aliasFormat'], ($this->options['path'] === '/') ? 'Root' : $this->_basename($this->options['path']));
+            if (!empty($this->options['netkey'])) {
+                elFinder::$instance->updateNetVolumeOption($this->options['netkey'], 'alias', $this->options['alias']);
+            }
         }
 
         $this->rootName = $this->options['alias'];
@@ -890,7 +925,7 @@ class elFinderVolumeDropbox2 extends elFinderVolumeDriver
     public function debug()
     {
         $res = parent::debug();
-        if (isset($this->options['tokens']) && !empty($this->options['tokens']['uid'])) {
+        if (!empty($this->options['netkey']) && isset($this->options['tokens']) && !empty($this->options['tokens']['uid'])) {
             $res['Dropbox uid'] = $this->options['tokens']['uid'];
             $res['access_token'] = $this->options['tokens']['access_token'];
         }
@@ -1105,7 +1140,8 @@ class elFinderVolumeDropbox2 extends elFinderVolumeDriver
             if ($size) {
                 $ret = array('dim' => $size[0] . 'x' . $size[1]);
                 $srcfp = fopen($tmp, 'rb');
-                if ($subImgLink = $this->getSubstituteImgLink(elFinder::$currentArgs['target'], $size, $srcfp)) {
+                $target = isset(elFinder::$currentArgs['target'])? elFinder::$currentArgs['target'] : '';
+                if ($subImgLink = $this->getSubstituteImgLink($target, $size, $srcfp)) {
                     $ret['url'] = $subImgLink;
                 }
             }
@@ -1151,6 +1187,16 @@ class elFinderVolumeDropbox2 extends elFinderVolumeDriver
                         'headers' => array('Authorization: Bearer ' . $access_token),
                     );
 
+                    // to support range request
+                    if (func_num_args() > 2) {
+                        $opts = func_get_arg(2);
+                    } else {
+                        $opts = array();
+                    }
+                    if (!empty($opts['httpheaders'])) {
+                        $data['headers'] = array_merge($opts['httpheaders'], $data['headers']);
+                    }
+
                     return elFinder::getStreamByUrl($data);
                 }
             }
@@ -1169,7 +1215,7 @@ class elFinderVolumeDropbox2 extends elFinderVolumeDriver
      **/
     protected function _fclose($fp, $path = '')
     {
-        fclose($fp);
+        is_resource($fp) && fclose($fp);
     }
 
     /********************  file/dir manipulations *************************/

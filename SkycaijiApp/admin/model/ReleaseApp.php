@@ -12,7 +12,7 @@
 namespace skycaiji\admin\model;
 
 use think\Loader;
-class ReleaseApp extends BaseModel{
+class ReleaseApp extends \skycaiji\common\model\BaseModel{
 	protected $tableName='release_app';
 	
 	public function addCms($cms,$code='',$tpl=''){
@@ -21,14 +21,14 @@ class ReleaseApp extends BaseModel{
 		}
 		
 		$cms['module']='cms';
-		$cms['uptime']=$cms['uptime']>0?$cms['uptime']:NOW_TIME;
+		$cms['uptime']=$cms['uptime']>0?$cms['uptime']:time();
 		
 		if(!preg_match('/^([A-Z][a-z0-9]*){3}$/',$cms['app'])){
 			
 			return false;
 		}
 		
-		$codeFmt=strip_phpcode_comment($code);
+		$codeFmt=\util\Funcs::strip_phpcode_comment($code);
 		
 		if(!preg_match('/^\s*namespace\s+plugin\\\release\b/im',$codeFmt)){
 			
@@ -48,7 +48,7 @@ class ReleaseApp extends BaseModel{
 			$success=true;
 		}else{
 			
-			$cms['addtime']=NOW_TIME;
+		    $cms['addtime']=time();
 			$this->isUpdate(false)->allowField(true)->save($cms);
 			$cms['id']=$this->id;
 			$success=$cms['id']>0?true:false;

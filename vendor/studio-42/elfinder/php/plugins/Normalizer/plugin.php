@@ -13,7 +13,7 @@
  *            'upload.pre mkdir.pre mkfile.pre rename.pre archive.pre ls.pre' => array(
  *                'Plugin.Normalizer.cmdPreprocess'
  *            ),
- *            'upload.presave' => array(
+ *            'upload.presave paste.copyfrom' => array(
  *                'Plugin.Normalizer.onUpLoadPreSave'
  *            )
  *        ),
@@ -169,7 +169,11 @@ class elFinderPluginNormalizer extends elFinderPlugin
                     $str = Normalizer::normalize($str, Normalizer::FORM_KC);
             } else {
                 if (!class_exists('I18N_UnicodeNormalizer', false)) {
-                    include_once 'I18N/UnicodeNormalizer.php';
+                    if (is_readable('I18N/UnicodeNormalizer.php')) {
+                        include_once 'I18N/UnicodeNormalizer.php';
+                    } else {
+                        trigger_error('Plugin Normalizer\'s options "nfc" or "nfkc" require PHP class "Normalizer" or PEAR package "I18N_UnicodeNormalizer"', E_USER_WARNING);
+                    }
                 }
                 if (class_exists('I18N_UnicodeNormalizer', false)) {
                     $normalizer = new I18N_UnicodeNormalizer();
@@ -182,7 +186,7 @@ class elFinderPluginNormalizer extends elFinderPlugin
         }
         if ($opts['umlauts']) {
             if (strpos($str = htmlentities($str, ENT_QUOTES, 'UTF-8'), '&') !== false) {
-                $str = html_entity_decode(preg_replace('~&([a-z]{1,2})(?:acute|cedil|circ|grave|lig|orn|ring|slash|tilde|uml);~i', '$1', $str), ENT_QUOTES, 'utf-8');
+                $str = html_entity_decode(preg_replace('~&([a-z]{1,2})(?:acute|caron|cedil|circ|grave|lig|orn|ring|slash|tilde|uml);~i', '$1', $str), ENT_QUOTES, 'utf-8');
             }
         }
         if ($opts['convmap'] && is_array($opts['convmap'])) {

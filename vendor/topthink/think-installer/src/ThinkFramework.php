@@ -2,19 +2,21 @@
 
 namespace think\composer;
 
-use Composer\Installer\LibraryInstaller;
 use Composer\Package\PackageInterface;
 use Composer\Repository\InstalledRepositoryInterface;
+use InvalidArgumentException;
 
 class ThinkFramework extends LibraryInstaller
 {
     public function install(InstalledRepositoryInterface $repo, PackageInterface $package)
     {
-        parent::install($repo, $package);
-        if ($this->composer->getPackage()->getType() == 'project' && $package->getInstallationSource() != 'source') {
-            //remove tests dir
-            $this->filesystem->removeDirectory($this->getInstallPath($package) . DIRECTORY_SEPARATOR . 'tests');
-        }
+        return parent::install($repo, $package)->then(function () use ($package) {
+            if ($this->composer->getPackage()
+                               ->getType() == 'project' && $package->getInstallationSource() != 'source') {
+                //remove tests dir
+                $this->filesystem->removeDirectory($this->getInstallPath($package) . DIRECTORY_SEPARATOR . 'tests');
+            }
+        });
     }
 
     /**
@@ -23,7 +25,7 @@ class ThinkFramework extends LibraryInstaller
     public function getInstallPath(PackageInterface $package)
     {
         if ('topthink/framework' !== $package->getPrettyName()) {
-            throw new \InvalidArgumentException('Unable to install this library!');
+            throw new InvalidArgumentException('Unable to install this library!');
         }
 
         if ($this->composer->getPackage()->getType() !== 'project') {
@@ -42,11 +44,12 @@ class ThinkFramework extends LibraryInstaller
 
     public function update(InstalledRepositoryInterface $repo, PackageInterface $initial, PackageInterface $target)
     {
-        parent::update($repo, $initial, $target);
-        if ($this->composer->getPackage()->getType() == 'project' && $target->getInstallationSource() != 'source') {
-            //remove tests dir
-            $this->filesystem->removeDirectory($this->getInstallPath($target) . DIRECTORY_SEPARATOR . 'tests');
-        }
+        return parent::update($repo, $initial, $target)->then(function () use ($target) {
+            if ($this->composer->getPackage()->getType() == 'project' && $target->getInstallationSource() != 'source') {
+                //remove tests dir
+                $this->filesystem->removeDirectory($this->getInstallPath($target) . DIRECTORY_SEPARATOR . 'tests');
+            }
+        });
     }
 
     /**

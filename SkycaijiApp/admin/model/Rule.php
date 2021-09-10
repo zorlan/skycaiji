@@ -11,7 +11,7 @@
 
 namespace skycaiji\admin\model;
 
-class Rule extends BaseModel{
+class Rule extends \skycaiji\common\model\BaseModel{
 	
 }
 

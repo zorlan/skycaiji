@@ -132,19 +132,20 @@ class Proxy extends BaseController {
 		$mproxy=model('Proxyip');
 		$proxyTypes=$mproxy->proxy_types();
 		if(request()->isPost()){
-			$ip_list=input('ip_list/a','','trim');
-			$user_list=input('user_list/a','','trim');
-			$pwd_list=input('pwd_list/a','','trim');
-			$type_list=input('type_list/a','','trim');
+		    $ip_list=input('ip_list/a',array(),'trim');
+		    $user_list=input('user_list/a',array(),'trim');
+		    $pwd_list=input('pwd_list/a',array(),'trim');
+		    $type_list=input('type_list/a',array(),'trim');
 			
 			if(!empty($ip_list)){
+			    $nowTime=time();
 				foreach($ip_list as $k=>$v){
 					$newData=array(
 						'ip'=>$v,
 						'user'=>$user_list[$k],
 						'pwd'=>$pwd_list[$k],
 						'type'=>$type_list[$k],
-						'addtime'=>NOW_TIME
+					    'addtime'=>$nowTime
 					);
 					$mproxy->db()->strict(false)->insert($newData,true);
 				}
@@ -210,16 +211,16 @@ class Proxy extends BaseController {
 		}
 	}
 	
-	
+	/*清理无效ip*/
 	public function clearInvalidAction(){
 		$mproxy=model('Proxyip');
 		$mproxy->where('invalid',1)->delete();
 		$this->success('清理完成','Setting/proxy');
 	}
 
-	
+	/*测试代理接口*/
 	public function testApiAction(){
-		$config=input('config/a','','trim');
+	    $config=input('config/a',array(),'trim');
 		$mproxy=model('Proxyip');
 		
 		$html=get_html($config['api_url']);

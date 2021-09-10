@@ -1,0 +1,270 @@
+{assign name="_tpl_page_type" value="[_page_type]" /}
+
+{php}$_tpl_vars=array('title'=>'页面','is_level_url'=>false,'is_url'=>false,'is_relation_url'=>false,'is_paging_url'=>false);{/php}
+{if 'level_url'==$_tpl_page_type}
+	{php}$_tpl_vars['title']='多级页';$_tpl_vars['id']='c_p_level_url';$_tpl_vars['name']='level_url';$_tpl_vars['is_level_url']=true;{/php}
+{elseif 'relation_url'==$_tpl_page_type}
+	{php}$_tpl_vars['title']='关联页';$_tpl_vars['id']='c_p_relation_url';$_tpl_vars['name']='relation_url';$_tpl_vars['is_relation_url']=true;{/php}
+{elseif 'url'==$_tpl_page_type}
+	{php}$_tpl_vars['title']='内容页';$_tpl_vars['id']='coll_pattern_link';$_tpl_vars['name']='config';$_tpl_vars['is_url']=true;{/php}
+{elseif 'paging_url'==$_tpl_page_type}
+	{php}$_tpl_vars['title']='分页';$_tpl_vars['id']='coll_pattern_paging';$_tpl_vars['name']='config[paging]';$_tpl_vars['is_paging_url']=true;{/php}
+{/if}
+
+<div class="panel panel-default">
+	<div class="panel-heading">
+	    <h4 class="panel-title">
+	        <a data-toggle="collapse" href="#{$_tpl_vars['id']}_area" aria-expanded="false" class="collapsed">从选定区域中提取网址</a>
+	    </h4>
+	</div>
+	<div data-module-select="{$_tpl_vars['name']}[area_module]" id="{$_tpl_vars['id']}_area" class="panel-collapse collapse" aria-expanded="false">
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="control-label">获取网址区域</label>
+				<div class="input-group">
+					<textarea name="{$_tpl_vars['name']}[area]" class="form-control" rows="3" data-placeholder-json="请输入json规则，默认获取所有字符并保存为{:cp_sign('match')}标签以供拼接调用" data-placeholder-xpath="请输入xpath规则，默认获取整个页面并保存为{:cp_sign('match')}标签以供拼接调用" placeholder="默认获取整个页面并保存为{:cp_sign('match')}标签以供拼接调用，{$Think.lang.tips_match_area}"></textarea>
+					<div class="input-group-addon iga-rt iga-rt1">
+						<select name="{$_tpl_vars['name']}[area_module]" data-module-input="{$_tpl_vars['name']}[area]" class="slt">
+				     		<option value="">正则</option>
+				     		<option value="xpath">xpath</option>
+				     		<option value="json">json</option>
+				     	</select>
+				    	<ul class="op">
+							<li data-module="" style="display:block;">
+								<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'{$_tpl_vars['name']}[area]\']')">{$Think.lang.sign_wildcard}</a></div>
+					    		<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match}" onclick="cpMatch('[name=\'{$_tpl_vars['name']}[area]\']',{zimu:{$_tpl_vars['is_paging_url']?0:1}})">{:cp_sign('match')}</a></div>
+								<div>
+									<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group}" onclick="cpMatch('[name=\'{$_tpl_vars['name']}[area]\']',{group:1,zimu:{$_tpl_vars['is_paging_url']?0:1}})">捕获组</a></div>
+									<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign" style="font-size:11px;" onclick="cpRuleTips({$_tpl_vars['is_paging_url']?'':1})"></a></div>
+								</div>
+							</li>
+							<li data-module="xpath">xpath语法</li>
+							<li data-module="json">格式 a.b.c<br>通配符 *</li>
+						</ul>
+					</div>
+				</div>
+		      	<p class="help-block">
+		      		<span data-module="">规则中无{:cp_sign('match')}标签时，自动将完全匹配的值保存为{:cp_sign('match')}标签以供拼接调用</span>
+					<span data-module="xpath" style="display:none;">XPATH匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+					<span data-module="json" style="display:none;">JSON匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+				</p>
+			</div>
+			<div class="form-group">
+		    	<label class="control-label">拼接成最终区域</label>
+		    	<div class="input-group c-p-url-page-signs" data-page-type="{$_tpl_page_type}" data-input-name="{$_tpl_vars['name']}[area_merge]">
+		    		<textarea name="{$_tpl_vars['name']}[area_merge]" placeholder="默认拼接区域规则中所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn_area}" class="form-control" rows="2"></textarea>
+		    		{if !$_tpl_vars['is_paging_url']}
+		    		<div class="input-group-addon">
+		    			<a href="javascript:;" role="button" class="dropdown-toggle btn-page-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			            	{:cp_sign('match','N')}
+			            	<span class="caret"></span>
+			            </a>
+						<div class="dropdown-menu dropdown-menu-right" style="padding:10px;">
+							<table class="table table-hover">
+								<thead>
+									<tr>
+										<th>页面</th>
+										<th>区域</th>
+										<th>网址</th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+						</div>
+		    		</div>
+		    		{else/}
+		    		<div class="input-group-addon iga-rt">
+		    			<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'{$_tpl_vars['name']}[area]\']','[name=\'{$_tpl_vars['name']}[area_merge]\']',{def:1})">{:cp_sign('match','N')}</a>
+		    		</div>
+		    		{/if}
+		      	</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            <a data-toggle="collapse" href="#{$_tpl_vars['id']}_url" {if $_tpl_vars['is_relation_url']||$_tpl_vars['is_paging_url']}aria-expanded="true"{else/}aria-expanded="false" class="collapsed"{/if}>匹配{$_tpl_vars['title']}网址</a>
+        </h4>
+    </div>
+    <div data-module-select="{$_tpl_vars['name']}[url_rule_module]" id="{$_tpl_vars['id']}_url" {if $_tpl_vars['is_relation_url']||$_tpl_vars['is_paging_url']}class="panel-collapse collapse in" aria-expanded="true"{else/}class="panel-collapse collapse" aria-expanded="false"{/if}>
+        <div class="panel-body">
+			<div class="form-group">
+		    	<label class="control-label">提取网址规则</label>
+		    	<div class="input-group">
+		    		<textarea class="form-control" name="{$_tpl_vars['name']}[url_rule]" rows="3" {if $_tpl_vars['is_relation_url']||$_tpl_vars['is_paging_url']}data-placeholder-xpath="请输入xpath规则" data-placeholder-json="请输入json规则" placeholder="必须填写规则，{$Think.lang.tips_match_url}"{else/}data-placeholder-xpath="请输入xpath规则，默认获取所有链接并保存为{:cp_sign('match')}标签以供拼接调用" data-placeholder-json="请输入json规则" placeholder="默认获取所有链接并保存为{:cp_sign('match')}标签以供拼接调用，{$Think.lang.tips_match_url}"{/if}></textarea>
+		    		<div class="input-group-addon iga-rt iga-rt1">
+						<select name="{$_tpl_vars['name']}[url_rule_module]" data-module-input="{$_tpl_vars['name']}[url_rule]" class="slt">
+			     			<option value="">正则</option>
+			     			<option value="xpath">xpath</option>
+			     			<option value="json">json</option>
+			     		</select>
+			     		<ul class="op">
+			     			<li data-module="" style="display:block;">
+			    				<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'{$_tpl_vars['name']}[url_rule]\']')">{$Think.lang.sign_wildcard}</a></div>
+			    				<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match}" onclick="cpMatch('[name=\'{$_tpl_vars['name']}[url_rule]\']',{zimu:{$_tpl_vars['is_paging_url']?0:1}})">{:cp_sign('match')}</a></div>
+			    				<div>
+			    					<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group}" onclick="cpMatch('[name=\'{$_tpl_vars['name']}[url_rule]\']',{group:1,zimu:{$_tpl_vars['is_paging_url']?0:1}})">捕获组</a></div>
+			    					<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign" style="font-size:11px;" onclick="cpRuleTips({$_tpl_vars['is_paging_url']?'':1})"></a></div>
+								</div>
+			    			</li>
+					      	<li data-module="xpath">xpath语法</li>
+							<li data-module="json">格式 a.b.c<br>通配符 *</li>
+			    		</ul>
+		    		</div>
+		    	</div>
+		      	<p class="help-block">
+		      		<span data-module="">规则中无{:cp_sign('match')}标签时，自动将完全匹配的值保存为{:cp_sign('match')}标签以供拼接调用</span>
+					<span data-module="xpath" style="display:none;">XPATH匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+					<span data-module="json" style="display:none;">JSON匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+				</p>
+			</div>
+			<div class="form-group">
+		    	<label class="control-label">拼接成最终网址</label>
+		    	<div class="input-group c-p-url-page-signs" data-page-type="{$_tpl_page_type}" data-input-name="{$_tpl_vars['name']}[url_merge]">
+		      		<input type="text" class="form-control" name="{$_tpl_vars['name']}[url_merge]" placeholder="默认拼接网址规则中所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn_url}" autocomplete="off" />
+		    		{if !$_tpl_vars['is_paging_url']}
+		    		<div class="input-group-addon">
+		    			<a href="javascript:;" role="button" class="dropdown-toggle btn-page-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			            	{:cp_sign('match','N')}
+			            	<span class="caret"></span>
+			            </a>
+						<div class="dropdown-menu dropdown-menu-right" style="padding:10px;">
+							<table class="table table-hover">
+								<thead>
+									<tr>
+										<th>页面</th>
+										<th>区域</th>
+										<th>网址</th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+						</div>
+		    		</div>
+		    		{else/}
+		    		<div class="input-group-addon iga-rt">
+		    			<a href="javascript:;" title="调用规则中的标签" onclick="cpMatchN('[name=\'{$_tpl_vars['name']}[url_rule]\']','[name=\'{$_tpl_vars['name']}[url_merge]\']',{def:1})">{:cp_sign('match','N')}</a>
+		    		</div>
+		    		{/if}
+		      	</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            <a data-toggle="collapse" href="#{$_tpl_vars['id']}_filter" {if $_tpl_vars['is_relation_url']||$_tpl_vars['is_paging_url']}aria-expanded="false" class="collapsed"{else/}aria-expanded="true"{/if}>结果网址过滤</a>
+        </h4>
+    </div>
+    <div id="{$_tpl_vars['id']}_filter" {if $_tpl_vars['is_relation_url']||$_tpl_vars['is_paging_url']}class="panel-collapse collapse" aria-expanded="false"{else/}class="panel-collapse collapse in" aria-expanded="true"{/if}>
+        <div class="panel-body">
+			<div class="form-group">
+				<div class="input-group" style="margin-bottom:7px;">
+			       	<span class="input-group-addon">必须包含</span>
+			       	<input type="text" name="{$_tpl_vars['name']}[url_must]" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
+		      		<div class="input-group-addon iga-rt">
+		      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'{$_tpl_vars['name']}[url_must]\']')">{$Think.lang.sign_wildcard}</a>
+						<span title="{$Think.lang.tips_regular}">正则</span>
+		      		</div>
+			    </div>
+			    <div class="input-group">
+			    	<span class="input-group-addon">不能包含</span>
+			    	<input type="text" name="{$_tpl_vars['name']}[url_ban]" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
+		      		<div class="input-group-addon iga-rt">
+		      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'{$_tpl_vars['name']}[url_ban]\']')">{$Think.lang.sign_wildcard}</a>
+						<span title="{$Think.lang.tips_regular}">正则</span>
+		      		</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{if !$_tpl_vars['is_paging_url']}
+<div class="panel panel-default"{if $_tpl_vars['is_url']} style="margin-bottom:0;"{/if}>
+	<div class="panel-heading">
+	    <h4 class="panel-title">
+	        <a data-toggle="collapse" href="#{$_tpl_vars['id']}_web" aria-expanded="false" class="collapsed">请求网址</a>
+	    </h4>
+	</div>
+	<div id="{$_tpl_vars['id']}_web" class="panel-collapse collapse" aria-expanded="false">
+		<div class="panel-body">
+			<div class="form-group">
+		    	<label class="control-label">自定义请求</label>
+		    	<div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[url_web][open]" value="1">是</label>
+					<label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[url_web][open]" value="0" checked="checked">否</label>
+		        </div>
+		        <p class="help-block">请求网址时使用自定义设置</p>
+		    </div>
+			<div class="form-group">
+				<label class="control-label">页面编码</label>
+				<div class="input-group input-select-custom">
+					<div class="input-group-btn">
+						<select name="{$_tpl_vars['name']}[url_web][charset]" class="form-control">		
+							<option value="">默认为采集器设置»网页编码</option>
+							<option value="utf-8">utf-8</option>
+							<option value="gbk">gbk</option>
+							<option value="gb2312">gb2312</option>
+							<option value="custom">自定义</option>
+						</select>
+					</div>
+					<input type="text" class="form-control" name="{$_tpl_vars['name']}[url_web][charset_custom]">
+				</div>
+			</div>
+			<div class="form-group">
+				<label>请求方式</label>
+				<select name="{$_tpl_vars['name']}[url_web][form_method]" class="form-control">
+					<option value="">GET</option>
+					<option value="post">POST</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label class="control-label">发送数据 <a href="javascript:;" class="glyphicon glyphicon-plus add-url-web-form" title="添加" style="font-size:12px;"></a></label>
+            	<table class="table table-bordered table-hover c-p-url-web-form" style="margin-bottom:0;">
+                   <thead>
+                       <tr>
+                           <td>名称</td>
+                           <td>值</td>
+                           <td>删除</td>
+                       </tr>
+                   </thead>
+                   <tbody>
+                   </tbody>
+				</table>
+			</div>
+			<div class="form-group">
+		    	<label class="control-label">使用全局请求头</label>
+		    	<div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[url_web][header_global]" value="" checked="checked">默认</label>
+			        <label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[url_web][header_global]" value="y">强制使用</label>
+					<label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[url_web][header_global]" value="n">强制禁用</label>
+		        </div>
+		        <p class="help-block">默认使用采集器设置»请求头信息»抓取页面中的设置（受全局开启状态影响）</p>
+		    </div>
+			<div class="form-group">
+				<label class="control-label">请求头信息 <a href="javascript:;" class="glyphicon glyphicon-plus add-url-web-header" title="添加" style="font-size:12px;"></a></label>
+            	<table class="table table-bordered table-hover c-p-url-web-header" style="margin-bottom:0;">
+                   <thead>
+                       <tr>
+                           <td>名称</td>
+                           <td>值</td>
+                           <td>删除</td>
+                       </tr>
+                   </thead>
+                   <tbody>
+                   </tbody>
+				</table>
+				<p class="help-block">添加新的或者覆盖已有的请求头信息</p>
+			</div>
+		</div>
+	</div>
+</div>
+{/if}

@@ -15,11 +15,12 @@ use think\Request;
 class Init{
 	
 	public function run(){
+	    config('html_v',constant('SKYCAIJI_VERSION'));
 		if(!isset($GLOBALS['_sc'])){
 			
 			$GLOBALS['_sc']=array();
 		}
-		if(session_status()!==2){
+		if(session_status()!==PHP_SESSION_ACTIVE){
 			session_start();
 		}
 		if(isset($_GET['m'])&&isset($_GET['c'])&&isset($_GET['a'])){
@@ -45,15 +46,14 @@ class Init{
 		
 		if (preg_match ( '/MSIE\s*([\.\d]+)/i', $_SERVER ['HTTP_USER_AGENT'], $browserIe )) {
 			$browserIe = doubleval($browserIe[1]);
-			if($browserIe<9){
+			if($browserIe<10){
 				
-				$GLOBALS['_sc']['browser_is_old']=true;
+			    set_g_sc('browser_is_old',true);
 			}
 		}
 		if(stripos(Request::instance()->root(),'/index.php')!==false&&isset($_GET['s'])){
 			
-			Request::instance()->root(config('root_url').'/index.php?s=');
-			define('URL_IS_COMPATIBLE', true);
+			\skycaiji\common\model\Config::set_url_compatible();
 		}
 	}
 }

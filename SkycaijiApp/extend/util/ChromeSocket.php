@@ -11,32 +11,40 @@
  
 /*谷歌浏览器*/
 namespace util;
-use WebSocket\Client;
+
 class ChromeSocket{
 	protected $filename;
 	protected $timeout=30;
 	protected $host;
 	protected $port;
 	protected $address;
+	protected $options;
 	protected $socket;
 	public $tab;
 	static protected $passType=array('stylesheet','image','media','font');
 	
-	public function __construct($host,$port,$timeout=30,$filename=''){
+	public function __construct($host,$port,$timeout=30,$filename='',$options=array()){
 		$this->host=empty($host)?'127.0.0.1':$host;
 		$port=intval($port);
-		$this->port=empty($port)?9222:$port;
+		$this->port=self::defaultPort($port);
 		$this->address=$this->host.($this->port?(':'.$this->port):'');
 		
 		$timeout=intval($timeout);
 		$this->timeout=$timeout<=0?30:$timeout;
 		$this->filename=$filename?$filename:'chrome';
+		$this->options=is_array($options)?$options:array();
 	}
 	public function __destruct(){
 		if(!empty($this->tab)){
 			
 			$this->closeTab($this->tab['id']);
 		}
+	}
+	
+	public static function defaultPort($port){
+	    $port=intval($port);
+	    $port=$port>0?$port:9222;
+	    return $port;
 	}
 	/*检查服务器是否开启*/
 	public function hostIsOpen(){
@@ -54,41 +62,67 @@ class ChromeSocket{
 			
 			return;
 		}
-		
-		$command=$this->filename;
-		if(empty($command)){
-			
-			$command='chrome';
-		}else{
-			if(IS_WIN){
-				
-				
-				if(file_exists($command)){
-					$command='"'.$command.'"';
-				}
-			}
+		$return=self::execHeadless($this->filename,$this->port,$this->options,false,false);
+		if(!empty($return['error'])){
+		    throw new \Exception($return['error']);
 		}
-		$commandStr=sprintf('%s --headless --remote-debugging-port=%s',$command,$this->port);
-		if(!function_exists('proc_open')){
-			throw new \Exception('请开启proc_open函数或者手动执行命令：'.$commandStr);
-		}
-		$descriptorspec = array(
-			0 => array('pipe', 'r'),  
-			1 => array('pipe', 'w'),  
-			2 => array('pipe', 'w')
-		);
-		$pipes=array();
-		$handle=proc_open($commandStr,$descriptorspec,$pipes);
-		$hdStatus=proc_get_status($handle);
-		fclose($pipes[0]);
-		fclose($pipes[1]);
-		fclose($pipes[2]);
-
-
-
-
-
-		
+	}
+	
+	public static function execHeadless($filename,$port,$options,$returnInfo,$isTest){
+	    set_time_limit(15);
+	    $port=self::defaultPort($port);
+	    $options=is_array($options)?$options:array();
+	    $return=array('error'=>'','info'=>'');
+	    if(version_compare(PHP_VERSION,'5.5','<')){
+	        
+	        $return['error']='该功能仅支持php5.5及以上版本';
+	    }elseif(empty($port)){
+	        $return['error']='请设置端口';
+	    }elseif($port==80){
+	        $return['error']='不能设置为80端口';
+	    }elseif(!empty($options['user_data_dir'])&&!is_dir($options['user_data_dir'])){
+	        
+	        $return['error']='用户配置目录不存在！';
+	        if(\skycaiji\admin\model\Config::check_basedir_limited($options['user_data_dir'])){
+	            
+	            $return['error'].=lang('error_open_basedir');
+	        }
+	    }else{
+	        $hasProcOpen=function_exists('proc_open')?true:false;
+	        if($isTest&&!$hasProcOpen){
+	            
+	            $return['error']='需开启proc_open函数';
+	        }else{
+	            
+                $command=$filename;
+                if(empty($command)){
+                    
+                    $command='chrome';
+                }else{
+                    
+                    $command=\skycaiji\admin\model\Config::cli_safe_filename($command);
+                }
+                $command.=' --headless';
+                if(!empty($options['user_data_dir'])){
+                    
+                    $command=sprintf('%s --user-data-dir=%s',$command,$options['user_data_dir']);
+                }
+                if($isTest){
+                    
+                    $command=sprintf('%s',$command);
+                }else{
+                    $command=sprintf('%s --remote-debugging-port=%s',$command,$port);
+                }
+                
+                if(!$hasProcOpen){
+                    $return['error']='请开启proc_open函数或者手动执行命令：'.$command;
+                }else{
+                    
+                    $return['info']=proc_open_exec($command,$returnInfo,3,$isTest?true:false);
+                }
+	        }
+	    }
+	    return $return;
 	}
 	/*握手浏览器*/
 	public function websocket($url='',$headers=array(),$options=array()){
@@ -105,7 +139,8 @@ class ChromeSocket{
 			
 			$url=$this->tab['webSocketDebuggerUrl'];
 		}
-		$this->socket=new Client($url,$options);
+		$this->loadWebsocket();
+		$this->socket=new \WebSocket\Client($url,$options);
 	}
 	/*发送数据*/
 	public function send($method,$params=array(),$id=0){
@@ -147,7 +182,7 @@ class ChromeSocket{
 			
 		}
 		$this->send('Page.enable');
-		if(isset($postData)){
+		if(isset($postData)&&$postData!==false){
 			
 			if(!is_array($postData)){
 				
@@ -284,6 +319,17 @@ class ChromeSocket{
 	/*关闭标签页*/
 	public function closeTab($id){
 		get_html($this->address.'/json/close/'.$id,null,array('timeout'=>1));
+	}
+	
+	/*加载websocket库*/
+	private function loadWebsocket(){
+	    
+	    static $loaded;
+	    if(!isset($loaded)){
+	        $loaded=true;
+	        
+	        \think\Loader::addNamespace('WebSocket',realpath(APP_PATH.'extend/websocket'));
+	    }
 	}
 }
 

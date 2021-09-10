@@ -17,7 +17,7 @@ class Rapi extends Release{
 	 * @param unknown $config
 	 */
 	public function setConfig($config){
-		$api=input('api/a');
+	    $api=input('api/a',array());
 		$api['url']=trim($api['url'],'\/\\');
 		$api['cache_time']=intval($api['cache_time']);
 		$api['hide_fields']=is_array($api['hide_fields'])?$api['hide_fields']:array();
@@ -45,13 +45,15 @@ class Rapi extends Release{
 			$mcacheCont->db()->where('cname','in',$contUrls)->delete();
 		}
 		
-
-		$this->hide_coll_fields($this->config['api']['hide_fields'],$collFieldsList);
+		
+		foreach ($collFieldsList as $collFieldsKey=>$collFields){
+		    $this->hide_coll_fields($this->config['api']['hide_fields'],$collFields);
+		    $collFieldsList[$collFieldsKey]=$collFields;
+		}
 		
 		$this->set_cache_fields($collFieldsList);
 		
-		json($collFieldsList)->send();
-		exit();
+		$this->json_exit($collFieldsList);
 	}
 
 	/*设置缓存数据*/
@@ -80,6 +82,20 @@ class Rapi extends Release{
 		}else{
 			return false;
 		}
+	}
+	
+	/*输出json数据*/
+	public function json_exit($collFieldsList){
+	    if(defined('API_TASK_RESPONSE_JSON')){
+	        json($collFieldsList)->send();
+	    }else{
+	        $html='<form id="win_form_json" method="post" target="_blank" action="'.url('Tool/json_tree_data').'">'.html_usertoken()
+	           .'<p>生成API返回的数据 <a href="javascript:;" onclick="document.getElementById(\'win_form_json\').submit();">解析</a></p>'
+	           .'<textarea name="data" style="width:100%;margin:5px 0;" rows="20">'.htmlspecialchars(json_encode($collFieldsList)).'</textarea></form>';
+	        $this->echo_msg($html,'black');
+	        $this->_echo_msg_end();
+	    }
+	    exit();
 	}
 }
 ?>

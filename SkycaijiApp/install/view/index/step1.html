@@ -43,8 +43,18 @@
 			<tbody>
 				{foreach $phpModuleList as $v}
 				<tr>
-					<td>{$v[0]}</td>
-					<td>{$v[1]?'<span class="glyphicon glyphicon-ok"></span> 开启':'<span class="glyphicon glyphicon-remove"></span> 不支持'}</td>
+					<td>{$v['name']}</td>
+					<td>
+						{if empty($v['loaded'])}
+							<span class="glyphicon glyphicon-remove" data-not-pass="1"></span> 不支持
+						{else /}
+							{if empty($v['lack'])}
+								<span class="glyphicon glyphicon-ok"></span> 开启
+							{else /}
+								<span class="glyphicon glyphicon-info-sign" data-not-pass="1"></span> 不支持{$v['lack']}
+							{/if}
+						{/if}
+					</td>
 					<td></td>
 				</tr>
 				{/foreach}
@@ -67,22 +77,23 @@
 				{foreach $pathFileList as $v}
 				<tr>
 					<td>{$v[0]}</td>
-					<td>{$v[1]?'<span class="glyphicon glyphicon-ok"></span> 可写':'<span class="glyphicon glyphicon-remove"></span> 不可写'}</td>
-					<td>{$v[2]?'<span class="glyphicon glyphicon-ok"></span> 可读':'<span class="glyphicon glyphicon-remove"></span> 不可读'}
+					<td>{$v[1]?'<span class="glyphicon glyphicon-ok"></span> 可写':'<span class="glyphicon glyphicon-remove" data-not-pass="1"></span> 不可写'}</td>
+					<td>{$v[2]?'<span class="glyphicon glyphicon-ok"></span> 可读':'<span class="glyphicon glyphicon-remove" data-not-pass="1"></span> 不可读'}
 					</td>
 				</tr>
 				{/foreach}
 			</tbody>
 		</table>
 	</div>
-	<a href="{:url('Install/Index/index')}" class="btn btn-primary">上一步</a>&nbsp;
-	<a href="{:url('Install/Index/step2')}" class="btn btn-success" onclick="return nextStep();">下一步</a>
+	<div style="display:inline;"><a href="{:url('Install/Index/index')}" class="btn btn-primary">上一步</a></div>
+	<div style="display:inline;margin-left:5px;"><a href="{:url('Install/Index/step2')}" class="btn btn-success" onclick="return nextStep();">下一步</a></div>
 </div>
 <script type="text/javascript">
+'use strict';
 function nextStep(){
-	var errorNum=$('.install-wrapper .table').find('.glyphicon-remove').length;
-	if(errorNum>0){
-		if(confirm('检测出错误，是否继续？')){
+	var notPassNum=$('.install-wrapper .table').find('[data-not-pass]').length;
+	if(notPassNum>0){
+		if(confirm('检测出问题会影响程序正常使用，是否继续？')){
 			return true;
 		}else{
 			return false;

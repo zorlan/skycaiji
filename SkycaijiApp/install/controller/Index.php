@@ -11,19 +11,30 @@
 
 namespace skycaiji\install\controller;
 use skycaiji\common\controller\BaseController;
-use skycaiji\admin\model\User;
 use think\Db;
 use skycaiji\install\event\UpgradeDb;
 use think\Config;
+use skycaiji\common\model\User;
 class Index extends BaseController{
 	public function __construct(){
 		parent::__construct();
-		if(session_status()!==2){
+		if(session_status()!==PHP_SESSION_ACTIVE){
 			session_start();
 		}
-		if(file_exists(config('app_path').'/install/data/install.lock')){
-			
-			$this->success('程序已安装','admin/Index/index');
+		
+		$lockFile=config('root_path').'/data/install.lock';
+		$lockFileOld=config('app_path').'/install/data/install.lock';
+		$hasLockFile=null;
+		if(file_exists($lockFile)){
+		    
+		    $hasLockFile=$lockFile;
+		}elseif(file_exists($lockFileOld)){
+		    $hasLockFile=$lockFileOld;
+		}
+		
+		if($hasLockFile){
+		    
+		    $this->success('程序已安装，如需重新安装请删除文件：'.realpath($hasLockFile),'admin/Index/index',[],10);
 		}
 	}
 	public function indexAction(){
@@ -33,7 +44,7 @@ class Index extends BaseController{
 	/*环境检测*/
 	public function step1Action(){
 	    try{
-	        clear_dir(config('root_path').'/runtime');
+	        \util\Funcs::clear_dir(config('root_path').'/runtime');
 	    }catch(\Exception $ex){
 	        
 	    }
@@ -87,15 +98,16 @@ class Index extends BaseController{
 			if(!$check['success']){
 				$this->error('创始人'.$check['msg']);
 			}
-			if($adminUser['user_pwd']!=$adminUser['user_repwd']){
-				$this->error('创始人密码不一致');
+			$check=User::right_repwd($adminUser['user_pwd'],$adminUser['user_repwd']);
+			if(!$check['success']){
+			    $this->error('创始人'.$check['msg']);
 			}
 			if(empty($adminUser['user_email'])){
 				$this->error('请输入创始人邮箱');
 			}
 			$check=User::right_email($adminUser['user_email']);
 			if(!$check['success']){
-				$this->error('创始人邮箱格式错误');
+			    $this->error('创始人'.$check['msg']);
 			}
 	
 			try {
@@ -107,17 +119,16 @@ class Index extends BaseController{
 				}
 			}
 			$has_data = false; 
-			/*
+			
 			if (! empty ( $dbTables )) {
 				foreach ( $dbTables as $dbTable ) {
 					if (stripos ( $dbTable, $db_config ['db_prefix'] ) === 0) {
-						// 存在表
+						
 						$has_data = true;
 						break;
 					}
 				}
 			}
-			*/
 			
 			session('install_config',array('db'=>$db_config,'admin'=>$adminUser));
 			
@@ -194,10 +205,10 @@ class Index extends BaseController{
 					
 					$founderGid=$dbConn->table($dbConfig['db_prefix'].'usergroup')->where('founder',1)->value('id');
 					
-					$userSalt=\skycaiji\admin\model\User::rand_salt();
+					$userSalt=User::rand_salt();
 					$dbConn->table($dbConfig['db_prefix'].'user')->insert(array(
 							'username'=>$installConfig['admin']['user_name'],
-							'password'=>\skycaiji\admin\model\User::pwd_encrypt($installConfig['admin']['user_pwd'],$userSalt),
+							'password'=>User::pwd_encrypt($installConfig['admin']['user_pwd'],$userSalt),
 							'salt'=>$userSalt,
 							'groupid'=>$founderGid,
 							'email'=>$installConfig['admin']['user_email'],
@@ -213,9 +224,18 @@ class Index extends BaseController{
 			
 					$this->_echo_msg('安装完成！');
 			
-					write_dir_file(config('app_path').'/install/data/install.lock', '1');
+					write_dir_file(config('root_path').'/data/install.lock', '1');
 			
 					$this->_echo_msg('<a href="'.url('Admin/Index/index').'" class="btn btn-lg btn-success">开始使用</a>');
+					
+					
+					$LocSystem=new \skycaiji\install\event\LocSystem();
+					$phpGdIsAllowed=$LocSystem->phpModuleIsAllowed('gd');
+					if(empty($phpGdIsAllowed)){
+					    
+					    $mconfig=new \skycaiji\common\model\Config();
+					    $mconfig->setVerifycode(false);
+					}
 				}
 			}
 		}catch (\Exception $ex){

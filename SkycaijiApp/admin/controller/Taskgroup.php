@@ -74,8 +74,9 @@ class Taskgroup extends BaseController {
     	$parentTgList=$mtaskgroup->where(array('parent_id'=>0))->order('sort desc')->column('name','id');
     	$this->assign('parentTgList',$parentTgList);
     	
-    	$GLOBALS['_sc']['p_name']=lang('taskgroup_list');
-    	$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list'))));
+    	set_g_sc('p_title',lang('taskgroup_list'));
+    	set_g_sc('p_name',lang('taskgroup_list'));
+    	set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list')))));
     	return $this->fetch();
     }
     /**
@@ -90,6 +91,7 @@ class Taskgroup extends BaseController {
     			
     			$this->error($validate->getError());
     		}
+    		$newData['sort']=min(intval($newData['sort']),999999);
 
     		$mtaskgroup->isUpdate(false)->allowField(true)->save($newData);
     		$tgid=$mtaskgroup->id;
@@ -102,8 +104,9 @@ class Taskgroup extends BaseController {
     		$parentTgList=$mtaskgroup->where(array('parent_id'=>0))->order('sort desc')->column('name','id');
     		$this->assign('parentTgList',$parentTgList);
     		
-    		$GLOBALS['_sc']['p_name']=lang('taskgroup_add');
-    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list')),array('url'=>url('Taskgroup/add'),'title'=>lang('taskgroup_add'))));
+    		set_g_sc('p_title',lang('taskgroup_add'));
+    		set_g_sc('p_name',lang('taskgroup_add'));
+    		set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list')),array('url'=>url('Taskgroup/add'),'title'=>lang('taskgroup_add')))));
     		
     		if(request()->isAjax()){
     			return view('add_ajax');
@@ -130,6 +133,7 @@ class Taskgroup extends BaseController {
     			
     			$this->error($validate->getError());
     		}
+    		$newData['sort']=min(intval($newData['sort']),999999);
     		if($tgData['name']!=$newData['name']){
     			
     			if($mtaskgroup->where(array('name'=>$newData['name']))->count()>0){
@@ -160,8 +164,9 @@ class Taskgroup extends BaseController {
     		$this->assign('parentTgList',$parentTgList);
     		$this->assign('tgData',$tgData);
     		
-    		$GLOBALS['_sc']['p_name']=lang('taskgroup_edit').'：'.$tgData['name'];
-    		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list')),array('url'=>url('Taskgroup/edit?id='.$tgData['id']),'title'=>$tgData['name'])));
+    		set_g_sc('p_title','分组:'.$tgData['name']);
+    		set_g_sc('p_name',lang('taskgroup_edit').'：'.$tgData['name']);
+    		set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Taskgroup/list'),'title'=>lang('taskgroup_list')),array('url'=>url('Taskgroup/edit?id='.$tgData['id']),'title'=>$tgData['name']))));
     		
     		if(request()->isAjax()){
     			return view('add_ajax');
@@ -230,7 +235,7 @@ class Taskgroup extends BaseController {
     		}
     	}elseif($op=='deleteall'){
     		
-    		$ids=input('ids/a');
+    	    $ids=input('ids/a',array());
     		if(is_array($ids)&&count($ids)>0){
     			$list=$mtaskgroup->where(array('id'=>array('in',$ids)))->column('*');
     			$deleteIds=array();
@@ -251,14 +256,15 @@ class Taskgroup extends BaseController {
     		$this->success(lang($hasSub?'tg_deleteall_has_sub':'op_success'));
     	}elseif($op=='saveall'){
     		
-    		$ids=input('ids/a');
-    		$newsort=input('newsort/a');
+    	    $ids=input('ids/a',array());
+    	    $newsort=input('newsort/a',array());
 			if(is_array($ids)&&count($ids)>0){
 	    		$ids=array_map('intval', $ids);
 	    		
 	    		$updateSql=' UPDATE '.$mtaskgroup->getQuery()->getTable().' SET `sort` = CASE `id` ';
 	    		foreach ($ids as $tgid){
-	    			$updateSql.= sprintf(" WHEN %d THEN '%s' ", $tgid, intval($newsort[$tgid]));
+	    		    $newsort[$tgid]=min(intval($newsort[$tgid]),999999);
+	    		    $updateSql.= sprintf(" WHEN %d THEN '%s' ", $tgid, $newsort[$tgid]);
 	    		}
 	    		$updateSql.='END WHERE `id` IN ('. implode(',',$ids).')';
 	    		try{

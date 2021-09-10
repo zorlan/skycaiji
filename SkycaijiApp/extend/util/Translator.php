@@ -113,8 +113,8 @@ class Translator{
 		)  
 	);
 	/*翻译入口*/
-	public static function translate($q,$from,$to){
-		$transConf=$GLOBALS['_sc']['c']['translate'];
+	public static function translate($q,$from,$to,$returnState=false){
+	    $transConf=g_sc_c('translate');
 		if(empty($from)||empty($to)){
 			
 			return $q;
@@ -140,12 +140,6 @@ class Translator{
 			return $q;
 		}
 		
-		
-		if(!empty($transConf['interval'])&&$transConf['interval']>0){
-			
-			usleep($transConf['interval']*1000);
-		}
-		
 		if('baidu'==$apiType){
 			$return=self::api_baidu($q, $from, $to);
 		}elseif('youdao'==$apiType){
@@ -153,12 +147,19 @@ class Translator{
 		}elseif('qq'==$apiType){
 			$return=self::api_qq($q, $from, $to);
 		}
-		return $return['success']?$return['data']:$q;
+		
+		if($returnState){
+		    
+		    return $return;
+		}else{
+		    
+		    return empty($return['success'])?$q:$return['data'];
+		}
 	}
 	
 	/*百度翻译接口*/
 	public static function api_baidu($q,$from,$to){
-		$apiConf=$GLOBALS['_sc']['c']['translate']['baidu'];
+	    $apiConf=g_sc_c('translate','baidu');
 		
 		$salt = time ();
 		$sign = $apiConf['appid'] . $q . $salt . $apiConf['key'];
@@ -185,7 +186,7 @@ class Translator{
 	}
 	/*有道翻译接口*/
 	public static function api_youdao($q,$from,$to){
-		$apiConf=$GLOBALS['_sc']['c']['translate']['youdao'];
+	    $apiConf=g_sc_c('translate','youdao');
 		
 		$salt = time ();
 		$sign = $apiConf['appkey'] . $q . $salt . $apiConf['key'];
@@ -212,7 +213,7 @@ class Translator{
 	
 	/*腾讯翻译接口*/
 	public static function api_qq($q,$from,$to){
-		$apiConf=$GLOBALS['_sc']['c']['translate']['qq'];
+	    $apiConf=g_sc_c('translate','qq');
 		
 		$SecretId=$apiConf['secretid'];
 		$SecretKey=$apiConf['secretkey'];

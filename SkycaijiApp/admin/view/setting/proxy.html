@@ -4,6 +4,7 @@
 {/block}
 {block name="content"}
 <form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('Admin/Setting/proxy')}">
+{:html_usertoken()}
 <div class="nav-tabs-custom">
 	{include file="setting/caiji_nav" /}
 	<div class="tab-content">
@@ -14,13 +15,14 @@
 			<input type="hidden" name="pwd_list" value="" />
 			<input type="hidden" name="type_list" value="" />
       		<div class="form-group">
-		        <label>开启代理</label>
+		        <label>全局开启</label>
 		        <div class="input-group">
 		        	<label class="radio-inline"><input type="radio" name="open" value="1">{$Think.lang.yes}</label>
-		        	<label class="radio-inline"><input type="radio" name="open" value="0">{$Think.lang.no}</label>
+		        	<label class="radio-inline"><input type="radio" name="open" value="0" checked="checked">{$Think.lang.no}</label>
 		        </div>
+		        <p class="help-block">采集页面和下载图片时使用代理设置，可单独在任务»更多设置中控制开关</p>
 		    </div>
-		    <div id="proxy_open" class="proxy-ip-box" style="display:none;">
+		    <div id="proxy_open" class="proxy-ip-box">
 			    <div class="form-group">
 		        	<label>失败多少次屏蔽该IP</label>
 					<input type="number" class="form-control" name="failed" />
@@ -47,21 +49,21 @@
 	</div>
 </div>
 
-<div class="panel panel-default proxy-api-list" id="proxy_api" style="display:none;">
+<div class="panel panel-default proxy-api-list" id="proxy_api">
 	<div class="panel-heading">
-    	<h4 class="panel-title"><a data-toggle="collapse" href="#panel_proxy_api">API动态获取IP</a></h4>
+    	<h4 class="panel-title"><a data-toggle="collapse" href="#panel_proxy_api" aria-expanded="false" class="collapsed">API动态获取IP</a></h4>
    	</div>
-    <div class="panel-collapse collapse in" id="panel_proxy_api">
+    <div class="panel-collapse collapse" id="panel_proxy_api">
     	<div class="panel-body">
     		<div class="form-group">
-		        <label>开启功能</label>
+		        <label>使用</label>
 		        <div class="input-group">
 			        <label class="radio-inline"><input type="radio" name="api[open]" value="1">是</label>
-					<label class="radio-inline"><input type="radio" name="api[open]" value="0">否</label>
+					<label class="radio-inline"><input type="radio" name="api[open]" value="0" checked="checked">否</label>
 		        </div>
 				<p class="help-block">采集运行时自动从API接口中抓取代理IP并入库</p>
 		    </div>
-		    <div class="panel-group" id="proxy_api_box" style="display:none;">
+		    <div class="panel-group" id="proxy_api_box" style="margin-bottom:0;">
 		    	<div class="form-group">
 			        <label>IP入库时机</label>
 			        <select name="api[insert]" class="form-control">
@@ -102,13 +104,13 @@
 						<div class="form-group">
 							<label>匹配格式</label>
 					    	<textarea data-name="api_format" class="form-control">[ip]:[端口]</textarea>
-					    	<div style="margin:10px 0;" class="p-api-format">
-					    		<a href="javascript:;" data-val="[ip]">[ip]</a>
-					    		&nbsp;<a href="javascript:;" data-val="[端口]">[端口]</a>
-					    		&nbsp;<a href="javascript:;" data-val="[用户名]">[用户名]</a>
-					    		&nbsp;<a href="javascript:;" data-val="[密码]">[密码]</a>
-					    		&nbsp;<a href="javascript:;" data-val="(*)" title="匹配任意字符">(*)</a>通配符
-					    	</div>
+					    	<ul class="in-line-mg p-api-format" style="display:block;margin:5px 0;">
+					    		<li><a href="javascript:;" data-val="[ip]">[ip]</a></li>
+					    		<li><a href="javascript:;" data-val="[端口]">[端口]</a></li>
+					    		<li><a href="javascript:;" data-val="[用户名]">[用户名]</a></li>
+					    		<li><a href="javascript:;" data-val="[密码]">[密码]</a></li>
+					    		<li><a href="javascript:;" data-val="(*)" title="匹配任意字符">(*)</a>通配符</li>
+					    	</ul>
 					    	<p class="help-block">从API返回的源码中匹配出相应格式的数据</p>
 					    </div>
 					    <div class="form-group">
@@ -139,18 +141,18 @@
     </div>
 </div>
 <div class="form-group">
-	<button type="submit" id="btn_sub" class="btn btn-primary btn-block">保存以上配置</button>
+	<button type="submit" id="btn_sub" class="btn btn-primary btn-block">保存以上设置</button>
 </div>
 <div class="panel panel-default" id="proxy_ip">
 	<div class="panel-heading">
-    	<h4 class="panel-title">
+    	<div class="panel-title">
 			<a data-toggle="collapse" href="#panel_proxy_ip">代理IP列表</a>
-			<small>
-	      		&nbsp;<a href="javascript:;" id="add_proxy_ip" class="glyphicon glyphicon-plus" title="添加">添加</a>
-	      		&nbsp;<a href="javascript:;" id="batch_proxy_ip" class="glyphicon glyphicon-th" title="批量添加">批量</a>
-	      		&nbsp;<a href="javascript:;" id="invalid_proxy_ip" class="glyphicon glyphicon glyphicon-erase" title="一键清理无效IP">清理无效IP</a>
-	      	</small>
-    	</h4>
+			<ul class="in-line-mg" style="font-size:12px;margin-left:5px;">
+	      		<li><a href="javascript:;" id="add_proxy_ip" class="glyphicon glyphicon-plus" title="添加">添加</a></li>
+	      		<li><a href="javascript:;" id="batch_proxy_ip" class="glyphicon glyphicon-th" title="批量添加">批量</a></li>
+	      		<li><a href="javascript:;" id="invalid_proxy_ip" class="glyphicon glyphicon glyphicon-erase" title="一键清理无效IP">清理无效IP</a></li>
+			</ul>
+    	</div>
    	</div>
     <div class="panel-collapse collapse in" id="panel_proxy_ip">
     	<div class="panel-body" style="padding:0;">

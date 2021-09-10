@@ -1,6 +1,5 @@
 {extend name="common:main" /}
 {block name="cssjs"}
-<script src="__PUBLIC__/static/js/admin/store.js?{$Think.config.html_v}"></script>
 <script src="__PUBLIC__/static/js/admin/app.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
@@ -12,13 +11,13 @@
 					<thead>
 						<tr>
 							<th>应用</th>
-							<th>作者</th>
+							<th>导航</th>
 							<th>
-								操作
+								<div class="in-line">操作</div>
 								<span class="sep">|</span>
-    							<div class="checkbox-inline">
-    								<input type="checkbox" id="auto_check" {:empty($GLOBALS['_sc']['c']['store_auto_check_app'])?'':'checked="checked"'} value="1" title="刷新页面时自动检测" style="margin-left:-17px;" />
-    								<a href="javascript:;" id="btn_check" style="color:#333;">检测更新</a>
+    							<div style="position:relative;display:inline;">
+    								<input type="checkbox" id="auto_check" {:is_empty(g_sc_c('store_auto_check_app'))?'':'checked="checked"'} value="1" title="刷新页面时自动检测" style="margin:0;vertical-align:middle;" />
+    								<a href="javascript:;" id="btn_check" style="color:#333;font-weight:normal;">检测更新</a>
     							</div>
 							</th>
 						</tr>
@@ -27,32 +26,36 @@
 					{foreach name="dbApps" item="item" key="app"}
 						<tr data-app="{$app}">
 							<td>
-								<div style="display:inline;" data-toggle="popover" data-content="{$item['config']['desc']|htmlspecialchars}" data-html="true" data-trigger="hover" data-placement="right">
+								<div style="display:inline;" data-toggle="popover" data-content="{$item['_content']}" data-html="true" data-trigger="hover" data-placement="right">
 							    	{$item['config']['name']} {$item['config']['version']}&nbsp;<span style="color:#aaa;">({$app})</span>&nbsp;
 							    </div>
 							</td>
 							<td>
-								{$item['config']['author']}
+								<ul class="in-line nav-packs">
+								{php}$navNum=0;{/php}
+								{foreach $item['_nav_packs'] as $navId=>$navPack}
+								{php}$navNum++;{/php}
+									<li><a href="{:url('App/manage?app='.$app.'&navid='.$navId)}" data-url="{$navPack['nav_link']}"{if $navPack['target']} target="_blank"{/if}>{$navPack['name']}</a></li>
+									{if $navNum!=count($item['_nav_packs'])}<li class="sep">|</li>{/if}
+								{/foreach}
+								</ul>
 							</td>
 							<td>
-								<a href="{:url('App/manage?app='.$app)}" class="manager">管理</a>
-								<span class="sep">|</span>
-								{if $item['newest_version']}
-								<a href="javascript:;" class="upgrade" title="最新版本：{$item['newest_version']}"><b>升级</b></a>
-								<span class="sep">|</span>
-								{/if}
-								{if empty($item['config']['enable'])}
-								<a href="javascript:;" class="enable" data-enable="{$item['config']['enable']}">{$item['config']['enable']?'关闭':'<b>开启</b>'}</a>
-								<span class="sep">|</span>
-								{/if}
-								<a href="javascript:;" class="uninstall">卸载</a>
-								<span class="sep">|</span>
-								{if !empty($provList[$item['provider_id']])}
-								<a href="{$provList[$item['provider_id']]['url']}/client/app/detail?app={$app|urlencode}" data-is-store-url="1" class="store-detail" title="第三方平台">第三方</a>
-								{else/}
-								<a href="https://www.skycaiji.com/client/app/detail?app={$app|urlencode}" data-is-store-url="1" class="store-detail">平台</a>
-								{/if}
-								<div class="app-store-info"></div>
+								<ul class="in-line">
+									<li><a href="{:url('App/manage?app='.$app)}" class="manager">管理</a></li>
+									<li class="sep">|</li>
+									{if $item['newest_version']}
+									<li><a href="javascript:;" class="upgrade" title="最新版本：{$item['newest_version']}"><b>升级</b></a></li>
+									<li class="sep">|</li>
+									{/if}
+									{if empty($item['config']['enable'])}
+									<li><a href="javascript:;" class="enable" data-enable="{$item['config']['enable']}">{$item['config']['enable']?'关闭':'<b>开启</b>'}</a></li>
+									<li class="sep">|</li>
+									{/if}
+									<li><a href="javascript:;" class="uninstall">卸载</a></li>
+									<li class="sep">|</li>
+									<li><a href="javascript:;" data-url="{$item['_store_url']}" class="store-detail">{$item['_is_provider']?'第三方':'官方'}</a></li>
+								</ul>
 							</td>
 						</tr>
 					{/foreach}
@@ -61,22 +64,17 @@
 					{foreach name="pathApps" item="item" key="app"}
 						<tr data-app="{$app}" data-agreement="{$item['config']['agreement']?'1':''}">
 							<td>
-								<div style="display:inline;" data-toggle="popover" data-content="{$item['config']['desc']|htmlspecialchars}" data-html="true" data-trigger="hover" data-placement="right">
-							       {$item['config']['name']} v{$item['config']['version']}&nbsp;<span style="color:#aaa;">({$app})</span>&nbsp;
+								<div style="display:inline;" data-toggle="popover" data-content="{$item['_content']}" data-html="true" data-trigger="hover" data-placement="right">
+							       {$item['config']['name']} {$item['config']['version']}&nbsp;<span style="color:#aaa;">({$app})</span>&nbsp;
 							    </div>
 							</td>
+							<td>&nbsp;</td>
 							<td>
-								{$item['config']['author']}
-							</td>
-							<td>
-								<a href="javascript:;" class="install">安装</a>
-								<span class="sep">|</span>
-								{if !empty($provList[$item['provider_id']])}
-								<a href="{$provList[$item['provider_id']]['url']}/client/app/detail?app={$app|urlencode}" data-is-store-url="1" class="store-detail" title="第三方平台">第三方</a>
-								{else/}
-								<a href="https://www.skycaiji.com/client/app/detail?app={$app|urlencode}" data-is-store-url="1" class="store-detail">平台</a>
-								{/if}
-								<div class="app-store-info"></div>
+								<ul class="in-line">
+									<li><a href="javascript:;" class="install">安装</a></li>
+									<li class="sep">|</li>
+									<li><a href="javascript:;" data-url="{$item['_store_url']}" class="store-detail">{$item['_is_provider']?'第三方':'官方'}</a></li>
+								</ul>
 							</td>
 						</tr>
 					{/foreach}

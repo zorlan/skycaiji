@@ -1,0 +1,55 @@
+{assign name="_tpl_success" value="[_success]" /}
+
+<style type="text/css">
+.content-wrapper{background:#fff;position:relative;}
+.breadcrumb{display:none!important;}
+.msg_box{
+	text-align:center;
+	position:absolute;
+	top:45%;
+	left:50%;
+	z-index:9;
+	transform:translate(-50%,-50%);
+}
+.msg_title{
+	background:#fff;
+    line-height:30px;
+    color:#2E99D4;
+    margin:10px 0;
+    font:16px "microsoft yahei",Arial,Verdana;
+    font-weight:bold;
+}
+.msg_message{
+    line-height:30px;
+	margin-left:10px;	
+    color:#5C5C5C;
+    font:14px "microsoft yahei",Arial,Verdana;
+}
+</style>
+
+<div class="msg_box">
+	<img src="__PUBLIC__/static/images/{$_tpl_success?'success.jpg':'error.png'}" />
+	{if empty($url)}
+		<div class="msg_title">{$msg}</div>
+	{else /}
+		<div class="msg_title" style="margin-left:10px;">{$msg}</div>
+		<div class="msg_message"><span id="tmv" style="color:red;font-weight:bold;"></span>秒钟后跳转<a href="{$url}">页面</a></div>
+	{/if}
+</div>
+
+<script type="text/javascript">
+var msgWaitTm={$wait?$wait:'3'};
+msgWaitTm=parseInt(msgWaitTm);
+function msgGoHome(){
+	if(document.getElementById('tmv')){
+		if(msgWaitTm>=1){
+			document.getElementById('tmv').innerHTML=msgWaitTm;
+			msgWaitTm--;
+	        setTimeout("msgGoHome()",1000);
+		}else{
+			window.location.href="{$url}";
+		}
+	}
+}
+msgGoHome();
+</script>

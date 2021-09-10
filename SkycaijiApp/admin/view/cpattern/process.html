@@ -5,13 +5,14 @@
 			<select name="process[module]" class="form-control">
 				<option value="">请选择</option>
 				<option value="html">{$Think.lang.process_module_html}</option>
+				<option value="substr">{$Think.lang.process_module_substr}</option>
+				<option value="insert">{$Think.lang.process_module_insert}</option>
 				<option value="replace">{$Think.lang.process_module_replace}</option>
 				<option value="batch">{$Think.lang.process_module_batch}</option>
+				<option value="tool">{$Think.lang.process_module_tool}</option>
+				<option value="translate">{$Think.lang.process_module_translate}</option>
 				<option value="filter">{$Think.lang.process_module_filter}</option>
 				<option value="if">{$Think.lang.process_module_if}</option>
-				<option value="substr">{$Think.lang.process_module_substr}</option>
-				<option value="translate">{$Think.lang.process_module_translate}</option>
-				<option value="tool">{$Think.lang.process_module_tool}</option>
 				<option value="func">{$Think.lang.process_module_func}</option>
 				<option value="api">{$Think.lang.process_module_api}</option>
 			</select>
@@ -23,6 +24,7 @@
 	{include file="cpattern:process_module" /}
 	{if condition="empty($type)"}	
 	<form id="form_process" method="post" action="{:url('Cpattern/process?op=sub')}" style="display:none;">
+	{:html_usertoken()}
 	<input type="hidden" name="objid" value="{$objid}" />
 		<div class="form-group">
 			<div class="panel-group c-p-process-accordion">
@@ -37,11 +39,11 @@
 <script type="text/javascript">
 {if condition="empty($type)"}
 	{if condition="!empty($process)"}
-	c_pattern.process_op('init',{process:{$process|json_encode}});
+	c_pattern.cpProcess.init({$process|json_encode},false,false);
 	{else /}
-	c_pattern.process_op('init');
+	c_pattern.cpProcess.init(null,false,false);
 	{/if}
 {elseif condition="$type eq 'common'" /}
-	c_pattern.process_op('init',{formObj:'#coll_pattern_process'});
+	c_pattern.cpProcess.init(null,true,false);
 {/if}
 </script>

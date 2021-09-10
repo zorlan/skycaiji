@@ -12,32 +12,5 @@
 </div>
 
 <script type="text/javascript">
-'use strict';//严格模式
-//任务列表
-function win_bk_task_list(op,url){
-	$('#win_bk_'+op).html('<img src="'+window.site_config.pub+'/static/images/load1.gif" />');
-	$.ajax({
-		type: 'get',
-		dataType: 'json',
-		async:true,
-		url:(url?url:ulink('admin/backstage/backstageTask?op='+op)),
-		success: function (data){
-			if(data.code==1&&data.data){
-				var count=parseInt(data.data.count);
-				$('#win_backstage_task').find('a[href="#win_bk_'+op+'"]').tab('show').find('span').text(count);//显示数量
-				$('#win_bk_'+op).html(data.data.html);
-			}else{
-				$('#win_bk_'+op).html('无任务');
-			}
-			backstageTask();//重置数量
-		}
-	});
-}
-
-//加载任务列表
-$('#win_backstage_task a[href="#win_bk_task0"],#win_backstage_task a[href="#win_bk_task1"]').bind('click',function(){
-	var op=$($(this).attr('href')).attr('data-op');
-	win_bk_task_list(op);
-});
-$('#win_backstage_task a[href="#win_bk_task0"]').trigger('click');//默认触发
+winBackstageTask('init');
 </script>

@@ -28,10 +28,6 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
         array (
             'app\\' => 4,
         ),
-        'W' => 
-        array (
-            'WebSocket\\' => 10,
-        ),
         'P' => 
         array (
             'Phinx\\' => 6,
@@ -77,10 +73,6 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
         'app\\' => 
         array (
             0 => __DIR__ . '/../..' . '/application',
-        ),
-        'WebSocket\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/textalk/websocket/lib',
         ),
         'Phinx\\' => 
         array (
@@ -130,6 +122,7 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
         'elFinderPluginWatermark' => __DIR__ . '/..' . '/studio-42/elfinder/php/plugins/Watermark/plugin.php',
         'elFinderSession' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderSession.php',
         'elFinderSessionInterface' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderSessionInterface.php',
+        'elFinderTriggerException' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinder.class.php',
         'elFinderVolumeBox' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderVolumeBox.class.php',
         'elFinderVolumeDriver' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderVolumeDriver.class.php',
         'elFinderVolumeDropbox' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderVolumeDropbox.class.php',
@@ -142,6 +135,7 @@ class ComposerStaticInit34a41e2841af1a67f3ddef099fc7b348
         'elFinderVolumeLocalFileSystem' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderVolumeLocalFileSystem.class.php',
         'elFinderVolumeMySQL' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderVolumeMySQL.class.php',
         'elFinderVolumeOneDrive' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderVolumeOneDrive.class.php',
+        'elFinderVolumeSFTPphpseclib' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderVolumeSFTPphpseclib.class.php',
         'elFinderVolumeTrash' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderVolumeTrash.class.php',
         'elFinderVolumeTrashMySQL' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderVolumeTrashMySQL.class.php',
         'ntlm_sasl_client_class' => __DIR__ . '/..' . '/phpmailer/phpmailer/extras/ntlm_sasl_client.php',

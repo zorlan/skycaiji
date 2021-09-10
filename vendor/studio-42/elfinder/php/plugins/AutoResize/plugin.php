@@ -84,6 +84,10 @@ class elFinderPluginAutoResize extends elFinderPlugin
 
     public function onUpLoadPreSave(&$thash, &$name, $src, $elfinder, $volume)
     {
+        if (!$src) {
+            return false;
+        }
+
         $opts = $this->getCurrentOpts($volume);
 
         if (!$this->iaEnabled($opts, $elfinder)) {
@@ -100,6 +104,9 @@ class elFinderPluginAutoResize extends elFinderPlugin
         }
         if (extension_loaded('exif') && function_exists('exif_imagetype')) {
             $imageType = exif_imagetype($src);
+            if ($imageType === false) {
+                return false;
+            }
         } else {
             $srcImgInfo = getimagesize($src);
             if ($srcImgInfo === false) {

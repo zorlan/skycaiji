@@ -56,9 +56,13 @@ class CacheModel{
 	public function getCache($cname,$key=null){
 		
 		$cache=$this->db()->where('cname',$cname)->find();
-		switch($cache['ctype']){
-			case 1:$cache['data']=intval($cache['data']);break;
-			case 2:$cache['data']=unserialize($cache['data']);break;
+		if(!empty($cache)){
+		    switch($cache['ctype']){
+		        case 1:$cache['data']=intval($cache['data']);break;
+		        case 2:$cache['data']=unserialize($cache['data']);break;
+		    }
+		}else{
+		    $cache=array();
 		}
 		return $key?$cache[$key]:$cache;
 	}
@@ -89,7 +93,7 @@ class CacheModel{
 	 */
 	public function expire($cname,$timeout=72000){
 		$cache=$this->getCache($cname);
-		if(empty($cache)||abs(NOW_TIME-$cache['dateline']>$timeout)){
+		if(empty($cache)||abs(time()-$cache['dateline']>$timeout)){
 			return true;
 		}else{
 			return false;

@@ -1,9 +1,10 @@
 {extend name="common:main" /}
 {block name="cssjs"}
-
+<script src="__PUBLIC__/static/js/admin/setting.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
-<form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('Admin/Setting/caiji')}">
+<form id="form_set" method="post" role="form" action="{:url('Admin/Setting/caiji')}">
+{:html_usertoken()}
 <div class="nav-tabs-custom">
 	{include file="setting/caiji_nav" /}
 	<div class="tab-content">
@@ -28,6 +29,9 @@
 		        	<div class="input-group">
 		       			<span class="input-group-addon">PHP可执行文件</span>
 		       			<input type="text" name="server_php" class="form-control" value="{$caijiConfig['server_php']}" {$phpExeFile?('placeholder="默认：'.$phpExeFile.'"'):''} />
+			       		<div class="input-group-btn">
+			       			<button type="button" class="btn btn-default" id="btn_test_php">测试</button>
+			       		</div>
 			       	</div>
 			       	<p class="help-block">PHP可执行文件在服务器中的绝对路径或者在系统中的环境变量名称</p>
 		        </div>
@@ -36,7 +40,7 @@
 		        <label>{$Think.lang.set_caiji_auto}</label>
 		        <div class="input-group">
 		        	<label class="radio-inline"><input type="radio" name="auto" value="1">{$Think.lang.yes}</label>
-		        	<label class="radio-inline"><input type="radio" name="auto" value="0">{$Think.lang.no}</label>
+		        	<label class="radio-inline"><input type="radio" name="auto" value="0" checked="checked">{$Think.lang.no}</label>
 		        </div>
 		        <p class="help-block">此设置为总控制开关，如设置“否”则任务中的自动采集设置不生效</p>
 		    </div>
@@ -53,31 +57,47 @@
 					<br/>添加后，用户访问页面时即可触发采集，该方法不会额外消耗服务器资源
 				</p>
 		    </div>
+		</div>
+	</div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-collapse collapse in">
+    	<div class="panel-body">
 		    <div class="form-group">
 		        <label>{$Think.lang.set_caiji_num}</label>
-		        <input type="number" name="num" class="form-control" value="{$caijiConfig['num']}">
+		        <input type="number" name="num" class="form-control" value="{$caijiConfig['num']|intval}">
 		        <p class="help-block">每次采集的数据总量，留空或0表示采完为止</p>
 		    </div>
 		    <div class="form-group">
 		        <label>{$Think.lang.set_caiji_interval}（分钟）</label>
-		        <input type="number" name="interval" class="form-control" value="{$caijiConfig['interval']}">
-		        <p class="help-block">可轮询目标的数据更新且有效减轻服务器压力，强烈建议设置时间！留空或0表示不限制（采集量大会造成服务器过载）</p>
+		        <input type="number" name="interval" class="form-control" value="{$caijiConfig['interval']|intval}">
+		        <p class="help-block">采集完毕隔多久再次运行，可轮询目标的数据更新且有效减轻服务器压力，强烈建议设置时间！留空或0表示不限制（采集量大会造成服务器过载）</p>
 		    </div>
 		    <div class="form-group">
 		        <label>{$Think.lang.set_caiji_timeout}（分钟）</label>
-		        <input type="number" name="timeout" class="form-control" value="{$caijiConfig['timeout']}">
+		        <input type="number" name="timeout" class="form-control" value="{$caijiConfig['timeout']|intval}">
 		        <p class="help-block">无论是否采集完毕，到达设置的时间则立刻终止采集，可防止采集太久造成服务器卡顿，留空或0表示不限制</p>
 		    </div>
 		    <div class="form-group">
-		        <label>页面抓取间隔（秒）</label>
-		        <input type="number" name="html_interval" class="form-control" value="{$caijiConfig['html_interval']}">
+		        <label>页面抓取间隔（毫秒，1000毫秒=1秒）</label>
+		        <input type="number" name="interval_html" class="form-control" value="{$caijiConfig['interval_html']|intval}">
 		        <p class="help-block">可防止页面抓取频率太快造成目标网站响应超时或宕机，留空或0表示不限制</p>
+		    </div>
+		    <div class="form-group">
+		        <label>失败等待（秒）</label>
+		        <input type="number" name="wait" class="form-control" value="{$caijiConfig['wait']|intval}">
+		        <p class="help-block">抓取页面失败，等待一段时间再继续</p>
+		    </div>
+		    <div class="form-group">
+		        <label>失败重试</label>
+		        <input type="number" name="retry" class="form-control" value="{$caijiConfig['retry']|intval}">
+		        <p class="help-block">页面抓取失败重试次数，留空或0表示不重试</p>
 		    </div>
 		    <div class="form-group">
 		        <label>实时发布数据</label>
 		        <div class="input-group">
 			        <label class="radio-inline"><input type="radio" name="real_time" value="1">是</label>
-					<label class="radio-inline"><input type="radio" name="real_time" value="0">否</label>
+					<label class="radio-inline"><input type="radio" name="real_time" value="0" checked="checked">否</label>
 		        </div>
 		        <p class="help-block">采集一条发布一条数据，否则等采集完后再集中发布</p>
 		    </div>
@@ -91,30 +111,6 @@
 </form>
 
 <script type="text/javascript">
-'use strict';//严格模式
-$('#form_set [name="auto"]').bind('click',function(){
-	if($(this).val()>0){
-		$('#set_caiji_run').show();
-	}else{
-		$('#set_caiji_run').hide();
-	}
-});
-
-$('#form_set [name="run"]').bind('change',function(){
-	$('#set_caiji_run .help-block').hide();
-	$('#set_caiji_run .run-'+$(this).val()).show();
-});
-
-$('#form_set [name="server"]').bind('change',function(){
-	$('#set_caiji_server .server-').hide();
-	$('#set_caiji_server .server-cli').hide();
-	$('#set_caiji_server .server-'+$(this).val()).show();
-});
-
-$('#form_set [name="robots"][value="{$caijiConfig["robots"]|intval}"]').prop('checked',true);
-$('#form_set [name="auto"][value="{$caijiConfig["auto"]|intval}"]').trigger("click");
-$('#form_set [name="run"]').val("{$caijiConfig['run']?$caijiConfig['run']:'backstage'}").trigger("change");
-$('#form_set [name="server"]').val("{$caijiConfig['server']}").trigger("change");
-$('#form_set [name="real_time"][value="{$caijiConfig["real_time"]|intval}"]').prop('checked',true);
+settingClass.caiji_init({$caijiConfig|json_encode});
 </script>
 {/block}

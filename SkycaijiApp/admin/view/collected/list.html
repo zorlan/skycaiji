@@ -11,6 +11,7 @@
         	<button type="button" id="btn_clear_error" class="btn btn-sm btn-warning" style="padding:2px 10px;">一键清理失败的数据</button>
         </div>
 		<form id="form_list" method="post" ajax-submit="true" action="{:url('Collected/op')}">
+		{:html_usertoken()}
 		<div class="table-responsive">
 		<table id="list_table" class="table table-hover datatable">
 			<thead>
@@ -65,6 +66,7 @@
 <!-- /.box -->
 <div class="list-footer">
 	<form id="form_search" method="post" action="{:url('Collected/list')}" class="form-inline">
+	{:html_usertoken()}
 		<div class="form-group form-group-sm">
 			<label>每页显示</label>
 		    <select name="num" class="form-control">

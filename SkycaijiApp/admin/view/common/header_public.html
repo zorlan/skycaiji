@@ -4,8 +4,9 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-  <title>蓝天采集器 后台管理</title>
+  <title>{:g_sc('p_title')?(g_sc('p_title').' - '):''}蓝天采集器后台管理</title>
   <meta name="generator" content="skycaiji" />
+  <link rel="icon" href="data:image/ico;base64,aWNv">
   <!-- Bootstrap 3.3.7 -->
   <link rel="stylesheet" href="__PUBLIC__/bootstrap/css/bootstrap.min.css?{$Think.config.html_v}">
   <!-- Font Awesome -->
@@ -45,4 +46,4 @@
   <script src="__PUBLIC__/static/js/admin.js?{$Think.config.html_v}"></script>
   <link href="__PUBLIC__/static/css/admin.css?{$Think.config.html_v}" rel="stylesheet" type="text/css">
   <script type="text/javascript" src="__PUBLIC__/static/js/langs/{php}echo defined('LANG_SET')?LANG_SET:config('DEFAULT_LANG');{/php}.js?{$Think.config.html_v}"></script>
-  <script type="text/javascript">var site_config={root:"__ROOT__",pub:"__PUBLIC__",clientinfo:"{$GLOBALS['_sc']['clientinfo']}"};</script>
+  <script type="text/javascript">var site_config={root:"__ROOT__",pub:"__PUBLIC__",usertoken:"{:g_sc('usertoken')}",clientinfo:"{:g_sc('clientinfo')}"};</script>

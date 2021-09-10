@@ -68,13 +68,17 @@ class Curl{
 		if(!empty($headers)&&count($headers)>0){
 			curl_setopt ( $ch, CURLOPT_HTTPHEADER, $headers );
 		}
+		if($options['range_size']){
+		    
+		    curl_setopt($ch, CURLOPT_RANGE, $options['range_size']);
+		}
 		
-		if(isset($postData)){
+		if(isset($postData)&&$postData!==false){
 			
 			curl_setopt ( $ch, CURLOPT_POST, 1 );
 			if(is_array($postData)){
-				
-				$postData=http_build_query($postData);
+			    
+			    $postData=http_build_query($postData);
 			}
 			curl_setopt ( $ch, CURLOPT_POSTFIELDS, $postData );
 		}
@@ -134,7 +138,7 @@ class Curl{
 		return self::request($url,$headers,$options);
 	}
 	public static function post($url,$headers=array(),$options=array(),$data=null){
-		return self::request($url,$headers,$options,$data?$data:'');
+		return self::request($url,$headers,$options,empty($data)?'':$data);
 	}
 }
 

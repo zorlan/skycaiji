@@ -41,6 +41,21 @@
 	   		<p class="help-block">其它标签可直接输入，用空格或逗号分隔</p>
 	   	</section>
 	</div>
+	<div class="c-p-process-module" module="insert">
+		<div class="form-group">
+			<label>位置</label>
+			<select data-process="insert:insert_loc" class="form-control">
+				<option value="head">开头</option>
+				<option value="" selected="selected">结尾</option>
+				<option value="rand">随机</option>
+			</select>
+			<p class="help-block" style="display:none;">随机在换行（&lt;p&gt; &lt;br&gt;）标签中插入内容，没有换行标签则在开头、结尾中随机插入</p>
+		</div>
+		<div class="form-group">
+			<label>内容</label>
+			<textarea data-process="insert:insert_txt" rows="3" class="form-control"></textarea>
+		</div>
+	</div>
 	<div class="c-p-process-module" module="replace">
 		<div class="input-group">
 			<textarea data-process="replace:replace_from" rows="3" class="form-control"></textarea>
@@ -74,7 +89,9 @@
 		<section>
 		<div class="form-group">
 			<div class="input-group">
-				<span class="input-group-addon">条件判断</span>
+				<span class="input-group-addon">
+					<a href="javascript:;" class="glyphicon glyphicon-info-sign p-m-if-info" style="color:#999;"></a>
+				</span>
 				<select data-process="if:if_type" class="form-control">
 					<option value="1">{$Think.lang.p_m_if_1}</option>
 					<option value="2">{$Think.lang.p_m_if_2}</option>
@@ -171,15 +188,9 @@
                   				</select>
                   			</div>
 					    	<a href="javascript:;" class="input-group-addon p-m-if-func-info"><span class="glyphicon glyphicon-info-sign"></span></a>
-					    	<div class="p-m-if-func-tips" style="display:none;">
-					    		先选择函数（取反可获取函数结果的相反值），默认会传入当前字段值
-								<br>如需传入多个参数，一行一个值，用###表示当前字段值
-					    		<br>如需扩展系统函数，请在根目录/data/config.php中添加配置：'EXTEND_PROCESS_IF'=&gt;array('PHP函数名'=&gt;'描述')
-								<br>如需扩展插件函数，可以创建<a href="{:url('Develop/func')}" target="_blank">函数插件</a>
-					    	</div>
                   		</div>
                    	</td>
-                   	<td style="padding:0;padding-top:10px;">
+                   	<td style="padding:0;padding-top:13px;">
                    		<a href="javascript:;" class="glyphicon glyphicon-arrow-up" style="font-size:11px;"></a>
                    		<a href="javascript:;" class="glyphicon glyphicon-arrow-down" style="font-size:11px;"></a>
                    		<a href="javascript:;" class="glyphicon glyphicon-remove p-m-if-del" style="font-size:11px;"></a>
@@ -187,13 +198,6 @@
                    </tr>
                    </tbody>
 				</table>
-				<p class="help-block">
-					执行顺序：从上至下判断，逻辑符“并且”的优先级高于“或者”<br>
-					例如（字母表示条件）：<br>
-					a && b || c && d && e || f || g && h && i && j 等价于<br>
-					 (a && b) || (c && d && e) || f || (g && h && i && j)<br>
-					从左到右执行， 括号中的条件都为真时才是真否则为假，整条语句中任意一个括号的结果为真最终结果为真，都为假最终结果为假
-				</p>
         	</div>
 		</div>
 		</section>
@@ -266,7 +270,7 @@
 		</div>
 		<div class="form-group">
 			<label>传入参数</label>
-			<textarea data-process="func:func_param" rows="2" class="form-control" placeholder="默认传入当前字段的值"></textarea>
+			<textarea data-process="func:func_param" rows="2" class="form-control" data-placeholder="默认传入当前字段的值"></textarea>
 			<div class="help-block">
 				一行一个值，可输入任何内容或
 				<div class="dropdown p-m-func-fields" style="display:inline;">
@@ -278,12 +282,7 @@
 						<li><a href="javascript:;" data-val="###">###表示当前字段</a></li>
 					</ul>
 				</div>
-				，请按函数传参，否则运行出错！<a href="javascript:;" onclick="$(this).parent().find('.p-m-func-tips').show();">扩展函数</a>
-				<div class="p-m-func-tips" style="display:none;">
-					如需扩展系统函数，请在根目录/data/config.php中添加配置：
-					'EXTEND_PROCESS_FUNC'=&gt;array('PHP函数名'=&gt;'描述')
-					<br>如需扩展插件函数，可以创建<a href="{:url('Develop/func')}" target="_blank">函数插件</a>
-				</div>
+				&nbsp;请按函数传参，否则运行出错！<a href="javascript:;" onclick="pluginFuncTips('process')">扩展函数</a>
 			</div>
 		</div>
 		</section>
@@ -303,15 +302,29 @@
 			</select>
 		</div>
 		<div class="form-group">
-	     	<label>请求参数</label>
+			<label>数据编码</label>
+			<div class="input-group input-select-custom">
+				<div class="input-group-btn">
+					<select data-process="api:api_charset" class="form-control">
+						<option value="">utf-8</option>
+						<option value="gbk">gbk</option>
+						<option value="gb2312">gb2312</option>
+						<option value="custom">自定义</option>
+					</select>
+				</div>
+				<input type="text" class="form-control" data-process="api:api_charset_custom">
+			</div>
+		</div>
+		<div class="form-group">
+	     	<label>发送数据</label>
 	      	<a href="javascript:;" class="glyphicon glyphicon-plus p-m-api-add" title="添加"></a>
 	   		<div class="table-responsive">
 	           	<table class="table table-bordered table-hover p-m-api-table" style="margin-bottom:0;">
 		            <thead>
 	                <tr>
-	                    <th>名称</th>
-	                    <th>值</th>
-	                    <th style="width:50px;">删除</th>
+	                    <td>名称</td>
+	                    <td>值</th>
+	                    <td style="width:50px;">删除</td>
 	                </tr>
 		            </thead>
 		            <tbody>
@@ -342,11 +355,39 @@
 	       	</div>
 		</div>
 		<div class="form-group">
+	     	<label>请求头信息</label>
+	      	<a href="javascript:;" class="glyphicon glyphicon-plus p-m-api-header-add" title="添加"></a>
+	   		<div class="table-responsive">
+	           	<table class="table table-bordered table-hover p-m-api-header-table" style="margin-bottom:0;">
+		            <thead>
+	                <tr>
+	                    <td>名称</td>
+	                    <td>值</td>
+	                    <td style="width:50px;">删除</td>
+	                </tr>
+		            </thead>
+		            <tbody>
+					<tr class="p-m-api-header-table-tpl" style="display:none;">
+						<td>
+							<input type="text" data-process="api:api_headers:name:" class="form-control">
+						</td>
+						<td>
+							<input type="text" data-process="api:api_headers:val:" class="form-control">
+						</td>
+						<td>
+							<a href="javascript:;" class="glyphicon glyphicon-remove p-m-api-header-del" style="margin-top:8px;"></a>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+	       	</div>
+		</div>
+		<div class="form-group">
 	     	<label>提取结果</label>
 			<input type="text" data-process="api:api_json" class="form-control" />
 			<p class="help-block">json规则： a.b.c 通配符 *</p>
-	     </div>
-	     <div class="form-group">
+		</div>
+		<div class="form-group">
 			<label>结果是数组则转换为</label>
 			<select data-process="api:api_json_arr" class="form-control">
 				<option value="implode">字符串</option>
@@ -354,6 +395,21 @@
 				<option value="serialize">序列化</option>
 			</select>
 			<textarea data-process="api:api_json_implode" class="form-control" rows="1" placeholder="输入分隔符" style="margin-top:5px;"></textarea>
+		</div>
+		<div class="form-group">
+	     	<label>调用间隔（毫秒，1000毫秒=1秒）</label>
+			<input type="number" data-process="api:api_interval" class="form-control" />
+			<p class="help-block">如接口有频率限制，可设置间隔时间避免调用过快导致失败</p>
+	    </div>
+		<div class="form-group">
+	     	<label>失败等待（秒）</label>
+			<input type="number" data-process="api:api_wait" class="form-control" />
+			<p class="help-block">一般情况下调用失败都是频繁请求接口导致被禁用，设置该值等待一段时间让接口恢复正常</p>
+	    </div>
+		<div class="form-group">
+	     	<label>失败重试</label>
+			<input type="number" data-process="api:api_retry" class="form-control" />
+			<p class="help-block">调用失败重试次数，留空或0表示不重试</p>
 		</div>
 		</section>
 	</div>

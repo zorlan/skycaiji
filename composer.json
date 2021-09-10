@@ -27,9 +27,8 @@
         "topthink/think-oracle": "1.*",
         "phpmailer/phpmailer": "~5.2",
         "matthiasmullie/minify": "^1.3",
-        "phpoffice/phpexcel": "^1.8",
-        "textalk/websocket": "^1.2",
-        "studio-42/elfinder": "^2.1"
+        "studio-42/elfinder": "^2.1",
+        "phpoffice/phpexcel": "^1.8"
     },
     "autoload": {
         "psr-4": {

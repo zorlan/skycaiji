@@ -245,7 +245,7 @@ return [
     /**********************************自定义配置*********************************************/
     'cli_cache_config'=>array('view_replace_str','root_path','app_path','apps_path','plugin_path','root_url','root_website'),//cli模式下需要缓存的配置，否则会失效引起程序bug
     
-	'html_v'=>'20200720',//css和js版本
+	'html_v'=>'',//css和js版本,在init.php中设置
 	
 	'root_path'=>realpath(ROOT_PATH),//根目录
 	'app_path'=>realpath(APP_PATH),//skycaijiApp目录
@@ -258,7 +258,7 @@ return [
 	'release_modules'=>array('cms','db','file','toapi','api','diy'),//发布模块
 	'yzm_expire'=>1200, //邮箱验证码过期时间(秒)
 	
-	'allow_origins'=>array('http://www.skycaiji.com','https://www.skycaiji.com'),//默认允许的平台网址
+	'allow_origins'=>array('http://www.skycaiji.com','https://www.skycaiji.com'),//默认允许的官方平台网址
 	
 	'allow_process_func'=>array(
     	'strtotime'=>'日期转时间戳',
@@ -271,7 +271,8 @@ return [
     ),//数据处理允许的函数
 
     'allow_process_if'=>array(
-    	'is_numeric'=>'是数字',
+        'empty'=>'是空值',
+        'is_numeric'=>'是数字',
     ),//数据处理>条件判断允许的函数
     /*******************************************************************************/
 ];

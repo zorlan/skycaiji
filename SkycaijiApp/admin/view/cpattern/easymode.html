@@ -19,6 +19,15 @@
 		        </ul>
 	      	</div>
 			<input type="text" id="browser_url" class="form-control" placeholder="请输入网址" />
+			<input type="hidden" id="browser_urls" />
+			<div class="input-group-addon" style="padding:0;border:0;width:110px;">
+				<select class="form-control" id="browser_source">
+					<option value="">页面类型</option>
+					{foreach $pageSources as $k=>$v}
+					<option value="{$k}"{if $k=='url'} selected="selected"{/if}>{$v}</option>
+					{/foreach}
+				</select>
+			</div>
 			<span class="input-group-btn">
 				<button class="btn btn-primary" type="button" id="btn_browser">分析网页</button>
 			</span>

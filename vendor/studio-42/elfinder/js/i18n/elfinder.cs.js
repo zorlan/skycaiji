@@ -2,7 +2,7 @@
  * Czech translation
  * @author RobiNN <kelcakrobo@gmail.com>
  * @author Jay Gridley <gridley.jay@hotmail.com>
- * @version 2019-01-12
+ * @version 2021-06-10
  */
 (function(root, factory) {
 	if (typeof define === 'function' && define.amd) {
@@ -17,9 +17,9 @@
 		translator : 'RobiNN &lt;kelcakrobo@gmail.com&gt;, Jay Gridley &lt;gridley.jay@hotmail.com&gt;',
 		language   : 'Čeština',
 		direction  : 'ltr',
-		dateFormat : 'd. m. Y H:i', // will show like: 12. 01. 2019 18:21
-		fancyDateFormat : '$1 H:i', // will show like: Dnes 18:21
-		nonameDateFormat : 'ymd-His', // noname upload will show like: 190112-182129
+		dateFormat : 'd. m. Y H:i', // will show like: 10. 06. 2021 23:37
+		fancyDateFormat : '$1 H:i', // will show like: Dnes 23:37
+		nonameDateFormat : 'ymd-His', // noname upload will show like: 210610-233701
 		messages   : {
 
 			/********************************** errors **********************************/
@@ -116,6 +116,7 @@
 			'errServerError'       : 'Došlo k chybě na straně serveru.', // from v2.1.25 added 16.6.2017
 			'errEmpty'             : 'Nelze vyprázdnit složku "$1".', // from v2.1.25 added 22.6.2017
 			'moreErrors'           : 'Existují ještě další $1 chyby.', // from v2.1.44 added 9.12.2018
+			'errMaxMkdirs'         : 'Můžete vytvořit až $1 složek najednou.', // from v2.1.58 added 20.6.2021
 
 			/******************************* commands names ********************************/
 			'cmdarchive'   : 'Vytvořit archív',
@@ -303,6 +304,7 @@
 			'confirmNonUTF8'  : 'Kódování tohoto souboru nemoholo rozpoznán. Pro úpravy je třeba dočasně převést do kódování UTF-8.<br/>Prosím, vyberte kódování znaků souboru.', // from v2.1.19 added 28.11.2016
 			'confirmNotSave'  : 'Byl změněn.<br/>Pokud obsahuje neuložené změny, dojde ke ztrátě práce.', // from v2.1 added 15.7.2015
 			'confirmTrash'    : 'Opravdu chcete položky přesunout do koše?', //from v2.1.24 added 29.4.2017
+			'confirmMove'     : 'Opravdu chcete položky přesunout do "$1"?', //from v2.1.50 added 27.7.2019
 			'apllyAll'        : 'Pro všechny',
 			'name'            : 'Název',
 			'size'            : 'Velikost',
@@ -442,6 +444,7 @@
 			'clearBrowserData': 'Inicializujte nastavení uložená v tomto prohlížeči', // from v2.1.26 added 28.6.2017
 			'toolbarPref'     : 'Nastavení panelu nástrojů', // from v2.1.27 added 2.8.2017
 			'charsLeft'       : '...$1 znaků zbývá.',  // from v2.1.29 added 30.8.2017
+			'linesLeft'       : '...$1 řádků zůstává.',  // from v2.1.52 added 16.1.2020
 			'sum'             : 'Součet', // from v2.1.29 added 28.9.2017
 			'roughFileSize'   : 'Hrubá velikost souboru', // from v2.1.30 added 2.11.2017
 			'autoFocusDialog' : 'Zaměření na prvek dialogu s mouseover',  // from v2.1.30 added 2.11.2017
@@ -488,6 +491,8 @@
 			'email'           : 'E-mail', // from v2.1.43 added 19.10.2018
 			'license'         : 'Licence', // from v2.1.43 added 19.10.2018
 			'exportToSave'    : 'Tuto položku nelze uložit. Abyste se vyhnuli ztrátě úprav, musíte je exportovat do počítače.', // from v2.1.44 added 1.12.2018
+			'dblclickToSelect': 'Poklepáním na soubor jej vyberte.', // from v2.1.47 added 22.1.2019
+			'useFullscreen'   : 'Použít režim celé obrazovky', // from v2.1.47 added 19.2.2019
 
 			/********************************** mimetypes **********************************/
 			'kindUnknown'     : 'Neznámý',

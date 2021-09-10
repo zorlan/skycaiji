@@ -11,7 +11,7 @@
 
 namespace skycaiji\admin\model;
 /*采集到的数据库*/
-class Collected extends BaseModel{
+class Collected extends \skycaiji\common\model\BaseModel{
 	
 	public function __construct($data=[]){
 		try {

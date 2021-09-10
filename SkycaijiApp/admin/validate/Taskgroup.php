@@ -13,7 +13,7 @@ namespace skycaiji\admin\validate;
 use think\Validate;
 class Taskgroup extends Validate{
 	protected $rule = [
-		'name'=>'require|unique:taskgroup',
+	    'name'=>'require|unique:taskgroup',
 	];
 	
 	protected $message = [

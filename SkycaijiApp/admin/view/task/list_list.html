@@ -1,12 +1,13 @@
 {extend name="common:main" /}
 {block name="cssjs"}
-<script src="__PUBLIC__/static/js/admin/task.js?{$Think.config.html_v}"></script>
+<script src="__PUBLIC__/static/js/admin/tasks.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
 {php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'倒序'));{/php}
 <div class="box">
 	<div class="box-body">
 		<form id="form_list" method="post" ajax-submit="true" action="{:url('Task/op')}">
+		{:html_usertoken()}
 		<input type="hidden" name="show" value="list" /> 
 		<input type="hidden" name="op" value="saveall" />
 		<div class="table-responsive">
@@ -40,20 +41,24 @@
 	                <td><a href="javascript:;" class="auto" data-val={$item['auto']?1:0} item-id="{$item['id']}" style="color:{$item['auto']?'green':'red'}">{:lang($item['auto']?'yes':'no')}</a></td>
 	                <td>{$item['addtime']|date='Y-m-d',###}</td>
 	                <td>
-	                	<label class="checkbox-inline">
+	                	<label class="checkbox-inline chk-inline">
 	                		<input type="checkbox" name="batch[]" value="{$item['id']}" />
 	                		{$item['caijitime']?date('Y-m-d H:i',$item['caijitime']):lang('none')}
 	                	</label>
-	                	&nbsp;<a href="javascript:;" class="caiji" item-id="{$item['id']}">{$Think.lang.caiji}</a>
-	                	<span class="sep">|</span>
-	                	<a href="javascript:;" class="houtai" item-id="{$item['id']}">后台</a>
+	                	<ul class="in-line">
+	                		<li><a href="javascript:;" class="caiji" item-id="{$item['id']}">{$Think.lang.caiji}</a></li>
+	                		<li class="sep">|</li>
+	                		<li><a href="javascript:;" class="houtai" item-id="{$item['id']}">后台</a></li>
+	                	</ul>
 	                </td>
 	                <td>
-	                	<a href="{:url('Collector/set?task_id='.$item['id'])}">规则</a>
-	                	<span class="sep">|</span>
-	                	<a href="{:url('Release/set?task_id='.$item['id'])}">发布</a>
-	                	<span class="sep">|</span>
-						<a href="javascript:;" class="delete" item-id="{$item['id']}">{$Think.lang.delete}</a>
+	                	<ul class="in-line">
+	                		<li><a href="{:url('Collector/set?task_id='.$item['id'])}">规则</a></li>
+	                		<li class="sep">|</li>
+	                		<li><a href="{:url('Release/set?task_id='.$item['id'])}">发布</a></li>
+	                		<li class="sep">|</li>
+	                		<li><a href="javascript:;" class="delete" item-id="{$item['id']}">{$Think.lang.delete}</a></li>
+	                	</ul>
 	                </td>
 	            </tr>
 			{/foreach}
@@ -66,13 +71,15 @@
 						<a href="{:url('Task/add')}" class="btn btn-primary">{$Think.lang.task_add}</a>
 					</td>
 					<td colspan="2">
-						<label class="checkbox-inline">
+						<label class="checkbox-inline chk-inline">
 	                		<input type="checkbox" onclick="checkall(this,'batch[]')" />
 	                		全选
 	                	</label>
-						&nbsp;<a href="javascript:;" class="caiji-batch">批量采集</a>
-						<span class="sep">|</span>
-						<a href="javascript:;" class="houtai-batch">批量后台</a>
+	                	<ul class="in-line">
+	                		<li><a href="javascript:;" class="caiji-batch">批量采集</a></li>
+	                		<li class="sep">|</li>
+	                		<li><a href="javascript:;" class="houtai-batch">批量后台</a></li>
+	                	</ul>
 					</td>
 				</tr>
     			{if condition="!empty($pagenav)"}

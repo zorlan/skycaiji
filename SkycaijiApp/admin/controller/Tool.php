@@ -14,12 +14,15 @@ use skycaiji\admin\model\DbCommon;
 class Tool extends BaseController {
 	/*文件管理*/
 	public function fileManagerAction(){
-		$GLOBALS['_sc']['p_name']='文件管理';
-		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Tool/fileManager'),'title'=>'文件管理')));
+	    set_g_sc('p_title','文件管理');
+	    set_g_sc('p_name','文件管理');
+	    set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Tool/fileManager'),'title'=>'文件管理'))));
 		return $this->fetch('fileManager');
 	}
 	/*elfinder文件管理器*/
 	public function elfinderAction(){
+	    $this->check_usertoken();
+	    
 		$op=input('op');
 		if(empty($op)){
 			
@@ -44,14 +47,21 @@ class Tool extends BaseController {
 						'uploadDeny'    => array('all'),                
 						'uploadAllow'   => array('image/x-ms-bmp', 'image/gif', 'image/jpeg', 'image/png', 'image/x-icon', 'text/plain'), 
 						'uploadOrder'   => array('deny', 'allow'),      
-						'attributes' => array (
+					    'attributes' => array (
 							array (
-								'pattern' => '/\.php$/i',
-								'read' => false,
-								'write' => false,
-								'hidden' => true,
-								'locked' => false
-							)
+								'pattern' => '/\.(php|html|lock)$/i',
+							    'read' => false,
+							    'write' => false,
+							    'hidden' => true,
+							    'locked' => false
+							),
+					        array (
+					            'pattern' => '/^\/{0,1}$/i',
+					            'read' => true,
+					            'write' => false,
+					            'hidden' => false,
+					            'locked' => false
+					        )
 						)
 					)
 				)
@@ -86,21 +96,36 @@ class Tool extends BaseController {
 				}
 			}
 		}
-		$GLOBALS['_sc']['p_name']='错误日志';
-		$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Tool/logs'),'title'=>'错误日志')));
+		set_g_sc('p_title','错误日志');
+		set_g_sc('p_name','错误日志');
+		set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Tool/logs'),'title'=>'错误日志'))));
 		$this->assign('logList',$logList);
 		return $this->fetch();
 	}
 	/*读取日志*/
 	public function logAction(){
+	    config('dispatch_error_tmpl','common:error');
+	    config('dispatch_success_tmpl','common:success');
+	    
 		$file=realpath(input('file'));
 		$logPath=realpath(config('root_path').'/runtime/log');
 		if(stripos($file,$logPath)===false){
-			$this->error('不是日志文件');
+			$this->error('不是日志文件','');
 		}
 		$log=file_get_contents($file);
-		exit('<pre>'.$log.'</pre>');
+		
+		if(request()->isPost()){
+		    if(input('upload')){
+		        
+		        curl_skycaiji('/client/upload/log',null,array(),array('log'=>$log,'v'=>SKYCAIJI_VERSION));
+		        $this->success('上报成功，感谢支持！','');
+		    }
+		}else{
+		    
+		    return $this->display('<pre>'.$log.'</pre>');
+		}
 	}
+	
 	/*文件校验*/
 	public function checkfileAction(){
 		set_time_limit(0);
@@ -156,8 +181,9 @@ class Tool extends BaseController {
 				$this->error('',null,array('files'=>$error_files));
 			}
 		}else{
-			$GLOBALS['_sc']['p_name']='校验文件';
-			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Tool/checkfile'),'title'=>'校验文件')));
+		    set_g_sc('p_title','校验文件');
+		    set_g_sc('p_name','校验文件');
+		    set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Tool/checkfile'),'title'=>'校验文件'))));
 			return $this->fetch();
 		}
 	}
@@ -207,7 +233,7 @@ class Tool extends BaseController {
 				$this->error('没有获取到表');
 			}
 			
-			if(!version_compare($check_db['version'],$GLOBALS['_sc']['c']['version'],'=')){
+			if(!version_compare($check_db['version'],g_sc_c('version'),'=')){
 				
 				$this->error('校验文件版本与数据库版本不一致');
 			}
@@ -417,30 +443,38 @@ class Tool extends BaseController {
 				}
 			}
 		}else{
-			$GLOBALS['_sc']['p_name']='校验数据库';
-			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Tool/checkdb'),'title'=>'校验数据库')));
+		    set_g_sc('p_title','校验数据库');
+		    set_g_sc('p_name','校验数据库');
+		    set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Tool/checkdb'),'title'=>'校验数据库'))));
 			return $this->fetch();
 		}
 	}
 	public function json_treeAction(){
-		if(request()->isPost()){
-			$url=input('url','','trim');
-			$html=input('html','','trim');
+	    if(request()->isPost()){
+	        $data=input('data','','trim');
 			$json='';
-			$eCpattern=controller('admin/Cpattern','event');
-			if(!empty($url)){
+			if(preg_match('/^\w+\:\/\//', $data)){
 				
-				$html=get_html($url);
+			    $data=get_html($data);
 			}
-			if(!empty($html)){
-				$json=convert_html2json($html,true);
+			if(!empty($data)){
+			    $json=\util\Funcs::convert_html2json($data,true);
 			}
 			
 			$this->success('','',array('json'=>$json));
 		}else{
-			$GLOBALS['_sc']['p_name']='JSON解析';
-			$GLOBALS['_sc']['p_nav']=breadcrumb(array(array('url'=>url('Tool/json_tree'),'title'=>'JSON解析')));
-			return $this->fetch('json_tree');
+		    return $this->_json_tree_view();
 		}
+	}
+	public function json_tree_dataAction(){
+	    $data=input('data','','trim');
+	    $this->assign('data',$data);
+	    return $this->_json_tree_view();
+	}
+	private function _json_tree_view(){
+	    set_g_sc('p_title','JSON解析');
+	    set_g_sc('p_name','JSON解析');
+	    set_g_sc('p_nav',breadcrumb(array(array('url'=>url('Tool/json_tree'),'title'=>'JSON解析'))));
+	    return $this->fetch('json_tree');
 	}
 }

@@ -10,8 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.3.3');
-define('NOW_TIME', time());
+define('SKYCAIJI_VERSION', '2.4');
 \think\Loader::addNamespace('plugin', realpath(ROOT_PATH.'plugin'));
 \think\Loader::addNamespace('util',realpath(APP_PATH.'extend/util'));
 
@@ -51,6 +50,38 @@ function url_is_compatible($url){
 }
 
 
+function set_g_sc($keys,$val){
+    \util\Funcs::array_set($GLOBALS['_sc'], $keys, $val);
+}
+
+
+function g_sc($key1,$key2=null,$key3=null){
+    $keys=array($key1);
+    if(isset($key2)){
+        $keys[]=$key2;
+        if(isset($key3)){
+            $keys[]=$key3;
+        }
+    }
+    return \util\Funcs::array_get($GLOBALS['_sc'], $keys);
+}
+
+
+function g_sc_c($key1,$key2=null,$key3=null){
+    $keys=array($key1);
+    if(isset($key2)){
+        $keys[]=$key2;
+        if(isset($key3)){
+            $keys[]=$key3;
+        }
+    }
+    return \util\Funcs::array_get($GLOBALS['_sc']['c'], $keys);
+}
+
+function is_empty($val){
+    return empty($val);
+}
+
 /*写入文件*/
 function write_dir_file($filename,$data,$flags=null,$content=null){
 	$dir = dirname($filename);
@@ -87,32 +118,7 @@ function breadcrumb($arr){
 	}
 	return $return;
 }
-/*多维数组array_map*/
-function array_array_map($callback, $arr1, array $_ = null){
-	if(is_array($arr1)){
-		$arr=array();
-		foreach ($arr1 as $k=>$v){
-			if(!is_array($v)){
-				$arr[$k]=call_user_func($callback, $v);
-			}else{
-				$arr[$k]=array_array_map($callback,$v,$_);
-			}
-		}
-	}
-	return $arr;
-}
-/*多维数组implode*/
-function array_implode($glue, $pieces){
-	$str='';
-	foreach ($pieces as $v){
-		if(is_array($v)){
-			$str.=array_implode($glue,$v);
-		}else{
-			$str.=$glue.$v;
-		}
-	}
-	return $str;
-}
+
 /*任意编码转换成utf8*/
 function auto_convert2utf8($str){
 	$encode = mb_detect_encoding($str, array('ASCII','UTF-8','GB2312','GBK','BIG5'));
@@ -177,19 +183,28 @@ function clientinfo(){
  * @param string $headers 键值对形式
  * @param array $options
  * @param string $fromEncode
- * @param array $post_data 通过isset判断是否是post模式
+ * @param array $postData 通过isset判断是否是post模式
+ * @param bool $returnInfo 是否返回信息
  */
-function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$post_data=null){
+function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$postData=null,$returnInfo=false){
 	$headers=is_array($headers)?$headers:array();
 	$options=is_array($options)?$options:array();
-	if(!isset($options['useragent'])){
+	$fromEncode=strtolower($fromEncode);
+	if(isset($headers['useragent'])){
+	    
+	    $options['useragent']=$headers['useragent'];
+	    unset($headers['useragent']);
+	}
+	if(empty($options['useragent'])){
 		$options['useragent']='Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70 Safari/537.36';
 	}
 	$options['timeout']=$options['timeout']>0?$options['timeout']:30;
 
 	$curlHeaders=array();
-	foreach ($headers as $k=>$v){
-		$curlHeaders[]=$k.': '.$v;
+	if(!empty($headers)){
+        foreach ($headers as $k=>$v){
+            $curlHeaders[]=$k.': '.$v;
+        }
 	}
 	$headers=$curlHeaders;
 	unset($curlHeaders);
@@ -201,7 +216,29 @@ function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$post_d
 
 	$curl=null;
 	try {
-		if(!isset($post_data)){
+	    if(isset($postData)&&$postData!==false){
+	        
+	        if(!empty($postData)&&!empty($fromEncode)&&!in_array($fromEncode, array('auto','utf-8','utf8'))){
+	            
+	            if(!is_array($postData)){
+	                
+	                if(preg_match_all('/([^\&]+?)\=([^\&]*)/',$postData,$m_post_data)){
+	                    $new_post_data=array();
+	                    foreach($m_post_data[1] as $k=>$v){
+	                        $new_post_data[$v]=rawurldecode($m_post_data[2][$k]);
+	                    }
+	                    $postData=$new_post_data;
+	                }else{
+	                    $postData=array();
+	                }
+	            }
+	            $postData=is_array($postData)?$postData:array();
+	            foreach ($postData as $k=>$v){
+	                $postData[$k] = iconv ( 'utf-8', $fromEncode.'//IGNORE', $v );
+	            }
+	        }
+	        $curl=\util\Curl::post($url,$headers,$options,$postData);
+	    }else{
 			
 			$allow_get=true;
 			if(!empty($options['max_bytes'])){
@@ -223,29 +260,6 @@ function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$post_d
 			}else{
 				$curl=null;
 			}
-		}else{
-			
-			if(!empty($post_data)&&!empty($fromEncode)&&!in_array(strtolower($fromEncode), array('auto','utf-8','utf8'))){
-				
-				if(!is_array($post_data)){
-					
-					if(preg_match_all('/([^\&]+?)\=([^\&]*)/',$post_data,$m_post_data)){
-						$new_post_data=array();
-						foreach($m_post_data[1] as $k=>$v){
-							$new_post_data[$v]=rawurldecode($m_post_data[2][$k]);
-						}
-						$post_data=$new_post_data;
-					}else{
-						$post_data=array();
-					}
-				}
-				$post_data=is_array($post_data)?$post_data:array();
-				foreach ($post_data as $k=>$v){
-					$post_data[$k] = iconv ( 'utf-8', $fromEncode.'//IGNORE', $v );
-				}
-			}
-			
-			$curl=\util\Curl::post($url,$headers,$options,$post_data);
 		}
 	} catch (\Exception $e) {
 		$curl=null;
@@ -323,7 +337,16 @@ function get_html($url,$headers=null,$options=array(),$fromEncode='auto',$post_d
 			}
 		}
 	}
-	return isset($html)?$html:false;
+	$html=isset($html)?$html:false;
+	if(!$returnInfo){
+	    return $html;
+	}else{
+	    if(empty($curl)){
+	        return array('header'=>'','ok'=>($html===false?false:true),'html'=>$html);
+	    }else{
+	        return array('header'=>$curl->header,'ok'=>$curl->isOk,'html'=>$html);
+	    }
+	}
 }
 
 /*载入配置文件*/
@@ -364,36 +387,6 @@ function load_data_config(){
 	}
 }
 
-/*清空目录，不删除根目录*/
-function clear_dir($path,$passFiles=null){
-	if(empty($path)){
-		return;
-	}
-	$path=realpath($path);
-	if(empty($path)){
-		return;
-	}
-	if(!empty($passFiles)){
-		$passFiles=array_map('realpath', $passFiles);
-	}
-	
-	$fileList=scandir($path);
-	foreach( $fileList as $file ){
-		$fileName=realpath($path.'/'.$file);
-		if(is_dir( $fileName ) && '.' != $file && '..' != $file ){
-			clear_dir($fileName,$passFiles);
-			rmdir($fileName);
-		}elseif(is_file($fileName)){
-			if($passFiles&&in_array($fileName, $passFiles)){
-				
-				
-			}else{
-				unlink($fileName);
-			}
-		}
-	}
-	clearstatcache();
-}
 /*默认全局过滤方法:config('default_filter')*/
 function default_filter_func($str){
 	

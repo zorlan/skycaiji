@@ -3,6 +3,6 @@
 </div>
 <script type="text/javascript">
 {if condition="$type eq 'common'"}
-	c_pattern.process_op('init',{formObj:'#coll_pattern_process',boxObj:'#c_p_process_load',process:{$process|json_encode}});
+	c_pattern.cpProcess.init({$process|json_encode},true,true);
 {/if}
 </script>

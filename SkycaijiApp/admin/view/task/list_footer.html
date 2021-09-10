@@ -1,5 +1,6 @@
 <div class="list-footer">
 	<form id="form_search_task" method="post" action="{:url('Task/list')}" class="form-inline">
+	{:html_usertoken()}	
 		<input type="hidden" name="show" value="list" /> 
         <div class="form-group form-group-sm">
 			<label>{$Think.lang.task_tg}</label>

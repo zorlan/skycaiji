@@ -19,8 +19,8 @@ class Rcms extends Release{
 	 * @param unknown $config
 	 */
 	public function setConfig($config){
-		$config['cms']=input('cms/a');
-		$config['cms_app']=input('cms_app/a');
+	    $config['cms']=input('cms/a',array());
+	    $config['cms_app']=input('cms_app/a',array());
 		if(empty($config['cms']['path'])){
 			$this->error('cms路径不能为空');
 		}
@@ -54,11 +54,9 @@ class Rcms extends Release{
 			
 			if(model('ReleaseApp')->oldFileExists($this->config['cms']['app'],'Cms')){
 				
-				$this->echo_msg(lang('release_upgrade'));
-				exit();
+			    $this->echo_msg_exit(lang('release_upgrade'));
 			}else{
-				$this->echo_msg('没有cms发布插件：'.$this->config['cms']['app']);
-				exit();
+			    $this->echo_msg_exit('没有cms发布插件：'.$this->config['cms']['app']);
 			}
 		}
 		

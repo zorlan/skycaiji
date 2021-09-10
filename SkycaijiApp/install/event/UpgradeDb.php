@@ -15,7 +15,7 @@ use skycaiji\common\controller\BaseController;
 class UpgradeDb extends BaseController{
 	/*后台更新时升级入口：当所有更新文件下载替换完毕，最后需要升级数据库*/
 	public function run(){
-		clear_dir(config('root_path').'/runtime');
+	    \util\Funcs::clear_dir(config('root_path').'/runtime');
 		$url=url('Install/upgrade/admin',null,true,true);
 		header('Location:'.$url);
 		exit();
@@ -23,11 +23,11 @@ class UpgradeDb extends BaseController{
 	/*正常的升级入口*/
 	public function upgrade(){
 		set_time_limit(0);
-		clear_dir(config('root_path').'/runtime');
+		\util\Funcs::clear_dir(config('root_path').'/runtime');
 		load_data_config();
 		$result=$this->execute_upgrade();
 		if($result['success']){
-			$mconfig=model('admin/Config');
+			$mconfig=model('common/Config');
 			$mconfig->setVersion($this->get_skycaiji_version());
 		}
 		return $result;
@@ -86,7 +86,7 @@ class UpgradeDb extends BaseController{
 	}
 	
 	public function execute_upgrade(){
-		$mconfig=model('admin/Config');
+		$mconfig=model('common/Config');
 		$dbVersion=$mconfig->getVersion();
 		$fileVersion=$this->get_skycaiji_version();
 		
@@ -131,7 +131,7 @@ class UpgradeDb extends BaseController{
 			}
 		}
 		
-		clear_dir(config('root_path').'/runtime');
+		\util\Funcs::clear_dir(config('root_path').'/runtime');
 		
 		return array('success'=>true,'msg'=>'升级完毕');
 	}
@@ -316,6 +316,34 @@ EOF;
 			
 			db()->execute("ALTER TABLE `{$db_prefix}proxy_ip` ADD INDEX ix_time ( `time` )");
 		}
+	}
+	public function upgrade_db_to_2_4(){
+	    $db_prefix=config('database.prefix');
+	    $indexes_proxyip=db()->query("SHOW INDEX FROM `{$db_prefix}proxy_ip`");
+	    
+	    if($this->check_exists_index('ix_num', $indexes_proxyip)){
+	        
+	        db()->execute("ALTER TABLE `{$db_prefix}proxy_ip` DROP INDEX ix_num");
+	    }
+	    if(!$this->check_exists_index('num_no', $indexes_proxyip)){
+	        
+	        db()->execute("ALTER TABLE `{$db_prefix}proxy_ip` ADD INDEX num_no ( `num`,`no` )");
+	    }
+	    
+	    if($this->check_exists_index('ix_time', $indexes_proxyip)){
+	        
+	        db()->execute("ALTER TABLE `{$db_prefix}proxy_ip` DROP INDEX ix_time");
+	    }
+	    if(!$this->check_exists_index('time_no', $indexes_proxyip)){
+	        
+	        db()->execute("ALTER TABLE `{$db_prefix}proxy_ip` ADD INDEX time_no ( `time`,`no` )");
+	    }
+	    
+	    $columns_provider=db()->query("SHOW COLUMNS FROM `{$db_prefix}provider`");
+	    if(!$this->check_exists_field('authkey', $columns_provider)){
+	        
+	        db()->execute("alter table `{$db_prefix}provider` add `authkey` varchar(255) NOT NULL DEFAULT ''");
+	    }
 	}
 }
 ?>

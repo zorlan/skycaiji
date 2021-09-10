@@ -172,6 +172,16 @@ class elFinderConnector
     }
 
     /**
+     * Sets the header.
+     *
+     * @param array|string  $value HTTP header(s)
+     */
+    public function setHeader($value)
+    {
+        $this->header = $value;
+    }
+
+    /**
      * Output json
      *
      * @param  array  data to output
@@ -209,7 +219,7 @@ class elFinderConnector
             $sendData = !($this->reqMethod === 'HEAD' || !empty($data['info']['xsendfile']));
             $psize = null;
             if (($this->reqMethod === 'GET' || !$sendData)
-                && elFinder::isSeekableStream($fp)
+                && (elFinder::isSeekableStream($fp) || elFinder::isSeekableUrl($fp))
                 && (array_search('Accept-Ranges: none', headers_list()) === false)) {
                 header('Accept-Ranges: bytes');
                 if (!empty($_SERVER['HTTP_RANGE'])) {
@@ -248,7 +258,7 @@ class elFinderConnector
                                 }
                             }
 
-                            $sendData && fseek($fp, $start);
+                            $sendData && !elFinder::isSeekableUrl($fp) && fseek($fp, $start);
                         }
                     }
                 }
@@ -267,7 +277,7 @@ class elFinderConnector
             }
 
             if ($sendData) {
-                if ($toEnd) {
+                if ($toEnd || elFinder::isSeekableUrl($fp)) {
                     // PHP < 5.6 has a bug of fpassthru
                     // see https://bugs.php.net/bug.php?id=66736
                     if (version_compare(PHP_VERSION, '5.6', '<')) {
@@ -283,7 +293,9 @@ class elFinderConnector
             }
 
             if (!empty($data['volume'])) {
-                $data['volume']->close($data['pointer'], $data['info']['hash']);
+                $data['volume']->close($fp, $data['info']['hash']);
+            } else {
+                fclose($fp);
             }
             exit();
         } else {
@@ -349,8 +361,8 @@ class elFinderConnector
         if (!empty($data['raw']) && isset($data['error'])) {
             $out = $data['error'];
         } else {
-            if (isset($data['debug']) && isset($data['debug']['phpErrors'])) {
-                $data['debug']['phpErrors'] = array_merge($data['debug']['phpErrors'], elFinder::$phpErrors);
+            if (isset($data['debug']) && isset($data['debug']['backendErrors'])) {
+                $data['debug']['backendErrors'] = array_merge($data['debug']['backendErrors'], elFinder::$phpErrors);
             }
             $out = json_encode($data);
         }

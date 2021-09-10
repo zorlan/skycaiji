@@ -23,9 +23,8 @@
 	                <td>{$groupList[$user['groupid']]['name']}</td>
 	                <td>{$user['email']}</td>
 	                <td>
-	                	<a href="{:url('User/edit?uid='.$user['uid'])}">{$Think.lang.edit}</a>
-	                	&nbsp;
-						<a href="javascript:;" url="{:url('User/delete?uid='.$user['uid'])}" class="delete">{$Think.lang.delete}</a>
+	                	<div class="in-line-mg"><a href="{:url('User/edit?uid='.$user['uid'])}">{$Think.lang.edit}</a></div>
+						<div class="in-line-mg"><a href="javascript:;" url="{:url('User/delete?uid='.$user['uid'])}" class="delete">{$Think.lang.delete}</a></div>
 	                </td>
 	            </tr>
 			{/foreach}
@@ -53,7 +52,7 @@
 $('#list_table .delete').bind('click',function(){
 	var obj=$(this);
 	confirmRight('{$Think.lang.confirm_delete}',function(){
-		$.ajax({
+		ajaxOpen({
              type: "GET",
              url: obj.attr('url'),
              dataType: "json",

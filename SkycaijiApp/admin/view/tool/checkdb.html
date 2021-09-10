@@ -4,6 +4,7 @@
 <div class="box box-default">
 	<div class="box-body">
 		<form id="form_check" action="{:url('Tool/checkdb')}" method="post" style="text-align:center;padding:50px 0;">
+       	{:html_usertoken()}	
        		<input type="hidden" name="sub" value="1" />
        		<h1>校验数据库一致性</h1>
        		<p class="lead">数据库不一致可能导致程序运行错误、功能缺失、系统紊乱等</p>
@@ -55,7 +56,7 @@
 $('#form_check').bind('submit',function(){
 	var $_o=$(this);
 	$_o.find('button[type="submit"]').attr('disabled',true).html('正在校验...');
-	$.ajax({
+	ajaxOpen({
 		type: 'POST',
 		dataType: 'json',
 		url:$(this).attr('action'),
@@ -120,7 +121,7 @@ $('#form_check').bind('submit',function(){
 $('#repair_db').bind('click',function(){
 	var $_o=$(this);
 	$_o.attr('disabled',true).html('正在修复...');
-	$.ajax({
+	ajaxOpen({
 		type: 'POST',
 		dataType: 'json',
 		url:"{:url('Tool/checkdb')}",

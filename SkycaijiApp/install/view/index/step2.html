@@ -17,7 +17,7 @@
 				<tbody>
 					<tr>
 						<td>数据库主机</td>
-						<td><input name="db_host" class="form-control" value="localhost"></td>
+						<td><input name="db_host" class="form-control" value="127.0.0.1"></td>
 					</tr>
 					<tr>
 						<td>数据库端口</td>
@@ -60,8 +60,10 @@
 					<tr>
 						<td>密码</td>
 						<td>
-							<input name="user_pwd" type="password" class="form-control" autocomplete="off" value="">
-							<div class="input-group-addon" id="pwd_status" style="display:none;"></div>
+							<div id="box_pwd">
+								<input name="user_pwd" type="password" class="form-control" autocomplete="off" value="">
+								<div class="input-group-addon" id="pwd_status" style="display:none;"></div>
+							</div>
 						</td>
 					</tr>
 					<tr>
@@ -82,10 +84,11 @@
 	</form>
 </div>
 <script type="text/javascript">
+'use strict';
 $('#form_db').bind('submit',function(){
 	var $_o=$(this);
 	$_o.find('button[type="submit"]').attr('disabled',true);
-	$.ajax({
+	ajaxOpen({
 		type: 'POST',
 		dataType: 'json',
 		url:$(this).attr('action'),
@@ -94,9 +97,8 @@ $('#form_db').bind('submit',function(){
 			if(data.code==1){
 				//成功
 				if(data.data.has_data){
-					confirmRight('存在数据是否覆盖？',function(){
-						window.location.href=ulink('Install/Index/step3?overwrite=1');
-					},function(){
+					confirmRight({yes:'保留数据',no:'强制安装',msg:'检测到当前数据库中已存在同样表前缀的数据表，您可以修改“表前缀”来避免删除旧数据，或者选择强制安装，强制安装会删除旧数据，且无法恢复！'},null,function(){
+						//强制安装
 						window.location.href=ulink('Install/Index/step3');
 					});
 				}else{
@@ -114,7 +116,8 @@ $('#form_db').bind('submit',function(){
 $('#form_db input[name="user_pwd"]').bind('keyup',function(){
 	var pwd=$(this).val();
 	if(pwd.length>=6){
-		$('#pwd_status').show().parents('td').addClass('input-group');
+		$('#box_pwd').addClass('input-group');
+		$('#pwd_status').show();
 		if((/^.{6,7}$/i).test(pwd)){
 			$('#pwd_status').html('<b style="color:red;">极弱</b>');
 		}else if((/^.{8,9}$/i).test(pwd)){
@@ -125,7 +128,8 @@ $('#form_db input[name="user_pwd"]').bind('keyup',function(){
 			$('#pwd_status').html('<b style="color:green;">强</b>');
 		}
 	}else{
-		$('#pwd_status').hide().parents('td').removeClass('input-group');
+		$('#box_pwd').removeClass('input-group');
+		$('#pwd_status').hide();
 	}
 });
 </script>

@@ -32,7 +32,7 @@ class DbCommon{
     		'break_reconnect'=>true, 
     		'params'=>array(),
     	);
-    	if(!empty($GLOBALS['_sc']['c']['site']['dblong'])){
+    	if(!is_empty(g_sc_c('site','dblong'))){
     		
     		$this->config['params'][\PDO::ATTR_PERSISTENT]=true;
     	}

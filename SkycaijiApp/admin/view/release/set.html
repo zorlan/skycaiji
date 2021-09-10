@@ -4,6 +4,7 @@
 {/block}
 {block name="content"}
 <form id="form_rele" class="form-item" method="post" ajax-submit="true" action="{:url('Release/set')}">
+{:html_usertoken()}	
 	<input type="hidden" name="task_id" value="{$taskData['id']}" />
 	<input type="hidden" name="release_id" value="" />
 	<div class="form-group">
@@ -138,7 +139,7 @@
 				<div class="form-group">
 					<label>文件存放目录</label>
 					<div class="input-group mobile-input-group">
-						<div class="input-group-addon">{:config('root_path')}\data\</div>
+						<div class="input-group-addon">{:config('root_path')}{:DS}data{:DS}</div>
 						<input type="text" class="form-control" name="file[path]" placeholder="请输入目录名称" />
 						<div class="input-group-btn">
 							<button type="button" class="btn btn-default btn-file-rand-path">随机目录</button>
@@ -191,7 +192,7 @@
 				<div class="form-group">
 					<label>api地址</label>
 					<div class="input-group mobile-input-group">
-						<div class="input-group-addon">{:config('root_website')}/api_task/{$releData['task_id']}/</div>
+						<div class="input-group-addon">{$apiRootUrl}/api_task/{$releData['task_id']}/</div>
 						<input type="text" class="form-control" name="api[url]" placeholder="请输入字符串" />
 						<div class="input-group-btn">
 							<button type="button" class="btn btn-default btn-api-rand-url">随机字符串</button>
@@ -242,13 +243,17 @@
 				</div>
 				<div class="form-group">
 					<label>数据编码</label>
-					<select name="toapi[charset]" class="form-control">
-						<option value="">utf-8</option>
-						<option value="gbk">gbk</option>
-						<option value="gb2312">gb2312</option>
-						<option value="custom">自定义</option>
-					</select>
-					<input type="text" class="form-control" name="toapi[charset_custom]" style="display:none;margin-top:10px;">
+					<div class="input-group input-select-custom">
+						<div class="input-group-btn">
+							<select name="toapi[charset]" class="form-control">
+								<option value="">utf-8</option>
+								<option value="gbk">gbk</option>
+								<option value="gb2312">gb2312</option>
+								<option value="custom">自定义</option>
+							</select>
+						</div>
+						<input type="text" class="form-control" name="toapi[charset_custom]">
+					</div>
 				</div>
 				<div class="form-group">
 			     	<label>发送数据</label>
@@ -449,8 +454,8 @@
 			</div>
 		</div>
 	</div>
-	{if condition="!empty($releData['config'])"}
-	<a href="{:url('Release/test?id='.$releData['id'])}" target="_blank" onclick="windowIframe('测试',$(this).attr('href'),{lg:1});return false;" class="btn btn-default btn-block" style="margin-bottom:10px;">测试发布（需先保存设置）</a>
+	{if condition="!empty($releData['id'])"}
+	<a href="javascript:;" onclick="collectorWindow('测试','admin/release/test?id={$releData['id']}',null,{lg:1});return false;" class="btn btn-default btn-block" style="margin-bottom:10px;">测试发布（需先保存设置）</a>
 	{/if}
 	<div class="form-group">
 		<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>

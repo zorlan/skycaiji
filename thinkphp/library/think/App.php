@@ -400,23 +400,39 @@ class App
     private static function getParamValue($param, &$vars, $type)
     {
         $name  = $param->getName();
-        $class = $param->getClass();
-
+        
+        $class=false;//存在类 [修改]
+        $className=null;
+        if(PHP_VERSION_ID>=80000){
+            //8.0版本操作
+            $reflectionType=$param->getType();
+            if ($reflectionType && $reflectionType->isBuiltin() === false){
+                $class=true;
+                $className=$reflectionType->getName();
+            }
+        }else{
+            $class=$param->getClass();
+            if($class){
+                $className=$class->getName();
+                $class=true;
+            }
+        }
+        
         if ($class) {
-            $className = $class->getName();
+            //$className = $class->getName();
             $bind      = Request::instance()->$name;
-
+            
             if ($bind instanceof $className) {
                 $result = $bind;
             } else {
                 if (method_exists($className, 'invoke')) {
                     $method = new \ReflectionMethod($className, 'invoke');
-
+                    
                     if ($method->isPublic() && $method->isStatic()) {
                         return $className::invoke(Request::instance());
                     }
                 }
-
+                
                 $result = method_exists($className, 'instance') ?
                 $className::instance() :
                 new $className;
@@ -430,7 +446,7 @@ class App
         } else {
             throw new \InvalidArgumentException('method param miss:' . $name);
         }
-
+        
         return $result;
     }
 

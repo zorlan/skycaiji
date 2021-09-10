@@ -6,6 +6,7 @@
 <div class="box box-default">
 	<div class="box-body">
 		<form id="form_app" method="post" ajax-submit="true" action="{:url('Admin/Develop/app')}">
+		{:html_usertoken()}
 		    {if !empty($appData)}
 		    <input type="hidden" name="edit" value="1" />
 		    <input type="hidden" name="app" value="{$appData['app']}" />
