@@ -1,0 +1,104 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/setting.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('admin/setting/translate')}">
+{:html_usertoken()}	
+<div class="nav-tabs-custom">
+	{include file="setting/caiji_nav" /}
+	<div class="tab-content">
+		<div class="tab-pane active" style="padding:0px 5px;">
+      		<div class="form-group">
+		        <label>全局开启</label>
+		        <div class="input-group">
+		        	<label class="radio-inline"><input type="radio" name="open" value="1">{$Think.lang.yes}</label>
+		        	<label class="radio-inline"><input type="radio" name="open" value="0" checked="checked">{$Think.lang.no}</label>
+		        </div>
+		        <p class="help-block">开启后采集器中的翻译功能才会生效</p>
+		    </div>
+			<div class="form-group">
+		    	<label>翻译API接口</label>
+		        <select name="api" class="form-control">
+		        	<option value="">--请选择--</option>
+		        	<option value="baidu">百度翻译</option>
+		        	<option value="youdao">有道翻译</option>
+		        	<option value="qq">腾讯翻译</option>
+		        	<option value="google">谷歌翻译</option>
+		        </select>
+	    	</div>
+		    <div class="form-group" id="api_baidu" style="display:none;">
+		        <label>百度翻译API &nbsp;<a href="https://www.skycaiji.com/manual/q/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91api" class="small" target="_blank">申请</a></label>
+		        <div class="input-group">
+		        	<span class="input-group-addon">APPID</span>
+		        	<input type="text" name="baidu[appid]" class="form-control" value="{$transConfig['baidu']['appid']}">
+		        	<span class="input-group-addon" style="border-left:0;border-right:0;">密钥</span>
+			       	<input type="text" name="baidu[key]" class="form-control" value="{$transConfig['baidu']['key']}">
+			    </div>
+			    <p class="help-block">支持语种：{$apiLangs['baidu']}</p>
+		    </div>
+		    <div class="form-group" id="api_youdao" style="display:none;">
+		        <label>有道翻译API &nbsp;<a href="https://www.skycaiji.com/manual/q/%E6%9C%89%E9%81%93%E7%BF%BB%E8%AF%91api" class="small" target="_blank">申请</a></label>
+		        <div class="input-group">
+		        	<span class="input-group-addon">应用ID</span>
+		        	<input type="text" name="youdao[appkey]" class="form-control" value="{$transConfig['youdao']['appkey']}">
+		        	<span class="input-group-addon" style="border-left:0;border-right:0;">应用密钥</span>
+			       	<input type="text" name="youdao[key]" class="form-control" value="{$transConfig['youdao']['key']}">
+			    </div>
+			    <p class="help-block">支持语种：{$apiLangs['youdao']}</p>
+		    </div>
+		    <div class="form-group" id="api_qq" style="display:none;">
+		        <label>腾讯翻译API &nbsp;<a href="https://www.skycaiji.com/manual/q/%E8%85%BE%E8%AE%AF%E7%BF%BB%E8%AF%91api" class="small" target="_blank">申请</a></label>
+		        <div class="input-group">
+		        	<span class="input-group-addon">SecretId</span>
+		        	<input type="text" name="qq[secretid]" class="form-control" value="{$transConfig['qq']['secretid']}">
+		        	<span class="input-group-addon" style="border-left:0;border-right:0;">SecretKey</span>
+			       	<input type="text" name="qq[secretkey]" class="form-control" value="{$transConfig['qq']['secretkey']}">
+			    </div>
+			    <p class="help-block">支持语种：{$apiLangs['qq']}</p>
+		    </div>
+		    <div class="form-group" id="api_google" style="display:none;">
+		        <label>谷歌翻译API &nbsp;<a href="https://www.skycaiji.com/manual/q/%E8%B0%B7%E6%AD%8C%E7%BF%BB%E8%AF%91api" class="small" target="_blank">申请</a></label>
+		        <div class="input-group">
+		        	<span class="input-group-addon">API密钥</span>
+			       	<input type="text" name="google[key]" class="form-control" value="{$transConfig['google']['key']}">
+			    </div>
+			    <p class="help-block">支持语种：{$apiLangs['google']}</p>
+		    </div>
+		    <div class="form-group">
+	        	<label>调用间隔（毫秒，1000毫秒=1秒）</label>
+	        	<input type="number" name="interval" class="form-control" value="{$transConfig['interval']|intval}">
+		   		<p class="help-block">如翻译接口有频率限制，可设置间隔时间避免调用过快导致翻译失败</p>        
+		    </div>
+		    <div class="form-group">
+	        	<label>失败等待（秒）</label>
+	        	<input type="number" name="wait" class="form-control" value="{$transConfig['wait']|intval}">
+		   		<p class="help-block">一般情况下翻译失败都是频繁请求API导致被禁用，设置该值等待一段时间让接口恢复正常</p>        
+		    </div>
+		    <div class="form-group">
+	        	<label>失败重试</label>
+	        	<input type="number" name="retry" class="form-control" value="{$transConfig['retry']|intval}">
+		   		<p class="help-block">翻译失败重试次数，留空或0表示不重试</p>        
+		    </div>
+		    <div class="form-group">
+		        <label>防止HTML被翻译</label>
+		        <div class="input-group">
+		        	<label class="radio-inline"><input type="radio" name="pass_html" value="1">{$Think.lang.yes}</label>
+		        	<label class="radio-inline"><input type="radio" name="pass_html" value="0" checked="checked">{$Think.lang.no}</label>
+		        </div>
+		        <p class="help-block">
+		        	大部分翻译器会将html标签当做文本一同翻译，该功能可保留html代码（例如：&lt;p&gt;、&lt;img&gt;、&lt;script&gt;等所有html标签）而只翻译文本内容
+		        	<br>缺点：会多次请求API接口，建议设置调用间隔或失败等待时间避免翻译失败
+		        </p>
+		    </div>
+		</div>
+	</div>
+</div>
+<div class="form-group">
+	<button type="submit" id="btn_sub" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+</div>
+</form>
+<script type="text/javascript">
+settingClass.translate_init({$transConfig|json_encode});
+</script>
+{/block}

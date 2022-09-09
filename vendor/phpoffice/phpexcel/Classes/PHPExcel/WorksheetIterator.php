@@ -61,46 +61,51 @@ class PHPExcel_WorksheetIterator implements Iterator
     }
 
     /**
-     * Rewind iterator
+     * Rewind iterator [修改]
      */
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         $this->position = 0;
     }
 
     /**
-     * Current PHPExcel_Worksheet
+     * Current PHPExcel_Worksheet [修改]
      *
      * @return PHPExcel_Worksheet
      */
+    #[\ReturnTypeWillChange]
     public function current()
     {
         return $this->subject->getSheet($this->position);
     }
 
     /**
-     * Current key
+     * Current key [修改]
      *
      * @return int
      */
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->position;
     }
 
     /**
-     * Next value
+     * Next value [修改]
      */
+    #[\ReturnTypeWillChange]
     public function next()
     {
         ++$this->position;
     }
 
     /**
-     * More PHPExcel_Worksheet instances available?
+     * More PHPExcel_Worksheet instances available? [修改]
      *
      * @return boolean
      */
+    #[\ReturnTypeWillChange]
     public function valid()
     {
         return $this->position < $this->subject->getSheetCount();

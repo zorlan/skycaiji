@@ -1,0 +1,94 @@
+<style type="text/css">
+#form_source .radio{border:1px solid #eee;padding:10px;}
+#form_source .radio:hover{background:#efefef;}
+#form_source .source-params{display:inline;}
+#form_source .source-params *{display:inline;}
+#form_source .source-params textarea{vertical-align:middle}
+</style>
+<form id="form_source" method="post" action="{:url('cpattern/source')}">
+{:html_usertoken()}
+<input type="hidden" name="is_submit" value="1" />
+<input type="hidden" name="source[type]" value="custom" />
+<input type="hidden" name="source[objid]" value="{$source['objid']}" />
+<ul class="nav nav-tabs c-p-source-tab">
+    <li class="active"><a href="#tab_custom" data-toggle="tab" source-type="custom">手工指定</a></li>
+    <li class=""><a href="#tab_batch" data-toggle="tab" source-type="batch">批量生成</a></li>
+    <li class=""><a href="#tab_large" data-toggle="tab" source-type="large">大量网址</a></li>
+    <li class=""><a href="#tab_api" data-toggle="tab" source-type="api">API动态获取</a></li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade in active" id="tab_custom" style="padding:10px 0;">
+    	<p>一行一条列表页网址(http://或https://开头)</p>
+        <textarea name="source[urls]" class="form-control" rows="5"></textarea>
+    </div>
+    <div class="tab-pane fade" id="tab_batch" style="padding:10px 0;">
+    	<div class="input-group" style="margin-bottom:10px;">
+   			<span class="input-group-addon">网址格式</span>
+			<input type="text" class="form-control" name="source[url]" id="source_url" />
+   			<div class="input-group-addon" style="background:#fff;"><a href="javascript:;" id="source_url_sign">{:cp_sign('match')}</a></div>
+		</div>
+		<div class="input-group-addon" ><span class="glyphicon glyphicon-arrow-up"></span> 将 {:cp_sign('match')} 替换成 <span class="glyphicon glyphicon-arrow-down"></span></div>
+		<div class="radio form-inline form-group form-group-sm" source-param="num">
+			<label>
+				<input type="radio" name="source[param]" value="num" />
+				数字
+			</label>
+			<div class="source-params">
+				从 <input name="source[param_num_start]" type="number" value="1" class="form-control" style="width:70px;">
+				到 <input name="source[param_num_end]" type="number" value="5" class="form-control" style="width:70px;">
+				递增数 <input name="source[param_num_inc]" type="number" value="1" class="form-control" style="width:70px;">
+				<label><input type="checkbox" name="source[param_num_desc]" value="1"> 倒序</label>
+			</div>
+		</div>
+		<div class="radio form-inline form-group form-group-sm" source-param="letter">
+			<label>
+				<input type="radio" name="source[param]" value="letter" />
+				字母
+			</label>
+			<div class="source-params">
+				从 <input name="source[param_letter_start]" type="text" value="a" class="form-control" style="width:50px;">
+				到 <input name="source[param_letter_end]" type="text" value="z" class="form-control" style="width:50px;">
+				<label><input type="checkbox" name="source[param_letter_desc]" value="1"> 倒序</label>
+			</div>
+		</div>
+		<div class="radio form-inline form-group form-group-sm" source-param="custom">
+			<label>
+				<input type="radio" name="source[param]" value="custom" />
+				自定义
+			</label>
+			<div class="source-params">
+	       		<textarea class="form-control" style="width:auto;" name="source[param_custom]" rows="3"></textarea>
+	       		一行一个
+       		</div>
+		</div>
+		<div class="form-group form-group-sm">
+  			<button type="button" class="btn btn-default btn-block" onclick="c_pattern.source_op('add_sub',{'preview':1})">预览</button>
+  		</div>
+       	<textarea class="form-control disabled" rows="5" id="source_preview" readonly="readonly"></textarea>
+    </div>
+    <div class="tab-pane fade" id="tab_large" style="padding:10px 0;">
+    	<p>大量网址，一行一条(http://或https://开头)</p>
+        <textarea name="source[large_urls]" class="form-control" rows="5"></textarea>
+    </div>
+    <div class="tab-pane fade" id="tab_api" style="padding:10px 0;">
+    	<p>API接口网址</p>
+        <input name="source[api]" class="form-control" />
+        <p class="help-block">通过api接口动态获取网址</p>
+        <p>网址获取规则</p>
+        <input name="source[api_json]" class="form-control" placeholder="默认获取json根节点的值" />
+        <p class="help-block">json规则： a.b.c 通配符 *</p>
+    </div>
+</div>
+
+<div class="form-group form-group-sm">
+	<button type="submit" class="btn btn-primary btn-block" onclick="return c_pattern.source_op('add_sub');">提交</button>
+</div>
+</form>
+<script type="text/javascript">
+{if condition="$source"}
+c_pattern.source_op('init',{source:{$source|json_encode}});
+{else /}
+c_pattern.source_op('init');
+{/if}
+</script>

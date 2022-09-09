@@ -1,0 +1,50 @@
+<form id="win_form_proxy_batch" method="post" action="{:url('admin/proxy/batch')}">
+{:html_usertoken()}	
+	<input type="hidden" name="is_test" />
+    <div class="form-group">
+		<label>代理IP（一行一条）</label>
+    	<textarea rows="5" name="ips" class="form-control"></textarea>
+    </div>
+    <div class="form-group">
+		<label>匹配格式（对应上面每行的数据）</label>
+    	<input type="text" name="format" value="[ip]:[端口]" class="form-control" />
+    	<ul class="in-line-mg format" style="display:block;margin:5px 0;">
+    		<li><a href="javascript:;" data-val="[ip]">[ip]</a></li>
+    		<li><a href="javascript:;" data-val="[端口]">[端口]</a></li>
+    		<li><a href="javascript:;" data-val="[用户名]">[用户名]</a></li>
+    		<li><a href="javascript:;" data-val="[密码]">[密码]</a></li>
+    		<li><a href="javascript:;" data-val="(*)" title="匹配任意字符">(*)</a>通配符</li>
+    	</ul>
+    </div>
+	<div class="form-group">
+		<label>代理类型</label>
+    	<select name="type" class="form-control">
+			{foreach $proxyTypes as $k=>$v}
+			<option value="{$v}">{$k}</option>
+			{/foreach}
+		</select>
+    </div>
+    <div class="form-group">
+		<label>默认设置</label>
+		<div class="input-group">
+			<span class="input-group-addon">默认用户名</span>
+			<input type="text" name="user" class="form-control" />
+			<span class="input-group-addon" style="border-left:0;border-right:0;">默认密码</span>
+			<input type="text" name="pwd" class="form-control" />
+		</div>
+		<p class="help-block">当未匹配到用户名时，使用默认设置</p>
+	</div>
+   	<div class="form-group">
+    	<div class="test-result" style="display:none;">
+    		<label>IP:端口 - 类型 - 用户名:密码</label>
+    		<textarea rows="5" class="form-control"></textarea>
+    	</div>
+		<button type="button" class="btn btn-default btn-block btn-test">测试</button>
+	</div>
+   	<div class="form-group">
+		<button type="submit" class="btn btn-primary btn-block">提交</button>
+	</div>
+</form>
+<script type="text/javascript">
+window.proxyClass.init_batch();
+</script>

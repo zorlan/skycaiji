@@ -1,0 +1,140 @@
+{extend name="common:main" /}
+{block name="cssjs"} {/block}
+{block name="content"}
+<div class="box">
+	<div class="box-body">
+		<form id="form_list" method="post" ajax-submit="true" action="{:url('taskgroup/op')}">
+		{:html_usertoken()}
+		<input type="hidden" name="op" value="saveall" />
+		<table id="list_table" class="table table-hover datatable">
+			<thead>
+				<tr>
+					<th width="50" class="chk">{$Think.lang.select}</th>
+					<th width="80">{$Think.lang.sort}</th>
+					<th>{$Think.lang.taskgroup_name}</th>
+					<th>{$Think.lang.op}</th>
+				</tr>
+			</thead>
+			<tbody>
+			{foreach name="parentList" item="pitem"}
+				{php}$num++;$itemList=is_array($subList[$pitem['id']])?array_merge(array($pitem),$subList[$pitem['id']]):array($pitem);{/php}
+				{foreach name="itemList" item="item"}
+				<tr class="bg{$num%2}">
+					<td class="chk"><input type="checkbox" name="ids[]" value="{$item['id']}" /></td>
+					<td class="sort"><input type="text" name="newsort[{$item['id']}]" class="form-control" value="{$item['sort']}" autocomplete="off" /></td>
+					<td{$item['parent_id']?' class="sub"':''}>{$item['name']}</td>
+					<td>
+						<div class="in-line-mg"><a href="{:url('taskgroup/edit?id='.$item['id'])}" class="edit">{$Think.lang.edit}</a></div>
+						<div class="in-line-mg"><a href="javascript:;" url="{:url('taskgroup/op?op=delete&id='.$item['id'])}" class="delete">{$Think.lang.delete}</a></div>
+						<div class="dropdown">
+							<a href="javascript:;" item-id="{$item['id']}" parent-id="{$item['parent_id']}" class="dropdown-toggle more" data-toggle="dropdown" aria-expanded="false">{$Think.lang.more}<span class="caret"></span></a>
+						</div>
+					</td>
+				</tr>
+				{/foreach}
+			{/foreach}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td class="chk"><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" /></td>
+					<td colspan="2">
+						<button type="submit" class="btn btn-primary">{$Think.lang.save}</button>
+						<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
+						<button type="button" class="btn btn btn-success" onclick="windowModal('{$Think.lang.tg_add_sub}','{:url('taskgroup/add')}')">{$Think.lang.taskgroup_add}</button>
+					</td>
+					<td></td>
+				</tr>
+			</tfoot>
+		</table>
+		</form>
+		{$pagenav}
+	</div>
+	<!-- /.box-body -->
+</div>
+<!-- /.box -->
+<div class="list-footer">
+	<form id="form_search" method="post" action="{:url('taskgroup/list')}" class="form-inline">
+	{:html_usertoken()}	
+		<div class="form-group form-group-sm">
+			<label>{$Think.lang.taskgroup_parent_id}</label>
+		    <select name="parent_id" class="form-control">
+			    <option value="0">{$Think.lang.all}</option>
+				{foreach name="parentTgList" item="tgName" key="tgId"}
+			    <option value="{$tgId}">{$tgName}</option>
+				{/foreach}
+		    </select>
+	    </div>
+		<div class="form-group form-group-sm">
+			<label>{$Think.lang.taskgroup_name}</label>
+        	<input type="text" name="name" class="form-control" value="{$search['name']}">
+        </div>
+        <button type="submit" class="btn btn-default btn-sm">{$Think.lang.search}</button>
+	</form>
+</div>
+
+<script type="text/javascript">
+$('#form_search select[name="parent_id"]').val("{$search['parent_id']}");
+
+$(document).ready(function(){
+	//单个删除
+	$('#list_table .delete').bind('click',function(){
+		var obj=$(this);
+		confirmRight('{$Think.lang.confirm_delete}',function(){
+			ajaxOpen({
+	             type: "GET",
+	             url: obj.attr('url'),
+	             dataType: "json",
+	             success: function(data){
+	            	data.code==1?toastr.success(data.msg):toastr.error(data.msg);
+	            	if(data.code==1){
+	             		obj.parent().parent().remove();
+	            	}
+	             }
+	         });
+		});
+	});
+	
+	//更多操作
+	$('#list_table .more').bind('click',function(){
+		var dropdown=$(this).parent('.dropdown');
+		var options='<ul class="dropdown-menu'+($(document.body).width()<=500?' dropdown-menu-right':'')+'">';
+		var parent_id=parseInt($(this).attr('parent-id'));
+		if(parent_id==0){
+			//是父分组
+			var addTgUrl='{:url("taskgroup/add?parent_id=_parent_id_")}';
+			addTgUrl=addTgUrl.replace('_parent_id_',$(this).attr('item-id'));//传递parent_id
+			options+='<li><a href="javascript:;" onclick="windowModal(\'{$Think.lang.tg_add_sub}\',\''+addTgUrl+'\')">{$Think.lang.tg_add_sub}</a></li>';
+		}
+
+		var moveTgUrl='{:url("taskgroup/op?op=move&id=_id_")}';
+		moveTgUrl=moveTgUrl.replace('_id_',$(this).attr('item-id'));
+		
+		options+='<li><a href="javascript:;" onclick="windowModal(\'{$Think.lang.tg_move}\',\''+moveTgUrl+'\')">{$Think.lang.tg_move}</a></li></ul>';
+		dropdown.find('.dropdown-menu').remove();
+		dropdown.append(options);
+	});
+	
+	//sort改变值后选中
+	$('input[name^="newsort"]').bind('change',function(){
+		$(this).parent().parent().find('input[name="ids[]"]').prop('checked',true);
+	});
+	//删除选中
+	$('#deleteall').bind('click',function(){
+		var obj=$(this);
+		confirmRight('{$Think.lang.confirm_delete}',function(){
+			ajaxOpen({
+	        	type: "POST",
+	        	url: "{:url('taskgroup/op')}",
+	        	dataType: "json",
+				data:$('#form_list').serialize()+'&op=deleteall',
+	         	success: function(data){
+	            	data.code==1?toastr.success(data.msg):toastr.error(data.msg);
+					setTimeout("window.location.reload();",2500);
+	        	}
+	        });
+		});
+	});
+});
+
+</script>
+{/block}

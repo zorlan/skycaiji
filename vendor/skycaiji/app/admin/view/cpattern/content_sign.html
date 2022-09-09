@@ -1,0 +1,66 @@
+<form id="form_content_sign" method="post" action="{:url('cpattern/content_sign')}">
+{:html_usertoken()}
+	<input type="hidden" name="is_submit" value="1" />
+	<input type="hidden" name="objid" value="{$objid}" data-identity="" />
+	<div class="form-group">
+   		<label class="control-label">标识名</label>
+   		<input type="text" class="form-control" name="content_sign[identity]" placeholder="" autocomplete="off" />
+   		<p class="help-block">由数字、字母及下划线组成</p>
+	</div>
+	<div class="form-group">
+   		<label class="control-label">获取方式</label>
+		<select name="content_sign[module]" class="form-control">
+			<option value="rule">规则匹配</option>
+			<option value="xpath">xpath匹配</option>
+			<option value="json">json提取</option>
+		</select>
+	</div>
+	<div class="form-group" id="c_p_content_sign_module">
+		<div class="c-p-content-sign-module" data-module="rule">
+			{include file="cpattern:rule_module" _type="rule" _name="content_sign" _name_pre="" _allow_loop="" /}
+		</div>
+		<div class="c-p-content-sign-module" data-module="xpath" style="display:none;">
+			{include file="cpattern:rule_module" _type="xpath" _name="content_sign" _name_pre="" _allow_loop="" /}
+		</div>
+		<div class="c-p-content-sign-module" data-module="json" style="display:none;">
+			{include file="cpattern:rule_module" _type="json" _name="content_sign" _name_pre="" _allow_loop="" /}
+		</div>
+	</div>
+	
+	<div class="panel panel-default">
+		<div class="panel-heading">
+	    	<h4 class="panel-title"><a data-toggle="collapse" href="#panel_content_sign_func" aria-expanded="false" class="collapsed">使用函数</a></h4>
+	   	</div>
+	    <div class="panel-collapse collapse" id="panel_content_sign_func">
+	    	<div class="panel-body">
+		        <div class="form-group">
+		        	<label>函数名</label>
+			   		<select name="content_sign[func]" class="form-control">
+			   			<option value="">不使用</option>
+			       	</select>
+				</div>
+				<div class="form-group c-p-url-page-signs" data-page-type="{$page_type}" data-input-name="content_sign[func_param]">
+					<label>传入参数</label>
+					<textarea name="content_sign[func_param]"  rows="2" class="form-control" data-placeholder="默认传入当前内容标签的值" placeholder="默认传入当前内容标签的值"></textarea>
+					<div class="help-block">
+					<div class="dropdown">
+						一行一个值，可输入任何内容，用 <a href="javascript:;" class="c-p-content-sign-add-cur" onclick="">###</a>
+						<div style="display:inline;">
+							表示当前内容标签的值
+							<div class="dropdown-menu dropdown-menu-right"></div>
+						</div>
+						，请按函数传参，否则运行出错！<a href="javascript:;" onclick="pluginFuncTips('contentSign')">扩展函数</a>
+					</div>
+					</div>
+				</div>
+	    	</div>
+	    </div>
+	</div>
+	
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+<script type="text/javascript">
+c_pattern.cpContentSign.init({:empty($content_sign)?'null':json_encode($content_sign)},'{$page_type}',{$page_config|json_encode});
+</script>

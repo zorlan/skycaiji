@@ -1,0 +1,103 @@
+{assign name="_tpl_type" value="[_type]" /}
+{assign name="_tpl_name" value="[_name]" /}
+{assign name="_tpl_name_pre" value="[_name_pre]" /}
+{assign name="_tpl_allow_loop" value="[_allow_loop]" /}
+
+{if $_tpl_type=='rule'}
+	<div class="form-group">
+		<label>规则</label>
+		<div class="input-group">
+   			<textarea name="{$_tpl_name}[{$_tpl_name_pre}rule]" class="form-control" rows="3" placeholder="{$Think.lang.tips_match}"></textarea>
+			<div class="input-group-addon iga-rt">
+				<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'{$_tpl_name}[{$_tpl_name_pre}rule]\']')">{$Think.lang.sign_wildcard}</a></div>
+	      		<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match}" onclick="cpMatch('[name=\'{$_tpl_name}[{$_tpl_name_pre}rule]\']')">{:cp_sign('match')}</a></div>
+	      		<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group}" class="blk" onclick="cpMatch('[name=\'{$_tpl_name}[{$_tpl_name_pre}rule]\']',{group:1})">捕获组</a></div>
+	      		<div>
+					<span title="{$Think.lang.tips_regular}">正则</span>
+					<a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign" style="font-size:11px;" onclick="cpRuleTips()"></a>
+				</div>
+			</div>
+   		</div>
+   		<p class="help-block">规则中无{:cp_sign('match')}标签时，自动将完全匹配的值保存为{:cp_sign('match')}标签以供拼接调用</p>
+  	</div>
+	<div class="form-group">
+   		<label>拼接成最终内容</label>
+		<div class="input-group">
+   			<textarea name="{$_tpl_name}[{$_tpl_name_pre}rule_merge]" class="form-control" rows="2" placeholder="默认拼接规则中所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn}"></textarea>
+			<div class="input-group-addon iga-rt">
+	      		<a href="javascript:;" title="调用当前规则中的内容标签" onclick="cpMatchN('[name=\'{$_tpl_name}[{$_tpl_name_pre}rule]\']','[name=\'{$_tpl_name}[{$_tpl_name_pre}rule_merge]\']',{def:1})">{:cp_sign('match','N')}</a>
+	      	</div>
+   		</div>
+   	</div>
+  	<div class="checkbox"><label><input type="checkbox" name="{$_tpl_name}[{$_tpl_name_pre}rule_multi]" value="1"> 允许匹配多个结果</label></div>
+  	<div class="input-group" style="display:none;" id="c_p_{$_tpl_name}_{$_tpl_name_pre}rule_multi_str">
+		{if $_tpl_allow_loop}
+			<div class="input-group-addon" style="border-right:0;"><label class="radio-inline"><input type="radio" name="{$_tpl_name}[{$_tpl_name_pre}rule_multi_type]" value="">拼接为文本 <span title="提示信息" class="glyphicon glyphicon-info-sign icon-delimiter-tips" onclick="cpDelimiterTips()"></span></label></div>
+	    	<input type="text" style="border-left-style:dashed;" name="{$_tpl_name}[{$_tpl_name_pre}rule_multi_str]" class="form-control" placeholder="多个结果之间分隔符">
+			<div class="input-group-addon"><label class="radio-inline"><input type="radio" name="{$_tpl_name}[{$_tpl_name_pre}rule_multi_type]" value="loop">循环入库</label></div>
+  		{else /}
+  			<input type="text" name="{$_tpl_name}[{$_tpl_name_pre}rule_multi_str]" class="form-control" placeholder="多个结果之间分隔符" />
+			<div class="input-group-addon" style="padding-left:9px;padding-right:9px;"><span title="提示信息" class="glyphicon glyphicon-info-sign icon-delimiter-tips" onclick="cpDelimiterTips()"></span></div>
+  		{/if}
+  	</div>
+{elseif $_tpl_type=='xpath' /}
+	<div class="form-group">
+		<label>规则</label>
+		<textarea name="{$_tpl_name}[{$_tpl_name_pre}xpath]" class="form-control" rows="3" placeholder="xpath规则"></textarea>
+	</div>
+	<div class="form-group">
+		<label>属性</label>
+		<select name="{$_tpl_name}[{$_tpl_name_pre}xpath_attr]" class="form-control">
+			<option value="">无</option>
+			<option value="innerHtml">innerHtml</option>
+			<option value="outerHtml">outerHtml</option>
+			<option value="text">text</option>
+			<option value="value">value</option>
+			<option value="id">id</option>
+			<option value="class">class</option>
+			<option value="name">name</option>
+			<option value="href">href</option>
+			<option value="src">src</option>
+			<option value="style">style</option>
+			<option value="width">width</option>
+			<option value="height">height</option>
+			<option value="alt">alt</option>
+			<option value="custom">自定义</option>
+		</select>
+		<input type="text" class="form-control" name="{$_tpl_name}[{$_tpl_name_pre}xpath_attr_custom]" style="margin-top:10px;display:none;">
+	</div>
+	<div class="checkbox"><label><input type="checkbox" name="{$_tpl_name}[{$_tpl_name_pre}xpath_multi]" value="1"> 允许匹配多个结果</label></div>
+	<div class="input-group" style="display:none;" id="c_p_{$_tpl_name}_{$_tpl_name_pre}xpath_multi_str">
+		{if $_tpl_allow_loop}
+			<div class="input-group-addon" style="border-right:0;"><label class="radio-inline"><input type="radio" name="{$_tpl_name}[{$_tpl_name_pre}xpath_multi_type]" value="">拼接为文本 <span title="提示信息" class="glyphicon glyphicon-info-sign icon-delimiter-tips" onclick="cpDelimiterTips()"></span></label></div>
+	    	<input type="text" style="border-left-style:dashed;" name="{$_tpl_name}[{$_tpl_name_pre}xpath_multi_str]" class="form-control" placeholder="多个结果之间分隔符">
+			<div class="input-group-addon"><label class="radio-inline"><input type="radio" name="{$_tpl_name}[{$_tpl_name_pre}xpath_multi_type]" value="loop">循环入库</label></div>
+		{else /}
+			<input type="text" name="{$_tpl_name}[{$_tpl_name_pre}xpath_multi_str]" class="form-control" placeholder="多个结果之间分隔符" />
+			<div class="input-group-addon" style="padding-left:9px;padding-right:9px;"><span title="提示信息" class="glyphicon glyphicon-info-sign icon-delimiter-tips" onclick="cpDelimiterTips()"></span></div>
+		{/if}
+  	</div>
+{elseif $_tpl_type=='json' /}	
+	<div class="form-group">
+		<label>提取规则</label>
+		<input type="text" name="{$_tpl_name}[{$_tpl_name_pre}json]" class="form-control" />
+		<p class="help-block">直接输入键名，子节点用：a.b.c，通配符*</p>
+	</div>
+	{if $_tpl_allow_loop}
+	<div class="form-group">
+		<div class="checkbox"><label><input type="checkbox" name="{$_tpl_name}[{$_tpl_name_pre}json_loop]" value="1"> 匹配到多个结果允许循环入库</label></div>
+	</div>
+	{/if}
+	<div class="form-group">
+		<label>结果是数组则转换为</label>
+		<select name="{$_tpl_name}[{$_tpl_name_pre}json_arr]" class="form-control">
+			<option value="implode">字符串</option>
+			<option value="jsonencode">json编码</option>
+			<option value="serialize">序列化</option>
+		</select>
+		<div class="input-group" id="c_p_{$_tpl_name}_{$_tpl_name_pre}json_arr_implode" style="margin-top:5px;">
+			<textarea name="{$_tpl_name}[{$_tpl_name_pre}json_arr_implode]" class="form-control" rows="1" placeholder="输入分隔符"></textarea>
+ 			<div class="input-group-addon" style="padding-left:9px;padding-right:9px;"><span title="提示信息" class="glyphicon glyphicon-info-sign icon-delimiter-tips" onclick="cpDelimiterTips()"></span></div>
+		</div>
+	</div>
+{/if}

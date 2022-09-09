@@ -1,0 +1,25 @@
+{include file="common@common:header" /}
+<style type="text/css">
+.jumbotron p{font-size:18px!important;}
+</style>
+<div class="container">
+	<div class="header clearfix">
+        <nav>
+          <ul class="nav nav-pills pull-right">
+            <li><a href="{:url('admin/index/index')}">后台管理</a></li>
+            <li><a href="__ROOT__/admin">伪静态入口</a></li>
+          </ul>
+        </nav>
+        <h3 class="text-muted">蓝天采集器 V{:constant('SKYCAIJI_VERSION')}</h3>
+    </div>
+    
+	<div class="jumbotron">
+		<h2 style="font-size:22px;">欢迎使用SkyCaiji（蓝天采集器）</h2>
+		<p>SkyCaiji致力于网站数据自动化采集发布，使数据采集便捷化、智能化、云端化。</p>
+		<p>软件可部署在云服务器，只需浏览器即可采集目标数据，自定义采集规则支持任意信息流精准匹配，发布模块可无缝对接各类cms建站程序及自研程序，采集到的数据可实时同步到您的网站和数据库中，界面自适应电脑端和移动端，功能一致，使您随时随地办公。</p>
+		<p>本软件完全开源免费使用，禁止利用本软件从事违法犯罪活动，请自觉遵守当地法律法规，在法律允许的范围内合理使用该软件！</p>
+		<p>官方网站：<a href="https://www.skycaiji.com" target="_blank" title="蓝天采集器">www.skycaiji.com</a></p>
+		<p>本页面可在<a href="{:url('admin/setting/site')}">站点设置</a>中关闭</p>
+	</div>
+</div>
+{include file="common@common:footer" /}

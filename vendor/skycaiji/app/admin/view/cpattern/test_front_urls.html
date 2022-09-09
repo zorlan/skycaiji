@@ -1,0 +1,53 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+{/block}
+{block name="content"}
+<div class="box box-default">
+	<div class="box-body">
+		<div class="table-responsive">
+		<table class="table">
+		<tbody>
+		{foreach $frontDataList as $frontIx=>$frontData}
+			<tr>
+				<th>前置页：{$frontData['name']}</th>
+				<td>
+					<table class="table table-hover">
+						<tr>
+							<td width="90">网址</td>
+							<td>{$frontData['url']|htmlspecialchars}</td>
+						</tr>
+						<tr>
+							<td>
+								源码<br>
+								<a href="javascript:;" onclick="visualizeData($('#win_test_font_url_html_{$frontIx}').val());">预览</a><br>
+								<a href="javascript:;" onclick="visualizeData('<pre>'+htmlspecialchars($('#win_test_font_url_html_{$frontIx}').val())+'</pre>');">查看</a>
+							</td>
+							<td><textarea class="form-control" rows="4" id="win_test_font_url_html_{$frontIx}">{$frontData['html']|htmlspecialchars}</textarea></td>
+						</tr>
+						<tr>
+							<td>头信息</td>
+							<td><textarea class="form-control" style="margin-top:2px;" rows="4" id="win_test_font_url_header_{$frontIx}">{$frontData['header']|htmlspecialchars}</textarea></td>
+						</tr>
+						<tr>
+							<td>内容标签</td>
+							<td>
+								<table class="table">
+								{foreach $frontData['content_sign'] as $csk=>$csv}
+									<tr>
+										<td>{$csk}</td>
+										<td><textarea class="form-control" rows="1">{$csv|htmlspecialchars}</textarea></td>
+									</tr>
+								{/foreach}
+								</table>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		{/foreach}
+		</tbody>
+		</table>
+		</div>
+	</div>
+</div>
+{/block}

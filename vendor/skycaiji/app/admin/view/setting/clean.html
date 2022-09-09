@@ -1,0 +1,9 @@
+<form id="win_form_clean" ajax-submit="true" method="post" role="form" action="{:url('admin/setting/clean')}">
+	{:html_usertoken()}
+	<div class="well" style="text-align:center;">
+		<label class="checkbox-inline"><input type="checkbox" name="types[]" value="all"> 所有</label>
+		<label class="checkbox-inline"><input type="checkbox" name="types[]" value="system" checked="checked"> 系统缓存</label>
+		<label class="checkbox-inline"><input type="checkbox" name="types[]" value="data"> 数据缓存</label>
+	</div>
+	<button type="submit" class="btn btn-primary btn-block">清理</button>
+</form>

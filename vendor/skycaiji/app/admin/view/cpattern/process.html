@@ -1,0 +1,50 @@
+<div id="window_process">
+	<div class="form-group">
+		<div class="input-group">
+			<span class="input-group-addon">处理方式</span>
+			<select name="process[module]" class="form-control">
+				<option value="">请选择</option>
+				<option value="html">{$Think.lang.process_module_html}</option>
+				<option value="substr">{$Think.lang.process_module_substr}</option>
+				<option value="insert">{$Think.lang.process_module_insert}</option>
+				<option value="replace">{$Think.lang.process_module_replace}</option>
+				<option value="batch">{$Think.lang.process_module_batch}</option>
+				<option value="tool">{$Think.lang.process_module_tool}</option>
+				<option value="translate">{$Think.lang.process_module_translate}</option>
+				<option value="filter">{$Think.lang.process_module_filter}</option>
+				<option value="if">{$Think.lang.process_module_if}</option>
+				<option value="func">{$Think.lang.process_module_func}</option>
+				<option value="api">{$Think.lang.process_module_api}</option>
+			</select>
+			<span class="input-group-btn">
+		    	<button class="btn btn-default process-add" type="button">添加</button>
+			</span>
+		</div>
+	</div>
+	{include file="cpattern:process_module" /}
+	{if condition="empty($type)"}	
+	<form id="form_process" method="post" action="{:url('cpattern/process?op=sub')}" style="display:none;">
+	{:html_usertoken()}
+	<input type="hidden" name="field" value="{$field}" />
+	<input type="hidden" name="objid" value="{$objid}" />
+		<div class="form-group">
+			<div class="panel-group c-p-process-accordion">
+			</div>
+		</div>
+		<div class="form-group form-group-sm">
+	 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+	 	</div>
+	</form>
+	{/if}
+</div>
+<script type="text/javascript">
+{if condition="empty($type)"}
+	{if condition="!empty($process)"}
+	c_pattern.cpProcess.init({$process|json_encode},false,false);
+	{else /}
+	c_pattern.cpProcess.init(null,false,false);
+	{/if}
+{elseif condition="$type eq 'common'" /}
+	c_pattern.cpProcess.init(null,true,false);
+{/if}
+</script>

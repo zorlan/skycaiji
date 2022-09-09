@@ -1,0 +1,456 @@
+<ul id="coll_tab" class="nav nav-tabs coll-tab">
+<li{$curTab['']}><a href="#coll_pattern_coll" data-toggle="tab" aria-expanded="{$curTab['']?'true':'false'}">采集器设置</a></li>
+	<li{$curTab['coll_pattern_source']}><a href="#coll_pattern_source" data-toggle="tab" aria-expanded="{$curTab['coll_pattern_source']?'true':'false'}">起始页网址</a></li>
+	<li{$curTab['coll_pattern_link']}><a href="#coll_pattern_link" data-toggle="tab" aria-expanded="{$curTab['coll_pattern_link']?'true':'false'}">内容页网址</a></li>
+	<li{$curTab['coll_pattern_field']}><a href="#coll_pattern_field" data-toggle="tab" aria-expanded="{$curTab['coll_pattern_field']?'true':'false'}">获取内容</a></li>
+	{if condition="!empty($collData)"}
+	<li class="dropdown nav-save-rule">
+	    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">另存为 <span class="caret"></span></a>
+	    <ul class="dropdown-menu dropdown-menu-right">
+	   		<li><a href="{:url('collector/export?coll_id='.$collData['id'])}" target="_blank">导出至本地</a></li>
+	    </ul>
+    </li>
+	{/if}
+</ul>
+<div id="coll_tab_content" class="tab-content" style="margin-top:-1px">
+	<div class="tab-pane{$curTabCont['']}" id="coll_pattern_coll">
+		<div class="panel panel-default">
+			<div class="panel-body">
+	     		<div class="form-group">
+					<label class="control-label">{$Think.lang.coll_name}</label>
+					<input type="text" class="form-control" name="name" value="{$collData['name']}" placeholder="选填" autocomplete="off">
+				</div>
+	     		<div class="form-group">
+					<label class="control-label">网页编码</label>
+					<div class="input-group input-select-custom">
+						<div class="input-group-btn">
+						    <select name="config[charset]" class="form-control">		
+								<option value="">自动检测</option>
+								<option value="utf-8">utf-8</option>
+								<option value="gbk">gbk</option>
+								<option value="gb2312">gb2312</option>
+								<option value="custom">自定义</option>
+							</select>
+						</div>
+						<input type="text" name="config[charset_custom]" class="form-control">
+					</div>
+				</div>
+	     		<div class="form-group">
+					<label class="control-label">自动补全网址</label>
+					<div class="input-group">
+       					<label class="radio-inline"><input type="radio" name="config[url_complete]" value="1"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_complete]" value="0" checked="checked"> 否</label>
+       				</div>
+       				<p class="help-block">将所有页面源码中的相对地址转换成绝对地址（包含超链接、图片、JS链接等）</p>
+				</div>
+	     		<div class="form-group">
+					<label class="control-label">网址不排重</label>
+					<div class="input-group">
+       					<label class="radio-inline"><input type="radio" name="config[url_repeat]" value="1"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_repeat]" value="0" checked="checked"> 否</label>
+       				</div>
+       				<p class="help-block">默认将已采集网址排重过滤，选择“是”允许重复采集</p>
+				</div>
+	     		<div class="form-group">
+					<label class="control-label">倒序采集</label>
+					<div class="input-group">
+       					<label class="radio-inline"><input type="radio" name="config[url_reverse]" value="1"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_reverse]" value="0" checked="checked"> 否</label>
+       				</div>
+       				<p class="help-block">以相反的顺序采集内容页网址</p>
+				</div>
+	     		<div class="form-group">
+					<label class="control-label">页面渲染</label>
+					<div class="input-group">
+       					<label class="radio-inline"><input type="radio" name="config[page_render]" value="1"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="config[page_render]" value="0" checked="checked"> 否</label>
+       				</div>
+       				<p class="help-block">需先配置<a href="{:url('setting/page_render')}">页面渲染</a>，可自动加载ajax内容，注意：渲染后的html源码与未渲染时的不相同，原先的规则可能会失效！</p>
+				</div>
+	     		<div class="form-group">
+					<label class="control-label">正则匹配模式</label>
+					<div>
+						<label class="checkbox-inline">
+							<input type="checkbox" name="config[regexp_flags][]" value="case"> 区分大小写
+						</label>
+						<label class="checkbox-inline">
+							<input type="checkbox" name="config[regexp_flags][]" value="unicode"> 识别unicode字符
+						</label>
+					</div>
+					<p class="help-block">使用正则规则时进行以上模式匹配，默认情况下仅忽略大小写</p>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">
+		        	<a data-toggle="collapse" href="#coll_pattern_request_headers" aria-expanded="false">请求头信息</a>
+		      	</h4>
+	    	</div>
+	    	<div id="coll_pattern_request_headers" class="panel-collapse collapse">
+	      		<div class="panel-body">
+	      			<div class="panel panel-default">
+	      				<div class="panel-heading">
+		                    <h4 class="panel-title">
+		                        <a data-toggle="collapse" href="#c_p_request_headers_open" aria-expanded="false">抓取页面</a>
+		                    </h4>
+		                </div>
+	      				<div id="c_p_request_headers_open" class="panel-collapse collapse">
+		      				<div class="panel-body">
+				      			<div class="form-group">
+				       				<label class="control-label">全局开启</label>
+				       				<div class="input-group">
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][open]" value="1"> 是</label>
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][open]" value="0" checked="checked"> 否</label>
+				       				</div>
+				       				<p class="help-block">采集前置页、起始页、多级页、内容页和关联页时使用请求头信息</p>
+					      		</div>
+				      			<div class="form-group">
+				       				<label class="control-label">UserAgent 浏览器标识</label>
+				       				<div class="input-group">
+										<input type="text" class="form-control" name="config[request_headers][useragent]" placeholder="留空不设置" />
+										<div class="input-group-btn">
+									    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><em style="font-style:normal">常用标识</em> <span class="caret"></span></button>
+									        <ul class="dropdown-menu dropdown-menu-right dm-useragent">
+									        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11">谷歌浏览器(pc端)</a></li>
+									        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1">火狐浏览器</a></li>
+									        	<li><a href="javascript:;" data-useragent="Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)">IE8</a></li>
+									        	<li><a href="javascript:;" data-useragent="Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)">IE6</a></li>
+												<li role="separator" class="divider"></li>
+									        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (Linux; U; Android 4.0.3; zh-cn; M032 Build/IML74K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30">安卓系统</a></li>
+									        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1">IPhone 6</a></li>
+									        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (iPad; CPU OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1">iPad</a></li>
+									        	<li><a href="javascript:;" data-useragent="Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.89 Mobile Safari/537.36">三星 Galaxy S5</a></li>
+									        </ul>
+									    </div>
+									</div>
+				       			</div>
+				       			<div class="form-group">
+				       				<label class="control-label">Cookie 缓存数据</label>
+									<input type="text" class="form-control" name="config[request_headers][cookie]" placeholder="留空不设置" />
+				       			</div>
+				       			<div class="form-group">
+				       				<label class="control-label">Referer 来源网址</label>
+									<input type="text" class="form-control" name="config[request_headers][referer]" placeholder="留空不设置" />
+				       			</div>
+				       			<div class="form-group">
+				     				<label class="control-label">自定义 <a href="javascript:;" class="glyphicon glyphicon-plus add-request-header" title="添加"></a></label>
+				      				<div class="table-responsive">
+						            	<table class="table table-bordered c-p-request-headers" style="margin-bottom:0;">
+						                   <thead>
+						                       <tr>
+						                           <td>名称</td>
+						                           <td>值</td>
+						                           <td>删除</td>
+						                       </tr>
+						                   </thead>
+						                   <tbody>
+						                   </tbody>
+										</table>
+						        	</div>
+				       				<p class="help-block">添加新的或者覆盖已有的请求头信息</p>
+				      			</div>
+				      		</div>
+				      	</div>
+		      		</div>
+		      		
+	      			<div class="panel panel-default" style="margin-bottom:0;">
+	      				<div class="panel-heading">
+		                    <h4 class="panel-title">
+		                        <a data-toggle="collapse" href="#c_p_request_headers_img" aria-expanded="false">下载图片</a>
+		                    </h4>
+		                </div>
+	      				<div id="c_p_request_headers_img" class="panel-collapse collapse">
+		      				<div class="panel-body">
+		      					<div class="form-group">
+				       				<label class="control-label">开启</label>
+				       				<div class="input-group">
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][img]" value="1"> 是</label>
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][img]" value="0" checked="checked"> 否</label>
+				       				</div>
+				       				<p class="help-block">下载图片时使用请求头</p>
+				       			</div>
+				       			<div class="form-group">
+				       				<label class="control-label">使用全局请求头</label>
+				       				<div class="input-group">
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][img_use_page]" value="" checked="checked"> 默认</label>
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][img_use_page]" value="y"> 强制使用</label>
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][img_use_page]" value="n"> 强制禁用</label>
+				       				</div>
+				       				<p class="help-block">默认使用采集器设置»请求头信息»抓取页面中的设置（受全局开启状态影响）</p>
+				       			</div>
+				       			<div class="form-group">
+				     				<label class="control-label">自定义 <a href="javascript:;" class="glyphicon glyphicon-plus add-request-header-img" title="添加"></a></label>
+				      				<div class="table-responsive">
+						            	<table class="table table-bordered c-p-request-headers-img" style="margin-bottom:0;">
+						                   <thead>
+						                       <tr>
+						                           <td>名称</td>
+						                           <td>值</td>
+						                           <td>删除</td>
+						                       </tr>
+						                   </thead>
+						                   <tbody>
+						                   </tbody>
+										</table>
+						        	</div>
+				       				<p class="help-block">添加新的或者覆盖已有的请求头信息</p>
+				      			</div>
+		      				</div>
+		      			</div>
+			      	</div>
+	      		</div>
+	    	</div>
+	  	</div>
+	</div>
+	<div class="tab-pane{$curTabCont['coll_pattern_source']}" id="coll_pattern_source">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">
+		        	<a data-toggle="collapse" href="#coll_pattern_front_url" aria-expanded="false">前置页列表</a>
+		      	</h4>
+	    	</div>
+	    	<div id="coll_pattern_front_url" class="panel-collapse collapse">
+	      		<div class="panel-body">
+      				<div class="h-title">
+      					<span class="is-loading"></span>
+     					<label class="control-label">前置页规则</label>
+      					<a href="javascript:;" class="glyphicon glyphicon-plus add-front-url" title="添加"></a>
+      				</div>
+		   			<div class="table-responsive">
+		            	<table id="c_p_front_urls" class="table table-hover" style="margin-bottom:0;">
+		                   <thead>
+		                       <tr>
+		                           <th>名称</th>
+		                           <th class="sign" title="全局内容标签"><span class="sign-th">内容标签</span></th>
+		                           <th>操作</th>
+		                       </tr>
+		                   </thead>
+		                   <tbody>
+		                   </tbody>
+		            	</table>
+	            	</div>
+	      		</div>
+	    	</div>
+	  	</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">起始页列表</h4>
+	    	</div>
+	    	<div class="panel-body" style="padding-bottom:0;">
+	     		<div class="form-group" id="coll_pattern_source_url">
+	     			<div>
+	     				<label class="control-label" style="margin-bottom:0;">起始网址</label>
+	      				<a href="javascript:;" class="glyphicon glyphicon-plus add-source-url" title="添加"></a>
+	      				<a href="javascript:;" class="glyphicon glyphicon-trash clear-source-url" title="清空" style="font-size:12.5px;"></a>
+	      			</div>
+		      		<div class="c-p-source-urls">
+					</div>
+					<p class="help-block">添加起始网址作为抓取入口</p>
+	      		</div>
+				{include file="cpattern:set_page" _page_type="source_url" /}
+			</div>
+			<div class="panel-footer" style="padding-top:5px;padding-bottom:5px;">
+				<div class="checkbox">
+					<label>
+				    	<input type="checkbox" name="config[source_is_url]" value="1"> 起始页网址设置为内容页网址
+					</label>
+				</div>
+			</div>
+	    </div>
+       	
+   		{if condition="!empty($collData['id'])"}
+       	<div class="form-group">
+			<div class="dropdown">
+				<button class="btn btn-default btn-block dropdown-toggle" type="button" id="dropdownMenuTestFrontUrl" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+			    	测试（需先保存设置）
+			    	<span class="caret"></span>
+			  	</button>
+			  	<ul class="dropdown-menu" style="width:100%;text-align:center;" aria-labelledby="dropdownMenuTestFrontUrl">
+			  		{if condition="!empty($collData['config'])&&!empty($collData['config']['front_urls'])"}
+			  		<li><a href="{:url('cpattern_test/front_urls?coll_id='.$collData['id'])}" target="_blank">测试抓取前置页</a></li>
+			    	{/if}
+			    	<li><a href="{:url('cpattern_test/test_url?test=get_browser&coll_id='.$collData['id'])}" target="_blank">测试分析网页</a></li>
+			    	<li><a href="{:url('cpattern_test/match?coll_id='.$collData['id'])}" target="_blank">模拟匹配数据</a></li>
+			  	</ul>
+			</div>
+		</div>
+		{/if}
+	</div>
+	<div class="tab-pane{$curTabCont['coll_pattern_link']}" id="coll_pattern_link">
+		<div class="alert alert-warning coll-alert" id="alert_coll_pattern_link" role="alert" style="display:none;">
+			<strong>注意：</strong>起始页网址已设置为内容页网址！
+	    </div>
+	
+		<div class="panel panel-default" id="panel_coll_pattern_level_url">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">
+		        	<a data-toggle="collapse" href="#coll_pattern_level_url" aria-expanded="false">多级页网址获取</a>
+		      	</h4>
+	    	</div>
+	    	<div id="coll_pattern_level_url" class="panel-collapse collapse">
+	      		<div class="panel-body">
+      				<div class="h-title">
+      					<span class="is-loading"></span>
+     					<label class="control-label">多级页规则</label>
+      					<a href="javascript:;" class="glyphicon glyphicon-plus add-level-url" title="添加"></a>
+      				</div>
+		   			<div class="table-responsive">
+		            	<table id="c_p_level_urls" class="table table-hover" style="margin-bottom:0;">
+		                   <thead>
+		                       <tr>
+		                           <th>级别</th>
+		                           <th>名称</th>
+		                           <th class="sign" title="全局内容标签"><span class="sign-th">内容标签</span></th>
+		                           <th>操作</th>
+		                       </tr>
+		                   </thead>
+		                   <tbody>
+		                   </tbody>
+		            	</table>
+		        	</div>
+	      		</div>
+	    	</div>
+	  	</div>
+	
+		<div class="panel panel-default" id="panel_coll_pattern_url">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">内容页网址获取</h4>
+	    	</div>
+			<div class="panel-body">
+				{include file="cpattern:set_page" _page_type="url" /}
+			</div>
+		</div>
+		
+		<div class="panel panel-default">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">
+		        	<a data-toggle="collapse" href="#coll_pattern_relation_url" aria-expanded="false">关联页网址获取</a>
+		      	</h4>
+	    	</div>
+	    	<div id="coll_pattern_relation_url" class="panel-collapse collapse">
+	      		<div class="panel-body">
+	      			<div class="h-title">
+      					<span class="is-loading"></span>
+     					<label class="control-label">关联页规则</label>
+      					<a href="javascript:;" class="glyphicon glyphicon-plus add-relation-url" title="添加"></a>
+      				</div>
+		   			<div class="table-responsive">
+		            	<table id="c_p_relation_urls" class="table table-hover" style="margin-bottom:0;">
+		                   <thead>
+		                       <tr>
+		                           <th>名称</th>
+		                           <th>从页面中提取</th>
+		                           <th class="sign" title="全局内容标签"><span class="sign-th">内容标签</span></th>
+		                           <th>操作</th>
+		                       </tr>
+		                   </thead>
+		                   <tbody>
+		                   </tbody>
+		            	</table>
+	            	</div>
+	      		</div>
+	    	</div>
+	  	</div>
+		
+   		{if condition="!empty($collData['id'])"}
+		<div class="form-group">
+			<div class="dropdown">
+				<button class="btn btn-default btn-block dropdown-toggle" type="button" id="dropdownMenuTestSourceUrl" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+			    	测试（需先保存设置）
+			    	<span class="caret"></span>
+			  	</button>
+			  	<ul class="dropdown-menu" style="width:100%;text-align:center;" aria-labelledby="dropdownMenuTestSourceUrl">
+			    	<li><a href="{:url('cpattern_test/source_urls?coll_id='.$collData['id'])}" target="_blank" onclick="windowModal('测试抓取内容页网址',$(this).attr('href'),{lg:1});return false;">测试抓取内容页网址</a></li>
+			    	{if condition="!empty($collData['config'])&&!empty($collData['config']['relation_urls'])"}
+			    	<li><a href="{:url('cpattern_test/test_url?coll_id='.$collData['id'])}&test=get_relation_urls" target="_blank">测试抓取关联页网址</a></li>
+			    	{/if}
+			    	<li><a href="{:url('cpattern_test/test_url?test=get_browser&coll_id='.$collData['id'])}" target="_blank">测试分析网页</a></li>
+			    	<li><a href="{:url('cpattern_test/match?coll_id='.$collData['id'])}" target="_blank">模拟匹配数据</a></li>
+			  	</ul>
+			</div>
+		</div>
+		{/if}
+	</div>
+	<div class="tab-pane{$curTabCont['coll_pattern_field']}" id="coll_pattern_field">
+		<div class="panel panel-default">
+			<div class="panel-body">
+	     		<div class="h-title">
+	     			<label class="control-label">字段列表</label>
+	      			<a href="javascript:;" class="glyphicon glyphicon-plus add-field" title="添加"></a>
+	      			<a href="javascript:;" class="add-field-default" style="float:right;font-weight:normal;">添加默认</a>
+	      		</div>
+	   			<div class="table-responsive">
+	            	<table class="table table-hover c-p-field-list" style="margin-bottom:0px;">
+	                   <thead>
+	                       <tr>
+	                           <th>字段 <a href="javascript:;" class="glyphicon glyphicon-sort sort-field" title="调整字段顺序（按执行采集时的字段顺序排列）将获取方式为字段提取和字段组合的字段排在最后"></a></th>
+	                           <th>数据来源</th>
+	                           <th>获取方式</th>
+	                           <th>操作</th>
+	                           <th title="把字段作为标题进行排重，默认无">
+							      <label class="radio-inline"><input type="radio" name="config[field_title]" value=""><b>标题排重</b></label>
+							   </th>
+	                       </tr>
+	                   </thead>
+	                   <tbody>
+	                   </tbody>
+	            	</table>
+	        	</div>
+	        	<p id="c_p_field_loop_tips" class="help-block" style="margin-bottom:0px;display:none;">开启循环入库后，将以第一个循环字段的数量为准，后面的循环字段会映射第一个循环字段的索引并自动获取相应位置的值入库，非循环字段则以当前值入库；如开启了分页，分页内容也会循环入库</p>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+		    	<h4 class="panel-title">
+		        	<a data-toggle="collapse" href="#coll_pattern_process" aria-expanded="false">数据处理（通用）</a>
+		    	</h4>
+		    </div>
+		    <div id="coll_pattern_process" class="panel-collapse collapse">
+		    	<div class="panel-body">
+		    		<div class="h-title" style="border-bottom:0;">
+		     			<label class="control-label">通用数据处理</label>
+		      			<a href="javascript:;" class="glyphicon glyphicon-plus add-process" title="添加"></a>
+		      		</div>
+		    		<div class="panel-group c-p-process-accordion" style="margin-bottom:0;">
+					</div>
+		    	</div>
+		    </div>
+		</div>
+		
+		{include file="cpattern:set_pagination" _page_type="url" /}
+		
+       	{if condition="!empty($collData['id'])"}
+		<div class="form-group">
+			<div class="dropdown">
+				<button class="btn btn-default btn-block dropdown-toggle" type="button" id="dropdownMenuTestUrl" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+			    	测试（需先保存设置）
+			    	<span class="caret"></span>
+			  	</button>
+			  	<ul class="dropdown-menu" style="width:100%;text-align:center;" aria-labelledby="dropdownMenuTestUrl">
+			    	<li><a href="{:url('cpattern_test/test_url?coll_id='.$collData['id'])}" target="_blank">测试抓取数据</a></li>
+			    	<li><a href="{:url('cpattern_test/test_url?test=get_browser&coll_id='.$collData['id'])}" target="_blank">测试分析网页</a></li>
+			    	<li><a href="{:url('cpattern_test/match?coll_id='.$collData['id'])}" target="_blank">模拟匹配数据</a></li>
+			  	</ul>
+			</div>
+		</div>
+		{/if}
+	</div>
+</div>
+
+{include file="cpattern:set_tpl" /}
+
+<link href="__PUBLIC__/static/css/jquery.datetimepicker.css?{$Think.config.html_v}" rel="stylesheet">
+<script type="text/javascript" src="__PUBLIC__/static/js/jquery.datetimepicker.js?{$Think.config.html_v}"></script>
+<script type="text/javascript">
+var c_pattern=new CollectorPattern();
+c_pattern.init();
+
+{if !empty($collData)}
+	{if empty($collData['config'])}
+		c_pattern.load(null);
+	{else/}
+		c_pattern.load({$collData['config']|json_encode});
+	{/if}
+{/if}
+</script>

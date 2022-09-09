@@ -1,0 +1,31 @@
+<form id="form_pagination_field" method="post" action="{:url('cpattern/pagination_field')}">
+{:html_usertoken()}
+<input type="hidden" name="objid" value="{$objid}" />
+<div class="form-group">
+	<div class="input-group">
+		<span class="input-group-addon">选择字段</span>
+		<select class="form-control" name="pagination_field[field]">
+		</select>
+	</div>
+</div>
+<div class="form-group">
+	<div class="input-group">
+		<div class="input-group-addon">分页分隔符 <span title="提示信息" class="glyphicon glyphicon-info-sign icon-delimiter-tips" onclick="cpDelimiterTips()"></span></div>
+		<input type="text" name="pagination_field[delimiter]" class="form-control" placeholder="选填，内容多页之间插入字符" />
+	</div>
+	{if !empty($isLoop)}
+	<p class="help-block">注意：循环入库已开启，分页分隔符在循环模式中无效仅在非循环模式中将分页内容拼接，循环模式中分页内容以列表形式展现</p>
+	{/if}
+</div>
+<div class="form-group form-group-sm">
+	<button type="submit" class="btn btn-primary btn-block">确定</button>
+</div>
+</form>
+
+<script type="text/javascript">
+{if condition="$pnField"}
+c_pattern.cpPagination.field_op('url','init',{pagination_field:{$pnField|json_encode}});
+{else /}
+c_pattern.cpPagination.field_op('url','init');
+{/if}
+</script>

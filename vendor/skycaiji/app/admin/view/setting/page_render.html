@@ -1,0 +1,73 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/setting.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="nav-tabs-custom">
+	{include file="setting/caiji_nav" /}
+	<div class="tab-content">
+		<div class="tab-pane active" style="padding:0px 5px;">
+		{if !empty($config['tool'])}
+			{if $toolIsOpen}
+			<div class="alert alert-success" role="alert">
+				渲染工具正在运行！
+				<button type="button" id="btn_chrome_clean" class="btn btn-sm btn-success" style="margin-left:5px;">清理渲染工具缓存</button>
+				<button type="button" id="btn_chrome_restart" class="btn btn-sm btn-success" style="margin-left:5px;">重启渲染工具</button>
+			</div>
+			{else /}
+			<div class="alert alert-warning" role="alert">渲染工具服务器未开启，请检查配置是否正确！确认无误后点击保存</div>
+			{/if}
+		{/if}
+		<form id="form_set" method="post" role="form" action="{:url('admin/setting/page_render')}">
+		{:html_usertoken()}	
+			<div class="form-group">
+	        	<label>渲染工具</label>
+				<select name="tool" class="form-control">
+		        	<option value="">无</option>
+		        	<option value="chrome">谷歌浏览器</option>
+		    	</select>
+		    </div>
+		    <div id="render_tool_chrome" style="display:none;">
+				<p class="help-block">请在服务器中安装chrome，PHP版本建议切换至PHP5.5及以上</p>
+				<div class="form-group">
+		        	<label>chrome文件路径或者环境变量名</label>
+			        <div class="input-group">
+			        	<input type="text" class="form-control" name="chrome[filename]" placeholder="默认环境变量名chrome" value="{$config['chrome']['filename']}" />
+						<div class="input-group-btn">
+			       			<button type="button" class="btn btn-default" id="btn_chrome_test">测试</button>
+			       		</div>
+			        </div>
+					<p class="help-block">chrome可执行文件在服务器中的绝对路径或者在系统中的环境变量名称</p>
+			    </div>
+			    <div class="form-group">
+			        <label>chrome服务器</label>
+			        <div class="input-group">
+			        	<span class="input-group-addon">地址</span>
+			        	<input type="text" name="chrome[host]" class="form-control" placeholder="默认127.0.0.1" value="{$config['chrome']['host']}" />
+			        	<span class="input-group-addon">端口</span>
+				       	<input type="text" name="chrome[port]" class="form-control" placeholder="默认9222" value="{$config['chrome']['port']}" />
+				    </div>
+			    </div>
+				<div class="form-group">
+		        	<label>用户配置目录</label>
+					<input type="text" name="chrome[user_data_dir]" class="form-control" placeholder="选填" value="{$config['chrome']['user_data_dir']}" />
+			    	<p class="help-block">自定义chrome存储用户配置文件的目录</p>
+			    </div>
+			</div>
+			<div class="form-group">
+	        	<label>渲染超时（秒）</label>
+				<input type="number" class="form-control" name="timeout" value="{:isset($config['timeout'])?$config['timeout']:30}" />
+		    	<p class="help-block">超过设定的值未完成渲染的页面将跳过采集</p>
+		    </div>
+		    <p class="help-block"><b>配置完成后需在任务的采集器设置中开启“页面渲染”</b></p>
+		   	<div class="form-group">
+				<button type="submit" id="btn_sub" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+			</div>
+		</form>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+settingClass.page_render_init({$config|json_encode});
+</script>
+{/block}

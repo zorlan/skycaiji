@@ -1,0 +1,145 @@
+<div style="display:none;">
+	<table>
+		<tr id="coll_tpl_request_headers">
+			<td><input type="text" data-name="config[request_headers][custom_names][]" class="form-control" autocomplete="off" /></td>
+			<td><input type="text" data-name="config[request_headers][custom_vals][]" class="form-control" autocomplete="off" /></td>
+			<td><a href="javascript:;" class="glyphicon glyphicon-remove delete-request-header"></a></td>
+		</tr>
+		<tr id="coll_tpl_request_headers_img">
+			<td><input type="text" data-name="config[request_headers][img_names][]" class="form-control" autocomplete="off" /></td>
+			<td><input type="text" data-name="config[request_headers][img_vals][]" class="form-control" autocomplete="off" /></td>
+			<td><a href="javascript:;" class="glyphicon glyphicon-remove delete-request-header-img"></a></td>
+		</tr>
+		<tr id="coll_tpl_url_web_form">
+			<td><input type="text" data-name="[url_web][form_names][]" class="form-control" autocomplete="off" /></td>
+			<td>
+				<div class="input-group c-p-url-page-signs" data-page-type="" data-input-name="[url_web][form_vals][]">
+					<input type="text" data-name="[url_web][form_vals][]" data-merge-type="url" class="form-control" autocomplete="off" />
+					<div class="input-group-addon">
+		    			<a href="javascript:;" title="调用全局内容标签" role="button" class="dropdown-toggle btn-page-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			            	<span style="font-size:12px;">{:cp_sign('match','N')}</span>
+			            	<span class="caret"></span>
+			            </a>
+						<div class="dropdown-menu dropdown-menu-right"></div>
+		    		</div>
+				</div>
+			</td>
+			<td><a href="javascript:;" class="glyphicon glyphicon-remove delete-url-web-form"></a></td>
+		</tr>
+		<tr id="coll_tpl_url_web_header">
+			<td><input type="text" data-name="[url_web][header_names][]" class="form-control" autocomplete="off" /></td>
+			<td>
+				<div class="input-group c-p-url-page-signs" data-page-type="" data-input-name="[url_web][header_vals][]">
+					<input type="text" data-name="[url_web][header_vals][]" data-merge-type="url" class="form-control" autocomplete="off" />
+					<div class="input-group-addon">
+		    			<a href="javascript:;" title="调用全局内容标签" role="button" class="dropdown-toggle btn-page-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			            	<span style="font-size:12px;">{:cp_sign('match','N')}</span>
+			            	<span class="caret"></span>
+			            </a>
+						<div class="dropdown-menu dropdown-menu-right"></div>
+		    		</div>
+				</div>
+			</td>
+			<td><a href="javascript:;" class="glyphicon glyphicon-remove delete-url-web-header"></a></td>
+		</tr>
+		<tr id="coll_tpl_front_url">
+			<td><a href="javascript:;" class="name" data-val=""></a></td>
+			<td class="sign"><input type="text" class="form-control signs" readonly="true" /></td>
+			<td>
+				<input type="hidden" data-name="config[front_urls][]" />
+				<a href="javascript:;" class="glyphicon icon-drag-move" title="移动" style="font-size:12px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-copy clone" title="复制" style="font-size:12px;top:0.5px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-remove delete" title="删除" style="font-size:12px;"></a>
+			</td>
+		</tr>
+		<tr id="coll_tpl_level_url">
+			<td>第<span class="level">级</span></td>
+			<td><a href="javascript:;" class="name" data-val=""></a></td>
+			<td class="sign"><input type="text" class="form-control signs" readonly="true" /></td>
+			<td>
+				<input type="hidden" data-name="config[level_urls][]" />
+				<a href="javascript:;" class="glyphicon icon-drag-move" title="移动" style="font-size:12px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-copy clone" title="复制" style="font-size:12px;top:0.5px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-remove delete" title="删除" style="font-size:12px;"></a>
+			</td>
+		</tr>
+		<tr id="coll_tpl_relation_url">
+			<td><a href="javascript:;" class="name" data-val=""></a></td>
+			<td class="page"></td>
+			<td class="sign"><input type="text" class="form-control signs" readonly="true" /></td>
+			<td>
+				<input type="hidden" data-name="config[relation_urls][]" />
+				<a href="javascript:;" class="glyphicon icon-drag-move" title="移动" style="font-size:12px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-copy clone" title="复制" style="font-size:12px;top:0.5px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-remove delete" title="删除" style="font-size:12px;"></a>
+			</td>
+		</tr>
+		<tr id="coll_tpl_field">
+			<td class="field-name" data-val=""></td>
+			<td class="field-source" data-val=""></td>
+			<td class="field-module" data-val=""></td>
+			<td>
+				<input type="hidden" data-name="config[field_list][]" />
+				<input type="hidden" data-name="config[field_process][]" />
+				<a href="javascript:;" class="field-process">数据处理</a>
+				<a href="javascript:;" class="glyphicon icon-drag-move" title="移动" style="font-size:12px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-copy field-clone" title="复制" style="font-size:12px;top:0.5px;"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-remove field-del" title="删除" style="font-size:12px;"></a>
+			</td>
+			<td><label class="radio-inline"><input type="radio" data-name="config[field_title]">绑定</label></td>
+		</tr>
+	</table>
+	<div id="coll_tpl_source_url">
+		<div class="form-group" data-id="source_url_">
+	    	<div class="input-group c-p-url-page-signs" data-page-type="source_url" data-input-name="config[source_url][]">
+				<input type="text" class="form-control" data-name="config[source_url][]" data-merge-type="url" autocomplete="off" value="[_source_url_]" />
+				<textarea class="form-control" data-name="config[source_url][]" data-merge-type="url" rows="5">[_source_url_]</textarea>
+				<div class="input-group-addon brl_0">
+	    			<a href="javascript:;" title="调用全局内容标签" role="button" class="dropdown-toggle btn-page-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		            	<span style="font-size:12px;">{:cp_sign('match','N')}</span>
+		            	<span class="caret"></span>
+		            </a>
+					<div class="dropdown-menu dropdown-menu-right"></div>
+	    		</div>
+	   			<div class="input-group-addon brl_0"><a href="javascript:;" class="glyphicon glyphicon-edit edit-source-url" title="编辑"></a></div>
+	    		<div class="input-group-addon brl_0"><a href="javascript:;" class="glyphicon icon-drag-move" title="移动"></a></div>
+	    		<div class="input-group-addon"><a href="javascript:;" class="glyphicon glyphicon-remove delete-source-url" title="删除"></a></div>
+			</div>
+		</div>
+	</div>
+	<div id="coll_tpl_process" class="panel panel-default">
+		<div class="panel-heading">
+			<div class="panel-title" style="font-size:14px;overflow:hidden;">
+				<a data-toggle="collapse" style="float:left;"></a>
+				<div class="panel-title-title" style="float:left;">
+					<a data-toggle="collapse" style="color:inherit;"></a>
+					<input type="text" style="display:none;border-radius:2px;border:1px solid #ccc;line-height:16px;margin-left:2px;padding:1px 1px 1px 2px;" />
+				</div>
+				<div class="panel-title-ops" style="float:right;">
+					<a href="javascript:;" class="glyphicon glyphicon-tag c-p-process-title" title="标题"></a> 
+					<a href="javascript:;" class="glyphicon icon-drag-move" title="移动"></a>
+					<a href="javascript:;" class="glyphicon glyphicon-copy c-p-process-clone" title="复制" style="top:0.5px;"></a>
+					<a href="javascript:;" class="glyphicon glyphicon-remove c-p-process-del" title="删除"></a>
+				</div>
+			</div>
+		</div>
+		<div class="panel-collapse collapse">
+			<div class="panel-body">
+			</div>
+		</div>
+	</div>
+	<div id="coll_tpl_page_signs" class="c-p-url-ps-table">
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th class="sorting">页面</th>
+					<th>区域</th>
+					<th>网址</th>
+					<th>提取</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+	</div>
+</div>

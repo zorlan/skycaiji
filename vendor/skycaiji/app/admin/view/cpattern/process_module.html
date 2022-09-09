@@ -1,0 +1,470 @@
+<!-- 数据处理模块 -->
+<div style="display:none;">
+	<div class="c-p-process-module" module="html">
+		<section>
+			<ul class="nav nav-tabs">
+	            <li class="active"><a href="#p_m_html_allow" data-toggle="tab">保留标签</a></li>
+	            <li><a href="#p_m_html_filter" data-toggle="tab">过滤标签</a></li>
+			</ul>
+			<div class="tab-content" style="padding-top:10px;">
+                <div class="tab-pane fade in active" id="p_m_html_allow">
+					<div class="form-group">
+						<input type="text" data-process="html:html_allow" class="form-control" value="p,br,img" />
+						<div class="p-m-html-tags" module-html="html_allow">
+							<a href="javascript:;" data-val="img"><span>img</span>图片</a>
+							<a href="javascript:;" data-val="a"><span>a</span>超链接</a>
+							<a href="javascript:;" data-val="p"><span>p</span>段落</a>
+							<a href="javascript:;" data-val="br"><span>br</span>换行</a>
+						</div>
+					</div>
+                </div>
+                <div class="tab-pane fade" id="p_m_html_filter">
+                    <div class="form-group">
+						<input type="text" data-process="html:html_filter" class="form-control" value="" />
+						<div class="p-m-html-tags" module-html="html_filter">
+							<a href="javascript:;" data-val="all"><span>all</span>全部标签</a>
+							<a href="javascript:;" data-val="a"><span>a</span>超链接</a>
+							<a href="javascript:;" data-val="img"><span>img</span>图片</a>
+							<a href="javascript:;" data-val="div"><span>div</span>层</a>
+							<a href="javascript:;" data-val="p"><span>p</span>段落</a>
+							<a href="javascript:;" data-val="br"><span>br</span>换行</a>
+							<a href="javascript:;" data-val="form"><span>form</span>表单</a>
+							<a href="javascript:;" data-val="iframe"><span>iframe</span>框架</a>
+							<a href="javascript:;" data-val="object"><span>object</span>对象</a>
+							<a href="javascript:;" data-val="script"><span>script</span>脚本</a>
+							<a href="javascript:;" data-val="style"><span>style</span>样式</a>
+							<a href="javascript:;" data-val="link"><span>link</span>外部样式</a>
+						</div>
+					</div>
+                </div>
+            </div>
+	   		<p class="help-block">其它标签可直接输入，用空格或逗号分隔</p>
+	   	</section>
+	</div>
+	<div class="c-p-process-module" module="insert">
+		<div class="form-group">
+			<label>位置</label>
+			<select data-process="insert:insert_loc" class="form-control">
+				<option value="head">开头</option>
+				<option value="" selected="selected">结尾</option>
+				<option value="rand">随机</option>
+			</select>
+			<p class="help-block" style="display:none;">随机在换行（&lt;p&gt; &lt;br&gt;）标签中插入内容，没有换行标签则在开头、结尾中随机插入</p>
+		</div>
+		<div class="form-group">
+			<label>内容</label>
+			<textarea data-process="insert:insert_txt" rows="3" class="form-control"></textarea>
+		</div>
+	</div>
+	<div class="c-p-process-module" module="replace">
+		<div class="input-group">
+			<textarea data-process="replace:replace_from" rows="3" class="form-control"></textarea>
+			<div class="input-group-addon iga-rt">
+		      	<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk sign-wildcard">{$Think.lang.sign_wildcard}</a>
+				<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+			</div>
+		</div>
+		<p style="margin:5px 0;">替换成</p>
+		<div class="form-group">
+			<textarea data-process="replace:replace_to" rows="3" class="form-control"></textarea>
+			<p class="help-block">可使用<b>$数字</b>调用正则捕获组（不包括通配符）的内容</p>
+		</div>
+	</div>
+	<div class="c-p-process-module" module="filter">
+		<div class="form-group">
+			<label>一行一个关键词</label>
+			<textarea data-process="filter:filter_list" rows="3" class="form-control"></textarea>
+		</div>
+		<div class="form-group">
+			<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="" /> 关键词替换成</label></div>
+			<input type="text" data-process="filter:filter_replace" class="form-control" value="" />
+		</div>
+		<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="1" /> 检测到关键词将该字段值设为空</label></div>
+		<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="2" /> 检测到关键词不采集该条数据</label></div>
+		<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="3" /> 未检测到关键词将该字段值设为空</label></div>
+		<div class="radio"><label><input type="radio" data-process="filter:filter_pass" value="4" /> 未检测到关键词不采集该条数据</label></div>
+		<p class="help-block">检测到关键词：包含任意一个关键词即可触发<br>未检测到关键词：所有关键词都不包含才触发，只要包含任意一个关键词就不会触发</p>
+	</div>
+	<div class="c-p-process-module" module="if">
+		<section>
+		<div class="form-group">
+			<div class="input-group">
+				<span class="input-group-addon">
+					<a href="javascript:;" class="glyphicon glyphicon-info-sign p-m-if-info" style="color:#999;"></a>
+				</span>
+				<select data-process="if:if_type" class="form-control">
+					<option value="1">{$Think.lang.p_m_if_1}</option>
+					<option value="2">{$Think.lang.p_m_if_2}</option>
+					<option value="3">{$Think.lang.p_m_if_3}</option>
+					<option value="4">{$Think.lang.p_m_if_4}</option>
+				</select>
+				<div class="input-group-btn">
+		    		<button class="btn btn-default p-m-if-add" type="button"><span class="glyphicon glyphicon-plus" style="color:#3c8dbc"></span></button>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+    		<div class="table-responsive">
+            	<table class="table table-hover p-m-if-table" style="margin-bottom:0;">
+                   <thead>
+                       <tr>
+                           <th style="min-width:95px;">逻辑</th>
+                           <th style="min-width:150px;">条件</th>
+                           <th style="min-width:200px;">值</th>
+                           <th style="max-width:90px;"></th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                   <tr class="p-m-if-table-tpl" style="display:none;">
+					<td>
+                   		<select data-process="if:if_logic:" class="form-control">
+                   			<option value="and">并且</option>
+                   			<option value="or">或者</option>
+                   		</select>
+                   	</td>
+                   	<td>
+                   		<select data-process="if:if_cond:" class="form-control">
+                   			<option value="has">{$Think.lang.p_m_if_c_has}</option>
+                   			<option value="nhas">{$Think.lang.p_m_if_c_nhas}</option>
+                   			<option value="eq">{$Think.lang.p_m_if_c_eq}</option>
+                   			<option value="neq">{$Think.lang.p_m_if_c_neq}</option>
+                   			<option value="heq">{$Think.lang.p_m_if_c_heq}</option>
+                   			<option value="nheq">{$Think.lang.p_m_if_c_nheq}</option>
+                   			<option value="gt">{$Think.lang.p_m_if_c_gt}</option>
+                   			<option value="egt">{$Think.lang.p_m_if_c_egt}</option>
+                   			<option value="lt">{$Think.lang.p_m_if_c_lt}</option>
+                   			<option value="elt">{$Think.lang.p_m_if_c_elt}</option>
+                   			<option value="time_eq">{$Think.lang.p_m_if_c_time_eq}</option>
+                   			<option value="time_egt">{$Think.lang.p_m_if_c_time_egt}</option>
+                   			<option value="time_elt">{$Think.lang.p_m_if_c_time_elt}</option>
+                   			<option value="regexp">{$Think.lang.p_m_if_c_regexp}</option>
+                   			<option value="func">{$Think.lang.p_m_if_c_func}</option>
+                   		</select>
+                   	</td>
+                   	<td class="p-m-if-val">
+                   		<div class="p-m-if-val-def">
+                  			<input type="text" data-process="if:if_val:" class="form-control p-m-if-val-ele" />
+                   		</div>
+                  		<div class="p-m-if-val-time input-group" style="display:none;">
+                  			<input type="text" class="form-control p-m-if-val-ele" />
+	                  		<div class="input-group-addon" style="padding:0;">
+		                  		<div class="form-control-slt p-m-if-val-time-date">
+							        <select class="form-control">
+		                  				<option value="now">当前时间</option>
+										<option value="today">今天</option>
+										<option value="today +1 day">明天</option>
+										<option value="today +2 day">后天</option>
+										<option value="today -1 day">昨天</option>
+										<option value="today -2 day">前天</option>
+										<option value="-1 monday">本周一</option>
+										<option value="sunday">本周日</option>
+										<option value="today -1 week">上周今天</option>
+										<option value="-2 monday">上周一</option>
+										<option value="-1 sunday">上周日</option>
+										<option value="today +1 week">下周今天</option>
+										<option value="+1 monday">下周一</option>
+										<option value="+2 sunday">下周日</option>
+										<option value="today -1 month">上月今天</option>
+										<option value="first day of today -1 month">上月第一天</option>
+										<option value="last day of today -1 month">上月最后一天</option>
+										<option value="today +1 month">下月今天</option>
+										<option value="first day of today +1 month">下月第一天</option>
+										<option value="last day of today +1 month">下月最后一天</option>
+		                  			</select>
+	                  			</div>
+	                  		</div>
+                  		</div>
+                  		<div class="p-m-if-val-func" style="display:none;">
+	                  		<div class="input-group" style="margin-bottom:-1px;">
+		                   		<select data-process="if:if_addon:func:" class="form-control">
+									<option value="">--选择函数--</option>
+									<optgroup label="系统函数">
+										{foreach $Think.config.allow_process_if as $k=>$v}
+										<option value="{$k}">{$k}：{$v}</option>
+										{/foreach}
+										{if is_array($Think.config.EXTEND_PROCESS_IF)}
+										{foreach $Think.config.EXTEND_PROCESS_IF as $k=>$v}
+										<option value="{$k}">{$k}：{$v}</option>
+										{/foreach}
+										{/if}
+									</optgroup>
+		                   		</select>
+	                  			<div class="input-group-btn">
+	                  				<select data-process="if:if_addon:turn:" class="form-control">
+	                  					<option value="">正常</option>
+	                  					<option value="1">取反</option>
+	                  				</select>
+	                  			</div>
+	                  			<div class="input-group-addon" style="padding:0;">
+	                  				<a href="javascript:;" class="p-m-if-val-func-info"><span class="glyphicon glyphicon-info-sign"></span></a>
+	                  			</div>
+	                  		</div>
+	                  		<div class="input-group">
+                  				<textarea rows="2" data-placeholder="默认传入当前字段" class="form-control p-m-if-val-ele"></textarea>
+                  				<div class="input-group-addon" style="padding:0;">
+	                  				<div class="form-control-slt p-m-if-val-func-field">
+	                  					<select class="form-control">
+				                  		</select>
+	                  				</div>
+                  				</div>
+	                  		</div>
+						</div>
+                   	</td>
+                   	<td class="p-m-if-op">
+                   		<a href="javascript:;" class="glyphicon icon-drag-move"></a>
+                   		<a href="javascript:;" class="glyphicon glyphicon-remove p-m-if-del"></a>
+                   	</td>
+                   </tr>
+                   </tbody>
+				</table>
+        	</div>
+		</div>
+		</section>
+	</div>
+	<div class="c-p-process-module" module="translate">
+		{if empty($transApiLangs)}
+		<a href="{:url('setting/translate')}" target="_blank">请先开启并配置翻译接口</a>
+		{else/}
+		<div class="form-group">
+			<label>源语言</label>
+			<div class="input-group input-select-custom">
+				<div class="input-group-btn">
+					<select data-process="translate:translate_from" class="form-control">
+						<option value="">-请选择--</option>
+						<option value="auto">自动检测</option>
+						{foreach $transApiLangs as $k=>$v}
+						<option value="{$k}">{$v}</option>
+						{/foreach}
+						<option value="custom">自定义</option>
+					</select>
+				</div>
+				<input type="text" data-process="translate:translate_from_custom" class="form-control" placeholder="请输入语言代码">
+			</div>
+		</div>
+		<div class="form-group">
+			<label>目标语言</label>
+			<div class="input-group input-select-custom">
+				<div class="input-group-btn">
+					<select data-process="translate:translate_to" class="form-control">
+						<option value="">-请选择--</option>
+						{foreach $transApiLangs as $k=>$v}
+						<option value="{$k}">{$v}</option>
+						{/foreach}
+						<option value="custom">自定义</option>
+					</select>
+				</div>
+				<input type="text" data-process="translate:translate_to_custom" class="form-control" placeholder="请输入语言代码">
+			</div>
+		</div>
+		{/if}
+	</div>
+	<div class="c-p-process-module" module="tool">
+		<div class="checkbox">
+			<label><input type="checkbox" data-process="tool:tool_list" value="trim" />去除前后空格</label>
+			&nbsp; <label><input type="checkbox" data-process="tool:tool_list" value="format" />清除文本格式（去除html元素所有样式，如：id、class、style等）</label>
+			&nbsp; <label title="如果字段的值是完整的url链接，标记为图片链接后可将其图片本地化"><input type="checkbox" data-process="tool:tool_list" value="is_img" />将文本链接标记为图片链接</label>
+		</div>
+	</div>
+	<div class="c-p-process-module" module="batch">
+		<div class="form-group">
+			<label>批量替换</label>
+			<textarea data-process="batch:batch_list" rows="3" class="form-control"></textarea>
+			<p class="help-block">一行一对替换词，用“=”分隔，例如：aa=bb，即将“aa”替换成“bb”</p>
+		</div>
+	</div>
+	<div class="c-p-process-module" module="substr">
+		<div class="form-group">
+			<label>截取长度</label>
+			<input type="number" data-process="substr:substr_len" class="form-control" />
+		</div>
+		<div class="form-group">
+			<label>结尾字符</label>
+			<input type="text" data-process="substr:substr_end" class="form-control" />
+		</div>
+	</div>
+	<div class="c-p-process-module" module="func">
+		<section>
+		<div class="form-group">
+			<label>PHP函数名</label>
+			<select data-process="func:func_name"  class="form-control">
+				<option value="">--请选择--</option>
+				<optgroup label="系统函数">
+					{foreach $Think.config.allow_process_func as $k=>$v}
+					<option value="{$k}">{$k}：{$v}</option>
+					{/foreach}
+					{if is_array($Think.config.EXTEND_PROCESS_FUNC)}
+					{foreach $Think.config.EXTEND_PROCESS_FUNC as $k=>$v}
+					<option value="{$k}">{$k}：{$v}</option>
+					{/foreach}
+					{/if}
+				</optgroup>
+			</select>
+		</div>
+		<div class="form-group">
+			<label>传入参数</label>
+			<textarea data-process="func:func_param" rows="2" class="form-control" data-placeholder="默认传入当前字段"></textarea>
+			<div class="help-block">
+				一行一个值, 可输入任何内容或<select class="p-m-func-field"><option value="">插入字段</option></select>
+				请按函数传参, 否则运行出错！<a href="javascript:;" onclick="pluginFuncTips('process')">扩展函数</a>
+			</div>
+		</div>
+		</section>
+	</div>
+	<div class="c-p-process-module" module="api">
+		<section>
+		<div class="form-group">
+			<label>接口地址</label>
+			<input type="text" data-process="api:api_url" class="form-control" />
+			<p class="help-block">以/开头自动补全为{:config('root_website')}/</p>
+		</div>
+		<div class="form-group">
+			<label>请求方式</label>
+			<select data-process="api:api_type" class="form-control">
+				<option value="">GET</option>
+				<option value="post">POST</option>
+			</select>
+		</div>
+		<div class="form-group p-m-api-content-type" style="display:none;">
+			<label>POST数据类型</label>
+	    	<select data-process="api:api_content_type" class="form-control">
+				<option value="">默认表单数据：application/x-www-form-urlencoded</option>
+				<option value="application/json">JSON数组：application/json</option>
+				<option value="multipart/form-data">表单上传：multipart/form-data</option>
+			</select>
+		</div>
+		<div class="form-group">
+			<label>数据编码</label>
+			<div class="input-group input-select-custom">
+				<div class="input-group-btn">
+					<select data-process="api:api_charset" class="form-control">
+						<option value="">utf-8</option>
+						<option value="gbk">gbk</option>
+						<option value="gb2312">gb2312</option>
+						<option value="custom">自定义</option>
+					</select>
+				</div>
+				<input type="text" class="form-control" data-process="api:api_charset_custom">
+			</div>
+		</div>
+		<div class="form-group">
+	     	<label>发送数据</label>
+	      	<a href="javascript:;" class="glyphicon glyphicon-plus p-m-api-add" title="添加"></a>
+	   		<div class="table-responsive">
+	           	<table class="table table-bordered table-hover p-m-api-table" style="margin-bottom:0;">
+		            <thead>
+	                <tr>
+	                    <td>名称</td>
+	                    <td>值</th>
+	                    <td style="width:50px;">删除</td>
+	                </tr>
+		            </thead>
+		            <tbody>
+					<tr class="p-m-api-table-tpl" style="display:none;">
+						<td>
+							<input type="text" data-process="api:api_params:name:" class="form-control">
+						</td>
+						<td>
+							<div class="input-group">
+								<div class="input-group-btn">
+									<select data-process="api:api_params:val:" class="form-control" style="min-width:110px;">
+										<option value="">空</option>
+										<option value="field">当前字段</option>
+										<option value="timestamp">当前时间戳</option>
+										<option value="time">当前日期</option>
+										<option value="custom">自定义</option>
+									</select>
+								</div>
+								<input type="text" data-process="api:api_params:addon:" class="form-control" style="display:none;margin-left:-1px;">
+								<div class="input-group-addon p-m-api-val-field">
+									<div class="form-control-slt">
+										<select class="form-control">
+										</select>
+									</div>
+								</div>
+							</div>
+						</td>
+						<td>
+							<a href="javascript:;" class="glyphicon glyphicon-remove p-m-api-del" style="margin-top:8px;"></a>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+	       	</div>
+		</div>
+		<div class="form-group">
+	     	<label>请求头信息</label>
+	      	<a href="javascript:;" class="glyphicon glyphicon-plus p-m-api-header-add" title="添加"></a>
+	   		<div class="table-responsive">
+	           	<table class="table table-bordered table-hover p-m-api-header-table" style="margin-bottom:0;">
+		            <thead>
+	                <tr>
+	                    <td>名称</td>
+	                    <td>值</td>
+	                    <td style="width:50px;">删除</td>
+	                </tr>
+		            </thead>
+		            <tbody>
+					<tr class="p-m-api-header-table-tpl" style="display:none;">
+						<td>
+							<input type="text" data-process="api:api_headers:name:" class="form-control">
+						</td>
+						<td>
+							<div class="input-group">
+								<div class="input-group-btn">
+									<select data-process="api:api_headers:val:" class="form-control" style="min-width:110px;">
+										<option value="">空</option>
+										<option value="field">当前字段</option>
+										<option value="timestamp">当前时间戳</option>
+										<option value="time">当前日期</option>
+										<option value="custom">自定义</option>
+									</select>
+								</div>
+								<input type="text" data-process="api:api_headers:addon:" class="form-control" style="display:none;margin-left:-1px;">
+								<div class="input-group-addon p-m-api-header-field">
+									<div class="form-control-slt">
+										<select class="form-control">
+										</select>
+									</div>
+								</div>
+							</div>
+						</td>
+						<td>
+							<a href="javascript:;" class="glyphicon glyphicon-remove p-m-api-header-del" style="margin-top:8px;"></a>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+	       	</div>
+		</div>
+		<div class="form-group">
+	     	<label>提取结果</label>
+			<input type="text" data-process="api:api_json" class="form-control" />
+			<p class="help-block">json规则： a.b.c 通配符 *</p>
+		</div>
+		<div class="form-group">
+			<label>结果是数组则转换为</label>
+			<select data-process="api:api_json_arr" class="form-control">
+				<option value="implode">字符串</option>
+				<option value="jsonencode">json编码</option>
+				<option value="serialize">序列化</option>
+			</select>
+			<textarea data-process="api:api_json_implode" class="form-control" rows="1" placeholder="输入分隔符" style="margin-top:5px;"></textarea>
+		</div>
+		<div class="form-group">
+	     	<label>调用间隔（毫秒，1000毫秒=1秒）</label>
+			<input type="number" data-process="api:api_interval" class="form-control" />
+			<p class="help-block">如接口有频率限制，可设置间隔时间避免调用过快导致失败</p>
+	    </div>
+		<div class="form-group">
+	     	<label>失败等待（秒）</label>
+			<input type="number" data-process="api:api_wait" class="form-control" />
+			<p class="help-block">一般情况下调用失败都是频繁请求接口导致被禁用，设置该值等待一段时间让接口恢复正常</p>
+	    </div>
+		<div class="form-group">
+	     	<label>失败重试</label>
+			<input type="number" data-process="api:api_retry" class="form-control" />
+			<p class="help-block">调用失败重试次数，留空或0表示不重试</p>
+		</div>
+		</section>
+	</div>
+</div>

@@ -1,0 +1,41 @@
+<form id="form_front_url" method="post" action="{:url('cpattern/front_url')}">
+{:html_usertoken()}
+	<input type="hidden" name="is_submit" value="1" />
+	<input type="hidden" name="objid" value="{$objid}" />
+	<div class="form-group">
+   		<label class="control-label">前置页名称</label>
+   		<input type="text" class="form-control" name="front_url[name]" placeholder="" autocomplete="off"/>
+	</div>
+	
+	<div class="form-group">
+   		<label class="control-label">前置页网址</label>
+    	<div class="input-group c-p-url-page-signs" data-page-type="front_url" data-input-name="front_url[url]">
+      		<input type="text" class="form-control" name="front_url[url]" data-merge-type="url" autocomplete="off" />
+    		<div class="input-group-addon">
+    			<a href="javascript:;" title="调用全局内容标签" role="button" class="dropdown-toggle btn-page-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	            	{:cp_sign('match','N')}
+	            	<span class="caret"></span>
+	            </a>
+				<div class="dropdown-menu dropdown-menu-right"></div>
+    		</div>
+      	</div>
+	</div>
+	{include file="cpattern:set_page" _page_type="front_url" /}
+	<div class="form-group">
+		<label>获取当前页COOKIE</label>
+		<div>
+			<label class="checkbox-inline"><input type="checkbox" name="front_url[use_cookie]" value="1"> 全局抓取页面时使用当前页COOKIE</label>
+			<label class="checkbox-inline"><input type="checkbox" name="front_url[use_cookie_img]" value="1"> 全局下载图片时使用当前页COOKIE</label>
+		</div>
+	</div>
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+<script type="text/javascript">
+{if condition="$front_url"}
+c_pattern.cpFrontUrl.init({$front_url|json_encode});
+{else /}
+c_pattern.cpFrontUrl.init();
+{/if}
+</script>

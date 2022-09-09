@@ -1,0 +1,45 @@
+{if condition="!empty($input_urls)"}
+<div class="panel panel-default">
+	<div class="panel-heading">需要从以下页面中抓取数据，请输入网址</div>
+	<div class="panel-body">
+		{if condition="isset($input_urls['source_url'])"}
+		<div class="form-group">
+			<div class="input-group input-group-sm">
+				<div class="input-group-addon">起始页</div>
+				<input type="text" name="source_url" class="form-control" value="{$input_urls['source_url']|htmlspecialchars}" />
+				{if $is_post_list['source_url']}
+				<div class="input-group-addon">POST</div>
+				{/if}
+			</div>
+		</div>
+		{/if}
+		{if condition="is_array($input_urls['level_url'])"}
+			{foreach $input_urls['level_url'] as $level_url}
+			<div class="form-group">
+				<div class="input-group input-group-sm">
+					<div class="input-group-addon">多级页：{$level_url['name']}</div>
+					<input type="text" name="level_{$level_url['level']}" class="form-control" value="{$level_url['url']|htmlspecialchars}" />
+					{if $is_post_list['level_url'][$level_url['name']]}
+					<div class="input-group-addon">POST</div>
+					{/if}
+				</div>
+			</div>
+		{/foreach}
+		{/if}
+		{if condition="isset($input_urls['url'])"}
+		<div class="form-group">
+			<div class="input-group input-group-sm">
+				<div class="input-group-addon">内容页</div>
+				<input type="text" name="url" class="form-control" value="{$input_urls['url']|htmlspecialchars}" />
+				{if $is_post_list['url']}
+				<div class="input-group-addon">POST</div>
+				{/if}
+			</div>
+		</div>
+		{/if}
+	</div>
+</div>
+{/if}
+{if $is_post}
+<input type="hidden" name="page_source_post" value="1" />
+{/if}

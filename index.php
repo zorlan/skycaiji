@@ -1,18 +1,10 @@
 <?php
-// +----------------------------------------------------------------------
-// | ThinkPHP [ WE CAN DO IT JUST THINK ]
-// +----------------------------------------------------------------------
-// | Copyright (c) 2006-2016 http://thinkphp.cn All rights reserved.
-// +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
-// +----------------------------------------------------------------------
-// | Author: liu21st <liu21st@gmail.com>
-// +----------------------------------------------------------------------
-
 // [ 应用入口文件 ]
-
+define('SKYCAIJI_PATH', __DIR__.DIRECTORY_SEPARATOR);
 // 定义应用目录
-define('APP_PATH', __DIR__ . '/SkycaijiApp/');
+define('VENDOR_PATH', SKYCAIJI_PATH.'vendor'.DIRECTORY_SEPARATOR);
+define('APP_PATH', VENDOR_PATH.'skycaiji'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR);
+define('RUNTIME_PATH', SKYCAIJI_PATH.'runtime'.DIRECTORY_SEPARATOR);
 define('APP_NAMESPACE', 'skycaiji');
 // 加载框架引导文件
-require __DIR__ . '/thinkphp/start.php';
+require VENDOR_PATH.'skycaiji'.DIRECTORY_SEPARATOR.'tp'.DIRECTORY_SEPARATOR.'start.php';

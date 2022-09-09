@@ -1,0 +1,43 @@
+{assign name="_tpl_page_type" value="[_page_type]" /}
+{php}$_tpl_vars=\util\Tools::cp_page_tpl_vars($_tpl_page_type);{/php}
+
+<div class="panel panel-default" id="panel_{$_tpl_vars['id']}_pagination">
+	<div class="panel-heading">
+    	<h4 class="panel-title">
+        	<a data-toggle="collapse" href="#{$_tpl_vars['id']}_pagination" aria-expanded="false">{$_tpl_vars['title']}分页</a>
+    	</h4>
+    </div>
+	<div id="{$_tpl_vars['id']}_pagination" class="panel-collapse collapse">
+		<div class="panel-body">
+			<div class="form-group" style="margin-bottom:0;">
+				<label class="control-label">开启分页</label>
+				<div class="input-group">
+					<label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[pagination][open]" value="1"> 是</label>
+					<label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[pagination][open]" value="0" checked="checked"> 否</label>
+				</div>
+			</div>
+		    <div id="{$_tpl_vars['id']}_pagination_open" style="display:none;margin-top:15px;">
+				{if $_tpl_page_type=='source_url'}
+					{include file="cpattern:set_page_rule" _page_type="source_url" _is_pagination="1" /}
+				{elseif $_tpl_page_type=='level_url' /}
+					{include file="cpattern:set_page_rule" _page_type="level_url" _is_pagination="1" /}
+				{elseif $_tpl_page_type=='url' /}
+					<div class="form-group">
+	       				<label class="control-label">
+	       					分页字段
+      						<a href="javascript:;" class="glyphicon glyphicon-plus add-url-pagination-field" title="添加"></a>
+	       				</label>
+	       				<div class="c-p-url-pagination-fields"></div>
+	       				<p class="help-block">只有选中的字段才会在分页中获取到内容</p>
+	       			</div>
+					{include file="cpattern:set_page_rule" _page_type="url" _is_pagination="1" /}
+				{/if}
+				<div class="form-group">
+					<label class="control-label">最大分页数量</label>
+					<input type="number" class="form-control" name="{$_tpl_vars['name']}[pagination][max]" value="10">
+					<p class="help-block">填0表示不限制会自动循环抓取到最后一页，为防止出现无限循环的情况，最好设置一个数值以便采集到相应数量的分页后跳出循环抓取</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

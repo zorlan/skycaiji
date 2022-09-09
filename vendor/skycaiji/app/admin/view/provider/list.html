@@ -1,0 +1,76 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/provider.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+{if empty($cacheTip)}
+<div class="alert alert-warning alert-dismissible" id="box_tip" style="padding-top:7px;padding-bottom:7px;line-height:20px;margin-bottom:10px;">
+	<button type="button" class="close" style="top:0px;">×</button>
+	允许通过下列第三方平台下载规则、插件等，注意：任何第三方平台都可能存在安全隐患，请谨慎下载！
+</div>
+{/if}
+<div class="box box-default">
+	<div class="box-body">
+		<form id="form_list" method="post" ajax-submit="true" action="{:url('provider/saveall')}">
+		{:html_usertoken()}
+		<table id="list_table" class="table table-hover datatable">
+			<thead>
+				<tr>
+					<th width="80">排序</th>
+					<th>名称</th>
+					<th>网址</th>
+					<th>访问</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{foreach name="list" item="item"}
+				<tr data-id="{$item['id']}" data-url="{$item['url']}">
+					<td class="sort"><input type="text" name="newsort[{$item['id']}]" class="form-control" value="{$item['sort']}" autocomplete="off" /></td>
+					<td><a href="javascript:;" class="store">{$item['title']}</a></td>
+					<td><a href="javascript:;" class="store">{$item['url']}</a></td>
+					<td><a href="javascript:;" class="enable" style="color:{$item['enable']?'green':'red'}" data-val="{$item['enable']?1:0}">{$item['enable']?'允许':'拒绝'}</a></td>
+					<td>
+						<ul class="in-line">
+							<li><a href="javascript:;" class="comment">评价</a></li>
+							<li class="sep">|</li>
+							<li><a href="javascript:;" class="edit">编辑</a></li>
+							<li class="sep">|</li>
+							<li><a href="javascript:;" class="delete">删除</a></li>
+						</ul>
+					</td>
+				</tr>
+			{/foreach}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="5">
+						<button type="submit" class="btn btn-default" id="btn_save">保存</button>
+						<a href="javascript:;" class="btn btn-primary" id="btn_add">添加</a>
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+		</form>
+		{$pagenav}
+	</div>
+</div>
+<div class="list-footer">
+	<form id="form_search" method="post" action="{:url('provider/list')}" class="form-inline">
+	{:html_usertoken()}	
+		<div class="form-group form-group-sm">
+			<label>名称</label>
+        	<input type="text" name="title" class="form-control" placeholder="模糊搜索" />
+        </div>
+		<div class="form-group form-group-sm">
+			<label>网址</label>
+        	<input type="text" name="url" class="form-control" placeholder="模糊搜索" />
+        </div>
+        <button type="submit" class="btn btn-default btn-sm">搜索</button>
+	</form>
+</div>
+<input type="hidden" id="prov_store_url" value="{:\\skycaiji\\admin\\model\\Provider::create_store_url(null,'client/go/provider')}" />
+<script type="text/javascript">
+providerClass.init_list({$search|json_encode});
+</script>
+{/block}

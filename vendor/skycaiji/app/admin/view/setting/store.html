@@ -1,0 +1,40 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/setting.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<form id="form_set" method="post" role="form" action="{:url('admin/setting/store')}">
+{:html_usertoken()}
+	<input type="hidden" name="same_as_pwd" value="" />
+	<div class="box box-default">
+		<div class="box-body"> 	
+		   	<div class="form-group">
+		        <label>通信密钥（全局）</label>
+				<input type="text" name="authkey" class="form-control" value="{$storeConfig['authkey']}" placeholder="选填">
+				<p class="help-block">与云平台或第三方平台通信时验证该密钥（请勿与登录密码相同）</p>
+		    </div>
+		   	<div class="form-group" style="margin-bottom:0;">
+		        <label>云平台通信密钥</label>
+				<input type="text" name="authkey_store" class="form-control" value="{$storeConfig['authkey_store']}" placeholder="全局设置：{$storeConfig['authkey']?$storeConfig['authkey']:'空值'}">
+				<p class="help-block">单独设置云平台的通信密钥，留空使用全局设置；第三方平台的通信密钥可以在<a href="{:url('provider/list')}">云端»第三方</a>中单独设置</p>
+		    </div>
+		</div>
+	</div>
+	<div class="form-group">
+		<button type="submit" class="btn btn-primary btn-block">保存{if $provCount>0}以上设置{/if}</button>
+	</div>
+</form>
+{if $provCount>0}
+<div class="panel panel-default" id="provider_authkeys">
+	<div class="panel-heading">
+    	<h4 class="panel-title">第三方平台通信密钥</h4>
+   	</div>
+    <div class="panel-body" style="padding:0;">
+		<iframe src="{:url('provider/authkeys')}" id="provider_authkeys_iframe" width="100%" frameborder="0" scrolling="yes" style="width:100%;min-height:200px;max-height:600px;border:0;"></iframe>
+    </div>
+</div>
+{/if}
+<script type="text/javascript">
+settingClass.store_init({$storeConfig|json_encode});
+</script>
+{/block}

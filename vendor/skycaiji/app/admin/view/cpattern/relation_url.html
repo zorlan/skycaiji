@@ -1,0 +1,26 @@
+<form id="form_relation_url" method="post" action="{:url('cpattern/relation_url')}">
+{:html_usertoken()}
+	<input type="hidden" name="is_submit" value="1" />
+	<input type="hidden" name="objid" value="{$objid}" />
+	<div class="form-group">
+   		<label class="control-label">关联页名称</label>
+   		<input type="text" class="form-control" name="relation_url[name]" placeholder="" autocomplete="off"/>
+	</div>
+	<div class="form-group">
+   		<label class="control-label">从页面中提取</label>
+		<select name="relation_url[page]" class="form-control">
+			<option value="">默认内容页</option>
+		</select>
+	</div>
+	{include file="cpattern:set_page" _page_type="relation_url" /}
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+<script type="text/javascript">
+{if condition="$relation_url"}
+c_pattern.cpRelationUrl.init({$relation_url|json_encode});
+{else /}
+c_pattern.cpRelationUrl.init();
+{/if}
+</script>

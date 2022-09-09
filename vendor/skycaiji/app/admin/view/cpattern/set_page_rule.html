@@ -1,0 +1,170 @@
+{assign name="_tpl_page_type" value="[_page_type]" /}
+{assign name="_tpl_is_pagination" value="[_is_pagination]" /}
+{php}
+	$_tpl_vars=\util\Tools::cp_page_tpl_vars($_tpl_page_type);
+	
+	$_tpl_id=$_tpl_vars['id'];
+	$_tpl_name=$_tpl_vars['name'];
+	$_tpl_title=$_tpl_vars['title'];
+	$_tpl_url_required=$_tpl_page_type=='relation_url'?true:false;
+	$_tpl_match_global=true;
+	if($_tpl_is_pagination){
+		$_tpl_id.='_pagination';
+		$_tpl_name.='[pagination]';
+		$_tpl_title='分页';
+		$_tpl_url_required=true;
+		$_tpl_match_global=false;
+	}
+{/php}
+
+<div class="panel panel-default">
+	<div class="panel-heading">
+	    <h4 class="panel-title">
+	        <a data-toggle="collapse" href="#{$_tpl_id}_area" aria-expanded="false" class="collapsed">从选定区域中提取网址</a>
+	    </h4>
+	</div>
+	<div data-module-select="{$_tpl_name}[area_module]" id="{$_tpl_id}_area" class="panel-collapse collapse" aria-expanded="false">
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="control-label">获取网址区域</label>
+				<div class="input-group">
+					<textarea name="{$_tpl_name}[area]" class="form-control" rows="3" data-placeholder-json="请输入json规则，默认获取所有字符并保存为{:cp_sign('match')}标签以供拼接调用" data-placeholder-xpath="请输入xpath规则，默认获取整个页面并保存为{:cp_sign('match')}标签以供拼接调用" placeholder="默认获取整个页面并保存为{:cp_sign('match')}标签以供拼接调用，{$Think.lang.tips_match_area}"></textarea>
+					<div class="input-group-addon iga-rt iga-rt1">
+						<select name="{$_tpl_name}[area_module]" data-module-input="{$_tpl_name}[area]" class="slt">
+				     		<option value="">正则</option>
+				     		<option value="xpath">xpath</option>
+				     		<option value="json">json</option>
+				     	</select>
+				    	<ul class="op">
+							<li data-module="" style="display:block;">
+								<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'{$_tpl_name}[area]\']')">{$Think.lang.sign_wildcard}</a></div>
+					    		<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match_global}" onclick="cpMatch('[name=\'{$_tpl_name}[area]\']',{zimu:{$_tpl_match_global?1:0}})">{:cp_sign('match')}</a></div>
+								<div>
+									<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group_global}" onclick="cpMatch('[name=\'{$_tpl_name}[area]\']',{group:1,zimu:{$_tpl_match_global?1:0}})">捕获组</a></div>
+									<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign" style="font-size:11px;" onclick="cpRuleTips({$_tpl_match_global?1:''})"></a></div>
+								</div>
+							</li>
+							<li data-module="xpath">xpath语法</li>
+							<li data-module="json">格式 a.b.c<br>通配符 *</li>
+						</ul>
+					</div>
+				</div>
+		      	<p class="help-block">
+		      		<span data-module="">规则中无{:cp_sign('match')}标签时，自动将完全匹配的值保存为{:cp_sign('match')}标签以供拼接调用</span>
+					<span data-module="xpath" style="display:none;">XPATH匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+					<span data-module="json" style="display:none;">JSON匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+				</p>
+			</div>
+			<div class="form-group">
+		    	<label class="control-label">拼接成最终区域</label>
+		    	<div class="input-group c-p-url-page-signs" data-page-type="{$_tpl_page_type}" data-input-name="{$_tpl_name}[area_merge]">
+		    		<textarea name="{$_tpl_name}[area_merge]" data-merge-type="area" placeholder="默认拼接区域规则中所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn_area}" class="form-control" rows="2"></textarea>
+		    		{if $_tpl_match_global}
+		    		<div class="input-group-addon">
+		    			<a href="javascript:;" title="调用全局内容标签" role="button" class="dropdown-toggle btn-page-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			            	{:cp_sign('match','N')}
+			            	<span class="caret"></span>
+			            </a>
+						<div class="dropdown-menu dropdown-menu-right"></div>
+		    		</div>
+		    		{else/}
+		    		<div class="input-group-addon iga-rt">
+		    			<a href="javascript:;" title="调用当前规则中的内容标签" onclick="cpMatchN('[name=\'{$_tpl_name}[area]\']','[name=\'{$_tpl_name}[area_merge]\']',{def:1})">{:cp_sign('match','N')}</a>
+		    		</div>
+		    		{/if}
+		      	</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            <a data-toggle="collapse" href="#{$_tpl_id}_url" {if $_tpl_url_required}aria-expanded="true"{else/}aria-expanded="false" class="collapsed"{/if}>匹配{$_tpl_title}网址</a>
+        </h4>
+    </div>
+    <div data-module-select="{$_tpl_name}[url_rule_module]" id="{$_tpl_id}_url" {if $_tpl_url_required}class="panel-collapse collapse in" aria-expanded="true"{else/}class="panel-collapse collapse" aria-expanded="false"{/if}>
+        <div class="panel-body">
+			<div class="form-group">
+		    	<label class="control-label">提取网址规则</label>
+		    	<div class="input-group">
+		    		<textarea class="form-control" name="{$_tpl_name}[url_rule]" rows="3" {if $_tpl_url_required}data-placeholder-xpath="请输入xpath规则" data-placeholder-json="请输入json规则" placeholder="必须填写规则，{$Think.lang.tips_match_url}"{else/}data-placeholder-xpath="请输入xpath规则，默认获取所有链接并保存为{:cp_sign('match')}标签以供拼接调用" data-placeholder-json="请输入json规则" placeholder="默认获取所有链接并保存为{:cp_sign('match')}标签以供拼接调用，{$Think.lang.tips_match_url}"{/if}></textarea>
+		    		<div class="input-group-addon iga-rt iga-rt1">
+						<select name="{$_tpl_name}[url_rule_module]" data-module-input="{$_tpl_name}[url_rule]" class="slt">
+			     			<option value="">正则</option>
+			     			<option value="xpath">xpath</option>
+			     			<option value="json">json</option>
+			     		</select>
+			     		<ul class="op">
+			     			<li data-module="" style="display:block;">
+			    				<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'{$_tpl_name}[url_rule]\']')">{$Think.lang.sign_wildcard}</a></div>
+			    				<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match_global}" onclick="cpMatch('[name=\'{$_tpl_name}[url_rule]\']',{zimu:{$_tpl_match_global?1:0}})">{:cp_sign('match')}</a></div>
+			    				<div>
+			    					<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group_global}" onclick="cpMatch('[name=\'{$_tpl_name}[url_rule]\']',{group:1,zimu:{$_tpl_match_global?1:0}})">捕获组</a></div>
+			    					<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign" style="font-size:11px;" onclick="cpRuleTips({$_tpl_match_global?1:''})"></a></div>
+								</div>
+			    			</li>
+					      	<li data-module="xpath">xpath语法</li>
+							<li data-module="json">格式 a.b.c<br>通配符 *</li>
+			    		</ul>
+		    		</div>
+		    	</div>
+		      	<p class="help-block">
+		      		<span data-module="">规则中无{:cp_sign('match')}标签时，自动将完全匹配的值保存为{:cp_sign('match')}标签以供拼接调用</span>
+					<span data-module="xpath" style="display:none;">XPATH匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+					<span data-module="json" style="display:none;">JSON匹配到的值自动保存为{:cp_sign('match')}标签以供拼接调用</span>
+				</p>
+			</div>
+			<div class="form-group">
+		    	<label class="control-label">拼接成最终网址</label>
+		    	<div class="input-group c-p-url-page-signs" data-page-type="{$_tpl_page_type}" data-input-name="{$_tpl_name}[url_merge]">
+		      		<input type="text" class="form-control" name="{$_tpl_name}[url_merge]" data-merge-type="url" placeholder="默认拼接网址规则中所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn_url}" autocomplete="off" />
+		    		{if $_tpl_match_global}
+		    		<div class="input-group-addon">
+		    			<a href="javascript:;" title="调用全局内容标签" role="button" class="dropdown-toggle btn-page-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			            	{:cp_sign('match','N')}
+			            	<span class="caret"></span>
+			            </a>
+						<div class="dropdown-menu dropdown-menu-right"></div>
+		    		</div>
+		    		{else/}
+		    		<div class="input-group-addon iga-rt">
+		    			<a href="javascript:;" title="调用当前规则中的内容标签" onclick="cpMatchN('[name=\'{$_tpl_name}[url_rule]\']','[name=\'{$_tpl_name}[url_merge]\']',{def:1})">{:cp_sign('match','N')}</a>
+		    		</div>
+		    		{/if}
+		      	</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            <a data-toggle="collapse" href="#{$_tpl_id}_filter" {if $_tpl_url_required}aria-expanded="false" class="collapsed"{else/}aria-expanded="true"{/if}>结果网址过滤</a>
+        </h4>
+    </div>
+    <div id="{$_tpl_id}_filter" {if $_tpl_url_required}class="panel-collapse collapse" aria-expanded="false"{else/}class="panel-collapse collapse in" aria-expanded="true"{/if}>
+        <div class="panel-body">
+			<div class="form-group">
+				<div class="input-group" style="margin-bottom:7px;">
+			       	<span class="input-group-addon">必须包含</span>
+			       	<input type="text" name="{$_tpl_name}[url_must]" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
+		      		<div class="input-group-addon iga-rt">
+		      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'{$_tpl_name}[url_must]\']')">{$Think.lang.sign_wildcard}</a>
+						<span title="{$Think.lang.tips_regular}">正则</span>
+		      		</div>
+			    </div>
+			    <div class="input-group">
+			    	<span class="input-group-addon">不能包含</span>
+			    	<input type="text" name="{$_tpl_name}[url_ban]" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
+		      		<div class="input-group-addon iga-rt">
+		      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'{$_tpl_name}[url_ban]\']')">{$Think.lang.sign_wildcard}</a>
+						<span title="{$Think.lang.tips_regular}">正则</span>
+		      		</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

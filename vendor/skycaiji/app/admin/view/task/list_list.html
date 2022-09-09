@@ -1,0 +1,98 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/tasks.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+{php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'倒序'));{/php}
+<div class="box">
+	<div class="box-body">
+		<form id="form_list" method="post" ajax-submit="true" action="{:url('task/op')}">
+		{:html_usertoken()}
+		<input type="hidden" name="show" value="list" /> 
+		<input type="hidden" name="op" value="saveall" />
+		<div class="table-responsive">
+		<table id="task_list" class="table table-hover datatable">
+			<thead>
+	            <tr>
+					<th class="sorting{$orderClass['sort']}" data-order="sort" title="排序{$orderSort['sort']}" width="80">{$Think.lang.sort}</th>
+	                <th class="sorting{$orderClass['name']}" data-order="name" title="{$orderSort['name']}">{$Think.lang.task_name}</th>
+	                <th class="sorting{$orderClass['tg_id']}" data-order="tg_id" title="{$orderSort['tg_id']}">{$Think.lang.task_tg}</th>
+	                <th class="sorting{$orderClass['auto']}" data-order="auto" title="{$orderSort['auto']}" style="min-width:90px;">{$Think.lang.task_auto}</th>
+	                <th class="sorting{$orderClass['addtime']}" data-order="addtime" title="{$orderSort['addtime']}">{$Think.lang.task_addtime}</th>
+	                <th class="sorting{$orderClass['caijitime']}" data-order="caijitime" title="{$orderSort['caijitime']}">{$Think.lang.task_caijitime}</th>
+	                <th>{$Think.lang.op}</th>
+	            </tr>
+			</thead>
+			<tbody>
+			{if empty($taskList)}
+				<tr>
+					<td colspan="7" style="text-align:center;">
+						<p class="help-block">没有任务，创建<a href="{:url('task/save')}">新任务</a>或进入<a href="{:url('mystore/store')}">云平台</a>下载规则</p>
+					</td>
+				</tr>
+			{else/}
+			{foreach name="taskList" item="item"}
+				<tr data-task-id="{$item['id']}">
+					<td class="sort"><input type="text" name="newsort[{$item['id']}]" class="form-control" value="{$item['sort']}" autocomplete="off" /></td>
+	                <td><a href="{:url('task/save?id='.$item['id'])}">{$item['name']}</a></td>
+	                <td><a href="{:url('task/list?show=list&tg_id='.$item['tg_id'])}">{$tgList[$item['tg_id']]?$tgList[$item['tg_id']]:lang($item['tg_id']?'deleted':'none')}</a></td>
+	                <td><a href="javascript:;" class="auto" data-val={$item['auto']} style="color:{$item['auto']>0?'green':'red'}" title="{$item['_timer_info']?$item['_timer_info']:''}">{:lang('task_auto_'.$item['auto'])}</a></td>
+	                <td>{$item['addtime']|date='Y-m-d',###}</td>
+	                <td>
+	                	<label class="checkbox-inline chk-inline">
+	                		<input type="checkbox" name="batch[]" value="{$item['id']}" />
+	                		{$item['caijitime']?date('Y-m-d H:i',$item['caijitime']):lang('none')}
+	                	</label>
+	                	<ul class="in-line">
+	                		<li><a href="javascript:;" class="caiji">{$Think.lang.caiji}</a></li>
+	                		<li class="sep">|</li>
+	                		<li><a href="javascript:;" class="houtai">后台</a></li>
+	                	</ul>
+	                </td>
+	                <td>
+	                	<ul class="in-line">
+	                		<li><a href="{:url('collector/set?task_id='.$item['id'])}">规则</a></li>
+	                		<li class="sep">|</li>
+	                		<li><a href="{:url('release/set?task_id='.$item['id'])}">发布</a></li>
+	                		<li class="sep">|</li>
+	                		<li><a href="javascript:;" class="delete">{$Think.lang.delete}</a></li>
+	                	</ul>
+	                </td>
+	            </tr>
+			{/foreach}
+			{/if}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="5">
+						<button type="submit" class="btn btn-default">{$Think.lang.save}</button>
+						<a href="{:url('task/save')}" class="btn btn-primary">{$Think.lang.task_add}</a>
+					</td>
+					<td colspan="2">
+						<label class="checkbox-inline chk-inline">
+	                		<input type="checkbox" onclick="checkall(this,'batch[]')" />
+	                		全选
+	                	</label>
+	                	<ul class="in-line">
+	                		<li><a href="javascript:;" class="caiji-batch">批量采集</a></li>
+	                		<li class="sep">|</li>
+	                		<li><a href="javascript:;" class="houtai-batch">批量后台</a></li>
+	                	</ul>
+					</td>
+				</tr>
+    			{if condition="!empty($pagenav)"}
+				<tr>
+					<td colspan="7">{$pagenav}</td>
+				</tr>
+				{/if}
+			</tfoot>
+		</table>
+		</div>
+		</form>
+	</div>
+</div>
+{include file="task:list_footer" /}
+<script type="text/javascript">
+tasksOpClass.init_common();
+</script>
+{/block}
