@@ -95,14 +95,7 @@ class Collect extends Command{
                     $this->error_msg('不是后台运行方式');
                 }
                 
-                $url=$rootUrl.'/admin/api/collect';
-                
-                try{
-                    
-                    \util\Curl::get($url,null,array('timeout'=>3));
-                }catch(\Exception $ex){
-                    
-                }
+                \skycaiji\admin\model\Collector::collect_run_auto($rootUrl);
                 
                 sleep(15);
             }while(1==1);

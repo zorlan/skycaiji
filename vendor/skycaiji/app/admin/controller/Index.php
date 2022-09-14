@@ -464,6 +464,10 @@ class Index extends CollectController{
 	        
 	        if(model('admin/Config')->server_is_cli()){
 	            
+	            if(!function_exists('proc_open')){
+	                $this->echo_msg_exit('php函数proc_open被禁用');
+	            }
+	            
 	            $urlParams=input('param.','','trim');
 	            if(!empty($urlParams)&&is_array($urlParams)){
 	                $urlParams=base64_encode(json_encode(input('param.')));

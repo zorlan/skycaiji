@@ -99,8 +99,20 @@ class Collected extends BaseController {
 	}
 	/*清理失败的数据*/
 	public function clearErrorAction(){
-		model('Collected')->where("`error` is not null and `error`<>''")->delete();
-		$this->success('清理完成','admin/collected/list');
+	    if(request()->isPost()){
+	        $release=input('release/a');
+	        init_array($release);
+	        if(in_array('all', $release)){
+	            
+	            model('Collected')->where("`error` is not null and `error`<>''")->delete();
+	        }else{
+	            
+	            model('Collected')->where('release','in',$release)->where("`error` is not null and `error`<>''")->delete();
+	        }
+	        $this->success('清理完成','admin/collected/list');
+	    }else{
+	        return $this->fetch('clear_error');
+	    }
 	}
 	/**
 	 * 操作

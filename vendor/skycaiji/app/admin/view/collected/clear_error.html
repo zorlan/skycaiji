@@ -1,0 +1,16 @@
+<form id="win_form_clear" ajax-submit="true" method="post" role="form" action="{:url('admin/collected/clearError')}">
+	{:html_usertoken()}
+	<div class="well" style="padding-bottom:0;">
+		<div class="form-group">
+			<label>发布方式</label>
+			<div class="input-group">
+				<label class="checkbox-inline"><input type="checkbox" name="release[]" value="all"> 所有</label>
+				{foreach name="Think.config.release_modules" item="rele_module"}
+				<label class="checkbox-inline"><input type="checkbox" name="release[]" value="{$rele_module}"> {:lang('collected_rele_'.$rele_module)}</label>
+				{/foreach}
+			</div>
+			<p class="help-block" style="margin-bottom:0;">清理所选发布方式的失败数据</p>
+		</div>
+	</div>
+	<button type="submit" class="btn btn-primary btn-block">清理</button>
+</form>

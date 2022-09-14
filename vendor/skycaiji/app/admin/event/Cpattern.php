@@ -705,23 +705,23 @@ class Cpattern extends CpatternEvent{
 	    $this->front_collected=true;
 	    
 	    if(!empty($this->config['front_urls'])){
-	        foreach ($this->config['front_urls'] as $v){
-	            if($this->cur_front_urls[$v['name']]){
+	        foreach ($this->config['front_urls'] as $fuv){
+	            if($this->cur_front_urls[$fuv['name']]){
 	                
-	                $frontUrl=$this->cur_front_urls[$v['name']];
+	                $frontUrl=$this->cur_front_urls[$fuv['name']];
 	            }else{
-	                $frontUrl=$v['url'];
+	                $frontUrl=$fuv['url'];
 	                if($frontUrl){
-	                    $parentMatches=$this->parent_page_signs2matches($this->parent_page_signs('front_url',$v['name'],'url'));
+	                    $parentMatches=$this->parent_page_signs2matches($this->parent_page_signs('front_url',$fuv['name'],'url'));
 	                    $frontUrl=$this->merge_match_signs($parentMatches, $frontUrl);
-	                    $this->cur_front_urls[$v['name']]=$frontUrl;
+	                    $this->cur_front_urls[$fuv['name']]=$frontUrl;
 	                }
 	            }
 	            if($frontUrl){
-	                $isFormPost=$this->page_is_post('front_url',$v['name'])?'[POST] ':'';
-	                $this->echo_msg($isFormPost?array('采集前置页“%s”：%s',$v['name'],$isFormPost.$frontUrl):array('采集前置页“%s”：<a href="%s" target="_blank">%s</a>',$v['name'],$frontUrl,$frontUrl),'black');
-	                $htmlInfo=$this->get_page_html($frontUrl,'front_url',$v['name'],false,true);
-	                if($v['use_cookie']||$v['use_cookie_img']){
+	                $isFormPost=$this->page_is_post('front_url',$fuv['name'])?'[POST] ':'';
+	                $this->echo_msg($isFormPost?array('采集前置页“%s”：%s',$fuv['name'],$isFormPost.$frontUrl):array('采集前置页“%s”：<a href="%s" target="_blank">%s</a>',$fuv['name'],$frontUrl,$frontUrl),'black');
+	                $htmlInfo=$this->get_page_html($frontUrl,'front_url',$fuv['name'],false,true);
+	                if($fuv['use_cookie']||$fuv['use_cookie_img']){
 	                    
 	                    $mUseCookie=array();
 	                    if($htmlInfo['header']){
@@ -748,13 +748,13 @@ class Cpattern extends CpatternEvent{
 	                            }
 	                        }
 	                    }
-	                    if($v['use_cookie']){
+	                    if($fuv['use_cookie']){
 	                        $gUseCookie=\util\Param::get_gsc_use_cookie();
 	                        init_array($gUseCookie);
 	                        \util\Param::set_gsc_use_cookie(false,array_merge($gUseCookie,$mUseCookie));
 	                        $this->echo_msg('获取前置页cookie并在全局抓取页面时使用','black');
 	                    }
-	                    if($v['use_cookie_img']){
+	                    if($fuv['use_cookie_img']){
 	                        $gUseCookieImg=\util\Param::get_gsc_use_cookie(true);
 	                        init_array($gUseCookieImg);
 	                        \util\Param::set_gsc_use_cookie(true,array_merge($gUseCookieImg,$mUseCookie));

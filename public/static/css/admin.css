@@ -197,6 +197,9 @@ table.table thead .sorting_desc:after {
     -khtml-user-select:none;
     user-select:none;
 }
+.coll-tab>li>a{
+	border-bottom:0;
+}
 /*请求头信息*/
 .c-p-request-headers .delete-request-header{margin-top:8px;}
 .c-p-request-headers-img .delete-request-header-img{margin-top:8px;}

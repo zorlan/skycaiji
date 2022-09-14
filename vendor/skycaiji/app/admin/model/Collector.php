@@ -254,10 +254,17 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	   return $key;
 	}
 	/*触发运行自动采集*/
-	public static function collect_run_auto(){
+	public static function collect_run_auto($rootUrl=''){
 	    try{
 	        
-	        get_html(url('admin/index/auto_collect?backstage_run=1&key='.self::collect_key(),null,false,true),null,array('timeout'=>3));
+	        $url='';
+	        if($rootUrl){
+	            $url=$rootUrl.'/admin/index/auto_collect';
+	        }else{
+	            $url=url('admin/index/auto_collect',null,false,true);
+	        }
+	        $url.=(strpos($url, '?')===false?'?':'&').'backstage_run=1&key='.self::collect_key();
+	        get_html($url,null,array('timeout'=>3));
 	    }catch(\Exception $ex){}
 	}
 	
