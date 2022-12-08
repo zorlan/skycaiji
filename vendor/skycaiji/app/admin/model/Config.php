@@ -276,7 +276,7 @@ class Config extends \skycaiji\common\model\Config {
 	        $result=return_result('',false);
 	        $phpFile=self::cli_safe_filename($phpFile);
             $phpFile.=' -v';
-            $info=\util\Tools::proc_open_exec($phpFile,'all',10,true);
+            $info=\util\Tools::proc_open_exec_curl($phpFile,'all',10,true);
             $info=is_array($info)?$info:array();
             $info['output']=trim($info['output']);
             $info['error']=trim($info['error']);

@@ -11,8 +11,7 @@
 
 namespace skycaiji\admin\model;
 
-class Proxyip extends \skycaiji\common\model\BaseModel {
-	public $name='proxy_ip';
+class ProxyIp extends \skycaiji\common\model\BaseModel {
 	public function __construct($data=[]){
 		parent::__construct($data);
 	}
@@ -62,6 +61,10 @@ class Proxyip extends \skycaiji\common\model\BaseModel {
 				
 				$cond['num']=array('lt',1);
 			}
+			if(!empty($config['group_id'])){
+			    
+			    $cond['group_id']=$config['group_id'];
+			}
 			$cond['invalid']=0;
 			$proxyipData=$this->where($cond)->order($order)->find();
 			
@@ -70,7 +73,13 @@ class Proxyip extends \skycaiji\common\model\BaseModel {
 			    $apiInsert=strtolower($config['api']['insert']);
 				if(empty($apiInsert)){
 					
-					if($this->where('invalid',0)->count()<=0){
+				    $cond2=array();
+				    if(!empty($config['group_id'])){
+				        
+				        $cond2['group_id']=$config['group_id'];
+				    }
+				    $cond2['invalid']=0;
+				    if($this->where($cond2)->count()<=0){
 						
 						$this->add_api_ips();
 						$proxyipData=$this->where($cond)->order($order)->find();
@@ -166,6 +175,10 @@ class Proxyip extends \skycaiji\common\model\BaseModel {
 			
 			$ips=array();
 			if(preg_match_all('/'.$format.'/i',$html,$mips)){
+			    init_array($mips['ip']);
+			    init_array($mips['port']);
+			    init_array($mips['user']);
+			    init_array($mips['pwd']);
 				for($i=0;$i<count($mips[0]);$i++){
 					$ips[$mips['ip'][$i].':'.$mips['port'][$i]]=array(
 						'ip'=>$mips['ip'][$i],
@@ -212,6 +225,7 @@ class Proxyip extends \skycaiji\common\model\BaseModel {
 			}
 			$ip['ip']=$ip['ip'].':'.$ip['port'];
 			$ip['type']=$default['type'];
+			$ip['group_id']=$default['group_id'];
 			$ip['addtime']=$nowTime;
 			unset($ip['port']);
 			$ipList[$k]=$ip;
@@ -242,7 +256,8 @@ class Proxyip extends \skycaiji\common\model\BaseModel {
 				$ips = $this->ips_format2db ( $ips, array (
 					'type' => $api ['api_type']?$api ['api_type']:'',
 					'user' => $api ['api_user']?$api ['api_user']:'',
-					'pwd' => $api ['api_pwd']?$api ['api_pwd']:'',
+				    'pwd' => $api ['api_pwd']?$api ['api_pwd']:'',
+				    'group_id' => $api ['api_group_id']?$api ['api_group_id']:'',
 				) );
 				
 				if(!empty($ips)){

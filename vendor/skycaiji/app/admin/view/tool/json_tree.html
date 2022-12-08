@@ -7,7 +7,7 @@
 	<div class="box-body">
 		<div class="form-group">
 			<div class="input-group">
-				<textarea id="txt_data" rows="2" class="form-control" placeholder="输入网址或json字符串，网址必须以http://或https://开头">{$data|htmlspecialchars}</textarea>
+				<textarea id="txt_data" rows="2" class="form-control" placeholder="输入网址或json字符串，网址必须以http://或https://开头">{$data?htmlspecialchars($data):''}</textarea>
 				<a href="javascript:;" class="input-group-addon" id="btn_tree">确定</a>
 			</div>
 		</div>

@@ -3,7 +3,7 @@
 <script type="text/javascript" src="__PUBLIC__/static/js/admin/release.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
-<form id="form_rele" class="form-item" method="post" ajax-submit="true" action="{:url('release/set')}">
+<form id="form_rele" class="form-item" method="post" action="{:url('release/set')}">
 {:html_usertoken()}	
 	<input type="hidden" name="task_id" value="{$taskData['id']}" />
 	<input type="hidden" name="release_id" value="" />
@@ -42,10 +42,10 @@
 						<div class="form-group" id="cms_info">
 							<div class="input-group">
 								<div class="input-group-addon">
-									<a href="javascript:;" onclick="modal('CMS路径',$(this).html());" class="glyphicon glyphicon-info-sign" style="width:16px;overflow:hidden;">
+									<b>{$Think.lang.rele_cms_path}</b>
+									<a href="javascript:;" onclick="modal('CMS路径',$(this).html());" class="glyphicon glyphicon-info-sign icon-info-tips" style="width:14px;overflow:hidden;">
 									注意是CMS程序在硬盘中的路径并非网址URL，蓝天采集器所在路径为：{:config('root_path')}
 									</a>
-									<b>{$Think.lang.rele_cms_path}</b>
 								</div>
 								<input type="text" name="cms[path]" class="form-control" value="{$config['cms']['path']}" />
 								<span class="input-group-btn"><button class="btn btn-default btn-cms-bind" type="button">开始绑定</button></span>
@@ -140,11 +140,7 @@
 			     			<div class="db-table-binding" style="margin-top:15px;"></div>
 			     		</div>
 			     		<div class="form-group">
-							<div class="panel-group" id="db_table_bind_list"></div>
-							{if condition="$releData['config']['db']['type'] eq 'oracle'"}
-							<p class="help-block">Oracel表的自增主键需绑定序列号才能获取自增值，自增字段选择“自定义内容”输入“sequence@序列号”，例如“sequence@seq_123”</p>
-							{/if}
-							<p class="help-block">如需获取表的自增主键值，选择“自定义内容”输入“auto_id@表名”，例如“auto_id@table1”，如果要拼接内容则在表名结尾加#，例如“123auto_id@table1#456”<br>注意：表是按顺序插入数据，前面的表不能获取后面表的自增主键值</p>
+							<div class="panel-group" id="db_table_bind_list" style="margin-bottom:0;"></div>
 						</div>
 					{/if}
 					</div>
@@ -254,22 +250,7 @@
 					<p class="help-block">以/开头自动补全为{:config('root_website')}/</p>
 				</div>
 				<div class="form-group">
-					<label>请求方式</label>
-					<select name="toapi[type]" class="form-control">
-						<option value="post">POST</option>
-						<option value="">GET</option>
-					</select>
-				</div>
-				<div class="form-group toapi-content-type">
-					<label>POST数据类型</label>
-					<select name="toapi[content_type]" class="form-control">
-						<option value="">默认表单数据：application/x-www-form-urlencoded</option>
-						<option value="application/json">JSON数组：application/json</option>
-						<option value="multipart/form-data">表单上传：multipart/form-data</option>
-					</select>
-				</div>
-				<div class="form-group">
-					<label>数据编码</label>
+					<label>网页编码</label>
 					<div class="input-group input-select-custom">
 						<div class="input-group-btn">
 							<select name="toapi[charset]" class="form-control">
@@ -283,10 +264,42 @@
 					</div>
 				</div>
 				<div class="form-group">
+					<label>内容解压缩</label>
+					<div class="input-group input-select-custom">
+						<div class="input-group-btn">
+							<select name="toapi[encode]" class="form-control">
+								<option value="">系统默认</option>
+								<option value="gzip">gzip</option>
+								<option value="br">br</option>
+								<option value="compress">compress</option>
+								<option value="deflate">deflate</option>
+								<option value="identity">identity</option>
+								<option value="custom">自定义</option>
+							</select>
+						</div>
+						<input type="text" class="form-control" name="toapi[encode_custom]">
+					</div>
+				</div>
+				<div class="form-group">
+					<label>请求方式</label>
+					<select name="toapi[type]" class="form-control">
+						<option value="post">POST</option>
+						<option value="">GET</option>
+					</select>
+				</div>
+				<div class="form-group toapi-content-type">
+					<label>POST数据类型 <a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="tipsCurlPost()"></a></label>
+					<select name="toapi[content_type]" class="form-control">
+						<option value="">默认表单数据：application/x-www-form-urlencoded</option>
+						<option value="application/json">JSON数组：application/json</option>
+						<option value="multipart/form-data">表单上传：multipart/form-data</option>
+					</select>
+				</div>
+				<div class="form-group">
 			     	<label>发送数据</label>
 			      	<a href="javascript:;" class="glyphicon glyphicon-plus toapi-add-param" title="添加"></a>
-			   		<div class="table-responsive">
-			           	<table class="table table-bordered table-hover toapi-param-table" style="margin-bottom:0;">
+			   		<div class="table-responsive toapi-param-table">
+			           	<table class="table table-bordered table-hover">
 				            <thead>
 			                <tr>
 			                    <td>名称</td>
@@ -326,8 +339,8 @@
 				<div class="form-group">
 			     	<label>请求头信息</label>
 			      	<a href="javascript:;" class="glyphicon glyphicon-plus toapi-add-header" title="添加"></a>
-			   		<div class="table-responsive">
-			           	<table class="table table-bordered table-hover toapi-header-table" style="margin-bottom:0;">
+			   		<div class="table-responsive toapi-header-table">
+			           	<table class="table table-bordered table-hover">
 				            <thead>
 			                <tr>
 			                    <td>名称</td>
@@ -380,19 +393,19 @@
 				            <tbody>
 				            	<tr>
 				            		<td>id（编号）</td>
-				            		<td><input type="text" name="toapi[response][id]" class="form-control" placeholder="必填，表示入库返回的自增id或入库状态" /></td>
+				            		<td><input type="text" name="toapi[response][id]" class="form-control" placeholder="默认：id，表示入库返回的自增id或入库状态" /></td>
 				            	</tr>
 				            	<tr>
 				            		<td>target（位置）</td>
-				            		<td><input type="text" name="toapi[response][target]" class="form-control" placeholder="记录入库的数据位置（发布的网址等）" /></td>
+				            		<td><input type="text" name="toapi[response][target]" class="form-control" placeholder="默认：target，记录入库的数据位置（发布的网址等）" /></td>
 				            	</tr>
 				            	<tr>
 				            		<td>desc（描述）</td>
-				            		<td><input type="text" name="toapi[response][desc]" class="form-control" placeholder="记录入库的数据位置附加信息" /></td>
+				            		<td><input type="text" name="toapi[response][desc]" class="form-control" placeholder="默认：desc，记录入库的数据位置附加信息" /></td>
 				            	</tr>
 				            	<tr>
 				            		<td>error（错误）</td>
-				            		<td><input type="text" name="toapi[response][error]" class="form-control" placeholder="记录入库失败的错误信息" /></td>
+				            		<td><input type="text" name="toapi[response][error]" class="form-control" placeholder="默认：error，记录入库失败的错误信息" /></td>
 				            	</tr>
 				            </tbody>
 			           	</table>
@@ -413,9 +426,6 @@
 			        <input type="number" name="toapi[retry]" class="form-control">
 			        <p class="help-block">发布失败重试次数，留空或0表示不重试</p>
 			    </div>
-				{if condition="!empty($releData['id'])"}
-				<a href="javascript:;" onclick="collectorWindow('测试发布并获取响应数据','admin/release/test_toapi?id={$releData['id']}',null,{lg:1});return false;" class="btn btn-default" style="margin-bottom:10px;">测试发布并获取响应数据（需先保存设置）</a>
-				{/if}
 			</div>
 		</div>
 	</div>
@@ -426,7 +436,7 @@
 			<li><a href="#diy_tab_code" data-toggle="tab" data-type="code">使用代码</a></li>
 		</ul>
 		<div id="diy_tab_content" class="tab-content" style="margin-top:-1px">
-			<div class="tab-pane fade in active" id="diy_tab_app">
+			<div class="tab-pane in active" id="diy_tab_app">
 				<div class="panel panel-default">
 					<div class="panel-body">
 						<div class="form-group">
@@ -434,13 +444,13 @@
 							<input type="text" class="form-control" name="diy[app]" />
 							<p class="help-block">
 								自定义插件适用于任何网站的数据发布或开发其他发布功能<br>
-								请在网站根目录/plugin/release/diy目录中创建<b class="diy-app-name"></b>插件，可参考目录中的Demo.php文件
+								请在网站根目录/plugin/release/diy目录中创建<b class="diy-app-name"></b>插件<span class="diy-app-editor" style="display:none;">或者<a href="javascript:;" class="btn_diy_editor" target="_blank">使用插件编辑器</a></span>，可参考目录中的Demo.php文件
 							</p>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="tab-pane fade" id="diy_tab_code">
+			<div class="tab-pane" id="diy_tab_code">
 				<div class="panel panel-default">
 					<div class="panel-body">
 {if condition="!config('OPEN_DIY_CODE')"}
@@ -449,7 +459,7 @@
 {else /}
 						<div class="form-group">
 							<div class="table-responsive">
-							<table>
+							<table class="table">
 							<thead>
 								<tr>
 									<th>数据库类型</th>
@@ -476,13 +486,13 @@
 											<option value="PDO">PDO</option>
 										</select>
 									</td>
-									<td><input type="text" name="diy[db_host]" value="localhost" class="form-control" /></td>
-									<td><input type="text" name="diy[db_name]" class="form-control" /></td>
-									<td><input type="text" name="diy[db_user]" class="form-control" /></td>
-									<td><input type="text" name="diy[db_pwd]" class="form-control" /></td>
-									<td><input type="text" name="diy[db_port]" value="3306" class="form-control" /></td>
-									<td><input type="text" name="diy[db_prefix]" class="form-control" /></td>
-									<td><input type="text" name="diy[db_charset]" value="utf8" class="form-control" /></td>
+									<td><input type="text" name="diy[db_host]" value="localhost" class="form-control" style="min-width:100px;" /></td>
+									<td><input type="text" name="diy[db_name]" class="form-control" style="min-width:100px;" /></td>
+									<td><input type="text" name="diy[db_user]" class="form-control" style="min-width:100px;" /></td>
+									<td><input type="text" name="diy[db_pwd]" class="form-control" style="min-width:100px;" /></td>
+									<td><input type="text" name="diy[db_port]" value="3306" class="form-control" style="min-width:100px;" /></td>
+									<td><input type="text" name="diy[db_prefix]" class="form-control" style="min-width:100px;" /></td>
+									<td><input type="text" name="diy[db_charset]" value="utf8" class="form-control" style="min-width:100px;" /></td>
 								</tr>
 							</tbody>
 							</table>
@@ -490,7 +500,8 @@
 						</div>
 						<div class="form-group">
 							<label>PHP代码</label>
-							<textarea name="diy[code]" class="form-control" rows="5"></textarea>
+							<textarea name="diy[code]" class="form-control" style="display:none;"></textarea>
+							<iframe id="diy_editor_ifr" style="width:100%;height:300px;border:0"></iframe>
 							<div class="help-block">
 								可用变量：$fields = 采集到的字段数据列表，$url = 采集的页面网址，$this->db() = 数据库操作， 可参考thinkphp5的数据库操作
 								<br>获取字段值必须使用 $this->get_field_val($field);方法(可处理图片本地化等)，否则使用$field['value']调用字段原始值
@@ -513,7 +524,7 @@
 		</div>
 	</div>
 	{if condition="!empty($releData['id'])"}
-	<a href="javascript:;" onclick="collectorWindow('测试','admin/release/test?id={$releData['id']}',null,{lg:1});return false;" class="btn btn-default btn-block" style="margin-bottom:10px;">测试发布（需先保存设置）</a>
+	<a href="javascript:;" id="btn_rele_test" class="btn btn-default btn-block" style="margin-bottom:10px;">测试发布（需先保存设置）</a>
 	{/if}
 	<div class="form-group">
 		<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>

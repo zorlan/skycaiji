@@ -1,6 +1,5 @@
-<form id="win_form_proxy_add"  method="post" action="{:url('admin/proxy/add')}">
+<form id="win_form_proxy_add" method="post" action="{:url('admin/proxy/add')}">
 {:html_usertoken()}
-&nbsp;<a href="javascript:;" class="glyphicon glyphicon-plus add-proxy-ip">添加一行</a>
 <div class="table-responsive">
 <table class="table table-hover datatable proxy-ip-list">
 <thead>
@@ -9,18 +8,27 @@
 		<th>用户名（选填）</th>
 		<th>密码（选填）</th>
 		<th>类型</th>
-		<th>{$Think.lang.op}</th>
+		<th>分组</th>
+		<th style="width:65px;">操作 <a href="javascript:;" class="glyphicon glyphicon-plus add-proxy-ip" style="font-size:11px;" title="添加"></a></th>
 	</tr>
 </thead>
 <tbody>
 	<tr class="tpl-proxy-ip">
-		<td class="p-ip"><input type="text" name="ip_list[]" class="form-control" /></td>
-		<td><input type="text" name="user_list[]" class="form-control" /></td>
-		<td><input type="text" name="pwd_list[]" class="form-control" /></td>
+		<td class="p-ip"><input type="text" name="ip_list[]" class="form-control" autocomplete="off" /></td>
+		<td><input type="text" name="user_list[]" class="form-control" autocomplete="off" /></td>
+		<td><input type="text" name="pwd_list[]" class="form-control" autocomplete="off" /></td>
 		<td>
 			<select name="type_list[]" class="form-control" style="width:95px;">
 				{foreach $proxyTypes as $k=>$v}
 				<option value="{$v}">{$k}</option>
+				{/foreach}
+			</select>
+		</td>
+		<td>
+			<select name="gid_list[]" class="form-control">
+				<option value="0">无</option>
+				{foreach $proxyGroups as $proxyGroup}
+				<option value="{$proxyGroup['id']}">{$proxyGroup['name']}</option>
 				{/foreach}
 			</select>
 		</td>

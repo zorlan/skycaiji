@@ -62,6 +62,33 @@ class CpatternColl extends CpatternBase{
     }
     
     
+    public function match_url_info($url,$html,$cacheKey=false){
+        static $cacheList=array();
+        $cacheMd5=null;
+        $info=array();
+        if($cacheKey){
+            
+            init_array($cacheList[$cacheKey]);
+            $cacheMd5=md5($url);
+            $info=$cacheList[$cacheKey][$cacheMd5];
+        }
+        if(empty($info)){
+            
+            $info=array('cur_url'=>$url,'url_no_name'=>$this->config['url_no_name']);
+            $baseInfo=\util\Tools::match_base_url($url,$html,true);
+            $info=array_merge($info,$baseInfo);
+            $info['domain_url']=\util\Tools::match_domain_url($url);
+            if($cacheKey){
+                
+                $cacheList[$cacheKey][$cacheMd5]=$info;
+            }
+        }
+        init_array($info);
+        return $info;
+    }
+    
+    
+    
     /*规则匹配区域*/
     public function rule_match_area($pageType,$pageName,$isPagination,$html,$returnMatch=false){
         $matches=array();
@@ -139,7 +166,7 @@ class CpatternColl extends CpatternBase{
     
     
     /*规则匹配网址*/
-    public function rule_match_urls($pageType,$pageName,$isPagination,$html,$urlComplete=false,$returnMatch=false){
+    public function rule_match_urls($pageType,$pageName,$isPagination,$html,$completeUrlInfo=false,$returnMatch=false){
         $cont_urls=array();
         $cont_urls_matches=array();
         $config=$this->get_page_config($pageType,$pageName,$isPagination?'pagination':null);
@@ -208,7 +235,7 @@ class CpatternColl extends CpatternBase{
         $doComplete=false;
         $doMust=false;
         $doBan=false;
-        if(!empty($urlComplete)&&is_array($urlComplete)){
+        if(!empty($completeUrlInfo)&&is_array($completeUrlInfo)){
             
             $doComplete=true;
         }
@@ -245,7 +272,7 @@ class CpatternColl extends CpatternBase{
                 
                 if($doComplete){
                     
-                    $contUrl=$this->create_complete_url($contUrl, $urlComplete['base'], $urlComplete['domain']);
+                    $contUrl=\util\Tools::create_complete_url($contUrl, $completeUrlInfo);
                     $cont_urls[$k]=$contUrl;
                 }
                 if($doMust){
@@ -279,7 +306,7 @@ class CpatternColl extends CpatternBase{
             }
         }
         
-        return $this->page_convert_url_signs($pageType, $pageName, $cont_urls, $cont_urls_matches, $returnMatch);
+        return $this->page_convert_url_signs($pageType, $pageName, $isPagination, $cont_urls, $cont_urls_matches, $returnMatch);
     }
     
     /*正则规则匹配数据*/
@@ -293,9 +320,13 @@ class CpatternColl extends CpatternBase{
     }
     
     /*页面转换网址标签参数*/
-    public function page_convert_url_signs($pageType,$pageName,$cont_urls,$cont_urls_matches,$returnMatch=false){
+    public function page_convert_url_signs($pageType,$pageName,$isPagination,$cont_urls,$cont_urls_matches,$returnMatch=false){
+        $urlPostKeys=array();
+        $urlRenderKeys=array();
+        
+        $pnConfig=$isPagination?$this->get_page_config($pageType,$pageName,'pagination'):null;
         $urlWebConfig=$this->get_page_config($pageType,$pageName,'url_web');
-        if($this->page_url_web_opened($urlWebConfig)){
+        if($this->page_url_web_opened($urlWebConfig,$pnConfig)){
             
             
             $formData=$this->arrays_to_key_val($urlWebConfig['form_names'], $urlWebConfig['form_vals']);
@@ -325,29 +356,29 @@ class CpatternColl extends CpatternBase{
                         
                         foreach ($cont_urls as $k=>$v){
                             
-                            $cont_urls[$k]=$v.'#post_'.md5(serialize($urlsForms[$k]));
+                            $urlPostKeys[$k]=md5(serialize($urlsForms[$k]));
                         }
                     }else{
                         
-                        $charset=$urlWebConfig['charset']=='custom'?$urlWebConfig['charset_custom']:$urlWebConfig['charset'];
-                        if(empty($charset)){
-                            
-                            $charset=$this->config['charset'];
-                        }
-                        $charset=strtolower($charset);
+                        $charset=$this->page_url_web_charset($urlWebConfig);
                         if(!empty($charset)&&!in_array($charset,array('auto','utf-8','utf8'))){
                             
-                            foreach ($cont_urls as $k=>$v){
-                                foreach ($urlsForms[$k] as $fk=>$fv){
-                                    $urlsForms[$k][$fk]=iconv('utf-8',$charset.'//IGNORE',$fv);
+                            foreach ($urlsForms as $k=>$v){
+                                $urlsForms[$k]=\util\Funcs::convert_charset($v, 'utf-8', $charset);
+                            }
+                        }
+                        
+                        foreach ($cont_urls as $k=>$v){
+                            $vName='';
+                            if(strpos($v,'#')!==false){
+                                
+                                if(preg_match('/(^.*?)\#(.*$)/',$v,$mv)){
+                                    $v=$mv[1];
+                                    $vName='#'.$mv[2];
                                 }
-                                $cont_urls[$k]=$v.(strpos($v,'?')===false?'?':'&').http_build_query($urlsForms[$k]);
                             }
-                        }else{
-                            
-                            foreach ($cont_urls as $k=>$v){
-                                $cont_urls[$k]=$v.(strpos($v,'?')===false?'?':'&').http_build_query($urlsForms[$k]);
-                            }
+                            $cont_urls[$k]=$v.(strpos($v,'?')===false?'?':'&').http_build_query($urlsForms[$k]).$vName;
+                            unset($urlsForms[$k]);
                         }
                     }
                 }
@@ -355,6 +386,54 @@ class CpatternColl extends CpatternBase{
             }
         }
         
+        $renderConfig=$this->get_page_config($pageType,$pageName,'renderer');
+        if($this->renderer_is_open(null,null,$renderConfig,$pnConfig)){
+            
+            if(!empty($renderConfig['types'])){
+                
+                $renderParentMatches=$this->merge_str_signs(implode(' ',$renderConfig['contents']));
+                if(!empty($renderParentMatches)){
+                    
+                    $renderParentMatches=$this->parent_page_signs2matches($this->parent_page_signs($pageType,$pageName,'renderer'));
+                }
+                init_array($renderParentMatches);
+                foreach ($cont_urls as $k=>$v){
+                    
+                    $renderContParentMatches=array_merge($renderParentMatches,is_array($cont_urls_matches[$k])?$cont_urls_matches[$k]:array());
+                    $renderContent=array();
+                    foreach ($renderConfig['contents'] as $rck=>$rcv){
+                        
+                        $renderContent[$rck]=$rcv?$this->merge_match_signs($renderContParentMatches,$rcv):$rcv;
+                    }
+                    
+                    $urlRenderKeys[$k]=md5(serialize(array('types'=>$renderConfig['types'],'elements'=>$renderConfig['elements'],'contents'=>$renderContent)));
+                }
+            }
+        }
+        if(!empty($urlPostKeys)||!empty($urlRenderKeys)){
+            foreach ($cont_urls as $k=>$v){
+                $urlPostKeys[$k]=$urlPostKeys[$k]?:'';
+                $urlRenderKeys[$k]=$urlRenderKeys[$k]?:'';
+                $vUrl='';
+                $vUrlKey='';
+                if($urlPostKeys[$k]){
+                    $vUrl.='post_';
+                    $vUrlKey=$urlPostKeys[$k];
+                }
+                if($urlRenderKeys[$k]){
+                    $vUrl.='render_';
+                    if($vUrlKey){
+                        $vUrlKey=md5($vUrlKey.$urlRenderKeys[$k]);
+                    }else{
+                        $vUrlKey=$urlRenderKeys[$k];
+                    }
+                }
+                if($vUrl){
+                    
+                    $cont_urls[$k]=$v.'#'.$vUrl.$vUrlKey;
+                }
+            }
+        }
         if($returnMatch){
             
             $return=array('urls'=>array(),'matches'=>array());
@@ -636,9 +715,25 @@ class CpatternColl extends CpatternBase{
             $foundContentIsArr=is_array($foundPageSigns['cur']['content'])?true:false;
             
             $ruleWhole=$this->page_rule_is_null($pageType)?false:true;
-            if(empty($mergeType)||$mergeType=='content_sign'||in_array($mergeType,$inUrlRule)){
-                $openUrlWeb=$this->page_url_web_opened($pageConfig['url_web']);
+            if(empty($mergeType)||$mergeType=='content_sign'||$mergeType=='renderer'||in_array($mergeType,$inUrlRule)){
                 
+                $pageRendererMerge='';
+                if(empty($mergeType)||$mergeType=='renderer'){
+                    
+                    if($this->renderer_is_open(null,null,$pageConfig['renderer'])){
+                        if(is_array($pageConfig['renderer']['types'])&&is_array($pageConfig['renderer']['contents'])){
+                            $pageRendererMerge=array();
+                            foreach ($pageConfig['renderer']['types'] as $k=>$v){
+                                if($this->renderer_type_has_option($v, 'content')){
+                                    $pageRendererMerge[]=$pageConfig['renderer']['contents'][$k];
+                                }
+                            }
+                            $pageRendererMerge=implode(' ', $pageRendererMerge);
+                        }
+                    }
+                }
+                
+                $openUrlWeb=$this->page_url_web_opened($pageConfig['url_web']);
                 $pageHeaderMerge='';
                 if(empty($mergeType)||$mergeType=='url_web'||$mergeType=='header'){
                     if($openUrlWeb){
@@ -671,7 +766,7 @@ class CpatternColl extends CpatternBase{
                     }
                 }
                 
-                $pageSigns=$this->signs_not_in_rule($pageConfig['reg_url'],$pageUrlMerge.$pageHeaderMerge.$pageFormMerge.implode('',$unknownPageSigns),$ruleWhole,false,true);
+                $pageSigns=$this->signs_not_in_rule($pageConfig['reg_url'],$pageUrlMerge.$pageHeaderMerge.$pageFormMerge.$pageRendererMerge.implode('',$unknownPageSigns),$ruleWhole,false,true);
                 if(is_array($pageSigns['unknown'])){
                     $unknownPageSigns=$pageSigns['unknown'];
                 }
@@ -911,10 +1006,76 @@ class CpatternColl extends CpatternBase{
         return $pageSources;
     }
     
+    
+    public function page_opened_tips($pageType,$pageName='',$isPagination=false,$returnHtml=false){
+        $tips='';
+        if($this->page_is_post($pageType,$pageName,$isPagination)){
+            $tips.=$returnHtml?'<span class="label label-default label-custom-opened">post</span> ':'[post] ';
+        }
+        if($this->renderer_is_open($pageType,$pageName,null,$isPagination)){
+            $tips.=$returnHtml?'<span class="label label-default label-custom-opened">渲染</span> ':'[渲染] ';
+        }
+        return $tips;
+    }
+    
+    
+    public function page_render_is_open(){
+        static $pages=array('front_url','level_url','relation_url');
+        $opened=false;
+        foreach ($pages as $page){
+            if(!$opened){
+                
+                $pageData=$this->get_config('new_'.$page.'s');
+                if(is_array($pageData)){
+                    foreach ($pageData as $k=>$v){
+                        $opened=$this->renderer_is_open($page,$k);
+                        if($opened){
+                            
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if(!$opened){
+            $opened=$this->renderer_is_open('source_url');
+        }
+        
+        if(!$opened){
+            $opened=$this->renderer_is_open('url');
+        }
+        return $opened;
+    }
+    
+    
+    public function renderer_is_open($pageType,$pageName='',$rendererConfig=null,$paginationConfig=null){
+        $opened=$this->get_config('page_render');
+        if($pageType){
+            
+            $rendererConfig=$this->get_page_config($pageType,$pageName,'renderer');
+            if($paginationConfig){
+                
+                $paginationConfig=$this->get_page_config($pageType,$pageName,'pagination');
+            }
+        }
+        
+        if($paginationConfig&&is_array($paginationConfig)&&$paginationConfig['use_renderer']){
+            
+            $opened=$paginationConfig['use_renderer']=='y'?true:false;
+        }else{
+            if($rendererConfig&&is_array($rendererConfig)&&!empty($rendererConfig['open'])){
+                $opened=$rendererConfig['open']=='y'?true:false;
+            }
+        }
+        return $opened;
+    }
+    
     /*页面是否是post模式*/
-    public function page_is_post($pageType,$pageName=''){
+    public function page_is_post($pageType,$pageName='',$isPagination=false){
         $urlWebConfig=$this->get_page_config($pageType,$pageName,'url_web');
-        if($this->page_url_web_opened($urlWebConfig)&&$urlWebConfig['form_method']=='post'){
+        $pnConfig=$isPagination?$this->get_page_config($pageType,$pageName,'pagination'):null;
+        if($this->page_url_web_opened($urlWebConfig,$pnConfig)&&$urlWebConfig['form_method']=='post'){
             return true;
         }else{
             return false;
@@ -929,6 +1090,33 @@ class CpatternColl extends CpatternBase{
         }else{
             return false;
         }
+    }
+    
+    
+    public function page_url_web_charset($urlWebConfig){
+        $charset='';
+        if($this->page_url_web_opened($urlWebConfig)){
+            $charset=$urlWebConfig['charset']=='custom'?$urlWebConfig['charset_custom']:$urlWebConfig['charset'];
+        }
+        if(empty($charset)){
+            
+            $charset=$this->config['charset'];
+        }
+        $charset=strtolower($charset);
+        return $charset;
+    }
+    
+    public function page_url_web_encode($urlWebConfig){
+        $encode='';
+        if($this->page_url_web_opened($urlWebConfig)){
+            $encode=$urlWebConfig['encode']=='custom'?$urlWebConfig['encode_custom']:$urlWebConfig['encode'];
+        }
+        if(empty($encode)){
+            
+            $encode=$this->config['encode'];
+        }
+        $encode=strtolower($encode);
+        return $encode;
     }
     
     
@@ -987,14 +1175,12 @@ class CpatternColl extends CpatternBase{
     public function get_page_html($url,$pageType,$pageName,$isPagination=false,$returnInfo=false){
         $pageName=$pageName?$pageName:'';
         $headers=array();
-        $urlForm=array();
-        
         $pageSource=$this->page_source_merge($pageType, $pageName);
         
-        $charset=null;
-        
         $urlWebConfig=$this->get_page_config($pageType,$pageName,'url_web');
-        $openUrlWeb=$this->page_url_web_opened($urlWebConfig);
+        $pnConfig=$isPagination?$this->get_page_config($pageType,$pageName,'pagination'):null;
+        
+        $openUrlWeb=$this->page_url_web_opened($urlWebConfig,$pnConfig);
         
         if(!empty($pageSource)){
             
@@ -1056,10 +1242,19 @@ class CpatternColl extends CpatternBase{
             }
         }
         
+        $otherConfig=array('curlopts'=>array());
+        
+        $charset=$this->page_url_web_charset($urlWebConfig);
+        $encode=$this->page_url_web_encode($urlWebConfig);
+        if($encode){
+            $otherConfig['curlopts'][CURLOPT_ENCODING]=$encode;
+        }
+        
+        $filterUrl=false;
+        
         $postData=null;
         if($openUrlWeb){
             
-            $charset=$urlWebConfig['charset']=='custom'?$urlWebConfig['charset_custom']:$urlWebConfig['charset'];
             
             $formData=$this->arrays_to_key_val($urlWebConfig['form_names'], $urlWebConfig['form_vals']);
             if(!empty($formData)&&is_array($formData)){
@@ -1078,11 +1273,11 @@ class CpatternColl extends CpatternBase{
             
             if($urlWebConfig['form_method']=='post'){
                 
+                $filterUrl=true;
                 $postData=$formData;
                 if($urlWebConfig['content_type']){
                     $headers['content-type']=$urlWebConfig['content_type'];
                 }
-                $url=preg_replace('/\#post_\w{32}$/i', '', $url);
             }else{
                 
                 $postData=null;
@@ -1090,17 +1285,32 @@ class CpatternColl extends CpatternBase{
             unset($formData);
         }
         
-        if(empty($charset)){
-            
-            $charset=$this->config['charset'];
+        
+        $rendererConfig=$this->get_page_config($pageType,$pageName,'renderer');
+        if($this->renderer_is_open(null,null,$rendererConfig,$pnConfig)){
+            $filterUrl=true;
+            $signs=$this->merge_str_signs(implode(' ',$rendererConfig['contents']));
+            if(!empty($signs)){
+                
+                $signs=$this->parent_page_signs($pageType, $pageName, 'renderer');
+                $signs=$this->parent_page_signs2matches($signs);
+                
+                foreach ($rendererConfig['contents'] as $k=>$v){
+                    $rendererConfig['contents'][$k]=$this->merge_match_signs($signs, $v);
+                }
+            }
+            $otherConfig['renderer']=$rendererConfig;
+        }
+        
+        if($filterUrl){
+            $url=preg_replace('/\#(post_|render_|post_render_){1,}\w{32}$/i', '', $url);
         }
         
         $htmlInfo=array();
         $html=null;
-        
         if($isPagination){
             
-            $htmlInfo=$this->get_html($url,$postData,$headers,$charset,true);
+            $htmlInfo=$this->get_html($url,$postData,$headers,$charset,$otherConfig,true);
             $html=$htmlInfo['html'];
         }else{
             
@@ -1144,7 +1354,7 @@ class CpatternColl extends CpatternBase{
                 
                 $htmlInfo=$this->cache_page_htmls[$pageType][$pageName][$cacheKey];
             }else{
-                $htmlInfo=$this->get_html($url,$postData,$headers,$charset,true);
+                $htmlInfo=$this->get_html($url,$postData,$headers,$charset,$otherConfig,true);
                 $this->cache_page_htmls[$pageType][$pageName][$cacheKey]=$htmlInfo;
             }
             
@@ -1213,36 +1423,39 @@ class CpatternColl extends CpatternBase{
      * @param string $url 网址
      * @param bool|array $postData post数据
      * @param array $headers 请求头信息
-     * @param string $charset 页面编码
+     * @param string $charset 网页编码
+     * @param array $otherConfig 其他配置
      * @param string $returnInfo 返回数据信息
      * @return string|array
      */
-    public function get_html($url,$postData=false,$headers=array(),$charset=null,$returnInfo=false){
+    public function get_html($url,$postData=false,$headers=array(),$charset=null,$otherConfig=array(),$returnInfo=false){
         static $retryCur=0;
         $retryMax=intval(g_sc_c('caiji','retry'));
         $retryParams=null;
         if($retryMax>0){
             
-            $retryParams=array(0=>$url,1=>$postData,2=>$headers,3=>$charset,4=>$returnInfo);
+            $retryParams=array(0=>$url,1=>$postData,2=>$headers,3=>$charset,4=>$otherConfig,5=>$returnInfo);
         }
-        $isPost=false;
+        
+        $pageOpened='';
         if(isset($postData)&&$postData!==false){
-            $isPost=true;
+            
+            $pageOpened.='[post] ';
         }
         
         if(empty($charset)){
             
             $charset=$this->config['charset'];
         }
-        
         $pageRenderTool=null;
-        if($this->config['page_render']){
+        if($this->renderer_is_open(null,null,$otherConfig['renderer'])){
             $pageRenderTool=g_sc_c('page_render','tool');
             if(empty($pageRenderTool)){
                 
                 $this->echo_error('页面渲染未设置，请检查<a href="'.url('setting/page_render').'" target="_blank">渲染设置</a>','setting/page_render');
                 return null;
             }
+            $pageOpened.='[渲染] ';
         }
         $htmlInfo=array();
         $html=null;
@@ -1260,15 +1473,17 @@ class CpatternColl extends CpatternBase{
                 $headers['cookie']=$hdCookie;
             }
         }
-        $mproxy=model('Proxyip');
+        $mproxy=model('ProxyIp');
         $proxyDbIp=null;
         if(!is_empty(g_sc_c('proxy','open'))){
             
             $proxyDbIp=$mproxy->get_usable_ip();
             $proxyIp=$mproxy->to_proxy_ip($proxyDbIp);
-            
-            if(!empty($proxyIp)){
+            if(empty($proxyIp)){
                 
+                $this->echo_error('没有可用的代理IP');
+                return null;
+            }else{
                 $options['proxy']=$proxyIp;
             }
         }
@@ -1287,12 +1502,13 @@ class CpatternColl extends CpatternBase{
                 $chromeConfig=g_sc_c('page_render','chrome');
                 init_array($chromeConfig);
                 try {
+                    $options['renderer']=$otherConfig['renderer'];
                     $chromeSocket=new \util\ChromeSocket($chromeConfig['host'],$chromeConfig['port'],g_sc_c('page_render','timeout'),$chromeConfig['filename'],$chromeConfig);
                     $chromeSocket->newTab($options['proxy']);
                     $chromeSocket->websocket(null);
                     $htmlInfo=$chromeSocket->getRenderHtml($url,$headers,$options,$charset,$postData,true);
                 }catch (\Exception $ex){
-                    $this->echo_error('页面渲染失败，请检查<a href="'.url('setting/page_render').'" target="_blank">渲染设置</a>','setting/page_render');
+                    $this->echo_error('页面渲染失败：'.$ex->getMessage().' 请检查<a href="'.url('setting/page_render').'" target="_blank">渲染设置</a>');
                     return null;
                 }
             }else{
@@ -1300,23 +1516,27 @@ class CpatternColl extends CpatternBase{
                 return null;
             }
         }else{
+            $options['curlopts']=$otherConfig['curlopts'];
+            
+            init_array($options['curlopts']);
+            $confMaxRedirs=g_sc_c('caiji','max_redirs');
+            $confMaxRedirs=intval($confMaxRedirs);
+            if($confMaxRedirs>0){
+                
+                $options['curlopts'][CURLOPT_MAXREDIRS]=$confMaxRedirs;
+            }
             $htmlInfo=get_html($url,$headers,$options,$charset,$postData,true);
         }
         init_array($htmlInfo);
         $html=$htmlInfo['html'];
         if(empty($html)||!$htmlInfo['ok']){
             
-            if($this->is_collecting()){
-                if(!empty($proxyDbIp)){
-                    $this->echo_msg(array('代理IP：%s',$proxyDbIp['ip']),'black',true,'','display:inline;margin-right:5px;');
-                }
-                if($retryCur<=0){
-                    
-                    $urlEcho=htmlspecialchars($url);
-                    $echoMsg='<div class="clear"><span class="left">访问网址失败：</span>'.($isPost?('[POST] '.$urlEcho):('<a href="'.$urlEcho.'" target="_blank" class="lurl">'.$urlEcho.'</a>')).'</div>';
-                    $this->echo_error($echoMsg);
-                }
+            if(!empty($proxyDbIp)){
+                $this->echo_msg(array('代理IP：%s',$proxyDbIp['ip']),'black',true,'','display:inline;margin-right:5px;');
             }
+            
+            $this->retry_first_echo($retryCur,'访问网址失败',$url,$htmlInfo);
+            
             
             if(!empty($proxyDbIp)){
                 if($htmlInfo['code']!=404){
@@ -1327,37 +1547,25 @@ class CpatternColl extends CpatternBase{
             
             $this->collect_sleep(g_sc_c('caiji','wait'));
             
-            if($retryMax>0&&is_array($retryParams)){
-                
-                if($retryCur<$retryMax){
-                    
-                    $retryCur++;
-                    if($this->is_collecting()){
-                        $this->echo_msg(array('%s第%s次',$retryCur>1?' / ':'重试：',$retryCur),'black',true,'','display:inline;'.($retryCur==$retryMax?'margin-right:5px;':''));
-                    }
-                    return $this->get_html($retryParams[0],$retryParams[1],$retryParams[2],$retryParams[3],$retryParams[4]);
-                }else{
-                    $retryCur=0;
-                    if($this->is_collecting()){
-                        $this->echo_msg('网址无效','red',true,'','display:inline;margin-right:5px;');
-                    }
-                }
+            if($this->retry_do_func($retryCur,$retryMax,'网址无效')){
+                return $this->get_html($retryParams[0],$retryParams[1],$retryParams[2],$retryParams[3],$retryParams[4],$retryParams[5]);
             }
+            
             return $returnInfo?$htmlInfo:null;
         }
         $retryCur=0;
         
         if($this->config['url_complete']){
             
-            $base_url=$this->match_base_url($url, $html);
-            $domain_url=$this->match_domain_url($url, $html);
-            $html=preg_replace_callback('/(\bhref\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($base_url,$domain_url){
+            $url_info=$this->match_url_info($url,$html);
+            
+            $html=preg_replace_callback('/(\bhref\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($url_info){
                 
-                $matche[2]=\skycaiji\admin\event\Cpattern::create_complete_url($matche[2], $base_url, $domain_url);
+                $matche[2]=\util\Tools::create_complete_url($matche[2], $url_info);
                 return $matche[1].$matche[2].$matche[3];
             },$html);
-            $html=preg_replace_callback('/(\bsrc\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($base_url,$domain_url){
-                $matche[2]=\skycaiji\admin\event\Cpattern::create_complete_url($matche[2], $base_url, $domain_url);
+            $html=preg_replace_callback('/(\bsrc\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($url_info){
+                $matche[2]=\util\Tools::create_complete_url($matche[2], $url_info);
                 return $matche[1].$matche[2].$matche[3];
             },$html);
         }

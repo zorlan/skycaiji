@@ -27,14 +27,14 @@
 				<li>
 					[<a href="javascript:;" class="cont_ceshi" data-url="{$url|htmlspecialchars}">测试</a>]
 					[<a href="javascript:;" class="cont_element" data-url="{$url|htmlspecialchars}">分析</a>]
-					{$sourceUrlIsPost}{$url|htmlspecialchars}
+					{$sourceUrlOpened}{$url|htmlspecialchars}
 				</li>
 				{/foreach}
 			{else /}
 				<li>
 					[<a href="javascript:;" class="cont_ceshi" data-url="{$urls|htmlspecialchars}">测试</a>]
 					[<a href="javascript:;" class="cont_element" data-url="{$urls|htmlspecialchars}">分析</a>]
-					{$sourceUrlIsPost}{$urls|htmlspecialchars}
+					{$sourceUrlOpened}{$urls|htmlspecialchars}
 				</li>
 			{/if}
 			</ul>
@@ -43,7 +43,7 @@
 	{else /}
 		{foreach name="source_urls" item="source_url"}
 		<div class="source_url" data-url="{$source_url|htmlspecialchars}">
-			<p><b>抓取起始页面：</b>{$sourceUrlIsPost}{$source_url|htmlspecialchars}</p>
+			<p><b>抓取起始页面：</b>{$sourceUrlOpened}{$source_url|htmlspecialchars}</p>
 			<p class="cont_urls_num"></p>
 			<div class="cont_urls_list">
 			</div>

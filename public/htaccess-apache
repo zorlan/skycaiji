@@ -1,0 +1,13 @@
+#apache服务器伪静态配置文件，使用时将文件名改为.htaccess并复制到蓝天采集器根目录
+<IfModule mod_rewrite.c>
+  Options +FollowSymlinks -Multiviews
+  RewriteEngine on
+  
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^app/(\w+)/(.*)$ app/$1/index.php [QSA,PT,L,E=PATH_INFO:$2]
+  
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^(.*)$ index.php [QSA,PT,L,E=PATH_INFO:$1]
+</IfModule>

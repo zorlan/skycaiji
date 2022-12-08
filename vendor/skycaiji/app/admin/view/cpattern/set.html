@@ -36,6 +36,23 @@
 					</div>
 				</div>
 	     		<div class="form-group">
+					<label class="control-label">内容解压缩</label>
+					<div class="input-group input-select-custom">
+						<div class="input-group-btn">
+						    <select name="config[encode]" class="form-control">		
+								<option value="">系统默认</option>
+								<option value="gzip">gzip</option>
+								<option value="br">br</option>
+								<option value="compress">compress</option>
+								<option value="deflate">deflate</option>
+								<option value="identity">identity</option>
+								<option value="custom">自定义</option>
+							</select>
+						</div>
+						<input type="text" name="config[encode_custom]" class="form-control">
+					</div>
+				</div>
+	     		<div class="form-group">
 					<label class="control-label">自动补全网址</label>
 					<div class="input-group">
        					<label class="radio-inline"><input type="radio" name="config[url_complete]" value="1"> 是</label>
@@ -44,7 +61,7 @@
        				<p class="help-block">将所有页面源码中的相对地址转换成绝对地址（包含超链接、图片、JS链接等）</p>
 				</div>
 	     		<div class="form-group">
-					<label class="control-label">网址不排重</label>
+					<label class="control-label">重复采集网址</label>
 					<div class="input-group">
        					<label class="radio-inline"><input type="radio" name="config[url_repeat]" value="1"> 是</label>
        					<label class="radio-inline"><input type="radio" name="config[url_repeat]" value="0" checked="checked"> 否</label>
@@ -65,7 +82,15 @@
        					<label class="radio-inline"><input type="radio" name="config[page_render]" value="1"> 是</label>
        					<label class="radio-inline"><input type="radio" name="config[page_render]" value="0" checked="checked"> 否</label>
        				</div>
-       				<p class="help-block">需先配置<a href="{:url('setting/page_render')}">页面渲染</a>，可自动加载ajax内容，注意：渲染后的html源码与未渲染时的不相同，原先的规则可能会失效！</p>
+       				<p class="help-block">需先配置<a href="{:url('setting/page_render')}" target="_blank">页面渲染</a>，可自动加载ajax内容，注意：渲染后的html源码与未渲染时的不相同，html的变动可能会导致原来的规则失效！</p>
+				</div>
+	     		<div class="form-group">
+					<label class="control-label">网址去除锚点</label>
+					<div class="input-group">
+       					<label class="radio-inline"><input type="radio" name="config[url_no_name]" value="1"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_no_name]" value="0" checked="checked"> 否</label>
+       				</div>
+       				<p class="help-block">通常情况下网址中有锚点（#）和无锚点解析出的内容是相同的，为避免采集到重复内容可去除网址锚点</p>
 				</div>
 	     		<div class="form-group">
 					<label class="control-label">正则匹配模式</label>
@@ -135,8 +160,8 @@
 				       			</div>
 				       			<div class="form-group">
 				     				<label class="control-label">自定义 <a href="javascript:;" class="glyphicon glyphicon-plus add-request-header" title="添加"></a></label>
-				      				<div class="table-responsive">
-						            	<table class="table table-bordered c-p-request-headers" style="margin-bottom:0;">
+				      				<div class="table-responsive c-p-request-headers">
+						            	<table class="table table-bordered">
 						                   <thead>
 						                       <tr>
 						                           <td>名称</td>
@@ -173,16 +198,16 @@
 				       			<div class="form-group">
 				       				<label class="control-label">使用全局请求头</label>
 				       				<div class="input-group">
-				       					<label class="radio-inline"><input type="radio" name="config[request_headers][img_use_page]" value="" checked="checked"> 默认</label>
-				       					<label class="radio-inline"><input type="radio" name="config[request_headers][img_use_page]" value="y"> 强制使用</label>
-				       					<label class="radio-inline"><input type="radio" name="config[request_headers][img_use_page]" value="n"> 强制禁用</label>
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][img_use_page]" value="" checked="checked"> 默认：<span class="def-config-request-headers-open">否</span></label>
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][img_use_page]" value="y"> 是</label>
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][img_use_page]" value="n"> 否</label>
 				       				</div>
-				       				<p class="help-block">默认使用采集器设置»请求头信息»抓取页面中的设置（受全局开启状态影响）</p>
+				       				<p class="help-block">默认使用采集器设置»请求头信息»抓取页面中的配置（受全局开启状态影响）</p>
 				       			</div>
 				       			<div class="form-group">
 				     				<label class="control-label">自定义 <a href="javascript:;" class="glyphicon glyphicon-plus add-request-header-img" title="添加"></a></label>
-				      				<div class="table-responsive">
-						            	<table class="table table-bordered c-p-request-headers-img" style="margin-bottom:0;">
+				      				<div class="table-responsive c-p-request-headers-img">
+						            	<table class="table table-bordered">
 						                   <thead>
 						                       <tr>
 						                           <td>名称</td>
@@ -270,7 +295,7 @@
 			  		{if condition="!empty($collData['config'])&&!empty($collData['config']['front_urls'])"}
 			  		<li><a href="{:url('cpattern_test/front_urls?coll_id='.$collData['id'])}" target="_blank">测试抓取前置页</a></li>
 			    	{/if}
-			    	<li><a href="{:url('cpattern_test/test_url?test=get_browser&coll_id='.$collData['id'])}" target="_blank">测试分析网页</a></li>
+			    	<li><a href="{:url('cpattern_test/test_url?test=get_browser&page_source=source_url&coll_id='.$collData['id'])}" target="_blank">测试分析网页</a></li>
 			    	<li><a href="{:url('cpattern_test/match?coll_id='.$collData['id'])}" target="_blank">模拟匹配数据</a></li>
 			  	</ul>
 			</div>

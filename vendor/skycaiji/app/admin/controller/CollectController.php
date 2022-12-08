@@ -21,7 +21,6 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
         if($echo){
             $logFilename=\skycaiji\admin\model\Collector::echo_msg_filename();
             if(!empty($logFilename)){
-                $color=empty($color)?'red':$color;
                 if(!isset(self::$echo_msg_head)){
                     self::$echo_msg_head=true;
                     
@@ -40,28 +39,30 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
                     
                     $cssJs='<!DOCTYPE html><style type="text/css">'
                         .'body{padding:0;margin:10px;font-size:13px;color:#000;line-height:16px;}p{padding:0;margin:0;}a{color:#aaa;}'
-                        .'.clear{width:100%;overflow:hidden;clear:both;}.left{float:left;}'
-                        .'.lurl{float:left;margin-right:3px;height:16px;max-width:70%;overflow:hidden;text-overflow:ellipsis;word-wrap:break-word;word-break:break-all;}'
+                        .'.echo-msg-clear{width:100%;overflow:hidden;clear:both;}'
+                        .'.echo-msg-lt{float:left;}'
+                        .'.echo-msg-lurl{float:left;margin-right:3px;height:16px;max-width:70%;overflow:hidden;text-overflow:ellipsis;word-wrap:break-word;word-break:break-all;}'
                         .'</style>';
                     $this->_echo_msg_write($cssJs, $logFilename);
                 }
-                
-                if(is_array($strArgs)){
-                    
-                    $strArg0=is_array($strArgs[0])?'':$strArgs[0];
-                    $strArgs=array_slice($strArgs, 1);
-                    foreach ($strArgs as $k=>$v){
-                        $v=is_array($v)?'':htmlspecialchars($v,ENT_QUOTES);
-                        $strArgs[$k]=$v;
-                    }
-                    $strArgs=vsprintf($strArg0, $strArgs);
-                }
-                
-                $txt='<div style="color:'.$color.';'.$div_style.'">'.$strArgs.'</div>'.$end_str;
-                
-                $this->_echo_msg_write($txt, $logFilename);
+                $this->_echo_msg_write($this->_echo_msg_str($strArgs,$color,$end_str,$div_style), $logFilename);
             }
         }
+    }
+    
+    protected function _echo_msg_str($strArgs,$color='red',$end_str='',$div_style=''){
+        $color=empty($color)?'red':$color;
+        if(is_array($strArgs)){
+            
+            $strArg0=is_array($strArgs[0])?'':$strArgs[0];
+            $strArgs=array_slice($strArgs, 1);
+            foreach ($strArgs as $k=>$v){
+                $v=is_array($v)?'':htmlspecialchars($v,ENT_QUOTES);
+                $strArgs[$k]=$v;
+            }
+            $strArgs=vsprintf($strArg0, $strArgs);
+        }
+        return ('<div style="color:'.$color.';'.$div_style.'">'.$strArgs.'</div>'.$end_str);
     }
     
     public function echo_msg_exit($strArgs,$color='red',$echo=true,$end_str='',$div_style=''){

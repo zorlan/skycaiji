@@ -19,6 +19,7 @@ class Cpattern extends CpatternEvent{
         $config['url_reverse']=intval($config['url_reverse']);
         $config['page_render']=intval($config['page_render']);
         $config['url_repeat']=intval($config['url_repeat']);
+        $config['url_no_name']=intval($config['url_no_name']);
         
         if(!is_array($config['regexp_flags'])){
             $config['regexp_flags']=array();
@@ -176,8 +177,10 @@ class Cpattern extends CpatternEvent{
             );
         }
 
-        $config['charset'] = $config['charset']=='custom' ? $config ['charset_custom'] : $config ['charset'];
+        $config['charset']= $config['charset']=='custom' ? $config ['charset_custom'] : $config ['charset'];
         $config['charset']= empty($config['charset'])?'auto':$config['charset'];
+        
+        $config['encode']=$config['encode']=='custom' ? $config ['encode_custom'] : $config ['encode'];
         
         
         $config['regexp_flags']=is_array($config['regexp_flags'])?$config['regexp_flags']:array();
@@ -493,7 +496,7 @@ class Cpattern extends CpatternEvent{
 		    if(g_sc_c('caiji','robots')){
 		        $opened_tools[]='遵守robots协议';
 		    }
-		    if($this->config['page_render']){
+		    if($this->page_render_is_open()){
 		        $opened_tools[]='页面渲染';
 		    }
 		    if(g_sc_c('download_img','download_img')){
@@ -607,15 +610,13 @@ class Cpattern extends CpatternEvent{
 		if($sourceIsUrl){
 			
 		    $source_urls=array_values($source_urls);
-		    $this->cont_urls_list['_source_is_url_']=$this->page_convert_url_signs('url', '', $source_urls, array(), false);
+		    $this->cont_urls_list['_source_is_url_']=$this->page_convert_url_signs('url', '', false, $source_urls, array(), false);
 			$source_urls=array('_source_is_url_'=>'_source_is_url_');
 		}else{
 		    
-		    $source_urls=$this->page_convert_url_signs('source_url', '', $source_urls, array(), false);
+		    $source_urls=$this->page_convert_url_signs('source_url', '', false, $source_urls, array(), false);
 		}
-		
-		$isFormPost=$this->page_is_post('source_url')?'[POST] ':'';
-		
+		$pageOpened=$this->page_opened_tips('source_url');
 		foreach ($source_urls as $key_source_url=>$source_url){
 		    $this->cur_source_url=$source_url;
 		    if(array_key_exists($source_url,$this->used_source_urls)){
@@ -649,7 +650,7 @@ class Cpattern extends CpatternEvent{
 		                }
 		            }
 		            $this->used_pagination_urls['source_url'][$pageCurMd5]=1;
-		            $this->echo_msg($isFormPost?array('采集起始页%s：%s',$pagePnStr,$isFormPost.$pageCurUrl):array('采集起始页%s：<a href="%s" target="_blank">%s</a>',$pagePnStr,$pageCurUrl,$pageCurUrl),$pageIsPn?'black':'green');
+		            $this->echo_msg($pageOpened?array('采集起始页%s：%s',$pagePnStr,$pageOpened.$pageCurUrl):array('采集起始页%s：<a href="%s" target="_blank">%s</a>',$pagePnStr,$pageCurUrl,$pageCurUrl),$pageIsPn?'black':'green');
 		            if(!empty($this->config['level_urls'])){
 		                
 		                
@@ -718,8 +719,8 @@ class Cpattern extends CpatternEvent{
 	                }
 	            }
 	            if($frontUrl){
-	                $isFormPost=$this->page_is_post('front_url',$fuv['name'])?'[POST] ':'';
-	                $this->echo_msg($isFormPost?array('采集前置页“%s”：%s',$fuv['name'],$isFormPost.$frontUrl):array('采集前置页“%s”：<a href="%s" target="_blank">%s</a>',$fuv['name'],$frontUrl,$frontUrl),'black');
+	                $pageOpened=$this->page_opened_tips('front_url',$fuv['name']);
+	                $this->echo_msg($pageOpened?array('采集前置页“%s”：%s',$fuv['name'],$pageOpened.$frontUrl):array('采集前置页“%s”：<a href="%s" target="_blank">%s</a>',$fuv['name'],$frontUrl,$frontUrl),'black');
 	                $htmlInfo=$this->get_page_html($frontUrl,'front_url',$fuv['name'],false,true);
 	                if($fuv['use_cookie']||$fuv['use_cookie_img']){
 	                    
@@ -880,8 +881,7 @@ class Cpattern extends CpatternEvent{
 	                $allowColl=false;
 	            }
 	            if($allowColl){
-	                $base_url=$this->match_base_url($fromUrl, $html);
-	                $domain_url=$this->match_domain_url($fromUrl);
+	                $url_info=$this->match_url_info($fromUrl,$html);
 	                
 	                $pn_area='';
 	                if(!empty($pnConfig['reg_area'])){
@@ -905,9 +905,9 @@ class Cpattern extends CpatternEvent{
 	                    
 	                    if(!empty($pnConfig['url_complete'])){
 	                        
-	                        $pn_area=preg_replace_callback('/(\bhref\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche_p_a) use ($base_url,$domain_url){
+	                        $pn_area=preg_replace_callback('/(\bhref\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche_p_a) use ($url_info){
 	                            
-	                            $matche_p_a[2]=\skycaiji\admin\event\Cpattern::create_complete_url($matche_p_a[2], $base_url, $domain_url);
+	                            $matche_p_a[2]=\util\Tools::create_complete_url($matche_p_a[2], $url_info);
 	                            return $matche_p_a[1].$matche_p_a[2].$matche_p_a[3];
 	                        },$pn_area);
 	                    }
@@ -1042,25 +1042,16 @@ class Cpattern extends CpatternEvent{
 			        return;
 			    }
 			    
+			    $pageOpened=$this->page_opened_tips($pageType,$pageName);
 		        $cur_url=$field_source_url;
-		        $this->echo_msg(array('%s：<a href="%s" target="_blank">%s</a>',$source_echo_msg,$field_source_url,$field_source_url),'black');
+		        $this->echo_msg($pageOpened?array('%s：%s',$source_echo_msg,$pageOpened.$field_source_url):array('%s：<a href="%s" target="_blank">%s</a>',$source_echo_msg,$field_source_url,$field_source_url),'black');
 		        $htmlInfo=$this->get_page_html($field_source_url, $pageType, $pageName,false,true);
 		        $html=$htmlInfo['html'];
 			}
 		}
 		static $fieldArr=array('words','num','time','list');
-		static $baseUrls=array();
-		static $domainUrls=array();
-	
-		$urlMd5=md5($cur_url);
-		if(empty($baseUrls[$urlMd5])){
-			$baseUrls[$urlMd5]=$this->match_base_url($cur_url, $html);
-		}
-		if(empty($domainUrls[$urlMd5])){
-			$domainUrls[$urlMd5]=$this->match_domain_url($cur_url);
-		}
-		$base_url=$baseUrls[$urlMd5];
-		$domain_url=$domainUrls[$urlMd5];
+		
+		$url_info=$this->match_url_info($cur_url, $html, 'set_field');
 	
 		$val='';
 		$field_func='field_module_'.$module;
@@ -1077,7 +1068,7 @@ class Cpattern extends CpatternEvent{
 							'value'=>$v,
 							'img'=>$this->field_val_list[$field_params['extract']]['imgs'][$cur_url_md5][$k],
 						);
-						$val[$k]=$this->field_module_extract($field_params, $extract_field_val, $base_url, $domain_url);
+						$val[$k]=$this->field_module_extract($field_params, $extract_field_val, $url_info);
 					}
 				}else{
 					
@@ -1085,7 +1076,7 @@ class Cpattern extends CpatternEvent{
 						'value'=>$this->field_val_list[$field_params['extract']]['values'][$cur_url_md5],
 						'img'=>$this->field_val_list[$field_params['extract']]['imgs'][$cur_url_md5],
 					);
-					$val=$this->field_module_extract($field_params, $extract_field_val, $base_url, $domain_url);
+					$val=$this->field_module_extract($field_params, $extract_field_val, $url_info);
 				}
 			}elseif('merge'==$module){
 				
@@ -1103,15 +1094,17 @@ class Cpattern extends CpatternEvent{
 					
 					$val=array();
 					
-					foreach ($this->field_val_list[$this->first_loop_field]['values'][$cur_url_md5] as $v_k=>$v_v){
-						$cur_field_val_list=array();
-						foreach ($this->field_val_list as $k=>$v){
-							$cur_field_val_list[$k]=array(
-								'value'=>(is_array($v['values'][$cur_url_md5])?$v['values'][$cur_url_md5][$v_k]:$v['values'][$cur_url_md5]),
-								'img'=>(is_array($v['imgs'][$cur_url_md5][$v_k])?$v['imgs'][$cur_url_md5][$v_k]:$v['imgs'][$cur_url_md5])
-							);
-						}
-						$val[$v_k]=$this->field_module_merge($field_params,$cur_field_val_list);
+					if(is_array($this->field_val_list[$this->first_loop_field]['values'][$cur_url_md5])){
+    					foreach ($this->field_val_list[$this->first_loop_field]['values'][$cur_url_md5] as $v_k=>$v_v){
+    						$cur_field_val_list=array();
+    						foreach ($this->field_val_list as $k=>$v){
+    							$cur_field_val_list[$k]=array(
+    								'value'=>(is_array($v['values'][$cur_url_md5])?$v['values'][$cur_url_md5][$v_k]:$v['values'][$cur_url_md5]),
+    							    'img'=>((is_array($v['imgs'][$cur_url_md5])&&is_array($v['imgs'][$cur_url_md5][$v_k]))?$v['imgs'][$cur_url_md5][$v_k]:$v['imgs'][$cur_url_md5])
+    							);
+    						}
+    						$val[$v_k]=$this->field_module_merge($field_params,$cur_field_val_list);
+    					}
 					}
 				}
 			}elseif(in_array($module,$fieldArr)){
@@ -1123,8 +1116,10 @@ class Cpattern extends CpatternEvent{
 					
 					$val=array();
 					
-					foreach ($this->field_val_list[$this->first_loop_field]['values'][$cur_url_md5] as $v_k=>$v_v){
-						$val[$v_k]=$this->$field_func($field_params);
+					if(is_array($this->field_val_list[$this->first_loop_field]['values'][$cur_url_md5])){
+					    foreach ($this->field_val_list[$this->first_loop_field]['values'][$cur_url_md5] as $v_k=>$v_v){
+					        $val[$v_k]=$this->$field_func($field_params);
+					    }
 					}
 				}
 			}elseif($module=='json'){
@@ -1204,13 +1199,13 @@ class Cpattern extends CpatternEvent{
 			}
 	
 			
-			$val=preg_replace_callback('/(\bhref\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($base_url,$domain_url){
+			$val=preg_replace_callback('/(\bhref\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($url_info){
 				
-			    $matche[2]=\skycaiji\admin\event\Cpattern::create_complete_url($matche[2], $base_url, $domain_url);
+			    $matche[2]=\util\Tools::create_complete_url($matche[2], $url_info);
 			    return $matche[1].$matche[2].$matche[3];
 			},$val);
-			$val=preg_replace_callback('/(\bsrc\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($base_url,$domain_url){
-			    $matche[2]=\skycaiji\admin\event\Cpattern::create_complete_url($matche[2], $base_url, $domain_url);
+			$val=preg_replace_callback('/(\bsrc\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($url_info){
+			    $matche[2]=\util\Tools::create_complete_url($matche[2], $url_info);
 				return $matche[1].$matche[2].$matche[3];
 			},$val);
 					
@@ -1282,7 +1277,8 @@ class Cpattern extends CpatternEvent{
 		if(empty($pnConfig['max'])||(count((array)$this->used_pagination_urls['url'])<$pnConfig['max'])){
 			
 		    $this->collect_sleep(g_sc_c('caiji','interval_html'),true,true);
-			$this->echo_msg(array('——采集分页：<a href="%s" target="_blank">%s</a>',$page_url,$page_url),'black');
+		    $pageOpened=$this->page_opened_tips('url','',true);
+		    $this->echo_msg($pageOpened?array('——采集分页：%s',$pageOpened.$page_url):array('——采集分页：<a href="%s" target="_blank">%s</a>',$page_url,$page_url),'black');
 			$htmlInfo=$this->get_page_html($page_url,'url','',true,true);
 			if(empty($htmlInfo['html'])){
 			    return $this->echo_error('未获取到分页源代码');
@@ -1555,6 +1551,7 @@ class Cpattern extends CpatternEvent{
 	/*初始化数据处理，初始化config时使用*/
 	public function initProcess($processList){
 		if(!empty($processList)){
+		    $processList=$this->set_process($processList);
 			foreach ($processList as $k=>$v){
 				if('replace'==$v['module']){
 				    $v['replace_from']=$this->correct_reg_pattern($v['replace_from']);
@@ -1603,8 +1600,9 @@ class Cpattern extends CpatternEvent{
 		    }
 		    return $this->echo_error('未获取到'.htmlspecialchars($sourceTips).($sourceIsPagination?'分页':'').'源代码');
 		}
-		$base_url=$this->match_base_url($sourceUrl, $html);
-		$domain_url=$this->match_domain_url($sourceUrl);
+		
+		$url_info=$this->match_url_info($sourceUrl,$html);
+		
 		
 		$areaMatch=$this->rule_match_area($pageType,$pageName,false,$html,true);
 		$html=$areaMatch['area'];
@@ -1627,7 +1625,7 @@ class Cpattern extends CpatternEvent{
 		    }
 		}
 	
-		$contUrlsMatches=$this->rule_match_urls($pageType,$pageName,false,$html,$op_not_complete?false:array('base'=>$base_url,'domain'=>$domain_url),true);
+		$contUrlsMatches=$this->rule_match_urls($pageType,$pageName,false,$html,$op_not_complete?false:$url_info,true);
 		
 		$cont_urls=$contUrlsMatches['urls'];
 	
@@ -1797,8 +1795,8 @@ class Cpattern extends CpatternEvent{
 				        }
 				    }
 				    $this->used_pagination_urls[$levelSource][$pageCurMd5]=1;
-				    $isFormPost=$this->page_is_post('level_url',$levelConfig['name'])?'[POST] ':'';
-				    $this->echo_msg($isFormPost?array('%s分析第%s级%s：%s',$next_level_str,$level,$pagePnStr,$isFormPost.$pageCurUrl):array('%s分析第%s级%s：<a href="%s" target="_blank">%s</a>',$next_level_str,$level,$pagePnStr,$pageCurUrl,$pageCurUrl),'black');
+				    $pageOpened=$this->page_opened_tips('level_url',$levelConfig['name']);
+				    $this->echo_msg($pageOpened?array('%s分析第%s级%s：%s',$next_level_str,$level,$pagePnStr,$pageOpened.$pageCurUrl):array('%s分析第%s级%s：<a href="%s" target="_blank">%s</a>',$next_level_str,$level,$pagePnStr,$pageCurUrl,$pageCurUrl),'black');
 				    if($level_data['nextLevel']>0){
 				        
 				        $return_msg=$this->_collect_level($pageCurUrl,$level_data['nextLevel']);
@@ -1862,7 +1860,7 @@ class Cpattern extends CpatternEvent{
 		$mcacheSource=CacheModel::getInstance('source_url');
 		$mcacheLevel=CacheModel::getInstance('level_url');
 		$mcacheCont=CacheModel::getInstance('cont_url');
-		$isFormPost=$this->page_is_post('url')?'[POST] ':'';
+		$pageOpened=$this->page_opened_tips('url');
 		
 		
 		foreach ($this->cont_urls_list as $cont_key=>$cont_urls){
@@ -1919,7 +1917,7 @@ class Cpattern extends CpatternEvent{
 						continue;
 					}
 					$mcacheCont->setCache($md5_cont_url, 1);
-					$this->echo_msg($isFormPost?array('%s采集内容页：%s',$echo_str,$isFormPost.$cont_url):array('%s采集内容页：<a href="%s" target="_blank">%s</a>',$echo_str,$cont_url,$cont_url),'black');
+					$this->echo_msg($pageOpened?array('%s采集内容页：%s',$echo_str,$pageOpened.$cont_url):array('%s采集内容页：<a href="%s" target="_blank">%s</a>',$echo_str,$cont_url,$cont_url),'black');
 					$field_vals_list=$this->getFields($cont_url);
 	
 					$is_loop=empty($this->first_loop_field)?false:true;

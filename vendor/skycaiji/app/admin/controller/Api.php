@@ -17,15 +17,15 @@ class Api extends CollectController{
 	    \util\Param::set_task_close_echo();
 		$taskId=input('id/d',0);
 		$apiurl=input('apiurl');
-		$releData=model('Release')->where(array('task_id'=>$taskId))->find();
+		$mrele=model('Release');
+		$releData=$mrele->where(array('task_id'=>$taskId))->find();
 		if(empty($releData)){
 		    json(array('error'=>'没有发布设置！'))->send();
 		}
-		$releData['config']=unserialize($releData['config']?:'');
+		$releData['config']=$mrele->compatible_config($releData['config']);
 		if($apiurl!=$releData['config']['api']['url']){
 		    json(array('error'=>'api地址错误！'))->send();
 		}
-		
 		\util\Param::set_task_api_response();
 		header('Content-type:text/json');
 		$this->collect_tasks($taskId, null, true);

@@ -161,10 +161,10 @@ class CpatternTest extends BaseController {
                 }
                 if($sourceIsUrl){
                     
-                    $vurls=$this->eCpattern->page_convert_url_signs('url', '', $vurls, array(), false);
+                    $vurls=$this->eCpattern->page_convert_url_signs('url', '', false, $vurls, array(), false);
                 }else{
                    
-                   $vurls=$this->eCpattern->page_convert_url_signs('source_url', '', $vurls, array(), false);
+                   $vurls=$this->eCpattern->page_convert_url_signs('source_url', '', false, $vurls, array(), false);
                 }
                 $source_urls[$v]=$vurls;
             }
@@ -190,20 +190,23 @@ class CpatternTest extends BaseController {
             $testNum=3;
         }
         
-        $sourceUrlIsPost=$this->eCpattern->page_is_post('source_url')?'[POST] ':'';
+        $sourceUrlOpened=$this->_page_opened_tips('source_url');
         
         $this->assign('testNum',$testNum);
         $this->assign('source_urls',$source_urls);
         $this->assign('sourceIsUrl',$sourceIsUrl);
-        $this->assign('sourceUrlIsPost',$sourceUrlIsPost);
+        $this->assign('sourceUrlOpened',$sourceUrlOpened);
         $this->assign('config',$this->eCpattern->config);
         $this->assign('openedTools',$this->_opened_tools(false));
         return $this->fetch('cpattern:test_source_urls');
     }
+    private function _page_opened_tips($pageType,$pageName=''){
+        return $this->eCpattern->page_opened_tips($pageType,$pageName,false,true);
+    }
     
     private function _opened_tools($isHead=true){
         $opened_tools=array();
-        if($this->eCpattern->config['page_render']){
+        if($this->eCpattern->page_render_is_open()){
             $opened_tools[]='页面渲染';
         }
         if(g_sc_c('proxy','open')){
@@ -291,18 +294,14 @@ class CpatternTest extends BaseController {
         );
         cache($cacheKeyPre.$curLevel,$cachePageData,1200);
         
-        
-        $urlIsPost=$this->eCpattern->page_is_post('url')?'[POST] ':'';
-        $levelIsPost=$this->eCpattern->page_is_post('level_url',$levelData['levelName'])?'[POST] ':'';
-        
         $this->success('', null, array(
             'sourceUrl'=>$source_url,
             'urls' => $levelData['urls'],
-            'urlIsPost'=>$urlIsPost,
+            'urlOpened'=>$this->_page_opened_tips('url'),
             'levelName' => $levelData['levelName'],
             'level' => $curLevel,
             'nextLevel' => $levelData['nextLevel'],
-            'levelIsPost'=>$levelIsPost,
+            'levelOpened'=>$this->_page_opened_tips('level_url',$levelData['levelName']),
         ));
     }
     
@@ -321,12 +320,15 @@ class CpatternTest extends BaseController {
         $urlParams=input('param.','','trim');
         $urlParams=base64_encode(serialize($urlParams));
         
-        $urlIsPost=$this->eCpattern->page_is_post('url');
+        $urlOpened=$this->_page_opened_tips('url');
         
         $pageSource=input('page_source','');
+        if($pageSource=='source_url'&&$this->eCpattern->source_is_url()){
+            $pageSource='url';
+        }
         
         $this->assign('pageSource',$pageSource);
-        $this->assign('urlIsPost',$urlIsPost);
+        $this->assign('urlOpened',$urlOpened);
         $this->assign('pageSources',$this->eCpattern->page_source_options());
         $this->assign('urlParams',$urlParams);
         if(request()->isAjax()){
@@ -424,6 +426,8 @@ class CpatternTest extends BaseController {
             
             $pageSigns=$this->eCpattern->parent_page_signs($pageType,$pageName,'url_web');
             $this->_page_signs_input_urls(true,true,$pageSigns,$inputedUrls,$input_urls);
+            $pageSigns=$this->eCpattern->parent_page_signs($pageType,$pageName,'renderer');
+            $this->_page_signs_input_urls(true,true,$pageSigns,$inputedUrls,$input_urls);
         }elseif($test=='get_html'||$test=='get_browser'){
             
             if(!empty($pageType)){
@@ -494,23 +498,23 @@ class CpatternTest extends BaseController {
             unset($input_urls['source_url']);
         }
         
-        $is_post_list=array();
+        $pageOpenedList=array();
         foreach ($input_urls as $iu_type=>$iu_urls){
             if($this->eCpattern->page_is_list($iu_type)){
-                $is_post_list[$iu_type]=array();
+                $pageOpenedList[$iu_type]=array();
                 foreach ($iu_urls as $v){
-                    $is_post_list[$iu_type][$v['name']]=$this->eCpattern->page_is_post($iu_type,$v['name']);
+                    $pageOpenedList[$iu_type][$v['name']]=$this->_page_opened_tips($iu_type,$v['name']);
                 }
             }else{
-                $is_post_list[$iu_type]=$this->eCpattern->page_is_post($iu_type);
+                $pageOpenedList[$iu_type]=$this->_page_opened_tips($iu_type);
             }
         }
         
-        $is_post=$this->eCpattern->page_is_post($pageType,$pageName);
+        $pageOpened=$this->_page_opened_tips($pageType,$pageName);
         
         $this->assign('input_urls',$input_urls);
-        $this->assign('is_post_list',$is_post_list);
-        $this->assign('is_post',$is_post);
+        $this->assign('pageOpenedList',$pageOpenedList);
+        $this->assign('pageOpened',$pageOpened);
         return $this->fetch('cpattern:test_input_url');
     }
     
@@ -520,13 +524,15 @@ class CpatternTest extends BaseController {
         $this->_page_signs_input_urls($isContUrl,false,$pageSigns,$inputedUrls,$input_urls);
         $pageSigns=$this->eCpattern->parent_page_signs($pageType,$pageName,'url_web');
         $this->_page_signs_input_urls($isContUrl,true,$pageSigns,$inputedUrls,$input_urls);
+        $pageSigns=$this->eCpattern->parent_page_signs($pageType,$pageName,'renderer');
+        $this->_page_signs_input_urls($isContUrl,true,$pageSigns,$inputedUrls,$input_urls);
     }
     
     
-    private function _page_signs_input_urls($isContUrl,$isUrlWeb,$pageSigns,$inputedUrls,&$input_urls){
+    private function _page_signs_input_urls($isContUrl,$inPageConfig,$pageSigns,$inputedUrls,&$input_urls){
         $iptUrls=array();
         if(!empty($pageSigns)){
-            if($isUrlWeb){
+            if($inPageConfig){
                 
                 if(!empty($pageSigns['cur'])&&(!empty($pageSigns['cur']['url'])||!empty($pageSigns['cur']['area']))){
                     
@@ -618,30 +624,20 @@ class CpatternTest extends BaseController {
         }
         if($levelNames){
             foreach ($levelNames as $levelName){
-                $pageSigns=$this->eCpattern->parent_page_signs('level_url',$levelName);
-                $iptUrls=$this->_page_signs_input_urls($isContUrl,false,$pageSigns,$inputedUrls,$input_urls);
-                if(is_array($iptUrls['level_url'])){
-                    
-                    foreach ($iptUrls['level_url'] as $k=>$v){
-                        if(isset($input_urls['level_url'][$k])){
-                            unset($iptUrls['level_url'][$k]);
+                $mergeTypes=array(''=>false,'url_web'=>true,'renderer'=>true);
+                foreach ($mergeTypes as $mtk=>$mtv){
+                    $pageSigns=$this->eCpattern->parent_page_signs('level_url',$levelName,$mtk);
+                    $iptUrls=$this->_page_signs_input_urls($isContUrl,$mtv,$pageSigns,$inputedUrls,$input_urls);
+                    if(is_array($iptUrls['level_url'])){
+                        
+                        foreach ($iptUrls['level_url'] as $k=>$v){
+                            if(isset($input_urls['level_url'][$k])){
+                                unset($iptUrls['level_url'][$k]);
+                            }
                         }
-                    }
-                    if(!empty($iptUrls['level_url'])){
-                        $this->_input_urls_parent($isContUrl,$iptUrls, $inputedUrls, $input_urls);
-                    }
-                }
-                $pageSigns=$this->eCpattern->parent_page_signs('level_url',$levelName,'url_web');
-                $iptUrls=$this->_page_signs_input_urls($isContUrl,true,$pageSigns,$inputedUrls,$input_urls);
-                if(is_array($iptUrls['level_url'])){
-                    
-                    foreach ($iptUrls['level_url'] as $k=>$v){
-                        if(isset($input_urls['level_url'][$k])){
-                            unset($iptUrls['level_url'][$k]);
+                        if(!empty($iptUrls['level_url'])){
+                            $this->_input_urls_parent($isContUrl,$iptUrls, $inputedUrls, $input_urls);
                         }
-                    }
-                    if(!empty($iptUrls['level_url'])){
-                        $this->_input_urls_parent($isContUrl,$iptUrls, $inputedUrls, $input_urls);
                     }
                 }
             }
@@ -777,9 +773,6 @@ class CpatternTest extends BaseController {
             $html=$this->eCpattern->get_page_html($test_url, $pageType, $pageName);
             $jsonHtml=\util\Funcs::convert_html2json($html,true);
             
-            $config=$this->eCpattern->config;
-            $config=is_array($config)?$config:array();
-            
             
             if(empty($jsonHtml)){
                 
@@ -787,10 +780,24 @@ class CpatternTest extends BaseController {
                 $html=preg_replace('/\bon[a-z]+\s*\=\s*[\'\"]/', "$0return;", $html);
                 $html=preg_replace('/<meta[^<>]*charset[^<>]*?>/i', '', $html);
                 $html=preg_replace('/<meta[^<>]*http-equiv\s*=\s*[\'\"]{0,1}refresh\b[\'\"]{0,1}[^<>]*?>/i', '', $html);
-                header("Content-type:text/html;charset=utf-8");
-                $this->assign('html',$html);
-                $this->assign('config',$config);
                 
+                
+                $configUnset=array();
+                $configSetted=array();
+                if(!$this->eCpattern->get_config('url_complete')){
+                    $configUnset[]='自动补全网址';
+                }
+                if($this->eCpattern->renderer_is_open($pageType,$pageName)){
+                    $configSetted[]='页面渲染';
+                }
+                if(g_sc_c('proxy','open')){
+                    $configSetted[]='代理';
+                }
+                
+                header("Content-type:text/html;charset=utf-8");
+                
+                $this->assign('configTips',array('setted'=>$configSetted,'unset'=>$configUnset));
+                $this->assign('html',$html);
                 return $this->fetch('cpattern:browser');
             }else{
                 
@@ -1190,7 +1197,6 @@ class CpatternTest extends BaseController {
         return $matches;
     }
     
-    
     public function matchAction(){
         if(request()->isPost()){
             $this->_test_init();
@@ -1199,63 +1205,49 @@ class CpatternTest extends BaseController {
             $field=input('field/a',array(),'trim');
             if($inputType=='url'){
                 
+                $pageSource=input('page_source','');
                 $url=input('url','','trim');
-                $charset=input('charset','');
-                $charsetCustom=input('charset_custom','');
-                $formMethod=input('form_method','');
-                $contentType=input('content_type','');
-                $formNames=trim_input_array('form_names');
-                $formVals=trim_input_array('form_vals');
-                $headerGlobal=input('header_global','');
-                $headerNames=trim_input_array('header_names');
-                $headerVals=trim_input_array('header_vals');
+                $config=input('config/a',array(),'trim');
                 
+                if(empty($pageSource)){
+                    $this->error('请选择页面类型');
+                }
                 if(empty($url)){
                     $this->error('请输入网址');
                 }
                 
-                $charset=$charset=='custom'?$charsetCustom:$charset;
-                if(empty($charset)){
-                    
-                    $charset=$this->eCpattern->config['charset'];
+                list($pageType,$pageName)=$this->eCpattern->page_source_split($pageSource);
+                $config=$this->eCpattern->page_set_config($pageType, $config);
+                init_array($config);
+                
+                $eCpConfig1=null;
+                $eCpConfig2=null;
+                
+                if($pageType=='front_url'||$pageType=='level_url'||$pageType=='relation_url'){
+                    foreach ($this->eCpattern->config[$pageType.'s'] as $k=>$v){
+                        if($v&&is_array($v)&&$v['name']==$pageName){
+                            $eCpConfig1=&$this->eCpattern->config[$pageType.'s'][$k];
+                            $eCpConfig2=&$this->eCpattern->config['new_'.$pageType.'s'][$v['name']];
+                            break;
+                        }
+                    }
+                }elseif($pageType=='source_url'){
+                    if($this->eCpattern->source_is_url()){
+                        $eCpConfig1=&$this->eCpattern->config;
+                    }else{
+                        $eCpConfig1=&$this->eCpattern->config['source_config'];
+                    }
+                }elseif($pageType=='url'){
+                    $eCpConfig1=&$this->eCpattern->config;
+                }
+                if($eCpConfig1){
+                    $eCpConfig1=array_merge($eCpConfig1,$config);
+                }
+                if($eCpConfig2){
+                    $eCpConfig2=array_merge($eCpConfig2,$config);
                 }
                 
-                $headers=array();
-                if(empty($headerGlobal)){
-                    
-                    $headers=$this->eCpattern->config_params['headers']['page'];
-                }elseif($headerGlobal=='y'){
-                    
-                    $headers=$this->eCpattern->config_params['headers']['page_headers'];
-                }
-                
-                $useCookie=\util\Param::get_gsc_use_cookie(false,true);
-                
-                if(!empty($useCookie)){
-                    unset($headers['cookie']);
-                    $headers['cookie']=$useCookie;
-                }
-                
-                $headers=\util\Funcs::array_key_merge($headers,$this->eCpattern->arrays_to_key_val($headerNames, $headerVals));
-                
-                if($contentType){
-                    $headers['content-type']=$contentType;
-                }
-                
-                $formData=$this->eCpattern->arrays_to_key_val($formNames, $formVals);
-                
-                $postData=false;
-                if($formMethod=='post'){
-                    
-                    $postData=$formData;
-                }else{
-                    
-                    $postData=false;
-                    
-                    $url=\util\Funcs::url_params_charset($url,$formData,$charset);
-                }
-                
-                $content=$this->eCpattern->get_html($url,$postData,$headers,$charset);
+                $content=$this->eCpattern->get_page_html($url, $pageType, $pageName);
             }else{
                 
                 $content=input('content','','trim');
@@ -1265,7 +1257,7 @@ class CpatternTest extends BaseController {
             }
             
             $val='';
-           
+            
             if($type=='rule'){
                 
                 $rule=$this->eCpattern->convert_sign_match($field['rule']);
@@ -1303,6 +1295,17 @@ class CpatternTest extends BaseController {
         }else{
             $this->_test_init(true,true);
             $this->set_html_tags('模拟匹配','模拟匹配'.$this->_opened_tools());
+            
+            $defConfig=array('charset'=>'','encode'=>'','page_render'=>'');
+            foreach($defConfig as $k=>$v){
+                $defConfig[$k]=$this->eCpattern->get_config($k);
+                $defConfig[$k]=htmlspecialchars($defConfig[$k]);
+            }
+            $defConfig['request_headers_open']=$this->eCpattern->get_config('request_headers','open');
+            
+            $this->assign('defConfig',$defConfig);
+            $this->assign('pageSources',$this->eCpattern->page_source_options());
+            
             if(request()->isAjax()){
                 return view('cpattern:test_match_ajax');
             }else{

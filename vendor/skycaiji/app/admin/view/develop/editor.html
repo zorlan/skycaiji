@@ -1,0 +1,73 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+{/block}
+{block name="content"}
+{if !$isApp}
+<div class="nav-tabs-custom">
+	<ul class="nav nav-tabs">
+		<li{$type=='release'?' class="active"':''}><a href="{:url('develop/editor')}">发布插件</a></li>
+		<li{$type=='func'?' class="active"':''}><a href="{:url('develop/editor?type=func')}">函数插件</a></li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane active">
+		{if $appList||$diyList}
+			<ul class="deve-editor-apps">
+			{if $appList}
+			{foreach $appList as $k=>$v}
+			<li><a href="{:url('develop/editor?type='.$type.'&app='.$k)}">{$k}（{$v}）</a></li>
+			{/foreach}
+			{/if}
+			{if $diyList}
+			{foreach $diyList as $v}
+			<li><a href="{:url('develop/editor?type=release&module=diy&app='.$v)}">{$v}（自定义）</a></li>
+			{/foreach}
+			{/if}
+			</ul>
+		{else /}
+			无插件
+		{/if}
+		</div>
+	</div>
+</div>
+{else /}
+<script src="__PUBLIC__/static/js/admin/code_editor.js?{$Think.config.html_v}"></script>
+<div class="row" id="deve_editor_main">
+	<div class="col-sm-8 col-md-9 deve-editor-left">
+		<textarea id="code_editor_txt" style="display:none;">{$appcode?htmlspecialchars($appcode):''}</textarea>
+		<div id="code_editor_box"><iframe id="code_editor_ifr" style="width:100%;height:100%;border:0;"></iframe></div>
+		<button type="submit" id="btn_editor_save" class="btn btn-default btn-block" style="margin:0;margin-top:12px;">修改插件</button>
+	</div>
+	<div class="col-sm-4 col-md-3 deve-editor-right">
+		<div class="nav-tabs-custom deve-editor-apps-nav">
+			<ul class="nav nav-tabs">
+				<li{$type=='release'?' class="active"':''}><a href="{:url('develop/editor')}">发布插件</a></li>
+				<li{$type=='func'?' class="active"':''}><a href="{:url('develop/editor?type=func')}">函数插件</a></li>
+			</ul>
+			<div class="tab-content">
+				<div class="tab-pane active">
+				{if $appList||$diyList}
+					<ul class="deve-editor-apps">
+					{if $appList}
+					{foreach $appList as $k=>$v}
+					<li{if $k==$app} class="cur"{/if}><a href="{:url('develop/editor?type='.$type.'&app='.$k)}">{$k}（{$v}）</a></li>
+					{/foreach}
+					{/if}
+					{if $diyList}
+					{foreach $diyList as $v}
+					<li{if $v==$app} class="cur"{/if}><a href="{:url('develop/editor?type=release&module=diy&app='.$v)}">{$v}（自定义）</a></li>
+					{/foreach}
+					{/if}
+					</ul>
+				{else /}
+					无插件
+				{/if}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+codeEditorClass.init_deve({$config|json_encode});
+</script>
+{/if}
+{/block}

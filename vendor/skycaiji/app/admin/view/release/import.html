@@ -21,7 +21,7 @@
 	$('#window_reles #rele_list li a').bind('click',function(){
 		var id=$(this).attr('data-id');
 		var name=$(this).attr('data-title');
-		releaseClass.import(id,name);
+		releaseClass.import_rele(id,name);
 	});
 	$('#window_reles .pagination').addClass('pagination-sm');
 	$('#window_reles .pagination a').bind('click',function(){

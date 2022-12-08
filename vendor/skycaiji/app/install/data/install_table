@@ -66,8 +66,7 @@ CREATE TABLE `skycaiji_config` (
 
 /*Data for the table `skycaiji_config` */
 
-insert  into `skycaiji_config`(`cname`,`ctype`,`dateline`,`data`) values ('version',0,0,'2.5'),('caiji',2,0,'a:12:{s:6:"robots";i:1;s:4:"auto";i:0;s:3:"run";s:9:"backstage";s:6:"server";s:0:"";s:10:"server_php";s:0:"";s:3:"num";i:10;s:8:"interval";i:30;s:7:"timeout";i:60;s:13:"interval_html";i:0;s:9:"real_time";i:1;s:5:"retry";i:0;s:4:"wait";i:0;}'),('site',2,0,'a:3:{s:10:"verifycode";i:1;s:8:"hidehome";i:0;s:5:"login";a:3:{s:5:"limit";i:1;s:6:"failed";i:20;s:4:"time";i:1;}}');
-
+insert  into `skycaiji_config`(`cname`,`ctype`,`dateline`,`data`) values ('version',0,0,'2.5.2'),('caiji',2,0,'a:12:{s:6:"robots";i:1;s:4:"auto";i:0;s:3:"run";s:9:"backstage";s:6:"server";s:0:"";s:10:"server_php";s:0:"";s:3:"num";i:10;s:8:"interval";i:30;s:7:"timeout";i:60;s:13:"interval_html";i:0;s:9:"real_time";i:1;s:5:"retry";i:0;s:4:"wait";i:0;}'),('site',2,0,'a:3:{s:10:"verifycode";i:1;s:8:"hidehome";i:0;s:5:"login";a:3:{s:5:"limit";i:1;s:6:"failed";i:20;s:4:"time";i:1;}}');
 
 /*Table structure for table `skycaiji_func_app` */
 
@@ -105,6 +104,18 @@ CREATE TABLE `skycaiji_provider` (
   KEY `domain` (`domain`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+/*Table structure for table `skycaiji_proxy_group` */
+
+DROP TABLE IF EXISTS `skycaiji_proxy_group`;
+
+CREATE TABLE `skycaiji_proxy_group` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `parent_id` int(11) NOT NULL DEFAULT '0',
+  `sort` mediumint(9) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
 /*Table structure for table `skycaiji_proxy_ip` */
 
 DROP TABLE IF EXISTS `skycaiji_proxy_ip`;
@@ -120,11 +131,13 @@ CREATE TABLE `skycaiji_proxy_ip` (
   `type` varchar(20) NOT NULL DEFAULT '',
   `addtime` int(11) NOT NULL DEFAULT '0',
   `no` bigint(20) NOT NULL AUTO_INCREMENT,
+  `group_id` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`ip`),
   KEY `no` (`no`),
   KEY `addtime_no` (`addtime`,`no`),
   KEY `num_no` (`num`,`no`),
-  KEY `time_no` (`time`,`no`)
+  KEY `time_no` (`time`,`no`),
+  KEY `gid_no` (`group_id`,`no`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 /*Table structure for table `skycaiji_release` */
@@ -233,7 +246,7 @@ CREATE TABLE `skycaiji_user` (
   PRIMARY KEY (`uid`),
   UNIQUE KEY `username` (`username`),
   KEY `email` (`email`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `skycaiji_usergroup` */
 

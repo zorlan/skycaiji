@@ -50,10 +50,10 @@ class Backstage extends BaseController{
 					
 				    $collectBackstageTime=CacheModel::getInstance()->getCache('collect_backstage_time','data');
 				    $collectBackstageTime=intval($collectBackstageTime);
-				    if((time()-$collectBackstageTime)>60*3){
+				    if((time()-$collectBackstageTime)>60*5){
 				        
 				        $runInfo['auto_status']='停止运行';
-				        $serverData['caiji'].='<p class="help-block">自动采集停止了，请重新<a href="'.url('admin/setting/caiji').'">保存设置</a>以便激活采集</p>';
+				        $serverData['caiji'].='<p class="help-block">自动采集已停止 <a href="javascript:;" id="a_run_auto_backstage">点击激活</a></p>';
 				    }else{
 				        $runInfo['auto_status']='<span style="font-size:16px;">'.(model('Config')->server_is_cli()?'cli':'web').'后台运行</span>';
 				        $runInfo['auto_status1']='<small>'.date('m-d H:i:s',$collectBackstageTime).'</small>';
@@ -154,8 +154,18 @@ class Backstage extends BaseController{
 		return $this->fetch('backstage/index');
 	}
 	
+	public function run_auto_backstageAction(){
+	    controller('admin/Setting')->_run_auto_backstage();
+	    $this->success('操作完成');
+	}
+	/*实时采集*/
+	public function collectAction(){
+	    controller('admin/Index','controller')->auto_collectAction();
+	}
+	
 	
 	public function checkUpAction(){
+	    \util\Funcs::close_session();
 	    
 	    $info=array(
 	        'pageRenderInvalid'=>false,
@@ -179,34 +189,29 @@ class Backstage extends BaseController{
 	        if($mconfig->server_is_cli()){
 	            
 	            $phpvInfo=$mconfig->exec_php_version(g_sc_c('caiji','server_php'));
-	            if(empty($phpvInfo)||!$phpvInfo['success']){
+	            if(empty($phpvInfo)||(!$phpvInfo['success']&&$phpvInfo['msg'])){
+	                
 	                $info['phpInvalid']=true;
 	            }
-	        }
-	        
-	        $autoTaskIds=model('Task')->where('`auto`>0')->column('id');
-	        if(!empty($autoTaskIds)){
-	            foreach ($autoTaskIds as $autoTaskId){
-	                $collConfig=model('Collector')->where('task_id',$autoTaskId)->value('config');
+	            if($phpvInfo['msg']){
 	                
-	                $collConfig=unserialize($collConfig?:'');
-	                if(is_array($collConfig)&&$collConfig['page_render']){
-	                    
-	                    $pageRender=g_sc_c('page_render');
-	                    init_array($pageRender);
-	                    if(empty($pageRender['tool'])){
-	                        
-	                        $info['pageRenderInvalid']=true;
-	                    }elseif($mconfig->page_render_is_chrome()){
-	                        
-	                        init_array($pageRender['chrome']);
-	                        $chromeSoket=new \util\ChromeSocket($pageRender['chrome']['host'],$pageRender['chrome']['port'],$pageRender['timeout'],$pageRender['chrome']['filename'],$pageRender['chrome']);
-	                        $info['pageRenderInvalid']=$chromeSoket->hostIsOpen()?false:true;
-	                    }
-	                    break;
+	                if(preg_match('/\bPHP\s+(?P<ver>\d+(\.\d+){1,})/i', $phpvInfo['msg'],$mphpv)){
+	                    $mphpv=$mphpv['ver'];
+	                    $info['phpCliVersion']=$mphpv;
 	                }
 	            }
 	        }
+	        
+	        if(model('Task')->where('`auto`>0')->count()>0){
+	            
+	            if($mconfig->page_render_is_chrome()){
+	                
+	                init_array($pageRender['chrome']);
+	                $chromeSoket=new \util\ChromeSocket($pageRender['chrome']['host'],$pageRender['chrome']['port'],$pageRender['timeout'],$pageRender['chrome']['filename'],$pageRender['chrome']);
+	                $info['pageRenderInvalid']=$chromeSoket->hostIsOpen()?false:true;
+	            }
+	        }
+	        
 	        
 	        $cacheTongji=cache('admin_check_up_tongji');
 	        $cacheTongji=is_array($cacheTongji)?$cacheTongji:array();
@@ -235,18 +240,13 @@ class Backstage extends BaseController{
 	    $this->success('','',$info);
 	}
 	
-	/*实时采集*/
-	public function collectAction(){
-	    controller('admin/Index','controller')->auto_collectAction();
-	}
-	
 	/*检测更新*/
 	public function newVersionAction(){
 	    \util\Funcs::close_session();
 	    $version=\util\Tools::curl_skycaiji('/client/info/version?v='.SKYCAIJI_VERSION);
 	    $version=json_decode($version,true);
 	    $version=is_array($version)?$version:array();
-	    $new_version=trim($version['new_version']);
+	    $new_version=trim($version['new_version']?:0);
 	    $cur_version=g_sc_c('version');
 	    
 	    
@@ -431,23 +431,24 @@ class Backstage extends BaseController{
 		    if(!empty($taskIds)){
 		        foreach ($taskIds as $taskId){
 		            $cache=$mcache->db()->where('cname',$taskId)->find();
-		            $taskStatus=$cache['ctype'];
-		            if(empty($taskStatus)){
-		                
-		                $taskStatus='';
-		                
-		                $collStatus=\skycaiji\admin\model\Task::collecting_status($taskId);
-		                if($collStatus){
-		                    if($collStatus=='none'){
-		                        $taskStatus='已断开';
-		                    }elseif($collStatus=='unlock'){
-		                        $taskStatus='运行中断';
-		                    }
-		                }
-		            }else{
-		                
-		                $taskStatus='已结束';
-		            }
+		            $taskStatus=$cache?$cache['ctype']:'';
+	                if(empty($taskStatus)){
+	                    
+	                    $taskStatus='';
+	                    
+	                    $collStatus=\skycaiji\admin\model\Task::collecting_status($taskId);
+	                    if($collStatus){
+	                        if($collStatus=='none'){
+	                            $taskStatus='已断开';
+	                        }elseif($collStatus=='unlock'){
+	                            $taskStatus='运行中断';
+	                        }
+	                    }
+	                }else{
+	                    
+	                    $taskStatus='已结束';
+	                }
+		            
 		            $statusList[$taskId]=$taskStatus;
 		        }
 		    }

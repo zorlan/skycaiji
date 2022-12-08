@@ -1,0 +1,30 @@
+<table class="table table-bordered">
+	<thead>
+		<tr>
+			<th>采集字段</th>
+			<th>查询</th>
+			<th>自增主键</th>
+		</tr>
+	</thead>
+	<tbody>
+		{for start="0" end="$maxCount"}
+		<tr>
+			<td>
+				{if $collFields[$i]}
+				<a href="javascript:;" data-val="[采集字段:{$collFields[$i]}]">{$collFields[$i]}</a>
+				{/if}
+			</td>
+			<td>
+				{if $querySigns[$i]}
+				<a href="javascript:;" data-val="[查询:{$querySigns[$i]}]">{$querySigns[$i]}</a>
+				{/if}
+			</td>
+			<td>
+				{if $autoIds[$i]}
+				<a href="javascript:;" data-val="[自增主键:{$autoIds[$i]}]">{$autoIds[$i]}</a>
+				{/if}
+			</td>
+		</tr>
+		{/for}
+	</tbody>
+</table>

@@ -181,7 +181,6 @@ class HtmlParse{
 	            arsort($data['img_sort'],6);
 	        }
 	        
-	        
 	        $contents=array();
 	        
 	        foreach (array('zishu','img_sort') as $dkey){
@@ -223,7 +222,6 @@ class HtmlParse{
 	                }
 	            }
 	        }
-	        
 	        
 	        if($contents['img_sort']&&$contents['img_sort']['zishu']>0){
 	            

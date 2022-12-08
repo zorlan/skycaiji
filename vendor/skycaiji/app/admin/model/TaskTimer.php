@@ -12,7 +12,6 @@
 namespace skycaiji\admin\model;
 
 class TaskTimer extends \skycaiji\common\model\BaseModel{
-	protected $tableName='task_timer';
 	
 	public function addTimer($taskId,$timerData){
 	    if(is_array($timerData)){

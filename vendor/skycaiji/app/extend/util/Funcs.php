@@ -28,7 +28,7 @@ class Funcs{
 	public static function array_filter_keep0($list){
 	    if(is_array($list)){
 	        foreach ($list as $k=>$v){
-	            if(empty($v)&&$v!==0&&$v!=='0'){
+	            if(self::is_null($v)){
 	                
 	                unset($list[$k]);
 	            }
@@ -66,46 +66,45 @@ class Funcs{
 	
 	
 	public static function filter_key_val_list(&$arr1,&$arr2){
-	    if(!is_array($arr1)){
-	        $arr1=array();
-	    }
-	    if(!is_array($arr2)){
-	        $arr2=array();
-	    }
-	    
-	    foreach ($arr1 as $k=>$v){
-	        if(empty($v)){
-	            
-	            unset($arr1[$k]);
-	            unset($arr2[$k]);
-	        }
-	    }
-	    $arr1=array_values($arr1);
-	    $arr2=array_values($arr2);
+	    $arrs=array(&$arr1,&$arr2);
+	    self::_filter_key_val_list($arrs);
+	}
+	public static function filter_key_val_list3(&$arr1,&$arr2,&$arr3){
+	    $arrs=array(&$arr1,&$arr2,&$arr3);
+	    self::_filter_key_val_list($arrs);
+	}
+	public static function filter_key_val_list4(&$arr1,&$arr2,&$arr3,&$arr4){
+	    $arrs=array(&$arr1,&$arr2,&$arr3,&$arr4);
+	    self::_filter_key_val_list($arrs);
+	}
+	public static function filter_key_val_list5(&$arr1,&$arr2,&$arr3,&$arr4,&$arr5){
+	    $arrs=array(&$arr1,&$arr2,&$arr3,&$arr4,&$arr5);
+	    self::_filter_key_val_list($arrs);
 	}
 	
-	
-	public static function filter_key_val_list3(&$arr1,&$arr2,&$arr3){
-	    if(!is_array($arr1)){
-	        $arr1=array();
-	    }
-	    if(!is_array($arr2)){
-	        $arr2=array();
-	    }
-	    if(!is_array($arr3)){
-	        $arr3=array();
-	    }
-	    foreach ($arr1 as $k=>$v){
-	        if(empty($v)){
-	            
-	            unset($arr1[$k]);
-	            unset($arr2[$k]);
-	            unset($arr3[$k]);
+	private static function _filter_key_val_list(&$arrs){
+	    if(is_array($arrs)){
+	        
+	        $count=count($arrs);
+	        for($i=0;$i<$count;$i++){
+	            if(!is_array($arrs[$i])){
+	                $arrs[$i]=array();
+	            }
+	        }
+	        
+	        foreach ($arrs[0] as $k=>$v){
+	            if(self::is_null($v)){
+	                
+	                for($i=0;$i<$count;$i++){
+	                    unset($arrs[$i][$k]);
+	                }
+	            }
+	        }
+	        
+	        for($i=0;$i<$count;$i++){
+	            $arrs[$i]=array_values($arrs[$i]);
 	        }
 	    }
-	    $arr1=array_values($arr1);
-	    $arr2=array_values($arr2);
-	    $arr3=array_values($arr3);
 	}
 	
 	public static function array_array_map($callback, $arr1, array $_ = null){
@@ -199,20 +198,21 @@ class Funcs{
 	    if(!empty($passFiles)){
 	        $passFiles=is_array($passFiles)?array_map('realpath',$passFiles):array();
 	    }
-	    
-	    $fileList=scandir($path);
-	    foreach( $fileList as $file ){
-	        $fileName=realpath($path.'/'.$file);
-	        if(is_dir( $fileName ) && '.' != $file && '..' != $file ){
-	            if(empty($passFiles)||!in_array($fileName, $passFiles)){
-	                
-	                self::clear_dir($fileName,$passFiles);
-	                rmdir($fileName);
-	            }
-	        }elseif(is_file($fileName)){
-	            if(empty($passFiles)||!in_array($fileName, $passFiles)){
-	                
-	                unlink($fileName);
+	    if(file_exists($path)){
+	        $fileList=scandir($path);
+	        foreach( $fileList as $file ){
+	            $fileName=realpath($path.'/'.$file);
+	            if(is_dir( $fileName ) && '.' != $file && '..' != $file ){
+	                if(empty($passFiles)||!in_array($fileName, $passFiles)){
+	                    
+	                    self::clear_dir($fileName,$passFiles);
+	                    @rmdir($fileName);
+	                }
+	            }elseif(is_file($fileName)){
+	                if(empty($passFiles)||!in_array($fileName, $passFiles)){
+	                    
+	                    @unlink($fileName);
+	                }
 	            }
 	        }
 	    }
@@ -318,9 +318,7 @@ class Funcs{
 	    
 	    if($params&&is_array($params)){
 	        if(!empty($charset)&&!in_array(strtolower($charset),array('auto','utf-8','utf8'))){
-	            foreach ($params as $k=>$v){
-	                $params[$k]=iconv('utf-8',$charset.'//IGNORE',$v);
-	            }
+	            $params=\util\Funcs::convert_charset($params,'utf-8',$charset);
 	        }
 	        
 	        foreach ($params as $k=>$v){
@@ -410,6 +408,56 @@ class Funcs{
             }
             return $isMulti?$strList:$strList[0];
 	    }
+	}
+	
+	public static function class_exists_clean($className){
+	    ob_start();
+	    $status=class_exists($className);
+	    ob_end_clean();
+	    $status=$status?true:false;
+	    return $status;
+	}
+	
+	public static function is_null($val){
+	    if(!empty($val)||$val===0||$val==='0'||$val===0.0||$val==='0.0'){
+	        return false;
+	    }else{
+	        return true;
+	    }
+	}
+	
+	public static function convert_charset($data,$from,$to){
+	    static $utfChars=array('utf-8','utf8','utf8mb4');
+	    if($from&&$to){
+	        
+	        $from=strtolower($from);
+	        $to=strtolower($to);
+    	    if($from!=$to){
+    	        
+    	        if(in_array($from,$utfChars)){
+    	            $from='utf-8';
+    	        }
+    	        if(in_array($to,$utfChars)){
+    	            $to='utf-8';
+    	        }
+    	        if($from!=$to){
+    	            
+    	            if(!empty($data)){
+    	                
+    	                if(is_array($data)){
+    	                    
+    	                    foreach ($data as $k=>$v){
+    	                        $data[$k]=self::convert_charset($v, $from, $to);
+    	                    }
+    	                }else{
+    	                    
+    	                    $data=iconv($from,$to.'//IGNORE',$data);
+    	                }
+    	            }
+    	        }
+    	    }
+	    }
+	    return $data;
 	}
 }
 

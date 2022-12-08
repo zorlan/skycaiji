@@ -20,7 +20,7 @@ function isNull(str){var space=/^[\s\r\n]*$/;if(space.test(str)||str==null||str=
 function isObject(data){if(data&&typeof(data)=='object'){return!0}else{return!1}}
 function toInt(val){val=val?val:0;val=parseInt(val);if(isNaN(val)){val=0}
 return val}
-function dataIsJson(data){if((/^\{(.+\:.+,*){1,}\}$/).test(data)||(/^\[(.+,*)+\]$/).test(data)){return!0}else{return!1}}
+function dataIsJson(data){if((/^\{[\s\S]*\}$/).test(data)||(/^\[[\s\S]*\]$/).test(data)){return!0}else{return!1}}
 function dataIsHtml(data){if((/<\w+[^<>]*>/).test(data)){return!0}else{return!1}}
 function ajaxOpen(settings){if(settings.type&&'post'==settings.type.toLowerCase()){if(window.site_config){var regToken=new RegExp("_usertoken_\\s*=",'i');if(!regToken.test(settings.url)){var usertoken=window.site_config.usertoken;var data=settings.data;if(isNull(data)){data={'_usertoken_':usertoken}}else{if(typeof(data)=='object'){data._usertoken_=usertoken}else{if(!regToken.test(data)){data+='&_usertoken_='+encodeURIComponent(usertoken)}}}
 settings.data=data}}}
@@ -40,7 +40,7 @@ options.full_height=1;modal(title,'<div class="loading" style="margin:10px;"></d
 function execVarFuncs(funcs){if(!isNull(funcs)){if(typeof(funcs)=='function'){funcs()}else if(typeof(funcs)=='object'){for(var i in funcs){var func=funcs[i];if(typeof(func)=='function'){func()}}}}}
 function ajaxDataMsg(data){if(typeof data=='string'){data=eval('('+data+')')}
 if(data.code==1){toastr.success(data.msg)}else{toastr.error(data.msg)}
-if(data.url){window.setTimeout("window.location.href='"+data.url+"';",2500)}}
+if(data.url){window.setTimeout("window.location.href='"+data.url+"';",2000)}}
 function checkall(obj,chkName){var status=$(obj).is(":checked")?true:!1;$("input[name='"+chkName+"']:checkbox").prop('checked',status)}
 function url_base64encode(str){str=Base64.encode(str);str=str.replace(/\+/g,'-').replace(/\//g,'_').replace(/\=/g,'');return str}
 function url_base64decode(str){str=str.replace(/\-/g,'+').replace(/\_/g,'/');var mod4=str.length%4;if(mod4){str+=('====').substr(mod4)}

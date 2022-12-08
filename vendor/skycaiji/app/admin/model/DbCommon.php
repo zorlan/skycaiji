@@ -11,6 +11,7 @@
 
 namespace skycaiji\admin\model;
 use think\Db;
+use think\db\Query;
 /*动态操作数据库*/
 
 
@@ -36,12 +37,10 @@ class DbCommon{
     		
     		$this->config['params'][\PDO::ATTR_PERSISTENT]=true;
     	}
-    	
     	if(isset($config['fields_strict'])){
     		
     		$this->config['fields_strict']=$config['fields_strict'];
     	}
-    	
     	if($this->config['type']=='mysqli'){
     		
     		$this->config['type']='mysql';
@@ -62,7 +61,7 @@ class DbCommon{
     		$config=$this->config;
     		if($config['type']=='oracle'){
     			
-    			$config['type']='\think\oracle\Connection';
+    			$config['type']='\\skycaiji\\admin\\model\\DbOracleConnection';
     		}
     		if($compatible){
     			
@@ -187,4 +186,43 @@ class DbCommon{
     }
 }
 
+
+class DbOracle extends \think\oracle\Connection{
+    public function getLastInsID($sequence = null){
+        if ($sequence) {
+            return parent::getLastInsID($sequence);
+        }
+        return 0;
+    }
+}
+
+
+class DbOracleConnection extends \think\oracle\Connection{
+    public function getLastInsID($sequence = null){
+        if ($sequence) {
+            return parent::getLastInsID($sequence);
+        }
+        return 0;
+    }
+    
+    public function execute($sql, $bind = [], Query $query = null){
+        $seqStr='#sequence:';
+        foreach ($bind as $dataKey=>$dataVal){
+            if(is_array($dataVal)){
+                $dataVal=$dataVal[0];
+            }
+            if(strpos($dataVal,$seqStr)===0){
+                
+                $seqVal='';
+                if(preg_match('/'.$seqStr.'(.*?)#/i',$dataVal,$seqVal)){
+                    $seqVal=$seqVal[1];
+                    $seqVal=$seqVal.'.nextval';
+                }
+                $sql=preg_replace('/\:'.$dataKey.'\b(\s*[\,\)])/',$seqVal."$1",$sql);
+                unset($bind[$dataKey]);
+            }
+        }
+        return parent::execute($sql,$bind,$query);
+    }
+}
 ?>

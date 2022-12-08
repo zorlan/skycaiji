@@ -21,20 +21,10 @@ class Index extends BaseController{
 		if(session_status()!==PHP_SESSION_ACTIVE){
 			session_start();
 		}
-		
 		$lockFile=config('root_path').'/data/install.lock';
-		$lockFileOld=config('app_path').'/install/data/install.lock';
-		$hasLockFile=null;
 		if(file_exists($lockFile)){
 		    
-		    $hasLockFile=$lockFile;
-		}elseif(file_exists($lockFileOld)){
-		    $hasLockFile=$lockFileOld;
-		}
-		
-		if($hasLockFile){
-		    
-		    $this->success('程序已安装，如需重新安装请删除文件：'.realpath($hasLockFile),'admin/index/index',[],10);
+		    $this->success('程序已安装，如需重新安装请删除文件：'.realpath($lockFile),'admin/index/index',[],10);
 		}
 	}
 	public function indexAction(){

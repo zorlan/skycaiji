@@ -18,112 +18,6 @@ class CpatternBase extends CollectBase{
     public function init($config){}
     public function collect($num=10){}
     
-    
-    /**
-     * 匹配根目录
-     * @param string $url 完整的网址
-     * @param string $html 页面源码
-     * @return Ambigous <NULL, string>
-     */
-    public function match_base_url($url,$html){
-        
-        if(!empty($html)&&preg_match('/<base\b[^<>]*\bhref\s*=\s*[\'\"](?P<base>[^\'\"]*)[\'\"]/i',$html,$base_url)){
-            $base_url=$base_url['base'];
-            if(!preg_match('/^\w+\:\/\//', $base_url)){
-                
-                $urlBase=$this->match_base_url($url, null);
-                $urlDomain=$this->match_domain_url($url);
-                $base_url=$this->create_complete_url($base_url, $urlBase, $urlDomain);
-            }
-        }else{
-            
-            $base_url=preg_replace('/[\#\?].*$/', '', $url);
-        }
-        if(!preg_match('/\/$/', $base_url)){
-            
-            
-            if(preg_match('/(^\w+\:\/\/[^\/]+)(.*$)/',$base_url,$mbase)){
-                
-                $mbase[2]=preg_replace('/[^\/]+$/', '', $mbase[2]);
-                $base_url=$mbase[1].$mbase[2];
-            }
-        }
-        $base_url=rtrim($base_url,'/');
-        
-        return $base_url?$base_url:null;
-    }
-    /**
-     * 匹配域名
-     * @param string $url 完整的网址
-     * @return NULL|string
-     */
-    public function match_domain_url($url){
-        
-        $domain_url=null;
-        if(preg_match('/^\w+\:\/\/([\w\-]+\.){1,}[\w]+/',$url,$domain_url)){
-            $domain_url=rtrim($domain_url[0],'/');
-        }else{
-            $domain_url=null;
-        }
-        return empty($domain_url)?null:$domain_url;
-    }
-    /**
-     * 生成完整网址
-     * @param string $url 要填充的网址
-     * @param string $base_url 根目录网址
-     * @param string $domain_url 域名
-     */
-    public function create_complete_url($url,$base_url,$domain_url){
-        static $base_domain=array();
-        
-        if(preg_match('/^\w+\:/', $url)){
-            
-            return $url;
-        }elseif(strpos($url,'//')===0){
-            
-            $url=(stripos($base_url, 'https://')===0?'https:':'http:').$url;
-        }elseif(strpos($url,'/')===0){
-            
-            $curDomain='';
-            if($base_url){
-                $baseMd5=md5($base_url);
-                if(!isset($base_domain[$baseMd5])){
-                    $base_domain[$baseMd5]=$this->match_domain_url($base_url);
-                }
-                $curDomain=$base_domain[$baseMd5];
-            }
-            $curDomain=empty($curDomain)?rtrim($domain_url,'/'):$curDomain;
-            $url=$curDomain.'/'.ltrim($url,'/');
-        }elseif(stripos($url,'javascript')===0||stripos($url,'#')===0||$url==''){
-            
-            $url='';
-        }elseif(!preg_match('/^\w+\:\/\//', $url)){
-            
-            $url=$base_url.'/'.ltrim($url,'/');
-        }
-        
-        if(!empty($url)&&preg_match('/\/(\.){1,2}\//', $url)){
-            
-            if(preg_match('/(^\w+\:\/\/(?:[\w\-]+\.){1,}[\w]+\/)([^\?\#]+)(.*$)/',$url,$murl)){
-                
-                $paths=explode('/', $murl[2]);
-                $newPaths=array();
-                foreach ($paths as $k=>$v){
-                    if($v=='..'){
-                        
-                        array_pop($newPaths);
-                    }elseif($v!='.'){
-                        
-                        $newPaths[]=$v;
-                    }
-                }
-                $url=$murl[1].implode('/', $newPaths).$murl[3];
-            }
-        }
-        
-        return $url;
-    }
-    
     /*正则规则匹配数据*/
     public function rule_module_rule_data($configParams,$html,$parentMatches=array(),$whole=false,$returnMatch=false){
         $val=null;
@@ -651,6 +545,7 @@ class CpatternBase extends CollectBase{
         if(is_array($processList)){
             $processList=\util\Funcs::array_array_map('trim',$processList);
             foreach ($processList as $k=>$v){
+                init_array($v);
                 $v['module']=strtolower($v['module']);
                 if(!empty($v['title'])){
                     $v['title']=str_replace(array("'",'"'),'',strip_tags($v['title']));
@@ -668,20 +563,22 @@ class CpatternBase extends CollectBase{
                     $v['filter_list']=trim($v['filter_list']);
                 }elseif('api'==$v['module']){
                     
-                    if(!is_array($v['api_params'])){
-                        $v['api_params']=array();
-                    }
+                    init_array($v['api_params']);
                     \util\Funcs::filter_key_val_list3($v['api_params']['name'],$v['api_params']['val'],$v['api_params']['addon']);
                     
-                    if(!is_array($v['api_headers'])){
-                        $v['api_headers']=array();
-                    }
+                    init_array($v['api_headers']);
                     \util\Funcs::filter_key_val_list3($v['api_headers']['name'],$v['api_headers']['val'],$v['api_headers']['addon']);
+                }elseif('tool'==$v['module']){
+                    init_array($v['tool_list']);
+                }elseif('if'==$v['module']){
+                    init_array($v['if_addon']);
+                    \util\Funcs::filter_key_val_list5($v['if_cond'],$v['if_logic'],$v['if_val'],$v['if_addon']['func'],$v['if_addon']['turn']);
                 }
                 $processList[$k]=$v;
             }
             $processList=array_values($processList);
         }
+        init_array($processList);
         return $processList;
     }
     
@@ -740,6 +637,22 @@ class CpatternBase extends CollectBase{
             $pnConfig['max']=intval($pnConfig['max']);
             $pageConfig['pagination']=$pnConfig;
         }
+        
+        
+        $renderer=$pageConfig['renderer'];
+        init_array($renderer);
+        \util\Funcs::filter_key_val_list3($renderer['types'], $renderer['elements'], $renderer['contents']);
+        foreach ($renderer['types'] as $k=>$v){
+            if(!$this->renderer_type_has_option($v, 'element')){
+                
+                $renderer['elements'][$k]='';
+            }
+            if(!$this->renderer_type_has_option($v, 'content')){
+                
+                $renderer['contents'][$k]='';
+            }
+        }
+        $pageConfig['renderer']=$renderer;
         
         return $pageConfig;
     }
@@ -984,6 +897,18 @@ class CpatternBase extends CollectBase{
         }
         return array($type,$name);
     }
+    
+    public function renderer_type_has_option($type,$checkOption){
+        $types=array(
+            'wait_time'=>array('content'=>true),
+            'scroll_top'=>array('content'=>true),
+            'click'=>array('element'=>true),
+            'val'=>array('element'=>true,'content'=>true),
+        );
+        $options=$types[$type];
+        init_array($options);
+        return $options[$checkOption]?true:false;
+    }
     /*多个数组合并成键值对*/
     public function arrays_to_key_val($arr1,$arr2){
         if(!is_array($arr1)){
@@ -1000,7 +925,7 @@ class CpatternBase extends CollectBase{
         if(!isset($data)){
             $data=array();
             foreach ($arr1 as $k=>$v){
-                if(!empty($v)){
+                if(!\util\Funcs::is_null($v)){
                     
                     $data[$v]=$arr2[$k];
                 }
@@ -1042,35 +967,15 @@ class CpatternBase extends CollectBase{
                 
                 $tips=($result['error']?('：'.$result['error']):'');
                 
-                if($retryMax<=0||($retryCur<=0&&$this->is_collecting())){
-                    
-                    $this->echo_error('数据处理»翻译失败'.$tips);
-                }
+                $this->retry_first_echo($retryCur,'数据处理»翻译失败'.$tips);
                 
                 $this->collect_sleep($transConf['wait']);
                 
-                if($retryMax>0){
+                if($this->retry_do_func($retryCur,$retryMax,'翻译无效','翻译无效'.$tips)){
                     
-                    if($retryCur<$retryMax){
-                        
-                        $retryCur++;
-                        if($this->is_collecting()){
-                            
-                            $this->echo_msg(array('%s第%s次',$retryCur>1?' / ':'重试：',$retryCur),'black',true,'','display:inline;'.($retryCur==$retryMax?'margin-right:5px;':''));
-                        }
-                        
-                        return $this->execute_translate($retryParams[0],$retryParams[1],$retryParams[2]);
-                    }else{
-                        $retryCur=0;
-                        
-                        if($this->is_collecting()){
-                            $this->echo_msg('翻译无效','red',true,'','display:inline;margin-right:5px;');
-                        }else{
-                            
-                            $this->echo_error('数据处理»翻译：已重试'.$retryMax.'次，翻译无效'.$tips);
-                        }
-                    }
+                    return $this->execute_translate($retryParams[0],$retryParams[1],$retryParams[2]);
                 }
+                
                 $result='';
             }
         }
@@ -1096,12 +1001,18 @@ class CpatternBase extends CollectBase{
         return $return['data'];
     }
     
-    public function page_url_web_opened($urlWebConfig){
-        if(is_array($urlWebConfig)&&!empty($urlWebConfig['open'])){
-            return true;
+    public function page_url_web_opened($urlWebConfig,$paginationConfig=null){
+        $opened=false;
+        if($paginationConfig&&is_array($paginationConfig)&&$paginationConfig['use_url_web']){
+            
+            $opened=$paginationConfig['use_url_web']=='y'?true:false;
         }else{
-            return false;
+            
+            if($urlWebConfig&&is_array($urlWebConfig)&&!empty($urlWebConfig['open'])){
+                $opened=true;
+            }
         }
+        return $opened;
     }
 }
 ?>

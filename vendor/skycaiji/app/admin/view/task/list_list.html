@@ -3,18 +3,18 @@
 <script src="__PUBLIC__/static/js/admin/tasks.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
-{php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'倒序'));{/php}
+{php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'降序'));{/php}
 <div class="box">
 	<div class="box-body">
 		<form id="form_list" method="post" ajax-submit="true" action="{:url('task/op')}">
 		{:html_usertoken()}
 		<input type="hidden" name="show" value="list" /> 
 		<input type="hidden" name="op" value="saveall" />
-		<div class="table-responsive">
+		<div class="table-responsive" style="border:0;">
 		<table id="task_list" class="table table-hover datatable">
 			<thead>
 	            <tr>
-					<th class="sorting{$orderClass['sort']}" data-order="sort" title="排序{$orderSort['sort']}" width="80">{$Think.lang.sort}</th>
+					<th class="sorting{$orderClass['sort']}" data-order="sort" title="排序{$orderSort['sort']}">{$Think.lang.sort}</th>
 	                <th class="sorting{$orderClass['name']}" data-order="name" title="{$orderSort['name']}">{$Think.lang.task_name}</th>
 	                <th class="sorting{$orderClass['tg_id']}" data-order="tg_id" title="{$orderSort['tg_id']}">{$Think.lang.task_tg}</th>
 	                <th class="sorting{$orderClass['auto']}" data-order="auto" title="{$orderSort['auto']}" style="min-width:90px;">{$Think.lang.task_auto}</th>

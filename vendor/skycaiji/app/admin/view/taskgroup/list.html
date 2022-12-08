@@ -6,11 +6,12 @@
 		<form id="form_list" method="post" ajax-submit="true" action="{:url('taskgroup/op')}">
 		{:html_usertoken()}
 		<input type="hidden" name="op" value="saveall" />
+		<div class="table-responsive" style="border:0;">
 		<table id="list_table" class="table table-hover datatable">
 			<thead>
 				<tr>
-					<th width="50" class="chk">{$Think.lang.select}</th>
-					<th width="80">{$Think.lang.sort}</th>
+					<th class="chk">{$Think.lang.select}</th>
+					<th>{$Think.lang.sort}</th>
 					<th>{$Think.lang.taskgroup_name}</th>
 					<th>{$Think.lang.op}</th>
 				</tr>
@@ -36,7 +37,7 @@
 			</tbody>
 			<tfoot>
 				<tr>
-					<td class="chk"><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" /></td>
+					<td class="chk"><label class="chk-all"><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" /><span>全部</span></label></td>
 					<td colspan="2">
 						<button type="submit" class="btn btn-primary">{$Think.lang.save}</button>
 						<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
@@ -46,6 +47,7 @@
 				</tr>
 			</tfoot>
 		</table>
+		</div>
 		</form>
 		{$pagenav}
 	</div>

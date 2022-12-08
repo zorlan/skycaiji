@@ -184,7 +184,10 @@ class Rcms extends Release{
 			'catfish'=>'application/catfishajax/controller/Index.php',
 			'pboot'=>'data/pbootcms.db',
 			'yzmcms'=>'yzmphp/yzmphp.php',
-			'chanzhi'=>'js/chanzhi.all.js',
+		    'chanzhi'=>'js/chanzhi.all.js',
+		    'eyoucms'=>'core/library/think/template/taglib/Eyou.php',
+		    'xunruicms'=>'static/assets/global/css/xunruicms.css',
+		    'dedebiz'=>'system/libraries/dedebiz.class.php',
 		);
 		return $files;
 	}

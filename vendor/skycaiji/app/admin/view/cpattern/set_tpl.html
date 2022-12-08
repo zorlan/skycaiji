@@ -42,6 +42,45 @@
 			</td>
 			<td><a href="javascript:;" class="glyphicon glyphicon-remove delete-url-web-header"></a></td>
 		</tr>
+		<tr id="coll_tpl_url_renderer">
+			<td class="td-renderer-type" colspan="3">
+				<select class="form-control" data-name="[renderer][types][]">
+					<option value="">--请选择--</option>
+					<option value="wait_end">等待页面完全渲染</option>
+					<option value="wait_time">等待时间（秒）</option>
+					<option value="scroll_half">滚动到中间</option>
+					<option value="scroll_end">滚动到底部</option>
+					<option value="scroll_top">滚动到指定位置</option>
+					<option value="val">赋值</option>
+					<option value="click">点击</option>
+				</select>
+			</td>
+			<td class="td-renderer-element">
+				<div class="input-group">
+		   			<span class="input-group-addon">元素</span>
+					<input type="text" class="form-control" data-name="[renderer][elements][]" autocomplete="off" placeholder="输入xpath" />
+				</div>
+			</td>
+			<td class="td-renderer-content">
+				<div class="input-group c-p-url-page-signs" data-page-type="" data-input-name="[renderer][contents][]">
+		   			<span class="input-group-addon">内容</span>
+					<input type="text" data-merge-type="url" class="form-control" data-name="[renderer][contents][]" autocomplete="off" placeholder="" />
+					<div class="input-group-addon">
+		    			<a href="javascript:;" title="调用全局内容标签" role="button" class="dropdown-toggle btn-page-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			            	<span style="font-size:12px;">{:cp_sign('match','N')}</span>
+			            	<span class="caret"></span>
+			            </a>
+						<div class="dropdown-menu dropdown-menu-right"></div>
+		    		</div>
+				</div>
+			</td>
+			<td class="td-renderer-op">
+				<div class="input-group">
+					<div class="input-group-addon"><a href="javascript:;" class="glyphicon icon-drag-move" title="移动"></a></div>
+					<div class="input-group-addon"><a href="javascript:;" class="glyphicon glyphicon-remove delete-url-renderer" title="删除"></a></div>
+				</div>
+			</td>
+		</tr>
 		<tr id="coll_tpl_front_url">
 			<td><a href="javascript:;" class="name" data-val=""></a></td>
 			<td class="sign"><input type="text" class="form-control signs" readonly="true" /></td>

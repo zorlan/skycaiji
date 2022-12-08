@@ -363,5 +363,40 @@ EOF;
 	        db()->execute($addTable);
 	    }
 	}
+	public function upgrade_db_to_2_5_2(){
+	    $db_prefix=config('database.prefix');
+	    $proxy_group_table=$db_prefix.'proxy_group';
+	    $exists=db()->query("show tables like '{$proxy_group_table}'");
+	    if(empty($exists)){
+	        
+	        $addTable=<<<EOF
+CREATE TABLE `{$proxy_group_table}` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `parent_id` int(11) NOT NULL DEFAULT '0',
+  `sort` mediumint(9) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
+EOF;
+	        db()->execute($addTable);
+	    }
+	    $columns_proxyip=db()->query("SHOW COLUMNS FROM `{$db_prefix}proxy_ip`");
+	    if(!$this->check_exists_field('group_id', $columns_proxyip)){
+	        
+	        db()->execute("alter table `{$db_prefix}proxy_ip` add `group_id` int(11) NOT NULL DEFAULT '0'");
+	    }
+	    $indexes_proxyip=db()->query("SHOW INDEX FROM `{$db_prefix}proxy_ip`");
+	    if(!$this->check_exists_index('gid_no', $indexes_proxyip)){
+	        
+	        db()->execute("ALTER TABLE `{$db_prefix}proxy_ip` ADD INDEX gid_no ( `group_id`,`no` )");
+	    }
+	    
+	    
+	    $lockFileOld1=config('root_path').'/SkycaijiApp/install/data/install.lock';
+	    $lockFileOld2=config('app_path').'/install/data/install.lock';
+	    if(file_exists($lockFileOld1)||file_exists($lockFileOld2)){
+	        write_dir_file(config('root_path').'/data/install.lock', '1');
+	    }
+	}
 }
 ?>

@@ -9,11 +9,6 @@
 	{include file="setting/caiji_nav" /}
 	<div class="tab-content">
 		<div class="tab-pane active" style="padding:0px 5px;">
-			<input type="hidden" name="ips" value="" />
-			<input type="hidden" name="ip_list" value="" />
-			<input type="hidden" name="user_list" value="" />
-			<input type="hidden" name="pwd_list" value="" />
-			<input type="hidden" name="type_list" value="" />
       		<div class="form-group">
 		        <label>全局开启</label>
 		        <div class="input-group">
@@ -23,6 +18,16 @@
 		        <p class="help-block">采集页面和下载图片时使用代理设置，可单独在任务»更多设置中控制开关</p>
 		    </div>
 		    <div id="proxy_open" class="proxy-ip-box">
+				<div class="form-group">
+		        	<label>使用分组IP <small><a href="javascript:;" class="edit-proxy-groups">管理分组</a></small></label>
+	      			<select class="form-control" name="group_id">
+		      			<option value="0">全部</option>
+						{foreach $proxyGroups as $proxyGroup}
+						<option value="{$proxyGroup['id']}">{$proxyGroup['name']}</option>
+						{/foreach}
+	      			</select>
+					<p class="help-block">使用所选分组中的代理ip，默认全部</p>
+			    </div>
 			    <div class="form-group">
 		        	<label>失败多少次屏蔽该IP</label>
 					<input type="number" class="form-control" name="failed" />
@@ -82,7 +87,7 @@
 				<div class="panel-heading">
 					<div class="panel-title" style="width:auto;overflow:hidden;">
 						<a data-toggle="collapse" data-parent="#proxy_api_box" class="p-api-title">接口<small></small></a>
-						<div style="float:right;font-size:14px;">
+						<div style="float:right;font-size:12px;padding-top:3px;">
 							<a href="javascript:;" class="glyphicon icon-drag-move p-api-move"></a>
 							<a href="javascript:;" class="glyphicon glyphicon-remove p-api-delete"></a>
 						</div>
@@ -130,6 +135,15 @@
 							</div>
 							<p class="help-block">当未匹配到用户名时，使用默认设置</p>
 						</div>
+					    <div class="form-group">
+							<label>代理分组</label>
+							<select data-name="api_group_id" class="form-control">
+								<option value="0">无</option>
+								{foreach $proxyGroups as $proxyGroup}
+								<option value="{$proxyGroup['id']}">{$proxyGroup['name']}</option>
+								{/foreach}
+							</select>
+						</div>
 						<div class="form-group">
 							<button type="button" class="btn btn-default btn-api-test">测试抓取IP</button>
 						</div>
@@ -150,6 +164,7 @@
 	      		<li><a href="javascript:;" id="add_proxy_ip" class="glyphicon glyphicon-plus" title="添加">添加</a></li>
 	      		<li><a href="javascript:;" id="batch_proxy_ip" class="glyphicon glyphicon-th" title="批量添加">批量</a></li>
 	      		<li><a href="javascript:;" id="invalid_proxy_ip" class="glyphicon glyphicon glyphicon-erase" title="一键清理无效IP">清理无效IP</a></li>
+				<li><a href="javascript:;" class="glyphicon glyphicon-menu-hamburger edit-proxy-groups" title="管理分组">管理分组</a></li>
 			</ul>
     	</div>
    	</div>

@@ -3,45 +3,7 @@
 <script type="text/javascript" src="__PUBLIC__/static/js/admin/proxy.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
-<div style="border-bottom:1px solid #ddd;padding:10px 0;">
-	<form id="form_search" method="post" action="{:url('proxy/list')}" class="form-inline">
-	{:html_usertoken()}	
-		<div class="form-group form-group-sm">
-			<label>每页显示</label>
-		    <select name="num" class="form-control">
-			    <option value="100">100条</option>
-			    <option value="200">200条</option>
-			    <option value="500">500条</option>
-			    <option value="1000">1000条</option>
-		    </select>
-	    </div>
-		<div class="form-group form-group-sm">
-        	<input type="text" name="ip" class="form-control" placeholder="IP（选填）" />
-	    </div>
-		<div class="form-group form-group-sm">
-        	<input type="text" name="user" class="form-control" placeholder="用户名（选填）" />
-	    </div>
-		<div class="form-group form-group-sm">
-        	<input type="text" name="pwd" class="form-control" placeholder="密码（选填）" />
-	    </div>
-	    <div class="form-group form-group-sm">
-	    	<select name="type" class="form-control" style="width:95px;">
-	    		<option value="all">类型</option>
-				{foreach $proxyTypes as $k=>$v}
-				<option value="{$v}">{$k}</option>
-				{/foreach}
-			</select>
-	    </div>
-		<div class="form-group form-group-sm">
-		    <select name="invalid" class="form-control">
-			    <option value="all">状态</option>
-			    <option value="0">有效</option>
-			    <option value="1">无效</option>
-		    </select>
-	    </div>
-        <button type="submit" class="btn btn-default btn-sm">{$Think.lang.search}</button>
-	</form>
-</div>
+<div class="row">
 <form id="form_list" method="post" ajax-submit="true" action="{:url('proxy/op')}">
 {:html_usertoken()}	
 	<input type="hidden" name="op" value="" />
@@ -51,25 +13,17 @@
 	<input type="hidden" name="user_list" value="" />
 	<input type="hidden" name="pwd_list" value="" />
 	<input type="hidden" name="type_list" value="" />
-	<div class="table-responsive proxy-ip-list">
-	<table id="list_table" class="table table-hover datatable">
+	<input type="hidden" name="gid_list" value="" />
+	<div class="table-responsive proxy-ip-list" style="border:0;">
+	<table id="list_table" class="table table-hover datatable" style="margin-top:5px;margin-bottom:0;">
 		<thead>
 			<tr>
-				<td class="chk"><label><input type="checkbox" class="check-all-ip" /> 全部</label></td>
-				<td>
-					<div class="in-line-mg"><button type="button" class="btn btn-xs btn-danger delete-all-ip">{$Think.lang.delete}</button></div>
-					<div class="in-line-mg"><button type="button" class="btn btn-xs btn-success update-all-ip">修改</button></div>
-				</td>
-				{if condition="!empty($pagenav)"}
-				<td colspan="6">{$pagenav}</td>
-				{/if}
-			</tr>
-			<tr>
-				<th width="60" class="chk">{$Think.lang.select}</th>
+				<th class="chk">{$Think.lang.select}</th>
 				<th colspan="2">IP（带端口）</th>
 				<th>用户名（选填）</th>
 				<th>密码（选填）</th>
 				<th>类型</th>
+				<th>分组</th>
 				<th>添加时间</th>
 				<th>{$Think.lang.op}</th>
 			</tr>
@@ -97,6 +51,14 @@
 						{/foreach}
 					</select>
 				</td>
+				<td>
+					<select class="form-control" data-name="gid_list[]">
+						<option value="0">无</option>
+						{foreach $proxyGroups as $proxyGroup}
+						<option value="{$proxyGroup['id']}"{if $proxyGroup['id']==$item['group_id']} selected="selected"{/if}>{$proxyGroup['name']}</option>
+						{/foreach}
+					</select>
+				</td>
 				<td class="p-top">{:date('Y-m-d H:i',$item['addtime'])}</td>
 				<td class="p-top"><a href="javascript:;" class="glyphicon glyphicon-remove op-delete"></a></td>
 			</tr>
@@ -104,10 +66,10 @@
 		</tbody>
 		<tfoot>
 			<tr>
-				<td class="chk"><label><input type="checkbox" class="check-all-ip" /> 全部</label></td>
+				<td class="chk"><label class="chk-all"><input type="checkbox" class="check-all-ip" /><span>全部</span></label></td>
 				<td>
-					<div class="in-line-mg"><button type="button" class="btn btn-xs btn-danger delete-all-ip">{$Think.lang.delete}</button></div>
-					<div class="in-line-mg"><button type="button" class="btn btn-xs btn-success update-all-ip">修改</button></div>
+					<div class="in-line-mg"><button type="button" class="btn btn-danger delete-all-ip">{$Think.lang.delete}</button></div>
+					<div class="in-line-mg"><button type="button" class="btn btn-success update-all-ip">修改</button></div>
 				</td>
 				{if condition="!empty($pagenav)"}
 				<td colspan="6">{$pagenav}</td>
@@ -117,6 +79,54 @@
 	</table>
 	</div>
 </form>
+<div style="border-top:1px solid #ddd;padding:15px;">
+	<form id="form_search" method="post" action="{:url('proxy/list')}" class="form-inline">
+	{:html_usertoken()}	
+		<div class="form-group form-group-sm">
+			<label>每页显示</label>
+		    <select name="num" class="form-control">
+			    <option value="100">100条</option>
+			    <option value="200">200条</option>
+			    <option value="500">500条</option>
+			    <option value="1000">1000条</option>
+		    </select>
+	    </div>
+		<div class="form-group form-group-sm">
+        	<input type="text" name="ip" class="form-control" placeholder="IP（选填）" />
+	    </div>
+		<div class="form-group form-group-sm">
+        	<input type="text" name="user" class="form-control" placeholder="用户名（选填）" />
+	    </div>
+		<div class="form-group form-group-sm">
+        	<input type="text" name="pwd" class="form-control" placeholder="密码（选填）" />
+	    </div>
+	    <div class="form-group form-group-sm">
+	    	<select name="type" class="form-control">
+	    		<option value="all">类型</option>
+				{foreach $proxyTypes as $k=>$v}
+				<option value="{$v}">{$k}</option>
+				{/foreach}
+			</select>
+	    </div>
+		<div class="form-group form-group-sm">
+		    <select name="invalid" class="form-control">
+			    <option value="all">状态</option>
+			    <option value="0">有效</option>
+			    <option value="1">无效</option>
+		    </select>
+	    </div>
+		<div class="form-group form-group-sm">
+		    <select name="group_id" class="form-control">
+		    	<option value="all">分组</option>
+			    {foreach $proxyGroups as $proxyGroup}
+				<option value="{$proxyGroup['id']}">{$proxyGroup['name']}</option>
+				{/foreach}
+		    </select>
+	    </div>
+        <button type="submit" class="btn btn-default btn-sm">{$Think.lang.search}</button>
+	</form>
+</div>
+</div>
 <script type="text/javascript">
 window.proxyClass.init_list({$search|json_encode});
 </script>

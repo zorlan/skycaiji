@@ -128,7 +128,29 @@
 		</div>
 	</div>
 </div>
-
+<div class="panel panel-default">
+	<div class="panel-heading">
+    	<h4 class="panel-title"><a data-toggle="collapse" href="#panel_others" aria-expanded="false" class="collapsed">更多设置</a></h4>
+   	</div>
+    <div class="panel-collapse collapse" id="panel_others">
+    	<div class="panel-body">
+		    <div class="form-group">
+		        <label>网址解析IP类型</label>
+		        <select name="ip_resolve" class="form-control">
+		        	<option value="">系统默认</option>
+		        	<option value="ipv4">IPv4</option>
+		        	<option value="ipv6">IPv6</option>
+		        </select>
+		        <p class="help-block">网址解析时使用的IP类型，如果本地服务器启用了IPv6解析，但目标网站不支持IPv6会导致采集速度变慢，建议设置为IPv4，注意：如设为IPv6但目标网站不支持IPv6会导致无法采集</p>
+		    </div>
+		    <div class="form-group">
+		        <label>网址重定向次数</label>
+		        <input type="number" name="max_redirs" class="form-control" value="{$caijiConfig['max_redirs']|intval}">
+		        <p class="help-block">最多允许网址重定向多少次，留空或0表示不限制</p>
+		    </div>
+    	</div>
+    </div>
+</div>
 <div class="form-group">
 	<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
 </div>

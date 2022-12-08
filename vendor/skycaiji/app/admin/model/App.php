@@ -113,6 +113,7 @@ class App extends \skycaiji\common\model\BaseModel{
 	}
 	/*清理描述html*/
 	public function clear_desc($desc){
+	    $desc=$desc?:'';
 		$desc=strip_tags($desc,'<p><br><b><i><a>');
 		$desc=preg_replace('/<(p|br|b|i)\s+.*?>/i', "<$1>", $desc);
 		$desc=preg_replace('/[\r\n]+/', ' ', $desc);

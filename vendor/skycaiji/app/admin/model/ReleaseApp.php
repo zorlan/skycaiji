@@ -13,8 +13,6 @@ namespace skycaiji\admin\model;
 
 use think\Loader;
 class ReleaseApp extends \skycaiji\common\model\BaseModel{
-	protected $tableName='release_app';
-	
 	public function addCms($cms,$code='',$tpl=''){
 		if(empty($cms['app'])){
 			return false;
@@ -23,11 +21,10 @@ class ReleaseApp extends \skycaiji\common\model\BaseModel{
 		$cms['module']='cms';
 		$cms['uptime']=$cms['uptime']>0?$cms['uptime']:time();
 		
-		if(!preg_match('/^([A-Z][a-z0-9]*){3}$/',$cms['app'])){
-			
-			return false;
+		if(!$this->isRightApp($cms['app'], 'cms')){
+		    
+		    return false;
 		}
-		
 		$codeFmt=\util\Funcs::strip_phpcode_comment($code);
 		
 		if(!preg_match('/^\s*namespace\s+plugin\\\release\b/im',$codeFmt)){
@@ -67,19 +64,45 @@ class ReleaseApp extends \skycaiji\common\model\BaseModel{
 		return $success;
 	}
 	
-	public function appFileName($appName,$model='cms'){
-		$model=strtolower($model);
+	public function appFileName($appName,$module='cms'){
+		$module=strtolower($module);
 		$appName=ucfirst($appName);
-		return config('plugin_path').'/release/'.$model.'/'.$appName.'.php';
+		return config('plugin_path').'/release/'.$module.'/'.$appName.'.php';
 	}
-	public function appFileExists($appName,$model='cms'){
-		$fileName=$this->appFileName($appName,$model);
+	public function appFileExists($appName,$module='cms'){
+		$fileName=$this->appFileName($appName,$module);
 		return file_exists($fileName)?true:false;
 	}
-	public function appImportClass($appName,$model='cms'){
-		$cmsClass='\\plugin\\release\\'.strtolower($model).'\\'.ucfirst($appName);
-		$cmsClass=new $cmsClass();
+	public function appImportClass($appName,$module='cms'){
+		$cmsClass='\\plugin\\release\\'.strtolower($module).'\\'.ucfirst($appName);
+		if(\util\Funcs::class_exists_clean($cmsClass)){
+		    $cmsClass=new $cmsClass();
+		}else{
+		    $cmsClass=null;
+		}
 		return $cmsClass;
+	}
+	
+	public function isSystemApp($appName,$module='cms'){
+	    static $systemApps = array(
+	        'cms'=>array('basecms'),
+	        'diy'=>array('basediy','codediy','base','code'),
+        ); 
+        $appName=$appName?strtolower($appName):'';
+        if (is_array($systemApps[$module])&&in_array($appName, $systemApps[$module])) {
+            return true;
+        } else {
+            return false;
+        }
+	}
+	
+	public function isRightApp($app,$module){
+	    if($module=='diy'){
+	        return preg_match('/^[a-z][a-z0-9]+$/i', $app)?true:false;
+	    }elseif($module=='cms'){
+	        return preg_match('/^([A-Z][a-z0-9]*){3}$/',$app)?true:false;
+	    }
+	    return false;
 	}
 	/*导入v1.x版本发布插件*/
 	public function oldImportClass($appName,$model='Cms'){

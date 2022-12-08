@@ -34,12 +34,21 @@
 		</div>
 		<p class="help-block">当未匹配到用户名时，使用默认设置</p>
 	</div>
+	<div class="form-group">
+		<label>代理分组</label>
+    	<select name="group_id" class="form-control">
+			<option value="0">无</option>
+			{foreach $proxyGroups as $proxyGroup}
+			<option value="{$proxyGroup['id']}">{$proxyGroup['name']}</option>
+			{/foreach}
+		</select>
+    </div>
    	<div class="form-group">
-    	<div class="test-result" style="display:none;">
+		<button type="button" class="btn btn-default btn-block btn-test">测试</button>
+    	<div class="test-result" style="margin-top:10px;display:none;">
     		<label>IP:端口 - 类型 - 用户名:密码</label>
     		<textarea rows="5" class="form-control"></textarea>
     	</div>
-		<button type="button" class="btn btn-default btn-block btn-test">测试</button>
 	</div>
    	<div class="form-group">
 		<button type="submit" class="btn btn-primary btn-block">提交</button>

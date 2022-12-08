@@ -1,0 +1,64 @@
+{extend name="common:main_clean" /}
+{block name="cssjs"}
+<link rel="stylesheet" href="__PUBLIC__/codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="__PUBLIC__/codemirror/theme/eclipse.css">
+<script type="text/javascript" src="__PUBLIC__/codemirror/lib/codemirror.js"></script>
+<script type="text/javascript" src="__PUBLIC__/codemirror/mode/php/php.js"></script>
+<script type="text/javascript" src="__PUBLIC__/codemirror/mode/clike/clike.js"></script>
+<!--括号匹配-->
+<script type="text/javascript" src="__PUBLIC__/codemirror/addon/edit/matchbrackets.js"></script>
+<!--高亮行-->
+<script type="text/javascript" src="__PUBLIC__/codemirror/addon/selection/active-line.js"></script>
+<script type="text/javascript" src="__PUBLIC__/codemirror/addon/selection/selection-pointer.js"></script>
+<!--注释-->
+<script type="text/javascript" src="__PUBLIC__/codemirror/addon/comment/comment.js"></script>
+<script type="text/javascript" src="__PUBLIC__/codemirror/addon/comment/continuecomment.js"></script>
+<!--代码折叠-->
+<link rel="stylesheet" href="__PUBLIC__/codemirror/addon/fold/foldgutter.css"/>
+<script src="__PUBLIC__/codemirror/addon/fold/foldcode.js"></script>
+<script src="__PUBLIC__/codemirror/addon/fold/foldgutter.js"></script>
+<script src="__PUBLIC__/codemirror/addon/fold/brace-fold.js"></script>
+<script src="__PUBLIC__/codemirror/addon/fold/comment-fold.js"></script>
+<script src="__PUBLIC__/codemirror/addon/fold/indent-fold.js"></script>
+<style type="text/css">
+body{padding:0;margin:0;width:100%;height:100%;}
+.container-fluid{padding:0;margin:0;width:100%;height:100%;}
+#editor_code_box{width:100%;height:100%;}
+</style>
+{/block}
+{block name="content"}
+<div id="editor_code_box">
+	<textarea id="editor_code_txt" style="display:none;">{$appcode?htmlspecialchars($appcode):''}</textarea>
+</div>
+<script type="text/javascript">
+(function(){
+	window.codeEditor=CodeMirror.fromTextArea(document.getElementById('editor_code_txt'), {
+		mode:'text/x-php',
+		theme:'eclipse',
+		indentUnit: 4,
+		indentWithTabs: true,
+		lineNumbers:true,
+		lineWrapping:true,
+		matchBrackets:true,
+        foldGutter: true,
+        gutters:["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+		inputStyle:"contenteditable",
+		styleActiveLine:true,
+		continueComments:true,
+		extraKeys:{"Ctrl-/":"toggleComment","Cmd-/":"toggleComment"}
+	});
+	var bodyHeight=$(document.body).height();
+	if(bodyHeight>50){
+		window.codeEditor.setSize(null,bodyHeight);
+	}
+})();
+function set_editor_code(val){
+	window.codeEditor.setValue(val);
+}
+function get_editor_code(val){
+	var val=window.codeEditor.getValue(val);
+	val=val?val:'';
+	return val;
+}
+</script>
+{/block}

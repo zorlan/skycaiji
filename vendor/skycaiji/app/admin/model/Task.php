@@ -78,6 +78,13 @@ class Task extends \skycaiji\common\model\BaseModel{
 		    set_g_sc(['c','proxy','open'],$config['proxy']=='n'?0:1);
 		}
 		
+		if(!is_numeric($config['proxy_group_id'])){
+		    
+		    set_g_sc(['c','proxy','group_id'],$original_config['proxy']['group_id']);
+		}else{
+		    
+		    set_g_sc(['c','proxy','group_id'],$config['proxy_group_id']);
+		}
 		
 		static $imgParams=array('img_path','img_url','img_name','name_custom_path','name_custom_name','interval_img','img_func_param');
 		foreach ($imgParams as $imgParam){

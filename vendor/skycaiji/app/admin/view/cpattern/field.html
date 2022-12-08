@@ -29,8 +29,8 @@
 				<optgroup label="数据生成">
 					<option value="words">{$Think.lang.field_module_words}</option>
 					<option value="num">{$Think.lang.field_module_num}</option>
-					<option value="time">{$Think.lang.field_module_time}</option>
 					<option value="list">{$Think.lang.field_module_list}</option>
+					<option value="time">{$Think.lang.field_module_time}</option>
 				</optgroup>
 				<optgroup label="字段">
 					<option value="extract">字段提取内容</option>
@@ -108,8 +108,19 @@
 				<div class="checkbox"><label><input type="checkbox" name="field[time_stamp]" value="1" {$field['time_stamp']?'checked="checked"':''}> 转换成时间戳</label></div>
 			</div>
 			<div class="c-p-field-module" module="list" style="display:none;">
-				<textarea name="field[list]" class="form-control" rows="3">{$field['list']}</textarea>
-				<p class="help-block">一行一条数据，从列表中随机抽取</p>
+				<div class="form-group">
+					<label>列表数据</label>
+					<textarea name="field[list]" class="form-control" rows="3">{$field['list']}</textarea>
+					<p class="help-block">一行一条数据，从列表中抽取数据</p>
+				</div>
+				<div class="form-group">
+					<label>抽取方式</label>
+					<select name="field[list_type]" class="form-control">
+						<option value="" selected="selected">随机抽取</option>
+						<option value="asc">顺序抽取</option>
+						<option value="desc">倒序抽取</option>
+					</select>
+				</div>
 			</div>
 			<div class="c-p-field-module" module="merge" style="display:none;">
 				<textarea name="field[merge]" class="form-control" rows="3">{$field['merge']}</textarea>

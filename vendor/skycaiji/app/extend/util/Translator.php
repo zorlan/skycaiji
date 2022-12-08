@@ -380,7 +380,7 @@ class Translator
             'data' => null
         ));
         
-        $data = get_html('https://translation.googleapis.com/language/translate/v2', null, array('return_curl_body'=>1), 'utf-8', $post);
+        $data = get_html('https://translation.googleapis.com/language/translate/v2', null, array('return_body'=>1), 'utf-8', $post);
         $data = json_decode($data?:'', true);
         
         if(is_array($data['error'])&&!empty($data['error'])){

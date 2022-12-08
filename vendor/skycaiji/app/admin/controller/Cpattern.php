@@ -111,6 +111,7 @@ class Cpattern extends BaseController {
             }
         }else{
             $sourceUrl=input('source_url','','trim');
+            $source=array();
             if($sourceUrl){
                 $source['objid']=input('objid','');
                 
@@ -147,8 +148,8 @@ class Cpattern extends BaseController {
                     $source['type']='custom';
                     $source['urls']=$sourceUrl;
                 }
-                $this->assign('source',$source);
             }
+            $this->assign('source',$source);
             return $this->fetch();
         }
     }
@@ -178,7 +179,7 @@ class Cpattern extends BaseController {
     				$field['num_end'] = max ( $field['num_start'], $field ['num_end'] );
     				break;
     			
-    			case 'list':if(empty($field['list']))$this->error('随机抽取不能为空！');break;
+    			case 'list':if(empty($field['list']))$this->error('列表数据不能为空！');break;
     			case 'extract':if(empty($field['extract']))$this->error('请选择字段！');break;
     			case 'merge':if(empty($field['merge']))$this->error('字段组合不能为空！');break;
     			case 'sign':
@@ -194,7 +195,7 @@ class Cpattern extends BaseController {
 				'words' =>'words',
 				'num' => array('num_start','num_end'),
 				'time' => array ('time_format','time_start','time_end','time_stamp'),
-				'list' => 'list',
+				'list' => array('list','list_type'),
 			    'extract' =>array('extract','extract_module','extract_rule','extract_rule_merge','extract_rule_multi','extract_rule_multi_str','extract_xpath','extract_xpath_attr','extract_xpath_attr_custom','extract_xpath_multi','extract_xpath_multi_str','extract_json','extract_json_arr','extract_json_arr_implode'),
 				'merge' => 'merge',
 			    'sign' => 'sign'
@@ -552,12 +553,31 @@ class Cpattern extends BaseController {
     	$eCpattern=controller('admin/Cpattern','event');
     	$eCpattern->init($collData);
     	
+    	$resizeWidth=CacheModel::getInstance()->getCache('cpattern_easymode_resize','data');
+    	init_array($resizeWidth);
+    	$resizeWidth=intval($resizeWidth['width']);
+    	
     	$this->set_html_tags('任务:'.$taskData['name'].'_简单模式');
     	
     	$this->assign('taskId',$taskId);
     	$this->assign('collId',$collId);
+    	$this->assign('resizeWidth',$resizeWidth);
     	return $this->fetch();
     }
+    
+    public function easymode_resizeAction(){
+        $width=input('width/d',0);
+        $cname='cpattern_easymode_resize';
+        $mcache=CacheModel::getInstance();
+        $data=$mcache->getCache($cname,'data');
+        if(empty($data)&&!is_array($data)){
+            $data=array();
+        }
+        $data['width']=$width;
+        $mcache->setCache($cname,$data);
+        $this->success();
+    }
+    
     
     public function page_signs_sortAction(){
         $mcache=CacheModel::getInstance();
@@ -565,7 +585,7 @@ class Cpattern extends BaseController {
         $sort=$mcache->getCache($key,'data');
         $sort=$sort=='asc'?'desc':'asc';
         $mcache->setCache($key,$sort);
-        $this->success('已将页面设为'.($sort=='asc'?'升序':'倒序').'排列');
+        $this->success('已将页面设为'.($sort=='asc'?'升序':'降序').'排列');
     }
     /*获取父级页面的标签列表*/
     public function page_signsAction(){
@@ -594,7 +614,9 @@ class Cpattern extends BaseController {
                 $urlConfig['area']='';
                 $urlConfig['url_rule']='';
                 $sourceConfig=$urlConfig;
-                $pageType='url';
+                if($pageType=='source_url'){
+                    $pageType='url';
+                }
             }
             
             $eCpattern=controller('admin/Cpattern','event');

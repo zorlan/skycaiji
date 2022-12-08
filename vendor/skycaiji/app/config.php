@@ -131,8 +131,8 @@ return [
 
     // 视图输出字符串内容替换
     'view_replace_str' => [
-    	'__ROOT__'=>rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()),'\/\\'),
-    	'__PUBLIC__'=>rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()),'\/\\').'/public'
+    	'__ROOT__'=>rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()?:''),'\/\\'),
+        '__PUBLIC__'=>rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()?:''),'\/\\').'/public'
     ],
     // 默认跳转页面对应的模板文件
     'dispatch_success_tmpl'  => 'common@common:success',
@@ -150,7 +150,7 @@ return [
     // 显示错误信息
     'show_error_msg'         => true,
     // 异常处理handle类 留空使用 \think\exception\Handle
-    'exception_handle'       => '',
+    'exception_handle'       => '\\skycaiji\\common\\exception\\CommonHandle',
 
     // +----------------------------------------------------------------------
     // | 日志设置
@@ -243,8 +243,8 @@ return [
     'plugin_path'=>realpath(SKYCAIJI_PATH.'plugin'),//插件目录
     'vendor_path'=>realpath(VENDOR_PATH),//vendor目录
     'runtime_path'=>realpath(RUNTIME_PATH),//runtime目录
-	'root_url'=>rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()),'\/\\'),//网址根目录
-	'root_website'=>(Request::instance()->isSsl()?'https':'http').'://'.trim(Request::instance()->host(),'\/\\').rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()),'\/\\'),//带域名网站根目录，去掉index.php，结尾不带/
+    'root_url'=>rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()?:''),'\/\\'),//网址根目录
+    'root_website'=>(Request::instance()->isSsl()?'https':'http').'://'.trim(Request::instance()->host()?:'','\/\\').rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()?:''),'\/\\'),//带域名网站根目录，去掉index.php，结尾不带/
 	
 	'allow_coll_modules'=>array('pattern'),//允许的采集器模块
 	'release_modules'=>array('cms','db','file','toapi','api','diy'),//发布模块

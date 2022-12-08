@@ -16,7 +16,7 @@ class Index extends BaseController {
     public function indexAction(){
         \util\Tools::set_url_compatible();
 
-    	if(!file_exists(config('root_path').'/data/install.lock')&&!file_exists(config('app_path').'/install/data/install.lock')){
+    	if(!file_exists(config('root_path').'/data/install.lock')){
     		
     		$this->error('请先安装','install/index/index');
     	}else{

@@ -331,7 +331,6 @@ class Task extends CollectController {
         }else{
             $mtaskgroup=model('Taskgroup');
             $tgSelect=$mtaskgroup->getLevelSelect();
-            $gConfig=$this->_global_caiji_config();
             if($isAdd){
                 $this->set_html_tags(
                     lang('task_add'),
@@ -375,8 +374,39 @@ class Task extends CollectController {
                 $this->assign('timerInfo',$timerInfo);
                 $this->assign('fieldList',$fieldList);
             }
+            
+            $imgFuncParam=g_sc_c('download_img','img_func_param');
+            if($imgFuncParam){
+                $imgFuncParam=str_replace("\r", '\r', $imgFuncParam);
+                $imgFuncParam=str_replace("\n", '\n', $imgFuncParam);
+                $imgFuncParam=htmlspecialchars($imgFuncParam,ENT_QUOTES);
+            }else{
+                $imgFuncParam='';
+            }
+            $proxyGroupId=g_sc_c('proxy','group_id');
+            $proxyGroupId=intval($proxyGroupId);
+            $gConfig=array(
+                'num'=>intval(g_sc_c('caiji','num')),
+                'interval'=>intval(g_sc_c('caiji','interval')),
+                'interval_html'=>intval(g_sc_c('caiji','interval_html')),
+                'same_url'=>g_sc_c('caiji','same_url')>0?'允许':'过滤',
+                'same_title'=>g_sc_c('caiji','same_title')>0?'允许':'过滤',
+                'real_time'=>g_sc_c('caiji','real_time')>0?'是':'否',
+                'proxy'=>g_sc_c('proxy','open')>0?'1':'',
+                'proxy_group_id'=>$proxyGroupId<=0?'全部':model('ProxyGroup')->getNameById($proxyGroupId),
+                'download_img'=>g_sc_c('download_img','download_img')>0?'1':'',
+                'img_path'=>g_sc_c('download_img','img_path')?g_sc_c('download_img','img_path'):(config('root_path').DS.'data'.DS.'images'),
+                'img_url'=>g_sc_c('download_img','img_url')?g_sc_c('download_img','img_url'):(config('root_website').'/data/images'),
+                'img_name'=>g_sc_c('download_img','img_name'),
+                'name_custom_path'=>g_sc_c('download_img','name_custom_path')?g_sc_c('download_img','name_custom_path'):'无',
+                'name_custom_name'=>lang('down_img_name_custom_name_'.g_sc_c('download_img','name_custom_name')),
+                'interval_img'=>intval(g_sc_c('download_img','interval_img')),
+                'img_func'=>g_sc_c('download_img','img_func'),
+                'img_func_param'=>$imgFuncParam
+            );
             $this->assign('gConfig',$gConfig);
             $this->assign('tgSelect',$tgSelect);
+            $this->assign('proxyGroups',model('ProxyGroup')->getAll());
             if(request()->isAjax()){
                 return view('save_ajax');
             }else{
@@ -399,38 +429,6 @@ class Task extends CollectController {
     }
    
     
-    private function _global_caiji_config(){
-        $imgFuncParam=g_sc_c('download_img','img_func_param');
-        if($imgFuncParam){
-            $imgFuncParam=str_replace("\r", '\r', $imgFuncParam);
-            $imgFuncParam=str_replace("\n", '\n', $imgFuncParam);
-            $imgFuncParam=htmlspecialchars($imgFuncParam,ENT_QUOTES);
-        }else{
-            $imgFuncParam='';
-        }
-        
-        $gConfig=array(
-            'num'=>intval(g_sc_c('caiji','num')),
-            'interval'=>intval(g_sc_c('caiji','interval')),
-            'interval_html'=>intval(g_sc_c('caiji','interval_html')),
-            'same_url'=>g_sc_c('caiji','same_url')>0?'允许':'过滤',
-            'same_title'=>g_sc_c('caiji','same_title')>0?'允许':'过滤',
-            'real_time'=>g_sc_c('caiji','real_time')>0?'是':'否',
-            'proxy'=>g_sc_c('proxy','open')>0?'是':'否',
-            'download_img'=>g_sc_c('download_img','download_img')>0,
-            'img_path'=>g_sc_c('download_img','img_path')?g_sc_c('download_img','img_path'):(config('root_path').DS.'data'.DS.'images'),
-            'img_url'=>g_sc_c('download_img','img_url')?g_sc_c('download_img','img_url'):(config('root_website').'/data/images'),
-            'img_name'=>g_sc_c('download_img','img_name'),
-            'name_custom_path'=>g_sc_c('download_img','name_custom_path')?g_sc_c('download_img','name_custom_path'):'无',
-            'name_custom_name'=>lang('down_img_name_custom_name_'.g_sc_c('download_img','name_custom_name')),
-            'interval_img'=>intval(g_sc_c('download_img','interval_img')),
-            'img_func'=>g_sc_c('download_img','img_func'),
-            'img_func_param'=>$imgFuncParam
-        );
-        return $gConfig;
-    }
-    
-    
     private function _save_config($config=array()){
     	$config=is_array($config)?$config:array();
     	$config['num']=intval($config['num']);
@@ -439,7 +437,8 @@ class Task extends CollectController {
     	$config['img_path']=trim($config['img_path']);
     	$config['img_url']=trim($config['img_url']);
     	$config['interval_img']=intval($config['interval_img']);
-    	
+    	$config['proxy_group_id']=trim($config['proxy_group_id']);
+
     	$mconfig=model('Config');
     	
     	if(!empty($config['img_path'])){

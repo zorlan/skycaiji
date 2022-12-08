@@ -23,6 +23,7 @@ class Log extends File{
 			'Invalid argument supplied for foreach',
 		    'CURLOPT_FOLLOWLOCATION',
 		    'open_basedir restriction in effect',
+		    ']unlink(',']rmdir('
 		);
 		
 		foreach ($log as $type => $val) {

@@ -704,6 +704,16 @@ class Mystore extends BaseController {
 		}
 	}
 	
+	private function _safe_unserialize($code){
+	    $code=base64_decode(trim($code));
+	    if(preg_match('/\bO\:\d+\:[\'\"][^\'\"]+?[\'\"]/',$code)){
+	        
+	        $this->error('错误的文件');
+	    }
+	    $code=unserialize($code);
+	    return $code;
+	}
+	
 	public function _upload_addon($typeIsRule,$formFileName,$installRule,$installPlugin){
 	    $typeName=$typeIsRule?'规则':'插件';
 	    $file=$_FILES[$formFileName];
@@ -717,7 +727,7 @@ class Mystore extends BaseController {
         if(preg_match_all('/\/\*skycaiji-plugin-start\*\/(?P<data>[\s\S]+?)\/\*skycaiji-plugin-end\*\//i',$fileTxt,$fileMatches)){
             foreach ($fileMatches['data'] as $k=>$v){
                 $v=$v?:'';
-                $v=unserialize(base64_decode(trim($v)));
+                $v=$this->_safe_unserialize($v);
                 if($v['type']&&$v['app']){
                     $pluginDataList[$v['type'].':'.$v['app']]=$v;
                 }
@@ -727,7 +737,7 @@ class Mystore extends BaseController {
         if($typeIsRule){
             
             if(preg_match('/\/\*skycaiji-collector-start\*\/(?P<data>[\s\S]+?)\/\*skycaiji-collector-end\*\//i',$fileTxt,$fileMatch)){
-                $ruleData=unserialize(base64_decode(trim($fileMatch['data'])));
+                $ruleData=$this->_safe_unserialize($fileMatch['data']);
             }
             if(empty($ruleData)||!is_array($ruleData)){
                 return return_result('不是规则文件');

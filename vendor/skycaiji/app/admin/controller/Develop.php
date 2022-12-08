@@ -93,7 +93,7 @@ class Develop extends BaseController {
 			$this->create_cms_app(array('name'=>$name,'app'=>$appName), $params,$is_edit);
 			
 		}else{
-			$appName=input('app');
+			$appName=input('app','');
 			$appName=ucfirst($appName);
 			$config=array();
 			
@@ -130,7 +130,7 @@ class Develop extends BaseController {
 						$cmsClass=null;
 						$this->error($ex->getMessage());
 					}
-					if(is_array($cmsClass->_params)){
+					if($cmsClass&&property_exists($cmsClass,'_params')&&is_array($cmsClass->_params)){
 						foreach ($cmsClass->_params as $k=>$v){
 							$param=array(
 								'key'=>$k,
@@ -160,6 +160,11 @@ class Develop extends BaseController {
 							$config['params'][]=$param;
 						}
 					}
+					
+					if(empty($cmsClass)){
+					    
+					    $this->assign('noClass',1);
+					}
 				}
 			}
 			$this->set_html_tags(
@@ -167,7 +172,7 @@ class Develop extends BaseController {
 			    '开发CMS发布插件 <small><a href="https://www.skycaiji.com/manual/doc/cms" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>',
 			    breadcrumb(array(array('url'=>url('mystore/releaseApp'),'title'=>'CMS发布插件'),array('url'=>url('develop/releaseCms'),'title'=>'开发CMS发布插件')))
 			);
-				
+			$this->assign('appName',$appName);
 			$this->assign('config',$config);
 			$this->assign('is_old_plugin',$is_old_plugin);
 			return $this->fetch('releaseCms');
@@ -787,10 +792,11 @@ EOF;
 		        '开发函数插件 <small><a href="https://www.skycaiji.com/manual/doc/func" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>',
 		        breadcrumb(array(array('url'=>url('mystore/funcApp'),'title'=>'函数插件'),array('url'=>url('develop/func'),'title'=>'开发函数插件')))
 		    );
-			
-			if(input('?app')){
+		    
+		    $app=input('app','');
+		    if($app){
 				
-				$funcData=$mfuncApp->where('app',input('app'))->find();
+		        $funcData=$mfuncApp->where('app',$app)->find();
 				if(!empty($funcData)){
 					$funcClass=$mfuncApp->get_app_class($funcData['module'],$funcData['app']);
 					$funcClass['name']=$funcData['name'];
@@ -798,7 +804,7 @@ EOF;
 					$this->assign('funcClass',$funcClass);
 				}
 			}
-			
+			$this->assign('app',$app);
 			$this->assign('module',$module);
 			$this->assign('modules',$mfuncApp->funcModules);
 			return $this->fetch();
@@ -937,5 +943,184 @@ EOF;
 				}
 			}
 		}
+	}
+	
+	
+	public function editorAction(){
+        $type=input('type','');
+        $module=input('module','');
+        $app=input('app','');
+        $mReleApp=model('ReleaseApp');
+        $mFuncApp=model('FuncApp');
+        $isApp=false;
+        $setTitle='';
+        $setNav='';
+        if(!empty($type)){
+            if(!empty($app)){
+                $isApp=true;
+                $appcode='';
+                if($type=='release'){
+                    $setTitle='发布插件';
+                    $appName=$app;
+                    if($module=='diy'){
+                        
+                        if($mReleApp->isSystemApp($app,'diy')){
+                            $this->error('不能编辑系统文件');
+                        }
+                        $setTitle.=' » 自定义';
+                        if($mReleApp->appFileExists($app,'diy')){
+                            $appcode=file_get_contents($mReleApp->appFileName($app,'diy'));
+                        }
+                    }else{
+                        
+                        if($mReleApp->isSystemApp($app,'cms')){
+                            $this->error('不能编辑系统文件');
+                        }
+                        $releData=$mReleApp->where('app',$app)->find();
+                        if(!empty($releData)){
+                            if($mReleApp->appFileExists($releData['app'],$releData['module'])){
+                                $appcode=file_get_contents($mReleApp->appFileName($releData['app'],$releData['module']));
+                            }
+                            if($releData['module']=='cms'){
+                                $setTitle.=' » cms程序';
+                                if($releData['name']){
+                                    $appName.='（'.$releData['name'].'）';
+                                }
+                                $setNav=breadcrumb(array(array('url'=>url('develop/releaseCms?app='.$app),'title'=>$app),'编辑插件'));
+                            }
+                        }
+                    }
+                    $setTitle.=' » '.$appName;
+                }elseif($type=='func'){
+                    $setTitle='函数插件';
+                    $appName=$app;
+                    $funcData=$mFuncApp->where('app',$app)->find();
+                    if(!empty($funcData)){
+                        if(file_exists($mFuncApp->filename($funcData['module'],$funcData['app']))){
+                            $appcode=file_get_contents($mFuncApp->filename($funcData['module'],$funcData['app']));
+                        }
+                        if($funcData['module']){
+                            
+                            $setTitle.=' » '.$mFuncApp->get_func_module_val($funcData['module'],'name');
+                        }
+                        if($funcData['name']){
+                            $appName.='（'.$funcData['name'].'）';
+                        }
+                    }
+                    $setTitle.=' » '.$appName;
+                    $setNav=breadcrumb(array(array('url'=>url('develop/func?app='.$app),'title'=>$app),'编辑插件'));
+                }
+                $appcode=$appcode?:'';
+                if($setTitle){
+                    $setTitle='<span style="font-size:18px;">编辑插件：'.$setTitle.'</span>';
+                }
+            }
+        }else{
+            $type='release';
+        }
+        $appList=array();
+        if($type=='release'){
+            $appList=$mReleApp->order('app asc')->column('name','app');
+            init_array($appList);
+            $mRele=model('Release');
+            
+            $diyList=$mRele->where('module','diy')->column('config','id');
+            if($diyList){
+                foreach ($diyList as $k=>$v){
+                    $diyApp='';
+                    if($v){
+                        $v=unserialize($v);
+                        if(is_array($v)&&is_array($v['diy'])&&$v['diy']['type']=='app'&&$v['diy']['app']){
+                            $diyApp=$v['diy']['app'];
+                        }
+                    }
+                    if($diyApp&&!$mReleApp->isSystemApp($diyApp,'diy')){
+                        $diyList[$k]=$diyApp;
+                    }else{
+                        unset($diyList[$k]);
+                    }
+                }
+                if($diyList){
+                    $diyList=array_unique($diyList);
+                    sort($diyList);
+                    $this->assign('diyList',$diyList);
+                }
+            }
+        }elseif($type=='func'){
+            $appList=$mFuncApp->order('app asc')->column('name','app');
+        }
+        init_array($appList);
+        
+        $setTitle=$setTitle?:'插件编辑器';
+        $setNav=$setNav?:breadcrumb(array(array('url'=>url('develop/editor'),'title'=>'插件编辑器')));
+        
+        $this->set_html_tags(
+            '插件编辑器',
+            $setTitle,
+            $setNav
+            );
+        
+        $this->assign('config',array('type'=>$type,'module'=>$module,'app'=>$app));
+        $this->assign('type',$type);
+        $this->assign('module',$module);
+        $this->assign('app',$app);
+        $this->assign('isApp',$isApp);
+        $this->assign('appList',$appList);
+        $this->assign('appcode',$appcode);
+        return $this->fetch();
+	}
+	
+	public function editor_codeAction(){
+	    $appcode=input('appcode','','trim');
+	    $this->assign('appcode',$appcode);
+	    return $this->fetch('editor_code');
+	}
+	
+	public function editor_saveAction(){
+	    $this->ajax_check_userpwd();
+	    if(request()->isPost()){
+	        $type=input('type','');
+	        $module=input('module','');
+	        $app=input('app','');
+	        $appcode=input('appcode','','trim');
+	        
+	        $filename='';
+	        if($type=='release'){
+	            $mReleApp=model('ReleaseApp');
+	            $module=$module=='diy'?'diy':'cms';
+	            if($mReleApp->isSystemApp($app,$module)){
+	                $this->error('不能编辑系统文件');
+	            }
+	            if(!$mReleApp->isRightApp($app,$module)){
+	                $this->error('插件名称格式错误');
+	            }
+	            if($module=='cms'){
+	                
+	                $releData=$mReleApp->where(array('app'=>$app,'module'=>'cms'))->find();
+	                if(empty($releData)){
+	                    $this->error('插件不存在');
+	                }
+	            }
+	            $filename=$mReleApp->appFileName($app,$module);
+	        }elseif($type=='func'){
+	            $mFuncApp=model('FuncApp');
+	            
+	            $funcData=$mFuncApp->where('app',$app)->find();
+	            if(empty($funcData)||empty($funcData['module'])||empty($funcData['app'])){
+	                $this->error('插件不存在');
+	            }
+	            $filename=$mFuncApp->filename($funcData['module'],$funcData['app']);
+	        }else{
+	            $this->error('类型错误');
+	        }
+	        if(empty($filename)){
+	            $this->error('插件文件错误');
+	        }
+	        file_put_contents($filename, $appcode);
+	        $uri=sprintf('develop/editor?type=%s&module=%s&app=%s',$type,$module,$app);
+	        $this->success('操作成功',$uri);
+	    }else{
+	        $this->error('提交错误');
+	    }
 	}
 }

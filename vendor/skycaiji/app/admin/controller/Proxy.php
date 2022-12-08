@@ -13,7 +13,7 @@ namespace skycaiji\admin\controller;
 
 class Proxy extends BaseController {
 	public function listAction(){
-   		$mproxy=model('Proxyip');
+   		$mproxy=model('ProxyIp');
    		$cond=array();
 		$search=array(
 			'num'=>input('num/d',200),
@@ -21,7 +21,8 @@ class Proxy extends BaseController {
 			'user'=>input('user'),
 			'pwd'=>input('pwd'),
 			'type'=>input('?type')?input('type'):'all',
-			'invalid'=>input('?invalid')?input('invalid'):'all',
+		    'invalid'=>input('?invalid')?input('invalid'):'all',
+		    'group_id'=>input('?group_id')?input('group_id'):'all',
 		);
    		if(!empty($search['ip'])){
    			
@@ -34,6 +35,10 @@ class Proxy extends BaseController {
 		if($search['invalid']!='all'){
 			
 			$cond['invalid']=$search['invalid'];
+		}
+		if($search['group_id']!='all'){
+		    
+		    $cond['group_id']=$search['group_id'];
 		}
 		if(!empty($search['user'])){
 			
@@ -71,10 +76,19 @@ class Proxy extends BaseController {
 		$urlParams=input('param.');
 		$urlParams=http_build_query($urlParams);
 		
+		$this->assign('proxyGroups',model('ProxyGroup')->getAll());
 		$this->assign('proxyTypes',$mproxy->proxy_types());
    		$this->assign('search',$search);
    		$this->assign('urlParams',$urlParams);
    		return $this->fetch();
+	}
+	
+	private function _input_str2json($name){
+	    $data=input($name,'','trim');
+	    $data=empty($data)?array():json_decode($data,true);
+	    init_array($data);
+	    $data=array_map('trim', $data);
+	    return $data;
 	}
 	
 	public function opAction(){
@@ -82,61 +96,46 @@ class Proxy extends BaseController {
 		$listUrl=input('url_params','','trim');
 		$listUrl='proxy/list?'.ltrim($listUrl,'?');
 		
-		$mproxy=model('Proxyip');
+		$mproxy=model('ProxyIp');
 		if($op=='delete'){
 			$ip=input('ip');
 			$mproxy->where('ip',$ip)->delete();
 			$this->success('删除成功',$listUrl);
 		}elseif($op=='delete_all'){
 			
-			$ips=input('ips','','trim');
-			$ips=empty($ips)?array():json_decode($ips,true);
-    		$ips=array_map('trim', $ips);
-    		
+		    $ips=$this->_input_str2json('ips');
 			if(!empty($ips)){
 				$mproxy->where('ip','in',$ips)->delete();
 			}
 			$this->success('删除成功',$listUrl);
 		}elseif($op=='update_all'){
 			
-			$ips=input('ips','','trim');
-			$ip_list=input('ip_list','','trim');
-			$user_list=input('user_list','','trim');
-			$pwd_list=input('pwd_list','','trim');
-			$type_list=input('type_list','','trim');
-
-			$ips=empty($ips)?array():json_decode($ips,true);
-    		$ip_list=empty($ip_list)?array():json_decode($ip_list,true);
-    		$user_list=empty($user_list)?array():json_decode($user_list,true);
-    		$pwd_list=empty($pwd_list)?array():json_decode($pwd_list,true);
-    		$type_list=empty($type_list)?array():json_decode($type_list,true);
-
-    		$ips=array_map('trim', $ips);
-    		$ip_list=array_map('trim', $ip_list);
-    		$user_list=array_map('trim', $user_list);
-    		$pwd_list=array_map('trim', $pwd_list);
-    		$type_list=array_map('trim', $type_list);
-    		
+		    $ips=$this->_input_str2json('ips');
+			$paramNames=array('ip'=>'ip_list','user'=>'user_list','pwd'=>'pwd_list','type'=>'type_list','group_id'=>'gid_list');
+			$paramDatas=array();
+			foreach($paramNames as $paramField=>$paramName){
+			    $paramDatas[$paramField]=$this->_input_str2json($paramName);
+			}
     		for($i=0;$i<count($ips);$i++){
     			
-    			$mproxy->strict(false)->where('ip',$ips[$i])->update(array(
-    				'ip'=>$ip_list[$i],
-    				'user'=>$user_list[$i],
-    				'pwd'=>$pwd_list[$i],
-    				'type'=>$type_list[$i],
-    			));
+    			$proxyData=array();
+    		    foreach ($paramDatas as $paramField=>$paramData){
+    		        $proxyData[$paramField]=$paramData[$i];
+    		    }
+    		    $mproxy->strict(false)->where('ip',$ips[$i])->update($proxyData);
     		}
     		$this->success('修改成功',$listUrl);
 		}
 	}
 	public function addAction(){
-		$mproxy=model('Proxyip');
+		$mproxy=model('ProxyIp');
 		$proxyTypes=$mproxy->proxy_types();
 		if(request()->isPost()){
 		    $ip_list=input('ip_list/a',array(),'trim');
 		    $user_list=input('user_list/a',array(),'trim');
 		    $pwd_list=input('pwd_list/a',array(),'trim');
 		    $type_list=input('type_list/a',array(),'trim');
+		    $gid_list=input('gid_list/a',array(),'intval');
 			
 			if(!empty($ip_list)){
 			    $nowTime=time();
@@ -146,6 +145,7 @@ class Proxy extends BaseController {
 						'user'=>$user_list[$k],
 						'pwd'=>$pwd_list[$k],
 						'type'=>$type_list[$k],
+					    'group_id'=>$gid_list[$k],
 					    'addtime'=>$nowTime
 					);
 					$mproxy->db()->strict(false)->insert($newData,true);
@@ -155,15 +155,15 @@ class Proxy extends BaseController {
 				$this->error('请添加ip');
 			}
 		}else{
+		    $this->assign('proxyGroups',model('ProxyGroup')->getAll());
 			$this->assign('proxyTypes',$proxyTypes);
 			return $this->fetch();
 		}
-		
 	}
 	
 	/*批量添加代理*/
 	public function batchAction(){
-		$mproxy=model('Proxyip');
+		$mproxy=model('ProxyIp');
 		$proxyTypes=$mproxy->proxy_types();
 		if(request()->isPost()){
 			$type=input('type');
@@ -171,11 +171,12 @@ class Proxy extends BaseController {
 			$fmt=input('format','','trim');
 			$user=input('user','','trim');
 			$pwd=input('pwd','','trim');
+			$groupId=input('group_id/d',0);
 	
 			$ipList=array();
 			if(!empty($fmt)&&preg_match_all('/[^\r\n]+/',$ips,$mips)){
 				foreach ($mips[0] as $ip){
-					$ip=model('Proxyip')->get_format_ips($ip,$fmt,false);
+					$ip=model('ProxyIp')->get_format_ips($ip,$fmt,false);
 					if(empty($ip)){
 						continue;
 					}
@@ -186,7 +187,8 @@ class Proxy extends BaseController {
 			$ipList=$mproxy->ips_format2db($ipList,array(
 				'type'=>$type,
 				'user'=>$user,
-				'pwd'=>$pwd
+				'pwd'=>$pwd,
+			    'group_id'=>$groupId,
 			));
 			
 			if(empty($ipList)){
@@ -207,6 +209,7 @@ class Proxy extends BaseController {
 				$this->success('批量添加成功');
 			}
 		}else{
+		    $this->assign('proxyGroups',model('ProxyGroup')->getAll());
 			$this->assign('proxyTypes',$proxyTypes);
 			return $this->fetch();
 		}
@@ -214,7 +217,7 @@ class Proxy extends BaseController {
 	
 	/*清理无效ip*/
 	public function clearInvalidAction(){
-		$mproxy=model('Proxyip');
+		$mproxy=model('ProxyIp');
 		$mproxy->where('invalid',1)->delete();
 		$this->success('清理完成','setting/proxy');
 	}
@@ -222,14 +225,15 @@ class Proxy extends BaseController {
 	/*测试代理接口*/
 	public function testApiAction(){
 	    $config=input('config/a',array(),'trim');
-		$mproxy=model('Proxyip');
+		$mproxy=model('ProxyIp');
 		
 		$html=get_html($config['api_url']);
 		$ips=$mproxy->get_format_ips($html,$config['api_format'],true);
 		$ips=$mproxy->ips_format2db ( $ips, array (
 			'type' => $config ['api_type'],
 			'user' => $config ['api_user'],
-			'pwd' => $config ['api_pwd'],
+		    'pwd' => $config ['api_pwd'],
+		    'group_id' => $config ['api_group_id'],
 		) );
 		
 		
@@ -248,5 +252,78 @@ class Proxy extends BaseController {
 		
 		$this->assign('ips',$ips);
 		return $this->fetch('testApi');
+	}
+	
+	
+	public function groupsAction(){
+	    $mgroup=model('ProxyGroup');
+	    $mip=model('ProxyIp');
+	    if(request()->isPost()){
+	        $groupIds=input('group_id/a',array(),'intval');
+	        $groupSorts=input('group_sort/a',array(),'intval');
+	        $groupNames=input('group_name/a',array(),'trim');
+	        \util\Funcs::filter_key_val_list3($groupNames,$groupIds,$groupSorts);
+	        
+	        $upDatas=array();
+	        $addDatas=array();
+	        $addNames=array();
+	        foreach ($groupIds as $k=>$groupId){
+	            $groupData=array('name'=>$groupNames[$k],'sort'=>$groupSorts[$k]);
+	            if($groupId>0){
+	                
+	                $upDatas[$groupId]=$groupData;
+	            }else{
+	                $addDatas[]=$groupData;
+	                $addNames[$groupData['name']]=$groupData['name'];
+	            }
+	        }
+	        if($upDatas){
+	            
+	            $dbNames=$mgroup->where('id','in',array_keys($upDatas))->column('name','id');
+	            foreach ($dbNames as $dbId=>$dbName){
+	                $upName=$upDatas[$dbId]['name'];
+	                if($dbName!=$upName&&$mgroup->where('name',$upName)->count()>0){
+	                    
+	                   unset($upDatas[$dbId]);
+	                }
+	            }
+	            
+	            foreach ($upDatas as $upId=>$upData){
+	                $mgroup->strict(false)->where('id',$upId)->update($upData);
+	            }
+	        }
+	        if($addDatas){
+	            
+	            $dbNames=$mgroup->where('name','in',$addNames)->column('name','id');
+	            if($dbNames){
+	                
+	                foreach ($addDatas as $k=>$addData){
+	                    if(in_array($addData['name'], $dbNames)){
+	                        unset($addDatas[$k]);
+	                    }
+	                }
+	            }
+	            $mgroup->strict(false)->insertAll($addDatas);
+	        }
+	        $this->success('操作成功');
+	    }else{
+	        $groups=$mgroup->order('sort desc')->column('id,name,sort');
+	        init_array($groups);
+	        $groups=array_values($groups);
+	        foreach ($groups as $k=>$v){
+	            $v['_ip_num']=$mip->where('group_id',$v['id'])->count();
+	            $groups[$k]=$v;
+	        }
+	        $this->assign('groups',$groups);
+	        return $this->fetch();
+	    }
+	}
+	public function delete_groupAction(){
+	    $id=input('id/d',0);
+	    if($id>0){
+	        model('ProxyGroup')->where('id',$id)->delete();
+	        model('ProxyIp')->where('group_id',$id)->update(array('group_id'=>0));
+	    }
+	    $this->success('删除成功');
 	}
 }

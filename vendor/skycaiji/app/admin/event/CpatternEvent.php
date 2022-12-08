@@ -90,7 +90,7 @@ class CpatternEvent extends CpatternColl{
         return $val;
     }
     /*字段提取内容*/
-    public function field_module_extract($field_params,$extract_field_val,$base_url,$domain_url){
+    public function field_module_extract($field_params,$extract_field_val,$url_info){
         $field_html=$extract_field_val['value'];
         if(empty($field_html)){
             return '';
@@ -105,7 +105,7 @@ class CpatternEvent extends CpatternColl{
                 }else{
                     if(preg_match('/<img\b[^<>]*\bsrc\s*=\s*[\'\"](?P<url>[^\'\"]+?)[\'\"]/i',$field_html,$cover)){
                         $cover=$cover['url'];
-                        $cover=$this->create_complete_url($cover, $base_url, $domain_url);
+                        $cover=\util\Tools::create_complete_url($cover, $url_info);
                         $val=$cover;
                     }
                 }
@@ -256,21 +256,54 @@ class CpatternEvent extends CpatternColl{
         $key=md5($field_params['list']);
         if(!isset($list[$key])){
             
-            if(preg_match_all('/[^\r\n]+/', $field_params['list'],$str_list)){
-                $str_list=$str_list[0];
-            }else{
-                $str_list=array();
+            if(preg_match_all('/[^\r\n]+/', $field_params['list'],$strList)){
+                $strList=$strList[0];
             }
-            $list[$key]=$str_list;
+            init_array($strList);
+            $list[$key]=$strList;
         }
-        $str_list=$list[$key];
+        $strList=$list[$key];
         $val='';
-        if(!empty($str_list)){
-            $randi=array_rand($str_list,1);
-            $val=$str_list[$randi];
+        if(!empty($strList)){
+            if(empty($field_params['list_type'])){
+                
+                $randi=array_rand($strList,1);
+                $val=$strList[$randi];
+            }else{
+                static $keyIndexs=array();
+                $isAsc=$field_params['list_type']=='asc'?true:false;
+                $endIndex=count($strList)-1;
+                
+                if(isset($keyIndexs[$key])){
+                    
+                    $curIndex=intval($keyIndexs[$key]);
+                }else{
+                    
+                    $curIndex=$isAsc?0:$endIndex;
+                }
+                if($isAsc){
+                    
+                    if($curIndex>$endIndex){
+                        
+                        $curIndex=0;
+                    }
+                    $val=$strList[$curIndex];
+                    $curIndex++;
+                }else{
+                    
+                    if($curIndex<0){
+                        
+                        $curIndex=$endIndex;
+                    }
+                    $val=$strList[$curIndex];
+                    $curIndex--;
+                }
+                $keyIndexs[$key]=$curIndex;
+            }
         }
         return $val;
     }
+    
     public function field_module_merge($field_params,$val_list){
         $val='';
         
@@ -372,9 +405,7 @@ class CpatternEvent extends CpatternColl{
         static $regEmpty='/^([\s\r\n]|\&nbsp\;)*$/';
         if(!is_empty(g_sc_c('translate'))&&!is_empty(g_sc_c('translate','open'))&&!empty($fieldVal)){
             
-            if($this->is_collecting()){
-                $this->echo_msg(array('正在翻译：%s',$fieldName),'black',true,'','display:inline;margin-right:5px;');
-            }
+            $this->echo_msg(array('正在翻译：%s',$fieldName),'black',true,'','display:inline;margin-right:5px;');
             
             $langFrom=$params['translate_from']=='custom'?$params['translate_from_custom']:$params['translate_from'];
             $langTo=$params['translate_to']=='custom'?$params['translate_to_custom']:$params['translate_to'];
@@ -717,7 +748,7 @@ class CpatternEvent extends CpatternColl{
         }
         
         $url=$params['api_url'];
-        $result=null;
+        $htmlInfo=null;
         if(!empty($url)){
             $isLoc=false;
             if(!preg_match('/^\w+\:\/\//', $url)&&strpos($url, '/')===0){
@@ -735,6 +766,15 @@ class CpatternEvent extends CpatternColl{
                 }
                 if(empty($charset)){
                     $charset='utf-8';
+                }
+                $curlopts=array();
+                
+                $encode=$params['api_encode'];
+                if($encode=='custom'){
+                    $encode=$params['api_encode_custom'];
+                }
+                if($encode){
+                    $curlopts[CURLOPT_ENCODING]=$encode;
                 }
                 
                 
@@ -794,43 +834,19 @@ class CpatternEvent extends CpatternColl{
                     $postData=null;
                 }
                 
-                $result=get_html($url,$headers,array(),$charset,$postData,true);
+                $htmlInfo=get_html($url,$headers,array('curlopts'=>$curlopts),$charset,$postData,true);
                 $this->collect_sleep($params['api_interval'],true);
-                if(!empty($result['ok'])){
+                if(!empty($htmlInfo['ok'])){
                     
                     $retryCur=0;
-                    $fieldVal=$this->rule_module_json_data(array('json'=>$params['api_json'],'json_arr'=>$params['api_json_arr'],'json_arr_implode'=>$params['api_json_implode']),$result['html']);
+                    $fieldVal=$this->rule_module_json_data(array('json'=>$params['api_json'],'json_arr'=>$params['api_json_arr'],'json_arr_implode'=>$params['api_json_implode']),$htmlInfo['html']);
                 }else{
-                    if($retryMax<=0||($retryCur<=0&&$this->is_collecting())){
-                        
-                        $urlEcho=htmlspecialchars($url);
-                        $echoMsg='<div class="clear"><span class="left">数据处理»调用接口失败：</span><a href="'.$urlEcho.'" target="_blank" class="lurl">'.$urlEcho.'</a></div>';
-                        if(!$this->is_collecting()){
-                            $echoMsg=strip_tags($echoMsg);
-                        }
-                        $this->echo_error($echoMsg);
-                    }
+                    $this->retry_first_echo($retryCur,'数据处理»调用接口失败',$url,$htmlInfo);
                     
                     $this->collect_sleep($params['api_wait']);
                     
-                    if($retryMax>0&&is_array($retryParams)){
-                        
-                        if($retryCur<$retryMax){
-                            
-                            $retryCur++;
-                            if($this->is_collecting()){
-                                $this->echo_msg(array('%s第%s次',$retryCur>1?' / ':'重试：',$retryCur),'black',true,'','display:inline;'.($retryCur==$retryMax?'margin-right:5px;':''));
-                            }
-                            return $this->process_f_api($retryParams[0],$retryParams[1],$retryParams[2],$retryParams[3],$retryParams[4],$retryParams[5]);
-                        }else{
-                            $retryCur=0;
-                            if($this->is_collecting()){
-                                $this->echo_msg('接口无效','red',true,'','display:inline;margin-right:5px;');
-                            }else{
-                                
-                                $this->echo_error('数据处理»调用接口：'.htmlspecialchars($url).'，已重试'.$retryMax.'次，接口无效 ');
-                            }
-                        }
+                    if($this->retry_do_func($retryCur,$retryMax,'接口无效','接口无效')){
+                        return $this->process_f_api($retryParams[0],$retryParams[1],$retryParams[2],$retryParams[3],$retryParams[4],$retryParams[5]);
                     }
                 }
             }

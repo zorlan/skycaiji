@@ -1,70 +1,239 @@
-{foreach name="tables" item="table"}
-<div class="panel panel-default" style="margin-bottom:10px;">
+{foreach $dbTables as $dbKey=>$dbTable}
+<div id="db_table_t_{$dbKey}" data-key="{$dbKey}" class="panel panel-default" style="margin-bottom:10px;">
+	<input type="hidden" name="db_tables[{$dbKey}][table]" value="{$dbTable['table']}" />
 	<div class="panel-heading">
 	    <div class="panel-title">
-	        <a data-toggle="collapse" href="#db_table_name_{$table}" class="collapsed" data-parent="#db_table_bind_list">{$table}表绑定数据</a>
-			<div style="float:right;font-size:14px;">
-				<a href="javascript:;" class="glyphicon icon-drag-move"></a>
-				<a href="javascript:;" class="glyphicon glyphicon-remove"></a>
+	    	<select name="db_tables[{$dbKey}][op]" class="form-control db-table-bind-op">
+				<option value="">新增</option>
+				<option value="update">更新</option>
+				<option value="query">查询</option>
+			</select>
+	        <a data-toggle="collapse" href="#db_table_p_{$dbKey}" class="collapsed" data-parent="#db_table_bind_list">{$dbTable['table']}表数据</a>
+			<div style="float:right;font-size:14px;line-height:24px;">
+				<a href="javascript:;" class="glyphicon icon-drag-move db-table-bind-move"></a>
+				<a href="javascript:;" class="glyphicon glyphicon-remove db-table-bind-del"></a>
 			</div>
 		</div>
 	</div>
-	<div id="db_table_name_{$table}" class="panel-collapse collapse in">
-	    <div class="panel-body table-responsive table-db-table-bind">
-			<table class="table table-hover">
-			<thead>
-			<tr>
-				<th>数据库字段</th>
-				<th>类型</th>
-				<th>绑定数据</th>
-			</tr>
-			</thead>
-			<tbody>
-				{foreach name="fields[$table]" item="field"}
+	<div id="db_table_p_{$dbKey}" class="panel-collapse collapse in">
+	    <div class="panel-body db-table-bind-params">
+	    	<div class="table-responsive db-table-bind-where">
+				<table class="table table-hover">
+				<thead>
 				<tr>
+					<th style="width:150px;">逻辑</th>
+					<th>数据库字段</th>
+					<th style="width:220px;">条件</th>
+					<th>条件值</th>
+					<th style="width:70px;min-width:70px;">
+						操作
+						<a href="javascript:;" class="glyphicon glyphicon-plus db-table-bind-where-add" style="font-size:11px;" title="添加"></a>
+					</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr class="db-table-bind-where-tpl">
 					<td>
-						{$field['name']}
+						<select class="form-control" data-name="[where][logic][]">
+	                 		<option value="and">and（并且）</option>
+	                 		<option value="or">or（或者）</option>
+	                	</select>
 					</td>
 					<td>
-						{$field['type']}
-						{$field['primary']?' &nbsp; 主键':''}
-						{$field['autoinc']?' &nbsp; 自增':''}
+						<select class="form-control" data-name="[where][field][]">
+						<option value="">--选择字段--</option>
+						{if is_array($tbFields[$dbTable['table']])}
+						{foreach $tbFields[$dbTable['table']] as $field}
+	                  	<option value="{$field['name']}">{$field['name']}</option>
+						{/foreach}
+						{/if}
+	                  	</select>
+	                </td>
+					<td>
+						<select class="form-control" data-name="[where][cond][]">
+							<option value="">--选择条件--</option>
+	                 		<option value="eq">=（等于）</option>
+	                 		<option value="neq">!=（不等于）</option>
+	                 		<option value="gt">&gt;（大于）</option>
+	                 		<option value="egt">&gt;=（大于等于）</option>
+	                 		<option value="lt">&lt;（小于）</option>
+	                 		<option value="elt">&lt;=（小于等于）</option>
+	                 		<option value="like">like（包含）</option>
+	                 		<option value="nlike">not like（不包含）</option>
+	                 		<option value="in">in（范围：值用,号分隔）</option>
+	                 		<option value="nin">not in（不在范围）</option>
+	                 		<option value="between">between（区间：值用,号分隔）</option>
+	                 		<option value="nbetween">not between（不在区间）</option>
+	                	</select>
 					</td>
 					<td>
-						<select name="db_table[field][{$table}][{$field['name']}]" class="form-control">
-							<option value="">不选择</option>
-							{foreach name="collFields" item="collField"}
-							<option value="field:{$collField}">采集字段：{$collField}</option>
-							{/foreach}
-							<option value="custom:">自定义内容</option>
-						</select>
-						<input class="form-control" style="display:none;" name="db_table[custom][{$table}][{$field['name']}]" />
+						<div class="input-group db-table-bind-signs">
+							<input type="text" class="form-control" data-name="[where][val][]" />
+							<div class="input-group-btn">
+								<button type="button" class="btn btn-default dropdown-toggle btn-db-table-bind-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">调用 <span class="caret"></span></button>
+						        <ul class="dropdown-menu dropdown-menu-right">
+						        </ul>
+							</div>
+						</div>
+					</td>
+					<td style="padding-top:15px;padding-bottom:0;">
+	                	<a href="javascript:;" class="glyphicon icon-drag-move db-table-bind-where-move" style="font-size:11px;"></a>
+	                 	<a href="javascript:;" class="glyphicon glyphicon-remove db-table-bind-where-del" style="font-size:11px;"></a>
 					</td>
 				</tr>
-				{/foreach}
-			</tbody>
-			</table>
+				</tbody>
+				</table>
+	    	</div>
+			<div class="table-responsive db-table-bind-query">
+				<table class="table table-hover">
+				<thead>
+				<tr>
+					<th style="width:150px;">查询</th>
+					<th>数据库字段</th>
+					<th>输入名称以供调用</th>
+					<th style="width:70px;min-width:70px;">
+						操作
+						<a href="javascript:;" class="glyphicon glyphicon-plus db-table-bind-query-add" style="font-size:11px;" title="添加"></a>
+					</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr class="db-table-bind-query-tpl">
+					<td>
+						<select class="form-control" data-name="[query][type][]">
+	                 		<option value="">字段</option>
+	                 		<option value="max">max（最大）</option>
+	                 		<option value="min">min（最小）</option>
+	                 		<option value="count">count（数量）</option>
+	                 		<option value="sum">sum（总和）</option>
+	                 		<option value="avg">avg（平均）</option>
+	            		</select>
+	            	</td>
+					<td>
+						<select class="form-control" data-name="[query][field][]">
+						<option value="">--选择字段--</option>
+						{if is_array($tbFields[$dbTable['table']])}
+						{foreach $tbFields[$dbTable['table']] as $field}
+	                  	<option value="{$field['name']}">{$field['name']}</option>
+						{/foreach}
+						{/if}
+	                  	</select>
+	            	</td>
+					<td>
+						<input type="text" class="form-control" data-name="[query][sign][]" placeholder="默认使用字段名称" />
+					</td>
+					<td style="padding-top:15px;padding-bottom:0;">
+	                 	<a href="javascript:;" class="glyphicon glyphicon-remove db-table-bind-query-del" style="font-size:11px;"></a>
+					</td>
+				</tr>
+				</tbody>
+				</table>
+			</div>
+			<div class="table-responsive db-table-bind-data">
+				<table class="table table-hover">
+				<thead>
+				<tr>
+					<th>数据库字段</th>
+					<th>类型</th>
+					<th>绑定数据</th>
+				</tr>
+				</thead>
+				<tbody>
+				{if is_array($tbFields[$dbTable['table']])}
+					{foreach $tbFields[$dbTable['table']] as $field}
+					{if isset($dbTable['field'][$field['name']])}
+					<tr>
+						<td>
+							{$field['name']}
+						</td>
+						<td>
+							{$field['type']}
+							{$field['primary']?' &nbsp; 主键':''}
+							{$field['autoinc']?' &nbsp; 自增':''}
+						</td>
+						<td>
+							<div class="input-group db-table-bind-signs">
+								<input type="text" class="form-control" name="db_tables[{$dbKey}][field][{$field['name']}]" placeholder="默认不填" />
+								<div class="input-group-btn">
+									<button type="button" class="btn btn-default dropdown-toggle btn-db-table-bind-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">调用 <span class="caret"></span></button>
+							        <ul class="dropdown-menu dropdown-menu-right">
+							        </ul>
+								</div>
+							</div>
+						</td>
+					</tr>
+					{/if}
+					{/foreach}
+					{foreach $tbFields[$dbTable['table']] as $field}
+					{if !isset($dbTable['field'][$field['name']])}
+					<tr>
+						<td>
+							{$field['name']}
+						</td>
+						<td>
+							{$field['type']}
+							{$field['primary']?' &nbsp; 主键':''}
+							{$field['autoinc']?' &nbsp; 自增':''}
+						</td>
+						<td>
+							<div class="input-group db-table-bind-signs">
+								<input type="text" class="form-control" name="db_tables[{$dbKey}][field][{$field['name']}]" placeholder="默认不填" />
+								<div class="input-group-btn">
+									<button type="button" class="btn btn-default dropdown-toggle btn-db-table-bind-signs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">调用 <span class="caret"></span></button>
+							        <ul class="dropdown-menu dropdown-menu-right">
+							        </ul>
+								</div>
+							</div>
+						</td>
+					</tr>
+					{/if}
+					{/foreach}
+				{/if}
+				</tbody>
+				{if $dbHasSeq}
+				<tfoot class="db-table-bind-data-seq">
+					<tr>
+						<td colspan="3">
+							<div class="form-group">
+								<label>设置自增主键序列号</label>
+								<div class="input-group">
+									<div class="input-group-addon">字段</div>
+									<select class="form-control" name="db_tables[{$dbKey}][sequence][field]">
+										<option value="">--选择字段--</option>
+										{if is_array($tbFields[$dbTable['table']])}
+										{foreach $tbFields[$dbTable['table']] as $field}
+										<option value="{$field['name']}">{$field['name']}</option>
+										{/foreach}
+										{/if}
+									</select>
+									<div class="input-group-addon brl_0 brr_0">序列号</div>
+									<select class="form-control" name="db_tables[{$dbKey}][sequence][seq]">
+										<option value="">--选择序列号--</option>
+										{foreach $seqList as $v}
+										<option value="{$v}">{$v}</option>
+										{/foreach}
+									</select>
+									<div class="input-group-addon brl_0 brr_0">使用了自增触发器</div>
+									<select class="form-control" name="db_tables[{$dbKey}][sequence][trigger]" style="min-width:70px;">
+										<option value="">否</option>
+										<option value="1">是</option>
+									</select>
+								</div>
+							</div>
+						</td>
+					</tr>
+				</tfoot>
+				{/if}
+				</table>
+			</div>
 		</div>
 	</div>
 </div>
 {/foreach}
-{if condition="!empty($field_values)"}
+{if condition="!empty($dbTables)"}
 <div id="db_table_bind_values">
 <script type="text/javascript">
-(function(){
-	//载入表数据
-	var field_values={$field_values|json_encode};
-	if(field_values){
-		for(var table in field_values){
-			for(var field in field_values[table]['field']){
-				$(releaseClass.formid).find('[name="db_table[field]['+table+']['+field+']"]').val(field_values[table]['field'][field]).trigger('change');
-			}
-			for(var field in field_values[table]['custom']){
-				$(releaseClass.formid).find('[name="db_table[custom]['+table+']['+field+']"]').val(field_values[table]['custom'][field]).trigger('change');
-			}
-		}
-	}
-})();
+releaseClass.db_table_bind_load({$dbTables|json_encode});
 $(document).ready(function(){
 	$('#db_table_bind_values').remove();//删除元素，否则不能上下换位
 });

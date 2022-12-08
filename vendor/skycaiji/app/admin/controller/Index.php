@@ -553,7 +553,6 @@ class Index extends CollectController{
 	    $this->collect_tasks($taskIds,input('collect_num/d'),input('collect_auto'));
 	}
 	
-	
 	private function _collect_check_key(){
 	    if(is_empty(session('user_login'))){
 	        
@@ -563,5 +562,27 @@ class Index extends CollectController{
 	        }
 	    }
 	    return true;
+	}
+	
+	
+	public function proc_open_execAction(){
+	    $key=input('key');
+	    if(empty($key)||$key!=\util\Param::get_proc_open_exec_key()){
+	        $this->error('密钥错误');
+	    }
+	    $params=cache('proc_open_exec_params');
+	    
+	    \util\Param::set_proc_open_exec_key();
+	    cache('proc_open_exec_params',null);
+	    
+	    $info=array();
+	    if(!empty($params)&&is_array($params)){
+	        $timeout=intval($params[2]);
+	        $timeout=max($timeout,15);
+	        set_time_limit($timeout);
+	        \util\Funcs::close_session();
+	        $info=\util\Tools::proc_open_exec($params[0],$params[1],$params[2],$params[3],$params[4]);
+	    }
+	    return json($info);
 	}
 }

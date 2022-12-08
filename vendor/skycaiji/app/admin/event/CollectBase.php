@@ -19,13 +19,24 @@ class CollectBase extends \skycaiji\admin\controller\CollectController {
 			$this->echo_msg($msg,'red');
 			return null;
 		}else{
-			parent::error($msg,$url,$data,$wait,$header);
+		    $url=$url?$url:'';
+		    
+		    $msg=$this->_echo_msg_str($msg,'red');
+		    $txt=g_sc('collect_echo_msg_txt');
+		    $txt=$txt?($txt."\r\n".$msg):$msg;
+		    parent::error($txt,$url,$data,$wait,$header);
 		}
 	}
 	/*采集器的输出内容需要重写，只有正在采集时才输出内容*/
 	public function echo_msg($strArgs,$color='red',$echo=true,$end_str='',$div_style=''){
 	    if($this->is_collecting()){
 			parent::echo_msg($strArgs,$color,$echo,$end_str,$div_style);
+		}else{
+		    
+		    $msg=$this->_echo_msg_str($strArgs,$color,$end_str,$div_style);
+		    $txt=g_sc('collect_echo_msg_txt');
+		    $txt=$txt?($txt."\r\n".$msg):$msg;
+		    set_g_sc('collect_echo_msg_txt',$txt);
 		}
 	}
 	
@@ -228,6 +239,50 @@ class CollectBase extends \skycaiji\admin\controller\CollectController {
 	        }
 	    }
 	    return true;
+	}
+	
+	public function retry_first_echo($retryCur,$msg,$url=null,$htmlInfo=null){
+	    if($retryCur<=0){
+	        $msg=$msg?:'';
+	        if(is_array($htmlInfo)&&$htmlInfo['error']&&is_array($htmlInfo['error'])){
+	            
+	            $msg.='»Curl Error '.$htmlInfo['error']['no'].': '.$htmlInfo['error']['msg'];
+	        }
+	        $msg=htmlspecialchars($msg);
+	        if($url){
+	            $url=htmlspecialchars($url);
+	            $msg='<div class="echo-msg-clear"><span class="echo-msg-lt">'.$msg.'：</span><a href="'.$url.'" target="_blank" class="echo-msg-lurl">'.$url.'</a></div>';
+	        }
+	        $this->echo_msg($msg);
+	    }
+	}
+	
+	public function retry_do_func(&$retryCur,$retryMax,$echoMsg,$echoError=null){
+	    $do=false;
+	    if($retryMax>0){
+	        
+	        if($retryCur<$retryMax){
+	            
+	            $retryCur++;
+	            $this->echo_msg(array('%s第%s次',$retryCur>1?' / ':'重试：',$retryCur),'black',true,'','display:inline;');
+	            $do=true;
+	        }else{
+	            $retryCur=0;
+	            if($this->is_collecting()){
+	                
+	                if($echoMsg){
+	                    $this->echo_msg(' / '.htmlspecialchars($echoMsg),'black',true,'','display:inline;margin-right:5px;');
+	                }
+	            }else{
+	                
+	                if($echoError){
+	                    $this->echo_error(htmlspecialchars($echoError));
+	                }
+	            }
+	            
+	        }
+	    }
+	    return $do;
 	}
 }
 ?>

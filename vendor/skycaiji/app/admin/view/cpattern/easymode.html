@@ -9,6 +9,7 @@
 <div id="wrapper">
 	<iframe id="ifr_collector" src="{:url('collector/set?easymode=1&task_id='.$taskId)}" style="display:none;"></iframe>
 	<div id="box_guide">
+		<div id="box_resize"><span id="btn_resize" title="调整宽度"><span class="glyphicon glyphicon-resize-horizontal"></span></span></div>
 		<input type="hidden" id="coll_id" value="{$collId}" />
 		<div class="input-group">
 			<div class="input-group-btn">
@@ -34,4 +35,8 @@
 		</div>
 	</div>
 </div>
+<script type="text/javascript">
+var cpatternEasy=new CpatternEasy();
+cpatternEasy.init('{$resizeWidth}');
+</script>
 {/block}

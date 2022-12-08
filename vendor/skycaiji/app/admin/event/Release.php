@@ -16,9 +16,7 @@ abstract class Release extends ReleaseBase{
 	public $task;
 	/*发布时初始化*/
 	public function init($release){
-		if(!is_array($release['config'])){
-		    $release['config']=unserialize($release['config']?:'');
-		}
+	    $release['config']=model('Release')->compatible_config($release['config']);
 		$this->release=$release;
 		$this->config=$release['config'];
 		

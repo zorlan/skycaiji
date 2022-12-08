@@ -64,18 +64,27 @@ class skycaiji{
      * 请求网址
      * @param string $url 网址
      * @param mixed $post (bool)post模式 或者 (array)post数据
-     * @param string $pageCharset 页面编码，不填可自动识别
+     * @param string $charset 网页编码，默认自动识别
      * @param array $headers 头信息
-     * @return array 返回数组：(bool)success是否成功，(string)header头信息，(string)content页面内容
+     * @param array $options 选项：timeout超时秒数，curlopts附加curl的选项值
+     * @return array 返回数组：(bool)success抓取成功，(int)code页面状态码，(string)header头信息，(string)content页面内容，(array)error错误，(array)info资源信息
      */
-    public static function curl($url,$post=null,$pageCharset=null,$headers=array()){
-        $pageCharset=isset($pageCharset)?$pageCharset:'auto';//默认自动识别
-        $data=get_html($url,$headers,array('timeout'=>60),$pageCharset,$post,true);
+    public static function curl($url,$post=null,$charset=null,$headers=array(),$options=array()){
+        $charset=$charset?$charset:'auto';//默认auto自动识别
+        $options=is_array($options)?$options:array();
+        $options['timeout']=$options['timeout']?:30;//超时时间（秒）
+        $options['return_info']=$options['return_info']?:1;//返回curl句柄信息
+        $options['return_body']=$options['return_body']?:1;//返回非成功状态的页面内容
+        $options['curlopts']=is_array($options['curlopts'])?$options['curlopts']:array();//curl的选项值列表，以CURLOPT_XXX为键名
+        $data=get_html($url,$headers,$options,$charset,$post,true);
         $data=is_array($data)?$data:array();
         $data=array(
             'success'=>$data['ok']?true:false,
-            'header'=>$data['header']?$data['header']:'',
-            'content'=>$data['html']?$data['html']:''
+            'code'=>intval($data['code']),
+            'header'=>$data['header']?:'',
+            'content'=>$data['html']?:'',
+            'error'=>$data['error']?:array(),
+            'info'=>$data['info']?:array(),
         );
         return $data;
     }

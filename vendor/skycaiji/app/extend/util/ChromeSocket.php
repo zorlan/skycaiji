@@ -9,7 +9,7 @@
  |--------------------------------------------------------------------------
  */
 
-/*谷歌浏览器*/
+/*Chrome/Chromium浏览器*/
 namespace util;
 
 class ChromeSocket{
@@ -24,6 +24,7 @@ class ChromeSocket{
     protected $socket;
     protected $tabId;
     protected $isProxy=false;
+    protected $startTime=0;
     static protected $passType=array('Stylesheet'=>1,'Image'=>1,'Media'=>1,'Font'=>1);
     
     public function __construct($host,$port,$timeout=30,$filename='',$options=array()){
@@ -60,21 +61,17 @@ class ChromeSocket{
             
             return;
         }
-        $return=self::execHeadless($this->filename,$this->port,$this->options,false,false);
+        $return=self::execHeadless($this->filename,$this->port,$this->options,false);
         if(!empty($return['error'])){
             throw new \Exception($return['error']);
         }
     }
     
-    public static function execHeadless($filename,$port,$options,$showInfo,$isTest){
-        set_time_limit(15);
+    public static function execHeadless($filename,$port,$options,$isTest){
         $port=self::defaultPort($port);
         $options=is_array($options)?$options:array();
         $return=array('error'=>'','info'=>'');
-        if(version_compare(PHP_VERSION,'5.5','<')){
-            
-            $return['error']='该功能仅支持php5.5及以上版本';
-        }elseif(empty($port)){
+        if(empty($port)){
             $return['error']='请设置端口';
         }elseif($port==80){
             $return['error']='不能设置为80端口';
@@ -115,7 +112,7 @@ class ChromeSocket{
                     $return['error']='请开启proc_open函数或者手动执行命令：'.$command;
                 }else{
                     
-                    $return['info']=\util\Tools::proc_open_exec($command,$showInfo,10,$isTest?true:false);
+                    $return['info']=\util\Tools::proc_open_exec_curl($command,$isTest?'all':true,10,$isTest?true:false);
                 }
             }
         }
@@ -138,6 +135,7 @@ class ChromeSocket{
         }
         $this->loadWebsocket();
         $this->socket=new \WebSocket\Client($url,$options);
+        $this->socket->setTimeout(3);
     }
     
     public function send($method,$params=array(),$id=0){
@@ -155,7 +153,116 @@ class ChromeSocket{
         return $data;
     }
     
+    public function mstime(){
+        list($msec, $sec) = explode(' ', microtime());
+        $msectime = (float)sprintf('%.0f', (floatval($msec) + floatval($sec)) * 1000);
+        return $msectime;
+    }
+    
+    
+    public function receiveHtml(&$locUrl,&$htmlInfo,$waitEnd,$returnInfo){
+        $isStart=false;
+        $isPageEnd=false;
+        $pageFetchNum=0;
+        $pageMstime=$this->mstime();
+        
+        while((time()-$this->startTime)<=$this->timeout){
+            
+            $data=$this->receive();
+            if(!$data){
+                
+                break;
+            }
+            
+            $method=$data['method'];
+            
+            if(!$isStart){
+                if($method){
+                    
+                    $isStart=true;
+                }
+            }
+            
+            if($isStart){
+                if($method=='Fetch.requestPaused'){
+                    
+                    $pageFetchNum++;
+                    $dataParams=is_array($data['params'])?$data['params']:array();
+                    
+                    $fParams=array('requestId'=>$dataParams['requestId']);
+                    if(isset(self::$passType[$dataParams['resourceType']])){
+                        $fParams['errorReason']='Aborted';
+                        $this->send('Fetch.failRequest',$fParams);
+                    }else{
+                        $this->send('Fetch.continueRequest',$fParams);
+                    }
+                    if($returnInfo){
+                        if($dataParams['request']&&$dataParams['request']['url']==$locUrl){
+                            
+                            
+                            $htmlInfo['code']=intval($dataParams['responseStatusCode']);
+                            $htmlInfo['header']=$dataParams['request']['headers'];
+                            $htmlInfo['resp_header']=is_array($dataParams['responseHeaders'])?$dataParams['responseHeaders']:array();
+                            
+                            if($htmlInfo['code']>=300&&$htmlInfo['code']<310){
+                                foreach ($htmlInfo['resp_header'] as $k=>$v){
+                                    if('location'==strtolower($v['name'])){
+                                        $locUrl=$v['value'];
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }elseif($method=='Page.frameStartedLoading'){
+                    
+                    $isPageEnd=false;
+                }elseif($method=='Page.domContentEventFired'||$method=='Page.loadEventFired'){
+                    
+                    $isPageEnd=true;
+                    if($waitEnd){
+                        
+                        $pageMstime=$this->mstime();
+                        $pageFetchNum=0;
+                    }else{
+                        
+                        break;
+                    }
+                }
+            }
+            
+            if($isPageEnd&&$waitEnd){
+                
+                $mstime=$this->mstime();
+                $endMs=intval($this->options['wait_end_ms']);
+                if($endMs<=0){
+                    
+                    $endMs=500;
+                }
+                $endNum=intval($this->options['wait_end_num']);
+                if($endMs<=0){
+                    
+                    $endNum=2;
+                }
+                if(($mstime-$pageMstime)>$endMs){
+                    
+                    if($pageFetchNum<=$endNum){
+                        
+                        break;
+                    }else{
+                        
+                        $pageMstime=$mstime;
+                        $pageFetchNum=0;
+                    }
+                }
+            }
+        }
+    }
+    
+    
     public function getRenderHtml($url,$headers=array(),$options=array(),$fromEncode=null,$postData=null,$returnInfo=false){
+        $this->startTime=time();
+        
         if(!preg_match('/^\w+\:\/\//', $url)){
             
             $url='http://'.$url;
@@ -196,7 +303,6 @@ class ChromeSocket{
             }
         }
         unset($headers['cookie']);
-        
         if($this->isProxy&&!empty($options['proxy'])&&!empty($options['proxy']['user'])){
             
             $headers['Proxy-Authorization']='Basic '.base64_encode($options['proxy']['user'].':'.$options['proxy']['pwd']);
@@ -263,55 +369,103 @@ class ChromeSocket{
             
             $sendData=$this->send('Page.navigate',array('url'=>$url));
         }
+        
+        $locUrl=$url;
+        
+        if(preg_match('/^\w+\:\/\/([\w\-]+\.){1,}[\w]+$/',$url)){
+            
+            $locUrl.='/';
+        }
+        $renderer=is_array($options['renderer'])?$options['renderer']:array();
+        
+        $rendererTypes=is_array($renderer['types'])?$renderer['types']:array();
+        $renderer['elements']=is_array($renderer['elements'])?$renderer['elements']:array();
+        $renderer['contents']=is_array($renderer['contents'])?$renderer['contents']:array();
+
         $htmlInfo=array('code'=>0,'ok'=>'','header'=>'','resp_header'=>'','html'=>'');
         
-        $complete=false;
-        $startTime=time();
-        while((time()-$startTime)<=$this->timeout){
+        $firstWaitEnd=false;
+        if(!empty($rendererTypes)){
             
-            $data=$this->receive();
-            if(!$data){
-                
-                break;
-            }
-            if($data['method']=='Page.loadEventFired'){
-                
-                $complete=true;
-                break;
-            }elseif($data['method']=='Fetch.requestPaused'){
-                
-                $dataParams=is_array($data['params'])?$data['params']:array();
-                
-                $fParams=array('requestId'=>$dataParams['requestId']);
-                if(isset(self::$passType[$dataParams['resourceType']])){
-                    $fParams['errorReason']='Aborted';
-                    $this->send('Fetch.failRequest',$fParams);
-                }else{
-                    $this->send('Fetch.continueRequest',$fParams);
+            static $waitEndTypes=array('wait_end','scroll_half','scroll_end','scroll_top','click','val');
+            foreach ($rendererTypes as $v){
+                if(in_array($v, $waitEndTypes)){
+                    $firstWaitEnd=true;
+                    break;
                 }
-                if($returnInfo){
-                    if($dataParams['request']&&$dataParams['request']['url']==$url){
-                        
-                        $htmlInfo['code']=$dataParams['responseStatusCode'];
-                        $htmlInfo['header']=$dataParams['request']['headers'];
-                        $htmlInfo['resp_header']=$dataParams['responseHeaders'];
+            }
+            if($rendererTypes[0]=='wait_end'){
+                
+                unset($rendererTypes[0]);
+            }
+        }
+        $this->receiveHtml($locUrl,$htmlInfo,$firstWaitEnd,$returnInfo);
+        
+        static $scrollTypes=array('scroll_half','scroll_end','scroll_top');
+        foreach ($rendererTypes as $rdKey=>$rdType){
+            if(empty($rdType)){
+                continue;
+            }
+            $rdElement=$renderer['elements'][$rdKey];
+            $rdContent=$renderer['contents'][$rdKey];
+            if($rdType=='wait_time'){
+                
+                $rdContent=intval($rdContent);
+                if($rdContent>0){
+                    sleep($rdContent);
+                }
+            }elseif(in_array($rdType,$scrollTypes)){
+                
+                if($rdType=='scroll_half'){
+                    $rdContent='document.body.scrollHeight/2';
+                }elseif($rdType=='scroll_end'){
+                    $rdContent='document.body.scrollHeight';
+                }elseif($rdType=='scroll_top'){
+                    $rdContent=intval($rdContent).'px';
+                }else{
+                    $rdContent='';
+                }
+                if($rdContent){
+                    $sendData=$this->send('Runtime.evaluate',array('expression'=>'window.scrollTo({top:'.$rdContent.',behavior:"smooth"});'));
+                    $this->receiveHtml($locUrl,$htmlInfo,true,$returnInfo);
+                }
+            }elseif($rdType=='val'||$rdType=='click'){
+                if($rdElement){
+                    $rdElement=addslashes($rdElement);
+                    $expression='';
+                    if($rdType=='val'){
+                        $rdContent=addslashes($rdContent);
+                        $expression='(function(){'
+                            .'var skycaijiXpathEle=document.evaluate("'.$rdElement.'",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;'
+                            .'skycaijiXpathEle.value="'.$rdContent.'";'
+                            .'})();';
+                    }elseif($rdType=='click'){
+                        $expression='(function(){'
+                            .'var skycaijiXpathEle=document.evaluate("'.$rdElement.'",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;'
+                            .'skycaijiXpathEle.click();'
+                            .'})();';
+                    }
+                    if($expression){
+                        $sendData=$this->send('Runtime.evaluate',array('expression'=>$expression));
+                        $this->receiveHtml($locUrl,$htmlInfo,true,$returnInfo);
                     }
                 }
             }
         }
+        $html=null;
+        
+        $sendData=$this->send('Runtime.evaluate',array('expression'=>'document.documentElement.outerHTML'));
+        $data=$this->receiveById($sendData['id'],false);
+        if($data['result']&&$data['result']['result']){
+            $html=$data['result']['result']['value'];
+        }
         if($returnInfo){
+            
             if(!is_array($htmlInfo['header'])){
                 $htmlInfo['header']=array();
             }
         }
-        $html=null;
-        if($complete){
-            
-            $sendData=$this->send('Runtime.evaluate',array('expression'=>'document.documentElement.outerHTML'));
-            $data=$this->receiveById($sendData['id'],false);
-            if($data['result']&&$data['result']['result']){
-                $html=$data['result']['result']['value'];
-            }
+        if($html){
             if(preg_match('/^\{(.+\:.+,*){1,}\}$/', strip_tags($html))){
                 
                 $html=strip_tags($html);
@@ -372,11 +526,9 @@ class ChromeSocket{
     }
     
     public function receiveById($id,$returnAll=false){
-        $startTime=time();
-        $complete=false;
         $result=null;
         $all=array();
-        while((time()-$startTime)<=$this->timeout){
+        while((time()-$this->startTime)<=$this->timeout){
             
             $data=$this->receive();
             if(!$data){

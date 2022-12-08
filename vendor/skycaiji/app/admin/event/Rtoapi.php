@@ -22,9 +22,6 @@ class Rtoapi extends Release{
         if(empty($toapi['url'])){
             $this->error('请输入接口地址');
         }
-        if(empty($toapi['response']['id'])){
-            $this->error('请输入响应id的健名');
-        }
         
         
         $toapi['param_name']=is_array($toapi['param_name'])?$toapi['param_name']:array();
@@ -89,6 +86,11 @@ class Rtoapi extends Release{
             $apiResponse=$this->config['toapi']['response'];
             $apiResponse=is_array($apiResponse)?$apiResponse:array();
             
+            $apiResponse['id']=$apiResponse['id']?:'id';
+            $apiResponse['target']=$apiResponse['target']?:'target';
+            $apiResponse['desc']=$apiResponse['desc']?:'desc';
+            $apiResponse['error']=$apiResponse['error']?:'error';
+            
             $apiCharset=$this->config['toapi']['charset'];
             if($apiCharset=='custom'){
                 $apiCharset=$this->config['toapi']['charset_custom'];
@@ -96,6 +98,17 @@ class Rtoapi extends Release{
             if(empty($apiCharset)){
                 $apiCharset='utf-8';
             }
+            
+            $curlopts=array();
+            
+            $apiEncode=$this->config['toapi']['encode'];
+            if($apiEncode=='custom'){
+                $apiEncode=$this->config['toapi']['encode_custom'];
+            }
+            if($apiEncode){
+                $curlopts[CURLOPT_ENCODING]=$apiEncode;
+            }
+            
             
             $paramVals=array();
             $paramFields=array();
@@ -143,8 +156,8 @@ class Rtoapi extends Release{
                 }
             }
             
-            $apiWait=intval($this->config['toapi']['wait']);
-            $apiRetry=intval($this->config['toapi']['retry']);
+            $retryWait=intval($this->config['toapi']['wait']);
+            $retryMax=intval($this->config['toapi']['retry']);
             foreach ($collFieldsList as $collFieldsKey=>$collFields){
                 
                 $contTitle=$collFields['title'];
@@ -177,14 +190,16 @@ class Rtoapi extends Release{
                     }
                 }
                 
-                $curRetry=0;
+                $retryCur=0;
                 do{
                     $doWhile=false;
-                    $html=get_html($url,$headerData,array(),$apiCharset,$postData);
+                    $htmlInfo=get_html($url,$headerData,array('return_body'=>1,'curlopts'=>$curlopts),$apiCharset,$postData,true);
+                    init_array($htmlInfo);
+                    $html=$htmlInfo['html']?:'';
                     $this->collect_sleep($this->config['toapi']['interval'],true);
                     $json=json_decode($html,true);
                     $returnData=array('id'=>'','target'=>'','desc'=>'','error'=>'');
-                    if(!empty($apiResponse['id'])&&isset($json[$apiResponse['id']])){
+                    if(!empty($apiResponse['id'])&&is_array($json)&&isset($json[$apiResponse['id']])){
                         
                         foreach ($returnData as $k=>$v){
                             
@@ -203,25 +218,14 @@ class Rtoapi extends Release{
                         }
                     }else{
                         
-                        if($curRetry<=0){
-                            
-                            $this->echo_msg('发布设置»调用接口失败');
-                        }
-                        $this->collect_sleep($apiWait);
+                        $this->retry_first_echo($retryCur,'发布设置»调用接口失败',null,$htmlInfo);
                         
-                        if($apiRetry>0){
-                            
-                            if($curRetry<$apiRetry){
-                                
-                                $curRetry++;
-                                if($this->is_collecting()){
-                                    $this->echo_msg(array('%s第%s次',$curRetry>1?' / ':'重试：',$curRetry),'black',true,'','display:inline;'.($curRetry==$apiRetry?'margin-right:5px;':''));
-                                }
-                                $doWhile=true;
-                            }else{
-                                $curRetry=0;
-                            }
+                        $this->collect_sleep($retryWait);
+                        
+                        if($this->retry_do_func($retryCur,$retryMax,'接口无效')){
+                            $doWhile=true;
                         }
+                        
                         $returnData['id']=0;
                         $returnData['error']='发布接口无响应状态';
                     }
@@ -230,7 +234,7 @@ class Rtoapi extends Release{
                 $this->record_collected($contUrl,$returnData,$this->release,$contTitle);
                 
                 if($testToapi){
-                    $this->echo_msg('<p>获取到响应数据：</p><textarea name="data" style="width:100%;margin:5px 0;" rows="5">'.htmlspecialchars($html).'</textarea>','black');
+                    $this->echo_msg('<p>发布接口响应数据：</p><textarea name="data" style="width:100%;margin:5px 0;" rows="5">'.htmlspecialchars($html).'</textarea>','black');
                 }
                 
                 

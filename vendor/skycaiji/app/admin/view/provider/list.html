@@ -13,10 +13,11 @@
 	<div class="box-body">
 		<form id="form_list" method="post" ajax-submit="true" action="{:url('provider/saveall')}">
 		{:html_usertoken()}
+		<div class="table-responsive" style="border:0;">
 		<table id="list_table" class="table table-hover datatable">
 			<thead>
 				<tr>
-					<th width="80">排序</th>
+					<th>排序</th>
 					<th>名称</th>
 					<th>网址</th>
 					<th>访问</th>
@@ -51,6 +52,7 @@
 				</tr>
 			</tfoot>
 		</table>
+		</div>
 		</form>
 		{$pagenav}
 	</div>

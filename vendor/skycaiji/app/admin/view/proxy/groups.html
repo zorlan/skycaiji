@@ -1,0 +1,35 @@
+<form id="win_form_proxy_groups" method="post" action="{:url('proxy/groups')}" ajax-submit="true">
+{:html_usertoken()}
+<div class="table-responsive">
+<table class="table table-hover datatable proxy-group-list">
+<thead>
+	<tr>
+		<th style="width:100px;">排序</th>
+		<th>分组名称</th>
+		<th style="width:65px;">操作 <a href="javascript:;" class="glyphicon glyphicon-plus proxy-group-add" style="font-size:11px;" title="添加"></a></th>
+	</tr>
+</thead>
+<tbody>
+	<tr class="proxy-group-tpl">
+		<td>
+			<input type="hidden" name="group_id[]" value="" />
+			<input type="text" name="group_sort[]" class="form-control" autocomplete="off" style="min-width:80px;"/>
+		</td>
+		<td style="position:relative;">
+			<input type="text" name="group_name[]" class="form-control" autocomplete="off" />
+			<span style="position:absolute;right:15px;top:15px;color:#aaa" class="proxy-group-ip-num"></span>
+		</td>
+		<td style="padding-top:15px;">
+			<a href="javascript:;" class="glyphicon glyphicon-remove proxy-group-delete"></a>
+		</td>
+	</tr>
+</tbody>
+</table>
+</div>
+<div class="form-group">
+	<button type="submit" class="btn btn-primary btn-block">提交</button>
+</div>
+</form>
+<script type="text/javascript">
+window.proxyClass.init_groups({$groups|json_encode});
+</script>

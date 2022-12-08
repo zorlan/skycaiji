@@ -12,11 +12,11 @@
         </div>
 		<form id="form_list" method="post" ajax-submit="true" action="{:url('collected/op')}">
 		{:html_usertoken()}
-		<div class="table-responsive">
+		<div class="table-responsive" style="border:0;">
 		<table id="list_table" class="table table-hover datatable">
 			<thead>
 				<tr>
-					<th width="60" class="chk">{$Think.lang.select}</th>
+					<th class="chk">{$Think.lang.select}</th>
 					<th class="url">源网址</th>
 					<th>已发布至</th>
 					<th>任务名</th>
@@ -46,7 +46,7 @@
 			</tbody>
 			<tfoot>
 				<tr>
-					<td class="chk"><label><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" />全部</label></td>
+					<td class="chk"><label class="chk-all"><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" /><span>全部</span></label></td>
 					<td colspan="6">
 						<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
 					</td>

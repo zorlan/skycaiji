@@ -190,18 +190,30 @@
 					<label class="radio-inline"><input type="radio" name="config[real_time]" value="n">否</label>
 		        </div>
 		    </div>
+		</div>
+		<div class="panel-body{$gConfig['proxy']?'':' box-not-enable'}" id="config_proxy" style="border-top:solid 1px #ddd;">
 		    <div class="form-group">
 		        <label>使用代理</label>
 		        <div class="input-group">
-			        <label class="radio-inline"><input type="radio" name="config[proxy]" value="" checked="checked">
-			        	全局设置：{$gConfig['proxy']}
+			        <label class="radio-inline"><input type="radio" name="config[proxy]" value="" data-global="{$gConfig['proxy']}" checked="checked">
+			        	全局设置：{$gConfig['proxy']?'是':'否'}
 			        </label>
 			        <label class="radio-inline"><input type="radio" name="config[proxy]" value="y">是</label>
 					<label class="radio-inline"><input type="radio" name="config[proxy]" value="n">否</label>
 		        </div>
 		    </div>
+		    <div class="form-group">
+		        <label>使用分组IP</label>
+		    	<select name="config[proxy_group_id]" class="form-control">
+		    		<option value="">全局设置：{$gConfig['proxy_group_id']}</option>
+					<option value="0">全部</option>
+					{foreach $proxyGroups as $proxyGroup}
+					<option value="{$proxyGroup['id']}">{$proxyGroup['name']}</option>
+					{/foreach}
+				</select>
+		    </div>
 		</div>
-    	<div class="panel-body" id="config_download_img" style="border-top:solid 1px #ddd;">
+    	<div class="panel-body{$gConfig['download_img']?'':' box-not-enable'}" id="config_download_img" style="border-top:solid 1px #ddd;">
 		    <div class="form-group">
 		        <label>图片本地化</label>
 		        <div class="input-group">
@@ -336,7 +348,7 @@
 								<li><a href="javascript:;" data-val="[图片:网址]">[图片:网址]（图片源网址）</a></li>
 							</ul>
 						</div>
-						&nbsp;请按函数传参，否则运行出错！<a href="javascript:;" onclick="pluginFuncTips('downloadImg')">扩展函数</a>
+						&nbsp;请按函数传参，否则运行出错！<a href="javascript:;" onclick="tipsPluginFunc('downloadImg')">扩展函数</a>
 					</div>
 				</div>
 			</div>

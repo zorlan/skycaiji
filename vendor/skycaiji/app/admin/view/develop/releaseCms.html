@@ -13,9 +13,10 @@
 		    	{:lang('release_upgrade')}
 		    </div>
 		    {else/}
+		    {if !$noClass}
 		    <div class="alert alert-warning">
 		    	<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-		    	请在 {$config['app_file']} 文件中编辑代码
+		    	请在 {$config['app_file']} 文件中编辑代码 或者 <a href="{:url('develop/editor?type=release&app='.$appName)}"><b>使用插件编辑器</b></a>
 		    </div>
 		    <div class="form-group">
 		    	<div class="dropdown">
@@ -26,6 +27,7 @@
 		        </div>
 		    </div>
 		    {/if}
+		    {/if}
 		    <input type="hidden" name="edit" value="1" />
 		    <input type="hidden" name="app" value="{$config['app']}" />
 		    {/if}
@@ -35,22 +37,24 @@
 		        <input type="text" name="name" class="form-control">
 		        <p class="help-block">精简描述该插件</p>
 		    </div>
-		   	<div class="form-group">
+		    <div class="form-group">
 		        <label>CMS程序</label>
-		        <select name="cms_name" class="form-control">
-		        	<option value="">请选择</option>
-		        	<option value="wordpress">wordpress</option>
-		        	<option value="discuz">discuz</option>
-		        	<option value="dedecms">dedecms</option>
-		        	<option value="phpcms">phpcms</option>
-		        	<option value="empirecms">帝国CMS</option>
-		        	<option value="custom">自定义</option>
-		        </select>
-		        <div id="cms_name_custom" style="display:none;">
-		        	<input type="text" name="cms_name_custom" class="form-control">
-		        	<p class="help-block">自定义时请输入CMS程序的英文全称</p>
-		        </div>
-		    </div>
+				<div class="input-group input-select-custom">
+		        	<div class="input-group-btn">
+						 <select name="cms_name" class="form-control">
+				        	<option value="">请选择</option>
+				        	<option value="wordpress">wordpress</option>
+				        	<option value="discuz">discuz</option>
+				        	<option value="dedecms">dedecms</option>
+				        	<option value="phpcms">phpcms</option>
+				        	<option value="empirecms">帝国CMS</option>
+				        	<option value="custom">自定义</option>
+				        </select>
+					</div>
+					<input type="text" class="form-control" name="cms_name_custom" />
+				</div>
+		        <p class="help-block">自定义时请输入CMS程序的英文全称</p>
+			</div>
 		    <div class="form-group">
 		        <label>功能标识</label>
 		        <input type="text" name="identifier" class="form-control">

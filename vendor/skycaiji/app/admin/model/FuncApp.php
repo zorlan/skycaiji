@@ -11,8 +11,6 @@
 
 namespace skycaiji\admin\model;
 class FuncApp extends \skycaiji\common\model\BaseModel{
-	protected $tableName='func_app';
-	
 	public $funcPath; 
 	public $funcModules=array(
 		'process'=>array (
@@ -67,8 +65,10 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 		
 		if(is_array($appData['methods'])){
 			$methods='';
+			$settedList=array();
 			foreach ($appData['methods']['method'] as $k=>$v){
-			    if($this->right_method($v)){
+			    if($this->right_method($v)&&!in_array($v, $settedList)){
+			        $settedList[]=$v;
 					
 					$methods.="\r\n    /**\r\n     * ".$this->format_str($appData['methods']['comment'][$k])."\r\n     */"
 						."\r\n    public function {$v}(\$val){\r\n        return \$val;\r\n    }";
@@ -82,7 +82,15 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 		$funcTpl=str_replace(array('{$module}','{$classname}','{$name}','{$methods}'), array($module,$app,$appData['name'],$appData['methods']), $funcTpl);
 		
 		if(write_dir_file($funcFile,$funcTpl)){
-			return $this->insertApp(array('module'=>$module,'app'=>$app,'name'=>$name,'enable'=>1));
+		    $funcData=$this->where('app',$app)->find();
+		    if(!empty($funcData)){
+		        
+		        $this->where('id',$funcData['id'])->update(array('name'=>$name,'uptime'=>time()));
+		        return $funcData['id'];
+		    }else{
+		        
+		        return $this->insertApp(array('module'=>$module,'app'=>$app,'name'=>$name,'enable'=>1));
+		    }
 		}else{
 			return false;
 		}
@@ -142,26 +150,34 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 	}
 	/*获取插件文件类的属性*/
 	public function get_app_class($module,$app,$options=array()){
+	    $config=array();
+	    
 		$module=$this->format_module($module);
+		
+		$config['module']=$module;
+		$config['app']=$app;
+		$config['methods']=array();
+		
+		if(preg_match('/^(\w+?)([A-Z])(\w*)$/',$app,$mapp)){
+		    $config['identifier']=$mapp[1];
+		    $config['copyright']=$mapp[2].$mapp[3];
+		}
+		
 		$filename=$this->filename($module,$app);
 		if(file_exists($filename)){
 			$class=$this->app_classname($module, $app);
-			if(class_exists($class)){
-				$copyright='';
-				$identifier='';
-				if(preg_match('/^(\w+?)([A-Z])(\w*)$/',$app,$mapp)){
-					$identifier=$mapp[1];
-					$copyright=$mapp[2].$mapp[3];
-				}
+			if(\util\Funcs::class_exists_clean($class)){
+			    $config['filename']=$filename;
 				$class=new $class();
-
 				$reClass = new \ReflectionClass($class);
+				
 				$name=$reClass->getDocComment();
 				$name=preg_replace('/^[\/\*\s]+/m', '', $name);
 				$name=trim($name);
+				$config['name']=$name;
 				
-				$reMethods=$reClass->getMethods(\ReflectionMethod::IS_PUBLIC);
 				$methods=array();
+				$reMethods=$reClass->getMethods(\ReflectionMethod::IS_PUBLIC);
 				if(!empty($reMethods)){
 				    $phpCode=array();
 				    if(!empty($options['method_code'])||!empty($options['method_params'])){
@@ -233,18 +249,10 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 						$methods[$methodName]=$methodData;
 					}
 				}
-				return array (
-					'module' => $module,
-					'app' => $app,
-					'filename' => $filename,
-					'copyright' => $copyright,
-					'identifier' => $identifier,
-					'name' => $name,
-					'methods' => $methods,
-				);
+				$config['methods']=$methods;
 			}
 		}
-		return array();
+		return $config;
 	}
 	public function app_classname($module,$app){
 		return '\\plugin\\func\\'.$module.'\\'.$app;
@@ -299,31 +307,6 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 	    }
 	}
 	
-	/*获取所有插件类*/
-	public function get_class_list($module){
-		$apps=$this->get_app_list($module);
-		$classList=array();
-		foreach($apps as $app){
-			$class=$this->get_app_class($module,$app);
-			if(!empty($class)){
-				$classList[$app]=$class;
-			}
-		}
-		return $classList;
-	}
-	public function get_app_list($module){
-		$apps=scandir($this->funcPath.$module);
-		$appList=array();
-		if(!empty($apps)){
-			foreach($apps as $app){
-				if(preg_match('/(\w+)\.php/i',$app,$mapp)){
-					$appList[$app]=$mapp[1];
-				}
-			}
-		}
-		return $appList;
-	}
-	
 	
 	public function get_func_module_val($module,$key){
 	    if(is_array($this->funcModules[$module])){
@@ -332,7 +315,6 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 	        return null;
 	    }
 	}
-	
 	
 	/**
 	 * 执行插件函数
@@ -380,7 +362,7 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 	            if(!isset($class_list[$className])){
 	                
 	                $class=$this->app_classname($module,$className);
-	                if(!class_exists($class)){
+	                if(!\util\Funcs::class_exists_clean($class)){
 	                    $class_list[$className]=1;
 	                }else{
 	                    $enable=$this->field('enable')->where(array('app'=>$className,'module'=>$module))->value('enable');

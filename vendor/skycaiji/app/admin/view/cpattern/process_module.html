@@ -87,31 +87,23 @@
 	</div>
 	<div class="c-p-process-module" module="if">
 		<section>
-		<div class="form-group">
-			<div class="input-group">
-				<span class="input-group-addon">
-					<a href="javascript:;" class="glyphicon glyphicon-info-sign p-m-if-info" style="color:#999;"></a>
-				</span>
-				<select data-process="if:if_type" class="form-control">
-					<option value="1">{$Think.lang.p_m_if_1}</option>
-					<option value="2">{$Think.lang.p_m_if_2}</option>
-					<option value="3">{$Think.lang.p_m_if_3}</option>
-					<option value="4">{$Think.lang.p_m_if_4}</option>
-				</select>
-				<div class="input-group-btn">
-		    		<button class="btn btn-default p-m-if-add" type="button"><span class="glyphicon glyphicon-plus" style="color:#3c8dbc"></span></button>
-				</div>
-			</div>
+		<div class="form-group" style="margin-bottom:10px;">
+			<select data-process="if:if_type" class="form-control">
+				<option value="1">{$Think.lang.p_m_if_1}</option>
+				<option value="2">{$Think.lang.p_m_if_2}</option>
+				<option value="3">{$Think.lang.p_m_if_3}</option>
+				<option value="4">{$Think.lang.p_m_if_4}</option>
+			</select>
 		</div>
 		<div class="form-group">
     		<div class="table-responsive">
-            	<table class="table table-hover p-m-if-table" style="margin-bottom:0;">
+            	<table class="table table-bordered table-hover p-m-if-table" style="margin-bottom:0;">
                    <thead>
                        <tr>
-                           <th style="min-width:95px;">逻辑</th>
-                           <th style="min-width:150px;">条件</th>
-                           <th style="min-width:200px;">值</th>
-                           <th style="max-width:90px;"></th>
+                           <th style="width:95px;">逻辑 <a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips p-m-if-info"></a></th>
+                           <th style="width:150px;">条件</th>
+                           <th>值</th>
+                           <th style="width:70px;">操作 <a href="javascript:;" class="glyphicon glyphicon-plus p-m-if-add" title="添加"></a></th>
                        </tr>
                    </thead>
                    <tbody>
@@ -195,8 +187,8 @@
 	                  					<option value="1">取反</option>
 	                  				</select>
 	                  			</div>
-	                  			<div class="input-group-addon" style="padding:0;">
-	                  				<a href="javascript:;" class="p-m-if-val-func-info"><span class="glyphicon glyphicon-info-sign"></span></a>
+	                  			<div class="input-group-addon" style="padding:0;min-width:31px;width:31px;">
+	                  				<a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips p-m-if-val-func-info"></a>
 	                  			</div>
 	                  		</div>
 	                  		<div class="input-group">
@@ -230,7 +222,7 @@
 			<div class="input-group input-select-custom">
 				<div class="input-group-btn">
 					<select data-process="translate:translate_from" class="form-control">
-						<option value="">-请选择--</option>
+						<option value="">--请选择--</option>
 						<option value="auto">自动检测</option>
 						{foreach $transApiLangs as $k=>$v}
 						<option value="{$k}">{$v}</option>
@@ -246,7 +238,7 @@
 			<div class="input-group input-select-custom">
 				<div class="input-group-btn">
 					<select data-process="translate:translate_to" class="form-control">
-						<option value="">-请选择--</option>
+						<option value="">--请选择--</option>
 						{foreach $transApiLangs as $k=>$v}
 						<option value="{$k}">{$v}</option>
 						{/foreach}
@@ -305,7 +297,7 @@
 			<textarea data-process="func:func_param" rows="2" class="form-control" data-placeholder="默认传入当前字段"></textarea>
 			<div class="help-block">
 				一行一个值, 可输入任何内容或<select class="p-m-func-field"><option value="">插入字段</option></select>
-				请按函数传参, 否则运行出错！<a href="javascript:;" onclick="pluginFuncTips('process')">扩展函数</a>
+				请按函数传参, 否则运行出错！<a href="javascript:;" onclick="tipsPluginFunc('process')">扩展函数</a>
 			</div>
 		</div>
 		</section>
@@ -318,22 +310,7 @@
 			<p class="help-block">以/开头自动补全为{:config('root_website')}/</p>
 		</div>
 		<div class="form-group">
-			<label>请求方式</label>
-			<select data-process="api:api_type" class="form-control">
-				<option value="">GET</option>
-				<option value="post">POST</option>
-			</select>
-		</div>
-		<div class="form-group p-m-api-content-type" style="display:none;">
-			<label>POST数据类型</label>
-	    	<select data-process="api:api_content_type" class="form-control">
-				<option value="">默认表单数据：application/x-www-form-urlencoded</option>
-				<option value="application/json">JSON数组：application/json</option>
-				<option value="multipart/form-data">表单上传：multipart/form-data</option>
-			</select>
-		</div>
-		<div class="form-group">
-			<label>数据编码</label>
+			<label>网页编码</label>
 			<div class="input-group input-select-custom">
 				<div class="input-group-btn">
 					<select data-process="api:api_charset" class="form-control">
@@ -347,15 +324,47 @@
 			</div>
 		</div>
 		<div class="form-group">
+			<label>内容解压缩</label>
+			<div class="input-group input-select-custom">
+				<div class="input-group-btn">
+					<select data-process="api:api_encode" class="form-control">
+						<option value="">系统默认</option>
+						<option value="gzip">gzip</option>
+						<option value="br">br</option>
+						<option value="compress">compress</option>
+						<option value="deflate">deflate</option>
+						<option value="identity">identity</option>
+						<option value="custom">自定义</option>
+					</select>
+				</div>
+				<input type="text" class="form-control" data-process="api:api_encode_custom">
+			</div>
+		</div>
+		<div class="form-group">
+			<label>请求方式</label>
+			<select data-process="api:api_type" class="form-control">
+				<option value="">GET</option>
+				<option value="post">POST</option>
+			</select>
+		</div>
+		<div class="form-group p-m-api-content-type" style="display:none;">
+			<label>POST数据类型 <a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="tipsCurlPost()"></a></label>
+	    	<select data-process="api:api_content_type" class="form-control">
+				<option value="">默认表单数据：application/x-www-form-urlencoded</option>
+				<option value="application/json">JSON数组：application/json</option>
+				<option value="multipart/form-data">表单上传：multipart/form-data</option>
+			</select>
+		</div>
+		<div class="form-group">
 	     	<label>发送数据</label>
 	      	<a href="javascript:;" class="glyphicon glyphicon-plus p-m-api-add" title="添加"></a>
-	   		<div class="table-responsive">
-	           	<table class="table table-bordered table-hover p-m-api-table" style="margin-bottom:0;">
+	   		<div class="table-responsive p-m-api-table">
+	           	<table class="table table-bordered table-hover">
 		            <thead>
 	                <tr>
 	                    <td>名称</td>
 	                    <td>值</th>
-	                    <td style="width:50px;">删除</td>
+	                    <td>删除</td>
 	                </tr>
 		            </thead>
 		            <tbody>
@@ -394,13 +403,13 @@
 		<div class="form-group">
 	     	<label>请求头信息</label>
 	      	<a href="javascript:;" class="glyphicon glyphicon-plus p-m-api-header-add" title="添加"></a>
-	   		<div class="table-responsive">
-	           	<table class="table table-bordered table-hover p-m-api-header-table" style="margin-bottom:0;">
+	   		<div class="table-responsive p-m-api-header-table">
+	           	<table class="table table-bordered table-hover">
 		            <thead>
 	                <tr>
 	                    <td>名称</td>
 	                    <td>值</td>
-	                    <td style="width:50px;">删除</td>
+	                    <td>删除</td>
 	                </tr>
 		            </thead>
 		            <tbody>

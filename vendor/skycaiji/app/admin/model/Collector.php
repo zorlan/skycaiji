@@ -174,7 +174,7 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	            if(is_dir($dir)){
 	                @rmdir($dir);
 	            }
-	            CacheModel::getInstance('collecting')->deleteCache($collectorKey);
+	            self::collecting_data($collectorKey,'delete');
 	        }else{
 	            $collFile=self::collecting_file($collectorKey.'/'.$processKey);
 	            if(file_exists($collFile)){
@@ -189,18 +189,29 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	    }
 	}
 	
-	public static function collecting_data($collectorKey){
-	    $processes=array();
-	    if(!empty($collectorKey)){
-	        $processes=CacheModel::getInstance('collecting')->getCache($collectorKey,'data');
+	public static function collecting_data($collectorKey,$dataOp=null){
+	    if($collectorKey){
+	        $mcache=CacheModel::getInstance('collecting');
+	        if(!isset($dataOp)){
+	            
+	            $processes=$mcache->getCache($collectorKey,'data');
+	            init_array($processes);
+	            return $processes;
+	        }elseif($dataOp==='delete'){
+	            
+	            $mcache->deleteCache($collectorKey);
+	        }elseif(is_array($dataOp)){
+	            
+	            $mcache->setCache($collectorKey,$dataOp);
+	        }
+	    }else{
+	        
+	        if(!isset($dataOp)){
+	            
+	            return array();   
+	        }
 	    }
-	    if(!is_array($processes)){
-	        $processes=array();
-	    }
-	    return $processes;
 	}
-	
-	
 	
 	public static function collecting_process_status($collectorKey,$processKey){
 	    $status='none';
@@ -247,12 +258,6 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	    }
 	    return $lockList;
 	}
-	/*采集密钥*/
-	public static function collect_key($isProcess=false){
-	   $key=\util\Funcs::uniqid($isProcess?'collect_process':'auto_collect');
-	   \util\Param::set_temp_cahce_key($key);
-	   return $key;
-	}
 	/*触发运行自动采集*/
 	public static function collect_run_auto($rootUrl=''){
 	    try{
@@ -263,7 +268,7 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	        }else{
 	            $url=url('admin/index/auto_collect',null,false,true);
 	        }
-	        $url.=(strpos($url, '?')===false?'?':'&').'backstage_run=1&key='.self::collect_key();
+	        $url.=(strpos($url, '?')===false?'?':'&').'backstage_run=1&key='.\util\Param::set_temp_cahce_key('auto_collect');
 	        get_html($url,null,array('timeout'=>3));
 	    }catch(\Exception $ex){}
 	}
@@ -306,7 +311,7 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	            $processes[$k]=$v;
 	        }
 	        
-	        CacheModel::getInstance('collecting')->setCache($collectorKey,$processes);
+	        self::collecting_data($collectorKey,$processes);
 	        
 	        $collFile=self::collecting_file($collectorKey.'/main');
 	        write_dir_file($collFile,'1');
@@ -340,7 +345,7 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	        $chList=array();
 	        foreach ($processes as $pkey=>$ptids){
 	            $allParams=array(
-	                'key'=>self::collect_key(true),
+	                'key'=>\util\Param::set_temp_cahce_key('collect_process'),
 	                'collector_process'=>$collectorKey.'-'.$pkey,
 	            );
 	            if(isset($collectNum)){
@@ -360,7 +365,7 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	            }
 	            $allParams=http_build_query($allParams);
 	            $url=url('admin/index/collect_process?'.$allParams,null,false,true);
-	            $chList[$pkey]=\util\Curl::get($url,null,array('return_curl'=>1,'timeout'=>3));
+	            $chList[$pkey]=get_html($url,null,array('return_curl'=>1,'timeout'=>3));
 	            curl_multi_add_handle($mh, $chList[$pkey]);
 	        }
 	        

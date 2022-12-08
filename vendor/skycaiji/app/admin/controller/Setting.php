@@ -111,6 +111,8 @@ class Setting extends BaseController {
             $config['real_time']=input('real_time/d',0);
             $config['retry']=input('retry/d',0);
             $config['wait']=input('wait/d',0);
+            $config['ip_resolve']=input('ip_resolve');
+            $config['max_redirs']=input('max_redirs/d',0);
             
             unset($config['download_img']);
             
@@ -123,17 +125,10 @@ class Setting extends BaseController {
                 }
             }
             
-            
             $mconfig->setConfig('caiji',$config);
-            if($config['auto']){
-                
-                if($config['run']=='backstage'){
-                    
-                    $bskey=\util\Funcs::uniqid('auto_backstage');
-                    \util\Param::set_auto_backstage_key($bskey);
-                    @get_html(url('admin/index/auto_backstage?key='.$bskey,null,false,true),null,array('timeout'=>3));
-                }
-            }
+            
+            $this->_run_auto_backstage();
+            
             $this->success(lang('op_success'),'setting/caiji');
         }else{
             $this->set_html_tags(
@@ -154,6 +149,23 @@ class Setting extends BaseController {
             $this->assign('phpExeFile',$phpExeFile);
         }
         return $this->fetch();
+    }
+    
+    public function _run_auto_backstage(){
+        $mconfig=model('Config');
+        $config=$mconfig->getConfig('caiji','data');
+        init_array($config);
+        if($config['auto']){
+            
+            if($config['run']=='backstage'){
+                
+                $bskey=\util\Param::set_auto_backstage_key();
+                @get_html(url('admin/index/auto_backstage?key='.$bskey,null,false,true),null,array('timeout'=>3));
+            }
+        }
+        
+        $config=$mconfig->getConfig('page_render','data');
+        $this->_chrome_start($config);
     }
     /*图片本地化设置*/
     public function download_imgAction(){
@@ -290,21 +302,12 @@ class Setting extends BaseController {
     /*代理设置*/
     public function proxyAction(){
         $mconfig=model('Config');
-        $mproxy=model('Proxyip');
+        $mproxy=model('ProxyIp');
         if(request()->isPost()){
             $config=array();
-            $ip_list=input('ip_list','','trim');
-            $user_list=input('user_list','','trim');
-            $pwd_list=input('pwd_list','','trim');
-            $type_list=input('type_list','','trim');
-            
-            $ip_list=empty($ip_list)?array():json_decode($ip_list,true);
-            $user_list=empty($user_list)?array():json_decode($user_list,true);
-            $pwd_list=empty($pwd_list)?array():json_decode($pwd_list,true);
-            $type_list=empty($type_list)?array():json_decode($type_list,true);
-            
             $config['open']=input('open/d',0);
             $config['failed']=input('failed/d',0);
+            $config['group_id']=input('group_id/d',0);
             $config['use']=strtolower(input('use'));
             $config['use_num']=input('use_num/d',0);
             $config['use_time']=input('use_time/d',0);
@@ -315,46 +318,6 @@ class Setting extends BaseController {
             if('time'==$config['use']&&$config['use_time']<=0){
                 $this->error('每个IP使用多少分钟必须大于0');
             }
-            
-            
-            if(!empty($ip_list)&&is_array($ip_list)){
-                
-                $ip_list=array_map('trim', $ip_list);
-                $user_list=array_map('trim', $user_list);
-                $pwd_list=array_map('trim', $pwd_list);
-                $type_list=array_map('trim', $type_list);
-                
-                
-                $nowTime=time();
-                for($k=count($ip_list);$k>=0;$k--){
-                    $v=$ip_list[$k];
-                    if(empty($v)){
-                        
-                        continue;
-                    }
-                    $newData=array(
-                        'ip'=>$v,
-                        'user'=>$user_list[$k],
-                        'pwd'=>$pwd_list[$k],
-                        'type'=>$type_list[$k],
-                        'invalid'=>0,
-                        'failed'=>0,
-                        'num'=>0,
-                        'time'=>0,
-                        'addtime'=>$nowTime,
-                    );
-                    if($mproxy->where(array('ip'=>$newData['ip']))->count()>0){
-                        
-                        unset($newData['invalid']);
-                        
-                        $mproxy->strict(false)->where(array('ip'=>$newData['ip']))->update($newData);
-                    }else{
-                        
-                        $mproxy->db()->insert($newData,true);
-                    }
-                }
-            }
-            
             
             $config['api']=input('api/a',array(),'trim');
             $config['apis']=input('apis/a',array(),'trim');
@@ -374,10 +337,11 @@ class Setting extends BaseController {
                 '代理设置',
                 '代理设置',
                 breadcrumb(array(array('url'=>url('setting/caiji'),'title'=>lang('setting_caiji')),array('url'=>url('setting/proxy'),'title'=>'代理')))
-                );
+            );
             $proxyConfig=$mconfig->getConfig('proxy','data');
             init_array($proxyConfig);
             $proxyConfig['ip_count']=$mproxy->count();
+            $this->assign('proxyGroups',model('ProxyGroup')->getAll());
             $this->assign('proxyConfig',$proxyConfig);
             $this->assign('proxyTypes',$mproxy->proxy_types());
         }
@@ -519,6 +483,8 @@ class Setting extends BaseController {
             $config['tool']=strtolower(input('tool'));
             $config['chrome']=input('chrome/a',array());
             $config['timeout']=input('timeout/d');
+            $config['wait_end_ms']=input('wait_end_ms/d',0);
+            $config['wait_end_num']=input('wait_end_num/d',0);
             if(!in_array($config['tool'],array('chrome'))){
                 $config['tool']='';
             }
@@ -528,10 +494,7 @@ class Setting extends BaseController {
             }
             
             $mconfig->setConfig('page_render',$config);
-            if($config['tool']=='chrome'){
-                $chromeSoket=new \util\ChromeSocket($config['chrome']['host'],$config['chrome']['port'],$config['timeout'],$config['chrome']['filename'],$config['chrome']);
-                $this->_chrome_start($chromeSoket);
-            }
+            $this->_chrome_start($config);
             $this->success(lang('op_success'),'setting/page_render');
         }else{
             $this->set_html_tags(
@@ -544,17 +507,16 @@ class Setting extends BaseController {
             init_array($config['chrome']);
             $this->assign('config',$config);
             
-            if($mconfig->page_render_is_chrome(true,$config['tool'])){
-                
-                $chromeSoket=new \util\ChromeSocket($config['chrome']['host'],$config['chrome']['port'],$config['timeout'],$config['chrome']['filename'],$config['chrome']);
-                $toolIsOpen=$chromeSoket->hostIsOpen();
-                $this->assign('toolIsOpen',$toolIsOpen);
-            }
+            $chromeSocket=$this->_chrome_socket($config);
+            $toolIsOpen=$chromeSocket?$chromeSocket->hostIsOpen():false;
+            $this->assign('toolIsOpen',$toolIsOpen);
+            
             return $this->fetch('page_render');
         }
     }
     /*清理缓存目录*/
     public function cleanAction(){
+        $clearPageRender=model('Config')->page_render_is_chrome()?true:false;
         if(request()->isPost()){
             set_time_limit(1000);
             $types=input('types/a');
@@ -586,6 +548,11 @@ class Setting extends BaseController {
                         \util\Tools::clear_runtime_dir($systemPaths);
                     }
                 }
+                
+                if($clearPageRender&&(in_array('all', $types)||in_array('page_render', $types))){
+                    
+                    $this->_clear_page_render();
+                }
             }
             
             if(in_array('all', $types)||in_array('data', $types)){
@@ -607,6 +574,7 @@ class Setting extends BaseController {
             
             $this->success('清理完成','backstage/index');
         }else{
+            $this->assign('clearPageRender',$clearPageRender);
             return $this->fetch();
         }
     }
@@ -640,7 +608,7 @@ class Setting extends BaseController {
             $this->ajax_check_userpwd();
             $chrome=input('chrome/a',array());
             
-            $return=\util\ChromeSocket::execHeadless($chrome['filename'], $chrome['port'], $chrome, 'all', true);
+            $return=\util\ChromeSocket::execHeadless($chrome['filename'], $chrome['port'], $chrome, true);
             if(!empty($return['error'])){
                 
                 $this->error($return['error']);
@@ -670,33 +638,52 @@ class Setting extends BaseController {
     }
     
     public function chrome_cleanAction(){
-        $config=model('Config')->getConfig('page_render','data');
-        init_array($config);
-        init_array($config['chrome']);
-        $chromeSoket=new \util\ChromeSocket($config['chrome']['host'],$config['chrome']['port'],$config['timeout'],$config['chrome']['filename'],$config['chrome']);
-        $chromeSoket->clearBrowser();
+        $this->_clear_page_render();
         $this->success('清理完成','');
     }
     
     public function chrome_restartAction(){
         $config=model('Config')->getConfig('page_render','data');
-        init_array($config);
-        init_array($config['chrome']);
-        $chromeSoket=new \util\ChromeSocket($config['chrome']['host'],$config['chrome']['port'],$config['timeout'],$config['chrome']['filename'],$config['chrome']);
-        $this->_chrome_start($chromeSoket);
+        $this->_chrome_start($config,true);
         $this->success('重启完成','setting/page_render');
     }
     
-    private function _chrome_start($chromeSoket){
-        if($chromeSoket){
+    private function _chrome_start($config,$restart=false){
+        init_array($config);
+        $chromeSocket=$this->_chrome_socket($config);
+        if($chromeSocket){
             try {
-                $chromeSoket->closeBrowser();
-                $chromeSoket->openHost();
+                if($restart){
+                    
+                    $chromeSocket->closeBrowser();
+                    $chromeSocket->openHost();
+                }else{
+                    if(!$chromeSocket->hostIsOpen()){
+                        
+                        $chromeSocket->openHost();
+                    }
+                }
             }catch (\Exception $ex){
                 $this->error($ex->getMessage());
             }
-        }else{
-            $this->error('失败');
+        }
+    }
+    
+    private function _chrome_socket($config){
+        init_array($config);
+        init_array($config['chrome']);
+        $chromeSocket=null;
+        if(model('Config')->page_render_is_chrome(true,$config['tool'])){
+            $chromeSocket=new \util\ChromeSocket($config['chrome']['host'],$config['chrome']['port'],$config['timeout'],$config['chrome']['filename'],$config['chrome']);
+        }
+        return $chromeSocket;
+    }
+    
+    private function _clear_page_render(){
+        $config=model('Config')->getConfig('page_render','data');
+        $chromeSocket=$this->_chrome_socket($config);
+        if($chromeSocket){
+            $chromeSocket->clearBrowser();
         }
     }
 }

@@ -6,9 +6,9 @@
 		<div class="form-group">
 			<div class="input-group input-group-sm">
 				<div class="input-group-addon">起始页</div>
-				<input type="text" name="source_url" class="form-control" value="{$input_urls['source_url']|htmlspecialchars}" />
-				{if $is_post_list['source_url']}
-				<div class="input-group-addon">POST</div>
+				<input type="text" name="source_url" class="form-control" value="{$input_urls['source_url']?htmlspecialchars($input_urls['source_url']):''}" />
+				{if $pageOpenedList['source_url']}
+				<div class="input-group-addon">{$pageOpenedList['source_url']}</div>
 				{/if}
 			</div>
 		</div>
@@ -18,9 +18,9 @@
 			<div class="form-group">
 				<div class="input-group input-group-sm">
 					<div class="input-group-addon">多级页：{$level_url['name']}</div>
-					<input type="text" name="level_{$level_url['level']}" class="form-control" value="{$level_url['url']|htmlspecialchars}" />
-					{if $is_post_list['level_url'][$level_url['name']]}
-					<div class="input-group-addon">POST</div>
+					<input type="text" name="level_{$level_url['level']}" class="form-control" value="{$level_url['url']?htmlspecialchars($level_url['url']):''}" />
+					{if $pageOpenedList['level_url'][$level_url['name']]}
+					<div class="input-group-addon">{$pageOpenedList['level_url'][$level_url['name']]}</div>
 					{/if}
 				</div>
 			</div>
@@ -30,9 +30,9 @@
 		<div class="form-group">
 			<div class="input-group input-group-sm">
 				<div class="input-group-addon">内容页</div>
-				<input type="text" name="url" class="form-control" value="{$input_urls['url']|htmlspecialchars}" />
-				{if $is_post_list['url']}
-				<div class="input-group-addon">POST</div>
+				<input type="text" name="url" class="form-control" value="{$input_urls['url']?htmlspecialchars($input_urls['url']):''}" />
+				{if $pageOpenedList['url']}
+				<div class="input-group-addon">{$pageOpenedList['url']}</div>
 				{/if}
 			</div>
 		</div>
@@ -40,6 +40,6 @@
 	</div>
 </div>
 {/if}
-{if $is_post}
-<input type="hidden" name="page_source_post" value="1" />
+{if $pageOpened}
+<div id="input_url_page_opened" style="display:none;">{$pageOpened}</div>
 {/if}

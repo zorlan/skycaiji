@@ -46,7 +46,6 @@ class ReleaseBase extends CollectBase{
 			
 			if(!empty($returnData['error'])){
 				
-				
 			    if(model('Collected')->collGetNumByUrl($url)<=0){
 					
 					model('Collected')->insert(array(
@@ -61,8 +60,7 @@ class ReleaseBase extends CollectBase{
 						'addtime'=>time()
 					));
 				}
-
-				$this->echo_msg(array('%s：<a href="%s" target="_blank">%s</a>',$returnData['error'],$url,$url),'red',$echo);
+				$this->echo_msg(array('%s',$returnData['error']),'red',$echo);
 			}
 		}
 		
@@ -165,14 +163,18 @@ class ReleaseBase extends CollectBase{
 		    return $url;
 		}
 		
-		$mproxy=model('Proxyip');
+		$mproxy=model('ProxyIp');
 		$options=array();
 		$proxyDbIp=null;
 		if(!is_empty(g_sc_c('proxy','open'))){
 		    
 		    $proxyDbIp=$mproxy->get_usable_ip();
 		    $proxyIp=$mproxy->to_proxy_ip($proxyDbIp);
-		    if(!empty($proxyIp)){
+		    if(empty($proxyIp)){
+		        
+		        $this->echo_msg(array('没有可用的代理IP，跳过下载<a href="%s" target="_blank">图片</a>',$url));
+		        return $url;
+		    }else{
 		        
 		        $options['proxy']=$proxyIp;
 		    }
@@ -376,9 +378,9 @@ class ReleaseBase extends CollectBase{
 			                if(!empty($proxyDbIp)){
 			                    $this->echo_msg(array('代理IP：%s',$proxyDbIp['ip']),'black',true,'','display:inline;margin-right:5px;');
 			                }
-			                if($retryCur<=0){
-			                    $this->echo_msg(array('<div class="clear"><span class="left">图片下载失败：</span><a href="%s" target="_blank" class="lurl">%s</a></div>',$url,$url),'red');
-			                }
+			                
+			                $this->retry_first_echo($retryCur,'图片下载失败',$url,$imgCodeInfo);
+			                
 			                
 			                if(!empty($proxyDbIp)){
 			                    if($imgCodeInfo['code']!=404){
@@ -389,17 +391,8 @@ class ReleaseBase extends CollectBase{
 			                
 			                $this->collect_sleep(g_sc_c('download_img','wait'));
 			                
-			                if($retryMax>0){
-			                    
-			                    if($retryCur<$retryMax){
-			                        
-			                        $retryCur++;
-			                        $this->echo_msg(array('%s第%s次',$retryCur>1?' / ':'重试：',$retryCur),'black',true,'','display:inline;'.($retryCur==$retryMax?'margin-right:5px;':''));
-			                        return $this->download_img($retryParams[0]);
-			                    }else{
-			                        $retryCur=0;
-			                        $this->echo_msg('图片无效','red',true,'','display:inline;margin-right:5px;');
-			                    }
+			                if($this->retry_do_func($retryCur,$retryMax,'图片无效')){
+			                    return $this->download_img($retryParams[0]);
 			                }
 			            }
 			        }catch (\Exception $ex){
@@ -430,7 +423,7 @@ class ReleaseBase extends CollectBase{
 	        }
 	    }
 	    if(!empty($charset)&&!empty($filename)){
-	        $filename=iconv('utf-8',$charset.'//IGNORE',$filename);
+	        $filename=\util\Funcs::convert_charset($filename,'utf-8',$charset);
 	    }
 	    return $filename;
 	}
@@ -467,14 +460,16 @@ class ReleaseBase extends CollectBase{
 	
 	/*utf8转换成其他编码*/
 	public function utf8_to_charset($charset,$val){
-		static $chars=array('utf-8','utf8','utf8mb4');
-		if(!in_array(strtolower($charset),$chars)){
-			if(!empty($val)){
-				$val=iconv('utf-8',$charset.'//IGNORE',$val);
-			}
-		}
+	    $val=\util\Funcs::convert_charset($val,'utf-8',$charset);
 		return $val;
 	}
+	
+	/*其他编码转换成utf8*/
+	public function charset_to_utf8($charset,$val){
+	    $val=\util\Funcs::convert_charset($val,$charset,'utf-8');
+	    return $val;
+	}
+	
 	/**
 	 * 任意编码转换成utf8
 	 * @param mixed $val 字符串或数组

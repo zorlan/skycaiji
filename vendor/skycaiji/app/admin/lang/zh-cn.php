@@ -169,7 +169,7 @@ return array(
 	'field_module_words'=>'固定文字',
 	'field_module_num'=>'随机数字',
 	'field_module_time'=>'时间',
-	'field_module_list'=>'随机抽取',
+	'field_module_list'=>'列表抽取',
 	'field_module_json'=>'JSON提取',
 	'field_module_merge'=>'字段组合',
 	'field_module_extract'=>'字段提取',

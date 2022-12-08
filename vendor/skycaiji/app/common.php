@@ -10,7 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.5.1');
+define('SKYCAIJI_VERSION', '2.5.2');
 \think\Loader::addNamespace('plugin', realpath(SKYCAIJI_PATH.'plugin'));
 \think\Loader::addNamespace('util',realpath(APP_PATH.'extend/util'));
 
@@ -136,9 +136,7 @@ function breadcrumb($arr){
 /*任意编码转换成utf8*/
 function auto_convert2utf8($str){
 	$encode = mb_detect_encoding($str, array('ASCII','UTF-8','GB2312','GBK','BIG5'));
-	if(strcasecmp($encode, 'utf-8')!==0){
-		$str=iconv($encode,'utf-8//IGNORE',$str);
-	}
+	$str=\util\Funcs::convert_charset($str,$encode,'utf-8');
 	return $str;
 }
 /*客户端信息*/
@@ -235,11 +233,51 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
         $url='http://'.$url;
     }
     
+    
+    init_array($options['curlopts']);
+    $confIpResolve=g_sc_c('caiji','ip_resolve');
+    if($confIpResolve){
+        
+        $options['curlopts'][CURLOPT_IPRESOLVE]=$confIpResolve=='ipv6'?CURL_IPRESOLVE_V6:CURL_IPRESOLVE_V4;
+    }
+    
     $curl=null;
     try {
         if(isset($postData)&&$postData!==false){
             
-            if(!empty($postData)&&!empty($fromEncode)&&!in_array($fromEncode, array('auto','utf-8','utf8'))){
+            $isAppJson=$options['content_type']=='application/json'?true:false;
+            if(!empty($postData)&&$isAppJson){
+                
+                $postDataJson=array();
+                foreach ($postData as $k=>$v){
+                    if(strpos($v,'{')===0||strpos($v,'[')===0){
+                        
+                        $vJson=\util\Funcs::convert_html2json($v);
+                        if(!empty($vJson)){
+                            $v=$vJson;
+                        }
+                    }
+                    $k=isset($k)?$k:'';
+                    if($k==='###'){
+                        
+                        $postDataJson=is_array($v)?$v:array();
+                    }else{
+                        $k=explode('.', $k);
+                        $postDataJsonKey=&$postDataJson;
+                        foreach ($k as $kv){
+                            
+                            if(!is_array($postDataJsonKey[$kv])){
+                                $postDataJsonKey[$kv]=array();
+                            }
+                            $postDataJsonKey=&$postDataJsonKey[$kv];
+                        }
+                        $postDataJsonKey=$v;
+                    }
+                }
+                $postData=$postDataJson;
+                unset($postDataJson);
+            }
+            if(!$isAppJson&&!empty($postData)&&!empty($fromEncode)&&!in_array($fromEncode, array('auto','utf-8','utf8'))){
                 
                 if(!is_array($postData)){
                     
@@ -254,9 +292,7 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
                     }
                 }
                 $postData=is_array($postData)?$postData:array();
-                foreach ($postData as $k=>$v){
-                    $postData[$k] = iconv ( 'utf-8', $fromEncode.'//IGNORE', $v );
-                }
+                $postData=\util\Funcs::convert_charset($postData, 'utf-8', $fromEncode);
             }
             $curl=\util\Curl::post($url,$headers,$options,$postData);
         }else{
@@ -285,15 +321,20 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
     } catch (\Exception $e) {
         $curl=null;
     }
-    $html=null;
     
+    if($options['return_curl']){
+        
+        return $curl;
+    }
+    
+    $html=null;
     if(!empty($curl)){
         if($curl->ok){
             
             $html=$curl->body;
         }else{
             
-            if($options['return_curl_body']){
+            if($options['return_body']){
                 
                 $html=$curl->body;
             }
@@ -360,9 +401,7 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
                     case 'cp20936':$fromEncode='gb2312';break;
                     case 'cp950':$fromEncode='big5';break;
                 }
-                if ($fromEncode!='utf-8'){
-                    $html = iconv ( $fromEncode, 'utf-8//IGNORE', $html );
-                }
+                $html=\util\Funcs::convert_charset($html,$fromEncode,'utf-8');
             }
         }
     }
@@ -375,6 +414,9 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
             $info['code']=$curl->code;
             $info['ok']=$curl->ok;
             $info['header']=$curl->header;
+            
+            $info['error']=$curl->error;
+            $info['info']=$curl->info;
         }
         return $info;
     }else{

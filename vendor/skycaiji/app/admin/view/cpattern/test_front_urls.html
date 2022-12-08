@@ -9,11 +9,11 @@
 		<tbody>
 		{foreach $frontDataList as $frontIx=>$frontData}
 			<tr>
-				<th>前置页：{$frontData['name']}</th>
+				<th style="padding-top:16px;">前置页：{$frontData['name']}</th>
 				<td>
 					<table class="table table-hover">
 						<tr>
-							<td width="90">网址</td>
+							<td style="width:90px;">网址</td>
 							<td>{$frontData['url']|htmlspecialchars}</td>
 						</tr>
 						<tr>

@@ -4,9 +4,9 @@
 {block name="content"}
 <script type="text/javascript">
 confirmRight('规则中包含插件，是否一同导出？',function(){
-	window.location.href=ulink('collector/export&coll_id=_cid_&export_func=1',{'_cid_':'{$coll_id}'});
+	window.location.href=ulink('collector/export?coll_id=_cid_&export_func=1',{'_cid_':'{$coll_id}'});
 },function(){
-	window.location.href=ulink('collector/export&coll_id=_cid_&export_func=0',{'_cid_':'{$coll_id}'});
+	window.location.href=ulink('collector/export?coll_id=_cid_&export_func=0',{'_cid_':'{$coll_id}'});
 });
 </script>
 {/block}

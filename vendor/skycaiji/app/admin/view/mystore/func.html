@@ -3,7 +3,7 @@
 <script src="__PUBLIC__/static/js/admin/mystore.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
-{php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'倒序'));{/php}
+{php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'降序'));{/php}
 <div class="nav-tabs-custom">
 	<ul class="nav nav-tabs">
     	<li><a href="{:url('mystore/rule')}">采集规则</a></li>
@@ -20,13 +20,13 @@
 	</ul>
 	<div class="tab-content">
 		<div class="tab-pane active">
-		    <div class="table-responsive">
+		    <div class="table-responsive" style="border:0;">
 				<form id="form_list" method="post" ajax-submit="true" action="{:url('mystore/funcAppOp')}">
 				{:html_usertoken()}
 				<table id="list_table" class="table table-hover datatable">
 					<thead>
 						<tr>
-							<th class="sorting{$orderClass['id']}" data-order="id" title="ID{$orderSort['id']}">{$Think.lang.select}</th>
+							<th class="sorting{$orderClass['id']}" data-order="id" title="ID{$orderSort['id']}" style="width:65px;min-width:65px;">{$Think.lang.select}</th>
 							<th class="sorting{$orderClass['name']}" data-order="name" title="{$orderSort['name']}">名称</th>
 							<th class="sorting{$orderClass['app']}" data-order="app" title="{$orderSort['app']}">类和方法</th>
 							<th class="sorting{$orderClass['module']}" data-order="module" title="{$orderSort['module']}">模块</th>
@@ -62,7 +62,7 @@
 					</tbody>
 					<tfoot>
 						<tr>
-							<td class="chk"><label><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" />全部</label></td>
+							<td class="chk"><label class="chk-all"><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" /><span>全部</span></label></td>
 							<td colspan="2">
 								<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
 								&nbsp;<a href="{:url('develop/func')}" class="btn btn btn-success">开发一个</a>

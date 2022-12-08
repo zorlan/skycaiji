@@ -27,11 +27,11 @@ class Rdiy extends Release{
 			if(empty($diy['app'])){
 				$this->error('请输入插件名称');
 			}
-			if(in_array($diy['app'], array('base','code'))){
-				$this->error($diy['app'].'为系统保留名称，不能使用');
+			if(model('ReleaseApp')->isSystemApp($diy['app'],'diy')){
+			    $this->error($diy['app'].'为系统保留名称，不能使用');
 			}
-			if(!preg_match('/^[a-z][a-z0-9]+$/i', $diy['app'])){
-				$this->error('插件名称必须以字母开头且由字母或数字组成');
+			if(!model('ReleaseApp')->isRightApp($diy['app'],'diy')){
+			    $this->error('插件名称必须以字母开头且由字母或数字组成');
 			}
 		}elseif($diy['type']=='code'){
 			if(empty($diy['code'])){

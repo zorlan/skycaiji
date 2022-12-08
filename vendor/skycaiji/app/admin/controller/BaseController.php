@@ -53,20 +53,29 @@ class BaseController extends \skycaiji\common\controller\BaseController{
 	
 	
 	public function ajax_check_userpwd(){
-	    if(!input('?_userpwd_')){
-	        $this->error('','',array('_userpwd_'=>true));
-	    }
-	    $userpwd=input('_userpwd_','');
-	    if(empty($userpwd)){
-	        $this->error('请输入密码','',array('_userpwd_'=>true));
-	    }
 	    $user=g_sc('user');
 	    if(empty($user)){
 	        $this->error('请先登录');
 	    }
-	    if(\skycaiji\admin\model\User::pwd_encrypt($userpwd,$user['salt'])!=$user['password']){
+	    $muser=model('User');
+	    $checkUserpwd=cookie('check_userpwd');
+	    if(empty($checkUserpwd)||$checkUserpwd!=$muser->generate_key($user)){
 	        
-	        $this->error('密码错误','',array('_userpwd_'=>true));
+	        if(!input('?_check_pwd_')){
+	            $this->error('','',array('_check_pwd_'=>true));
+	        }
+	        $userpwd=input('_check_pwd_','');
+	        if(empty($userpwd)){
+	            $this->error('请输入密码','',array('_check_pwd_'=>true));
+	        }
+	        if(\skycaiji\admin\model\User::pwd_encrypt($userpwd,$user['salt'])!=$user['password']){
+	            
+	            $this->error('密码错误','',array('_check_pwd_'=>true));
+	        }
+	        if(input('_check_skip_')){
+	            
+	            cookie('check_userpwd',$muser->generate_key($user),array('expire'=>3600));
+	        }
 	    }
 	}
 }

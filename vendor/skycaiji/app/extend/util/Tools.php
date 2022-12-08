@@ -183,6 +183,10 @@ class Tools{
             $vars['title'] = '内容页';
             $vars['id'] = 'coll_pattern_url';
             $vars['name'] = 'config';
+        } elseif ('test'==$pageType) {
+            $vars['title'] = '';
+            $vars['id'] = 'win_coll_pattern_test';
+            $vars['name'] = 'config';
         }
         return $vars;
     }
@@ -217,40 +221,63 @@ class Tools{
             
             \util\Funcs::close_session();
             
-            self::proc_open_exec($commandStr,false);
+            
+            self::proc_open_exec($commandStr);
         }
         
         exit();
     }
     
-    public static function proc_open_exec($commandStr,$showInfo=false,$timeout=10,$closeProc=false){
+    public static function proc_open_exec_curl($commandStr,$showInfo=false,$timeout=10,$closeProc=false,$killProc=false){
+        $params=array($commandStr,$showInfo,$timeout,$closeProc,$killProc);
+        cache('proc_open_exec_params',$params);
+        $json=get_html(url('admin/index/proc_open_exec?key='.\util\Param::set_proc_open_exec_key(),null,false,true),null,array('timeout'=>3));
+        if($json){
+            $json=json_decode($json,true);
+        }
+        init_array($json);
+        return $json;
+    }
+    
+    public static function proc_open_exec($commandStr,$showInfo=false,$timeout=10,$closeProc=false,$killProc=false){
         $info=array('status'=>'','output'=>'','error'=>'');
+        $descriptorspec=array();
+        if($showInfo===true){
+            
+            $descriptorspec[0]=array('pipe', 'r');
+        }
+        $showInfo=$showInfo==='all'?array('status','output','error'):explode(',',$showInfo);
         $timeout=intval($timeout);
         if($timeout<=0){
             $timeout=10;
         }
         if(!empty($commandStr)){
-            $descriptorspec = array(
-                0 => array('pipe', 'r'),  
-                1 => array('pipe', 'w'),  
-                2 => array('pipe', 'w')
-            );
+            $showOutput=in_array('output',$showInfo)?true:false;
+            $showError=in_array('error',$showInfo)?true:false;
+            if($showOutput||$showError){
+                $descriptorspec[0]=array('pipe', 'r');
+            }
+            if($showOutput){
+                $descriptorspec[1]=array('pipe', 'w');
+            }
+            if($showError){
+                $descriptorspec[2]=array('pipe', 'w');
+            }
             $pipes=array();
             $otherOptions=IS_WIN?array('suppress_errors'=>true,'bypass_shell'=>true):array();
             $handle=proc_open($commandStr,$descriptorspec,$pipes,null,null,$otherOptions);
-            if($showInfo){
+            if(!empty($showInfo)){
                 
                 if(!is_resource($handle)){
                     
                     $info['error']='命令执行失败，请检查可执行文件是否存在，以及'.\util\Funcs::web_server_name().'服务器的用户权限';
                 }else{
-                    $showInfo=$showInfo=='all'?array('status','output','error'):explode(',',$showInfo);
                     $nowtime=time();
                     if(in_array('status',$showInfo)){
                         
                         $info['status']=proc_get_status($handle);
                     }
-                    if(in_array('output',$showInfo)){
+                    if($showOutput&&is_resource($pipes[1])){
                         
                         if(function_exists('stream_set_blocking')){
                             stream_set_blocking($pipes[1],false);
@@ -267,7 +294,7 @@ class Tools{
                         }
                     }
                     $nowtime=time();
-                    if(in_array('error',$showInfo)){
+                    if($showError&&is_resource($pipes[2])){
                         
                         if(function_exists('stream_set_blocking')){
                             stream_set_blocking($pipes[2],false);
@@ -288,25 +315,55 @@ class Tools{
                         
                         if(!empty($info[$key])){
                             $encode=mb_detect_encoding($info[$key], array('ASCII','UTF-8','GB2312','GBK','BIG5'));
-                            if($encode!='UTF-8'){
-                                $info[$key] = iconv ( $encode, 'utf-8//IGNORE', $info[$key] );
-                            }
+                            $info[$key]=\util\Funcs::convert_charset($info[$key],$encode,'utf-8');
                         }
                     }
                 }
             }
-            if(is_resource($pipes[0])){
-                fclose($pipes[0]);
-            }
-            if(is_resource($pipes[1])){
-                fclose($pipes[1]);
-            }
-            if(is_resource($pipes[2])){
-                fclose($pipes[2]);
-            }
-            if($closeProc&&is_resource($handle)){
-                proc_terminate($handle);
+            if(empty($descriptorspec)){
                 proc_close($handle);
+            }else{
+                if(is_resource($pipes[0])){
+                    fclose($pipes[0]);
+                }
+                if(is_resource($pipes[1])){
+                    fclose($pipes[1]);
+                }
+                if(is_resource($pipes[2])){
+                    fclose($pipes[2]);
+                }
+                if($closeProc&&is_resource($handle)){
+                    proc_terminate($handle);
+                    proc_close($handle);
+                }
+                if($killProc){
+                    
+                    
+                    register_shutdown_function(function(){
+                        try{
+                            $curPid=getmypid();
+                            $curPid=intval($curPid);
+                            if($curPid>0){
+                                
+                                if(function_exists('posix_kill')){
+                                    posix_kill($curPid, SIGTERM);
+                                }else{
+                                    $cmdPid='';
+                                    if(IS_WIN){
+                                        
+                                        $cmdPid='taskkill /F /PID '.$curPid;
+                                    }else{
+                                        
+                                        $cmdPid='kill -15 '.$curPid;
+                                    }
+                                    if($cmdPid){
+                                        \util\Tools::proc_open_exec($cmdPid);
+                                    }
+                                }
+                            }
+                        }catch (\Exception $ex){}
+                    });
+                }
             }
         }
         return $info;
@@ -446,6 +503,138 @@ class Tools{
         }
         $result['success']=true;
         return $result;
+    }
+    
+    
+    /**
+     * 匹配根目录
+     * @param string $url 完整的网址
+     * @param string $html 页面源码
+     */
+    public static function match_base_url($url,$html,$returnInfo=false){
+        
+        $base_tag_url=false;
+        if(!empty($html)&&preg_match('/<base\b[^<>]*\bhref\s*=\s*[\'\"](?P<base>[^\'\"]*)[\'\"]/i',$html,$base_url)){
+            $base_url=$base_url['base'];
+            if(!preg_match('/^\w+\:\/\//', $base_url)){
+                
+                $url_info=array('cur_url'=>$url,'url_no_name'=>true);
+                $url_info['base_url']=self::match_base_url($url, null);
+                $url_info['domain_url']=self::match_domain_url($url);
+                $base_url=self::create_complete_url($base_url,$url_info);
+            }
+            $base_tag_url=$base_url;
+        }else{
+            
+            $base_url=preg_replace('/[\#\?].*$/', '', $url);
+        }
+        if(!preg_match('/\/$/', $base_url)){
+            
+            
+            if(preg_match('/(^\w+\:\/\/[^\/]+)(.*$)/',$base_url,$mbase)){
+                
+                $mbase[2]=preg_replace('/[^\/]+$/', '', $mbase[2]);
+                $base_url=$mbase[1].$mbase[2];
+            }
+        }
+        $base_url=rtrim($base_url,'/');
+        $base_url=$base_url?$base_url:null;
+        if($returnInfo){
+            return array('base_url'=>$base_url,'base_tag_url'=>$base_tag_url);
+        }else{
+            return $base_url;
+        }
+    }
+    /**
+     * 匹配域名
+     * @param string $url 完整的网址
+     * @return NULL|string
+     */
+    public static function match_domain_url($url,$cache=false){
+        static $domainList=array();
+        $domain_url=null;
+        if($cache){
+            $cache=md5($url);
+            $domain_url=$domainList[$cache];
+        }
+        if(empty($domain_url)){
+            if(preg_match('/^\w+\:\/\/([\w\-]+\.){1,}[\w]+/',$url,$domain_url)){
+                $domain_url=rtrim($domain_url[0],'/');
+            }else{
+                $domain_url=null;
+            }
+            if($cache){
+                $domainList[$cache]=$domain_url;
+            }
+        }
+        return empty($domain_url)?null:$domain_url;
+    }
+    
+    
+    /**
+     * 生成完整网址
+     * @param string $url 要填充的网址
+     * @param array $params 参数 
+     */
+    public static function create_complete_url($url,$params=array()){
+        
+        $base_url=$params['base_url'];
+        
+        if(preg_match('/^\w+\:/', $url)){
+            
+            if(preg_match('/^\w+\:\/\//', $url)){
+                
+                if($params['url_no_name']){
+                    
+                    if(strpos($url,'#')!==false){
+                        $url=preg_replace('/\#.*/', '', $url);
+                    }
+                }
+            }
+            return $url;
+        }else{
+            
+            if(strpos($url,'//')===0){
+                
+                $url=(stripos($base_url, 'https://')===0?'https:':'http:').$url;
+            }elseif(strpos($url,'/')===0){
+                
+                $curDomain=self::match_domain_url($base_url,true);
+                $curDomain=empty($curDomain)?rtrim($params['domain_url'],'/'):$curDomain;
+                $url=$curDomain.'/'.ltrim($url,'/');
+            }elseif(stripos($url,'javascript')===0||$url==''||strpos($url,'#')===0){
+                
+                $url=($params['base_tag_url']?$params['base_tag_url']:$params['cur_url']).(strpos($url,'#')===0?($params['url_no_name']?'':$url):'');
+            }elseif(!preg_match('/^\w+\:\/\//', $url)){
+                
+                $url=$base_url.'/'.ltrim($url,'/');
+            }
+        }
+        if($params['url_no_name']){
+            
+            if(strpos($url,'#')!==false){
+                $url=preg_replace('/\#.*/', '', $url);
+            }
+        }
+        if(!empty($url)&&preg_match('/\/(\.){1,2}\//', $url)){
+            
+            if(preg_match('/(^\w+\:\/\/(?:[\w\-]+\.){1,}[\w]+\/)([^\?\#]+)(.*$)/',$url,$murl)){
+                
+                $paths=explode('/', $murl[2]);
+                $newPaths=array();
+                foreach ($paths as $k=>$v){
+                    if($v=='..'){
+                        
+                        array_pop($newPaths);
+                    }elseif($v!='.'){
+                        
+                        $newPaths[]=$v;
+                    }
+                }
+                $url=$murl[1].implode('/', $newPaths).$murl[3];
+            }
+        }
+        return $url;
     }
 }
 ?>

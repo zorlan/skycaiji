@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--IIS服务器伪静态配置文件，使用时将文件名改为web.config即可-->
+<!--iis服务器伪静态配置文件，使用时将文件名改为web.config并复制到蓝天采集器根目录-->
 <configuration>
     <system.webServer>
         <rewrite>
@@ -13,7 +13,7 @@
                     </conditions>
                     <action type="Rewrite" url="app/{R:1}/index.php/{R:2}" appendQueryString="true" />
                 </rule>
-                <rule name="SkycaijiTp5" stopProcessing="true">
+                <rule name="SkycaijiRoot" stopProcessing="true">
                     <match url="^(.*)$" ignoreCase="false" />
                     <conditions logicalGrouping="MatchAll">
                         <add input="{HTTP_HOST}" pattern="^(.*)$" />

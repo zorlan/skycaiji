@@ -1,5 +1,11 @@
-<pre>
-{$methodData['comment']|htmlspecialchars}
-<br>
-{$methodData['code']|htmlspecialchars}
-</pre>
+<textarea id="win_func_method_txt" style="display:none;">
+{$methodData['comment']?htmlspecialchars($methodData['comment']):''}
+
+{$methodData['code']?htmlspecialchars($methodData['code']):''}
+</textarea>
+<iframe id="win_func_method_ifr" style="width:100%;height:100%;border:0;"></iframe>
+<script type="text/javascript">
+$(document).ready(function(){
+	editorCodeIfr('#win_func_method_ifr',{'set_value':$('#win_func_method_txt').val()});
+});
+</script>

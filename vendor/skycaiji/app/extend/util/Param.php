@@ -11,7 +11,6 @@
  
 /*全局参数，集中管理*/
 namespace util;
-use skycaiji\admin\model\CacheModel;
 
 class Param{
     private static function set_define($name){
@@ -44,24 +43,36 @@ class Param{
 	    return self::defined('TASK_API_RESPONSE_JSON');
 	}
 	
-	public static function set_auto_backstage_key($keyData){
-	    CacheModel::getInstance()->setCache('collect_auto_backstage_key', $keyData);
+	public static function set_auto_backstage_key(){
+	    $key=\util\Funcs::uniqid('collect_auto_backstage_key');
+	    \skycaiji\admin\model\CacheModel::getInstance()->setCache('collect_auto_backstage_key', $key);
+	    return $key;
 	}
 	
 	public static function get_auto_backstage_key(){
-	    return CacheModel::getInstance()->getCache('collect_auto_backstage_key', 'data');
+	    return \skycaiji\admin\model\CacheModel::getInstance()->getCache('collect_auto_backstage_key', 'data');
 	}
 	
-	public static function set_temp_cahce_key($key){
-	    if($key){
-	        CacheModel::getInstance('temp')->setCache($key, 1);
-	    }
+	public static function set_proc_open_exec_key(){
+	    $key=\util\Funcs::uniqid('proc_open_exec_key');
+	    \skycaiji\admin\model\CacheModel::getInstance()->setCache('proc_open_exec_key', $key);
+	    return $key;
+	}
+	
+	public static function get_proc_open_exec_key(){
+	    return \skycaiji\admin\model\CacheModel::getInstance()->getCache('proc_open_exec_key', 'data');
+	}
+	
+	public static function set_temp_cahce_key($prefix=null){
+	    $key=\util\Funcs::uniqid($prefix);
+	    \skycaiji\admin\model\CacheModel::getInstance('temp')->setCache($key, 1);
+	    return $key;
 	}
 	
 	public static function exist_temp_cahce_key($key){
 	    $exist=false;
 	    if($key){
-	        $mcache=CacheModel::getInstance('temp');
+	        $mcache=\skycaiji\admin\model\CacheModel::getInstance('temp');
 	        $count=$mcache->getCount($key);
 	        if($count>0){
 	            

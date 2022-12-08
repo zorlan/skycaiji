@@ -17,6 +17,8 @@ class Curl{
 	public $ok=false;
 	public $header=null;
 	public $body=null;
+	public $error=array();
+	public $info=array();
 	
 	/*实例*/
 	private static function init(){
@@ -28,6 +30,8 @@ class Curl{
 		self::$instance->ok=false;
 		self::$instance->header=null;
 		self::$instance->body=null;
+		self::$instance->error=array();
+		self::$instance->info=array();
 		
 		return self::$instance;
 	}
@@ -120,14 +124,23 @@ class Curl{
 				curl_setopt($ch, CURLOPT_PROXYUSERPWD, $options['proxy']['user'].':'.$options['proxy']['pwd']); 
 			}
 		}
+		/*直接设置curl选项*/
+		if($options['curlopts']&&is_array($options['curlopts'])){
+		    foreach ($options['curlopts'] as $k=>$v){
+		        curl_setopt($ch,$k,$v);
+		    }
+		}
 		
 		if($options['return_curl']){
 		    
 		    return $ch;
 		}
 
+		
 		$instance->header=null;
 		$instance->body=null;
+		$instance->error=array();
+		$instance->info=array();
 		
 		$body = curl_exec ( $ch );
 		if($body){
@@ -154,10 +167,23 @@ class Curl{
 		if(!isset($instance->body)){
 		    $instance->body='';
 		}
+		if(!$instance->ok){
+		    $errorNo=curl_errno($ch);
+		    if($errorNo){
+		        
+		        $instance->error=array('no'=>$errorNo,'msg'=>curl_error($ch));
+		    }
+		}
+		if($options['return_info']){
+		    
+		    $instance->info=curl_getinfo($ch);
+		    if(!is_array($instance->info)){
+		        $instance->info=array();
+		    }
+		}
 		curl_close ( $ch );
 		return $instance;
 	}
-	
 
 	public static function head($url,$headers=array(),$options=array()){
 		$options=is_array($options)?$options:array();

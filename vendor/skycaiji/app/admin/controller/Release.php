@@ -12,6 +12,7 @@
 namespace skycaiji\admin\controller;
 
 use skycaiji\admin\model\DbCommon;
+use think\db\Query;
 class Release extends CollectController{
 	/*发布设置*/
 	public function setAction(){
@@ -71,26 +72,20 @@ class Release extends CollectController{
 			if(!empty($releData)){
 				
 			    $releData=$releData->toArray();
-			    $releData['config']=unserialize($releData['config']?:'');
 			}else{
 			    $releData=array();
 			}
-			if(!is_array($releData['config'])){
-			    $releData['config']=array();
-			}
-			foreach (config('release_modules') as $v){
-			    if(!is_array($releData['config'][$v])){
-			        $releData['config'][$v]=array();
-			    }
-			}
+			
+			$releData['config']=$mrele->compatible_config($releData['config']);
+			
 			$this->assign('config',$releData['config']);
 			$this->assign('releData',$releData);
 			
 			$apiRootUrl=config('root_website');
 
-			if(stripos(\think\Request::instance()->root(),'/index.php?s=')!==false){
+			if(stripos(\think\Request::instance()->root()?:'','/index.php?s=')!==false){
 				$apiRootUrl.='/index.php?s=';
-			}elseif(stripos(\think\Request::instance()->root(),'/index.php')!==false){
+			}elseif(stripos(\think\Request::instance()->root()?:'','/index.php')!==false){
 				$apiRootUrl.='/index.php';
 			}
 
@@ -244,20 +239,16 @@ class Release extends CollectController{
 	}
 	
 	public function testAction(){
-	    $this->_test();
-	}
-	
-	public function test_toapiAction(){
-	    $this->_test(array('test_toapi'=>1));
-	}
-	
-	private function _test($urlParams=null){
 	    $releId=input('id/d',0);
 	    $releData=model('Release')->getById($releId);
 	    if(empty($releData)){
 	        $this->error(lang('rele_error_empty_rele'));
 	    }
-	    
+	    $urlParams=null;
+	    if($releData['module']=='toapi'){
+	        
+	        $urlParams=array('test_toapi'=>1);
+	    }
 	    $this->collect_create_or_run(function()use($releData){
 	        return array($releData['task_id']);
 	    },1,null,false,$urlParams);
@@ -354,69 +345,138 @@ class Release extends CollectController{
 			$this->success($msgSuccess);
 		}
 	}
+	
 	/*数据表绑定数据*/
 	public function dbTableBindAction(){
-		$releId=input('id/d',0);
-		$table=input('table');
-		$tables=explode(',', $table);
-		$tables=array_filter($tables);
-		$tables=array_values($tables);
-		if(empty($table)){
-			$this->error('请选择表');
-		}
-		$mrele=model('Release');
-		$mtask=model('Task');
-		$mcoll=model('Collector');
-		$releData=$mrele->where(array('id'=>$releId))->find();
-		if(empty($releData)){
-			$this->error(lang('rele_error_empty_rele'));
-		}
-		$config=unserialize($releData['config']?:'');
-		$adb=controller('admin/Rdb','event');
-		$db_config=$adb->get_db_config($config['db']);
-		
-		try {
-			
-			$mdb=new DbCommon($db_config);
-			$fields=array();
-			$field_values=array();
-			foreach ($tables as $tbName){
-				$fields[$tbName]=$mdb->getFields($tbName);
-				
-				if(!empty($config['db_table']['field'][$tbName])){
-					$tableFields=$config['db_table']['field'][$tbName];
-					if(!empty($tableFields)){
-						
-						$issetFields=array();
-						foreach ($fields[$tbName] as $k=>$v){
-							if(isset($tableFields[$k])){
-								$issetFields[$k]=$v;
-							}
-						}
-						$fields[$tbName]=\util\Funcs::array_key_merge($issetFields,$fields[$tbName]);
-					}
-					
-					$field_values[$tbName]['field']=$tableFields;
-					$field_values[$tbName]['custom']=$config['db_table']['custom'][$tbName];
-				}
-			}
-			
-			$taskData=$mtask->getById($releData['task_id']);
-			
-			if(!empty($taskData)){
-				$collFields=$adb->get_coll_fields($taskData['id'], $taskData['module']);
-			}
-		}catch (\Exception $ex){
-			$dbMsg=$this->trans_db_msg($ex->getMessage());
-			$this->error($dbMsg);
-		}
-		
-		$this->assign('collFields',$collFields);
-		$this->assign('tables',$tables);
-		$this->assign('fields',$fields);
-		$this->assign('field_values',$field_values);
-		return $this->fetch('dbTableBind');
+        $releId=input('id/d',0);
+        $table=input('table','');
+        $isDbTables=input('is_db_tables');
+        $mrele=model('Release');
+        $mtask=model('Task');
+        $mcoll=model('Collector');
+        $releData=$mrele->where(array('id'=>$releId))->find();
+        if(empty($releData)){
+            $this->error(lang('rele_error_empty_rele'));
+        }
+        $releData['config']=$mrele->compatible_config($releData['config']);
+        $dbTables=$releData['config']['db_tables'];
+        init_array($dbTables);
+        
+        $tbTables=array();
+        if($isDbTables){
+            foreach ($dbTables as $v){
+                if(is_array($v)){
+                    $tbTables[]=$v['table'];
+                }
+            }
+        }else{
+            $tbTables=explode(',', $table);
+        }
+        $tbTables=array_filter($tbTables);
+        $tbTables=array_values($tbTables);
+        if(empty($tbTables)){
+            $this->error('请选择表');
+        }
+        init_array($tbTables);
+        
+        if(!$isDbTables){
+            
+            $dbTables=array();
+            foreach ($tbTables as $v){
+                $dbTables[]=array('table'=>$v);
+            }
+        }
+        
+        $dbTables1=array();
+        foreach ($dbTables as $k=>$v){
+            init_array($v);
+            init_array($v['field']);
+            $k='i_'.\util\Funcs::uniqid($v['table']);
+            $dbTables1[$k]=$v;
+        }
+        $dbTables=$dbTables1;
+        $seqList=array();
+        $adb=controller('admin/Rdb','event');
+        $dbConfig=$adb->get_db_config($releData['config']['db']);
+        try {
+            
+            $mdb=new DbCommon($dbConfig);
+            $tbFields=array();
+            foreach ($tbTables as $tbName){
+                $tbFields[$tbName]=$mdb->getFields($tbName);
+            }
+            
+            $dbHasSeq=$mrele->db_has_sequence($releData['config']['db']['type']);
+            if($dbHasSeq){
+                
+                $seqList=$mdb->db()->query('select * from user_sequences');
+                foreach ($seqList as $k=>$v){
+                    $seqList[$k]=$v['SEQUENCE_NAME'];
+                }
+                init_array($seqList);
+            }
+        }catch (\Exception $ex){
+            $dbMsg=$this->trans_db_msg($ex->getMessage());
+            $this->error($dbMsg);
+        }
+        $this->assign('tbTables',$tbTables);
+        $this->assign('tbFields',$tbFields);
+        $this->assign('dbTables',$dbTables);
+        $this->assign('seqList',$seqList);
+        $this->assign('dbHasSeq',$mrele->db_has_sequence($releData['config']['db']['type']));
+        return $this->fetch('dbTableBind');
 	}
+	
+	public function dbTableBindSingsAction(){
+	    $collFields=array();
+	    $autoIds=array();
+	    $querySigns=array();
+	    if(request()->isPost()){
+	        $mrele=model('Release');
+	        $tableKey=input('table_key','','trim');
+	        $taskId=input('task_id/d',0);
+	        $dbTables=trim_input_array('db_tables');
+	        $dbTables=$mrele->config_db_tables($dbTables,true);
+	        
+	        $taskData=model('Task')->getById($taskId);
+	        
+	        if(!empty($taskData)){
+	            $collFields=controller('admin/Rdb','event')->get_coll_fields($taskData['id'], $taskData['module']);
+	        }
+	        init_array($collFields);
+	        foreach ($dbTables as $tbKey=>$dbTable){
+	            if($tbKey==$tableKey){
+	                
+	                break;
+	            }
+	            if(empty($dbTable['op'])){
+	                
+	                if($dbTable['table']){
+	                    $autoIds[$dbTable['table']]=$dbTable['table'];
+	                }
+	            }elseif($dbTable['op']=='query'){
+	                
+	                $tbQuery=$dbTable['query'];
+	                foreach ($tbQuery['sign'] as $k=>$v){
+	                    $v=$mrele->db_tables_query_sign($tbQuery['type'][$k],$tbQuery['field'][$k],$v);
+	                    $querySigns[$v]=$v;
+	                }
+	            }
+	        }
+	    }
+	    $collFields=array_values($collFields);
+	    $autoIds=array_values($autoIds);
+	    $querySigns=array_values($querySigns);
+	    
+	    $maxCount=max(count($collFields),count($autoIds),count($querySigns));
+	    
+	    $this->assign('maxCount',$maxCount);
+	    $this->assign('collFields',$collFields);
+	    $this->assign('autoIds',$autoIds);
+	    $this->assign('querySigns',$querySigns);
+	    return $this->fetch('dbTableBindSings');
+	}
+	
     /*翻译数据库错误信息*/
     public function trans_db_msg($msg){
     	$msg=lang('rele_error_db').str_replace('Unknown database', lang('error_unknown_database'), $msg);
