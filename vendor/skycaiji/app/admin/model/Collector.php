@@ -268,7 +268,7 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	        }else{
 	            $url=url('admin/index/auto_collect',null,false,true);
 	        }
-	        $url.=(strpos($url, '?')===false?'?':'&').'backstage_run=1&key='.\util\Param::set_temp_cahce_key('auto_collect');
+	        $url.=(strpos($url, '?')===false?'?':'&').'backstage_run=1&key='.\util\Param::set_cache_key('auto_collect');
 	        get_html($url,null,array('timeout'=>3));
 	    }catch(\Exception $ex){}
 	}
@@ -345,7 +345,7 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	        $chList=array();
 	        foreach ($processes as $pkey=>$ptids){
 	            $allParams=array(
-	                'key'=>\util\Param::set_temp_cahce_key('collect_process'),
+	                'key'=>\util\Param::set_cache_key('collect_process'),
 	                'collector_process'=>$collectorKey.'-'.$pkey,
 	            );
 	            if(isset($collectNum)){

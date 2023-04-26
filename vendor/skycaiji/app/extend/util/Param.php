@@ -12,6 +12,8 @@
 /*全局参数，集中管理*/
 namespace util;
 
+use think\Cache;
+
 class Param{
     private static function set_define($name){
         if(!defined($name)){
@@ -63,20 +65,17 @@ class Param{
 	    return \skycaiji\admin\model\CacheModel::getInstance()->getCache('proc_open_exec_key', 'data');
 	}
 	
-	public static function set_temp_cahce_key($prefix=null){
+	public static function set_cache_key($prefix=null){
 	    $key=\util\Funcs::uniqid($prefix);
-	    \skycaiji\admin\model\CacheModel::getInstance('temp')->setCache($key, 1);
+	    Cache::set('key_'.$key, '1');
 	    return $key;
 	}
 	
-	public static function exist_temp_cahce_key($key){
+	public static function exist_cache_key($key){
 	    $exist=false;
 	    if($key){
-	        $mcache=\skycaiji\admin\model\CacheModel::getInstance('temp');
-	        $count=$mcache->getCount($key);
-	        if($count>0){
-	            
-	            $mcache->deleteCache($key);
+	        $val=Cache::pull('key_'.$key);
+	        if(!empty($val)){
 	            $exist=true;
 	        }
 	    }

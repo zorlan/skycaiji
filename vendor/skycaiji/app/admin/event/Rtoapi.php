@@ -19,14 +19,19 @@ class Rtoapi extends Release{
      */
     public function setConfig($config){
         $toapi=input('toapi/a',array(),'trim');
-        if(empty($toapi['url'])){
-            $this->error('请输入接口地址');
+        if($toapi['module']=='app'){
+            if(empty($toapi['app_url'])){
+                $this->error('请输入接口地址');
+            }
+        }else{
+            if(empty($toapi['url'])){
+                $this->error('请输入接口地址');
+            }
         }
         
         
         $toapi['param_name']=is_array($toapi['param_name'])?$toapi['param_name']:array();
         $toapi['param_val']=is_array($toapi['param_val'])?$toapi['param_val']:array();
-        $toapi['param_addon']=is_array($toapi['param_addon'])?$toapi['param_addon']:array();
         if(is_array($toapi['param_name'])){
             $toapi['param_name']=\util\Funcs::array_array_map('trim', $toapi['param_name']);
             foreach ($toapi['param_name'] as $k=>$v){
@@ -34,14 +39,12 @@ class Rtoapi extends Release{
                     
                     unset($toapi['param_name'][$k]);
                     unset($toapi['param_val'][$k]);
-                    unset($toapi['param_addon'][$k]);
                 }
             }
         }
         
         $toapi['header_name']=is_array($toapi['header_name'])?$toapi['header_name']:array();
         $toapi['header_val']=is_array($toapi['header_val'])?$toapi['header_val']:array();
-        $toapi['header_addon']=is_array($toapi['header_addon'])?$toapi['header_addon']:array();
         if(is_array($toapi['header_name'])){
             $toapi['header_name']=\util\Funcs::array_array_map('trim', $toapi['header_name']);
             foreach($toapi['header_name'] as $k=>$v){
@@ -49,7 +52,6 @@ class Rtoapi extends Release{
                     
                     unset($toapi['header_name'][$k]);
                     unset($toapi['header_val'][$k]);
-                    unset($toapi['header_addon'][$k]);
                 }
             }
         }
@@ -60,58 +62,47 @@ class Rtoapi extends Release{
         $config['toapi']=$toapi;
         return $config;
     }
+    
+    
     /*导出数据*/
     public function export($collFieldsList,$options=null){
-        $addedNum=0;
-        if(empty($this->config['toapi']['url'])){
-            $this->echo_msg('接口地址为空');
+        $apiUrl='';
+        $apiConfig=array();
+        $paramVals=array();
+        $headerVals=array();
+        if($this->config['toapi']['module']=='app'){
+            
+            $apiUrl=$this->config['toapi']['app_url'];
+            $appApi=$this->config['toapi']['app_api'];
+            if(!empty($appApi)){
+                $appApi=base64_decode($appApi);
+                $appApi=$appApi?json_decode($appApi,true):'';
+            }
+            init_array($appApi);
+            $apiConfig['type']=$appApi['type']?:'post';
+            $apiConfig['charset']=$appApi['charset']?:'';
+            $apiConfig['encode']=$appApi['encode']?:'';
+            $apiConfig['response']=is_array($appApi['response'])?$appApi['response']:array();
+            
+            $paramVals=$this->config['toapi']['app_params'];
+            $headerVals=is_array($appApi['headers'])?$appApi['headers']:array();
+            
+            if($appApi['content_type']){
+                $headerVals['content-type']=$appApi['content_type'];
+            }
         }else{
-            $testToapi=input('?test_toapi');
             
-            
-            $apiUrlMd5=md5($this->config['toapi']['url']);
-            $apiUrl='';
-            if(!isset($this->url_list[$apiUrlMd5])){
-                
-                $apiUrl=$this->config['toapi']['url'];
-                if(strpos($apiUrl, '/')===0){
-                    $apiUrl=config('root_website').$apiUrl;
-                }elseif(!preg_match('/^\w+\:\/\//', $apiUrl)){
-                    $apiUrl='http://'.$apiUrl;
-                }
-                $this->url_list[$apiUrlMd5]=$apiUrl;
-            }else{
-                $apiUrl=$this->url_list[$apiUrlMd5];
+            $apiUrl=$this->config['toapi']['url'];
+            $apiConfig['type']=$this->config['toapi']['type']?:'';
+            $apiConfig['charset']=$this->config['toapi']['charset'];
+            if($apiConfig['charset']=='custom'){
+                $apiConfig['charset']=$this->config['toapi']['charset_custom'];
             }
-            $apiResponse=$this->config['toapi']['response'];
-            $apiResponse=is_array($apiResponse)?$apiResponse:array();
-            
-            $apiResponse['id']=$apiResponse['id']?:'id';
-            $apiResponse['target']=$apiResponse['target']?:'target';
-            $apiResponse['desc']=$apiResponse['desc']?:'desc';
-            $apiResponse['error']=$apiResponse['error']?:'error';
-            
-            $apiCharset=$this->config['toapi']['charset'];
-            if($apiCharset=='custom'){
-                $apiCharset=$this->config['toapi']['charset_custom'];
-            }
-            if(empty($apiCharset)){
-                $apiCharset='utf-8';
+            $apiConfig['encode']=$this->config['toapi']['encode'];
+            if($apiConfig['encode']=='custom'){
+                $apiConfig['encode']=$this->config['toapi']['encode_custom'];
             }
             
-            $curlopts=array();
-            
-            $apiEncode=$this->config['toapi']['encode'];
-            if($apiEncode=='custom'){
-                $apiEncode=$this->config['toapi']['encode_custom'];
-            }
-            if($apiEncode){
-                $curlopts[CURLOPT_ENCODING]=$apiEncode;
-            }
-            
-            
-            $paramVals=array();
-            $paramFields=array();
             if(is_array($this->config['toapi']['param_name'])){
                 
                 foreach($this->config['toapi']['param_name'] as $k=>$v){
@@ -120,19 +111,9 @@ class Rtoapi extends Release{
                         continue;
                     }
                     $paramVals[$v]=$this->config['toapi']['param_val'][$k];
-                    if($paramVals[$v]=='custom'){
-                        
-                        $paramVals[$v]=$this->config['toapi']['param_addon'][$k];
-                    }elseif(preg_match('/^field\:(.+)$/ui',$paramVals[$v],$mField)){
-                        
-                        $paramVals[$v]='';
-                        $paramFields[$v]=$mField[1];
-                    }
                 }
             }
             
-            $headerVals=array();
-            $headerFields=array();
             
             if($this->config['toapi']['content_type']){
                 $headerVals['content-type']=$this->config['toapi']['content_type'];
@@ -145,15 +126,51 @@ class Rtoapi extends Release{
                         continue;
                     }
                     $headerVals[$v]=$this->config['toapi']['header_val'][$k];
-                    if($headerVals[$v]=='custom'){
-                        
-                        $headerVals[$v]=$this->config['toapi']['header_addon'][$k];
-                    }elseif(preg_match('/^field\:(.+)$/ui',$headerVals[$v],$mField)){
-                        
-                        $headerVals[$v]='';
-                        $headerFields[$v]=$mField[1];
-                    }
                 }
+            }
+        }
+        return $this->_export($collFieldsList,$options,$apiUrl,$apiConfig,$paramVals,$headerVals);
+    }
+    private function _export($collFieldsList,$options,$url,$apiConfig,$paramVals,$headerVals){
+        $addedNum=0;
+        if(empty($url)){
+            $this->echo_msg('接口地址为空');
+        }else{
+            $testToapi=input('?test_toapi');
+            
+            init_array($paramVals);
+            init_array($headerVals);
+            
+            $apiUrlMd5=md5($url);
+            $apiUrl='';
+            if(!isset($this->url_list[$apiUrlMd5])){
+                
+                $apiUrl=$url;
+                if(strpos($apiUrl, '/')===0){
+                    $apiUrl=config('root_website').$apiUrl;
+                }elseif(!preg_match('/^\w+\:\/\//', $apiUrl)){
+                    $apiUrl='http://'.$apiUrl;
+                }
+                $this->url_list[$apiUrlMd5]=$apiUrl;
+            }else{
+                $apiUrl=$this->url_list[$apiUrlMd5];
+            }
+            $apiResponse=is_array($apiConfig['response'])?$apiConfig['response']:array();
+            
+            $apiResponse['id']=$apiResponse['id']?:'id';
+            $apiResponse['target']=$apiResponse['target']?:'target';
+            $apiResponse['desc']=$apiResponse['desc']?:'desc';
+            $apiResponse['error']=$apiResponse['error']?:'error';
+            
+            $apiCharset=$apiConfig['charset'];
+            if(empty($apiCharset)){
+                $apiCharset='utf-8';
+            }
+            
+            $curlopts=array();
+            
+            if(!empty($apiConfig['encode'])){
+                $curlopts[CURLOPT_ENCODING]=$apiConfig['encode'];
             }
             
             $retryWait=intval($this->config['toapi']['wait']);
@@ -165,15 +182,10 @@ class Rtoapi extends Release{
                 $collFields=$collFields['fields'];
                 $this->init_download_img($this->task,$collFields);
                 
-                $postData=$paramVals;
-                if(!empty($paramFields)){
-                    
-                    foreach ($paramFields as $k=>$v){
-                        $postData[$k]=$this->get_field_val($collFields[$v]);
-                    }
-                }
-                $url=$apiUrl;
-                if($this->config['toapi']['type']=='post'){
+                $postData=$this->_replace_fields($paramVals,$collFields);
+                $url=$this->_replace_fields($apiUrl,$collFields);
+                
+                if($apiConfig['type']=='post'){
                     
                     $postData=is_array($postData)?$postData:'';
                 }else{
@@ -182,13 +194,7 @@ class Rtoapi extends Release{
                     $postData=null;
                 }
                 
-                $headerData=$headerVals;
-                if(!empty($headerFields)){
-                    
-                    foreach ($headerFields as $k=>$v){
-                        $headerData[$k]=$this->get_field_val($collFields[$v]);
-                    }
-                }
+                $headerData=$this->_replace_fields($headerVals,$collFields);
                 
                 $retryCur=0;
                 do{
@@ -242,6 +248,20 @@ class Rtoapi extends Release{
             }
         }
         return $addedNum;
+    }
+    
+    private function _replace_fields($data,$collFields){
+        if(is_array($data)){
+            foreach ($data as $k=>$v){
+                $data[$k]=$this->_replace_fields($v,$collFields);
+            }
+        }else{
+            $data=preg_replace_callback('/\[\x{91c7}\x{96c6}\x{5b57}\x{6bb5}\:(.+?)\]/u',function($match)use($collFields){
+                $match=$match[1];
+                return $this->get_field_val($collFields[$match]);
+            },$data);
+        }
+        return $data;
     }
 }
 ?>

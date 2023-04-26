@@ -77,7 +77,7 @@ class Release extends CollectController{
 			}
 			
 			$releData['config']=$mrele->compatible_config($releData['config']);
-			
+
 			$this->assign('config',$releData['config']);
 			$this->assign('releData',$releData);
 			
@@ -481,5 +481,76 @@ class Release extends CollectController{
     public function trans_db_msg($msg){
     	$msg=lang('rele_error_db').str_replace('Unknown database', lang('error_unknown_database'), $msg);
     	return $msg;
+    }
+    
+    public function toapiAppAction(){
+        $taskId=input('task_id/d',0);
+        $mtask=model('Task');
+        $mrele=model('Release');
+        $taskData=$mtask->getById($taskId);
+        
+        $appApi=null;
+        $appParams=null;
+        $releData=$mrele->where(array('task_id'=>$taskData['id']))->find();
+        if(!empty($releData)){
+            
+            $config=$mrele->compatible_config($releData['config']);
+            if(!empty($config['toapi'])&&$config['toapi']['module']=='app'){
+                
+                $appApi=$config['toapi']['app_api'];
+                if($appApi){
+                    $appApi=base64_decode($appApi);
+                    $appApi=json_decode($appApi,true);
+                }
+                $appParams=$config['toapi']['app_params'];
+            }
+        }
+        
+        if(request()->isPost()){
+            
+            $appUrl=input('app_url','','trim');
+            if(empty($appUrl)){
+                $this->error('请输入接口地址');
+            }
+            $appApi=get_html($appUrl,[],[],'utf-8');
+            if(!empty($appApi)){
+                $appApi=json_decode($appApi,true);
+            }
+            init_array($appApi);
+            if(empty($appApi)){
+                $this->error('接口读取失败');
+            }
+            if(empty($appApi['code'])){
+                $this->error($appApi['msg']?:'接口错误');
+            }
+            $appApi=$appApi['data'];
+        }
+        
+        init_array($appApi);
+        init_array($appParams);
+        
+        if(!empty($appApi)){
+            
+            $appApiParams=$appApi['params'];
+            init_array($appApiParams);
+            if(empty($appParams)){
+                
+                foreach ($appApiParams as $pk=>$pv){
+                    $pv=$pv['default'];
+                    if(!empty($pv)||is_numeric($pv)){
+                        
+                        $appParams[$pk]=$pv;
+                    }
+                }
+            }
+            
+            $releBase=new \skycaiji\admin\event\ReleaseBase();
+            $collFields=$releBase->get_coll_fields($taskData['id'],$taskData['module']);
+            $this->assign('collFields',$collFields);
+            $this->assign('appApi',base64_encode(json_encode($appApi)));
+            $this->assign('appApiParams',$appApiParams);
+            $this->assign('appParams',$appParams);
+            return $this->fetch('toapiApp');
+        }
     }
 }

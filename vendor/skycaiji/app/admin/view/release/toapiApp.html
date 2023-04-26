@@ -1,0 +1,66 @@
+<input type="hidden" name="toapi[app_api]" value="{$appApi}" />
+<div class="box box-primary">
+<div class="box-body">
+<table class="table">
+<thead>
+	<tr>
+		<th>参数名称</th>
+		<th>参数数据</th>
+	</tr>
+</thead>
+<tbody>
+{foreach $appApiParams as $pk=>$pv}
+{php}$pvOption=is_array($pv['option'])?$pv['option']:array();{/php}
+<tr>
+	<td>{if !empty($pv['required'])}<em>*</em> {/if}{$pv['name']}</td>
+	<td>
+	{if $pv['tag']=='select'}
+	<select name="toapi[app_params][{$pk}]" class="form-control">
+		{if !empty($pvOption)}
+		{foreach $pvOption as $pvOk=>$pvOv}
+		<option value="{$pvOk}">{$pvOv}</option>
+		{/foreach}
+		{/if}
+	</select>
+	{elseif $pv['tag']=='radio'}
+		{if !empty($pvOption)}
+		{foreach $pvOption as $pvOk=>$pvOv}
+		<label class="radio-inline"><input type="radio" name="toapi[app_params][{$pk}]" value="{$pvOk}">{$pvOv}</label>
+		{/foreach}
+		{else/}
+		<label class="radio-inline"><input type="radio" name="toapi[app_params][{$pk}]" value="1">是</label>
+		<label class="radio-inline"><input type="radio" name="toapi[app_params][{$pk}]" value="0">否</label>
+		{/if}
+	{elseif $pv['tag']=='checkbox'}
+		{if !empty($pvOption)}
+		{foreach $pvOption as $pvOk=>$pvOv}
+		<label class="checkbox-inline"><input type="checkbox" name="toapi[app_params][{$pk}][]" value="{$pvOk}">{$pvOv}</label>
+		{/foreach}
+		{/if}
+	{elseif $pv['tag']=='number'}
+		<input type="number" name="toapi[app_params][{$pk}]" class="form-control" autocomplete="off" />
+	{else/}
+		<div class="input-group toapi-txt-field">
+			<input type="text" name="toapi[app_params][{$pk}]" class="form-control" autocomplete="off" />
+			<div class="input-group-btn">
+				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">字段 <span class="caret"></span></button>
+		        <ul class="dropdown-menu dropdown-menu-right">
+		        	{if !empty($collFields)}
+					{foreach $collFields as $v}
+					<li><a href="javascript:;" data-val="[采集字段:{$v}]">采集字段：{$v}</a></li>
+					{/foreach}
+					{/if}
+		        </ul>
+			</div>
+		</div>
+	{/if}
+	</td>
+</tr>
+{/foreach}
+</tbody>
+</table>
+</div>
+</div>
+<script type="text/javascript">
+releaseClass.toapi_app_load({$appParams|json_encode});
+</script>

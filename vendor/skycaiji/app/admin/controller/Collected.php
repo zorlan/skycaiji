@@ -11,6 +11,8 @@
 
 namespace skycaiji\admin\controller;
 
+use skycaiji\admin\model\CacheModel;
+
 class Collected extends BaseController {
 	public function listAction(){
 		$taskName=input('task_name');
@@ -36,12 +38,35 @@ class Collected extends BaseController {
    		    if(!empty($taskId)){
    		        $taskData=$mtask->where('id',$taskId)->find();
    		        if(!empty($taskData)){
+   		            $search['task_name']=$taskData['name'];
    		            $navTips='任务：'.$taskData['name'];
    		            $cond['task_id']=$taskData['id'];
    		        }
    		    }
    		}
-   		$search['num']=input('num/d',200);
+   		
+   		$search['begin']=input('begin','');
+   		$search['end']=input('end','');
+   		if($search['begin']&&$search['end']){
+   		    $cond['addtime']=array('between',array(strtotime($search['begin']),strtotime($search['end'])));
+   		}elseif($search['begin']){
+   		    $cond['addtime']=array('>=',strtotime($search['begin']));
+   		}elseif($search['end']){
+   		    $cond['addtime']=array('<=',strtotime($search['end']));
+   		}
+   		
+   		$mcache=CacheModel::getInstance();
+   		$search['num']=input('num/d');
+   		if($search['num']<=0){
+   		    
+   		    $search['num']=$mcache->getCache('action_collected_list_num','data');
+   		    $search['num']=intval($search['num']);
+   		    if($search['num']<=0){
+   		        $search['num']=200;
+   		    }
+   		}
+   		$mcache->setCache('action_collected_list_num',$search['num']);
+   		
    		$search['url']=input('url','','trim');
    		if(!empty($search['url'])){
    			$cond['url']=array('like','%'.addslashes($search['url']).'%');

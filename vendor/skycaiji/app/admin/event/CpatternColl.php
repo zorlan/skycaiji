@@ -1115,7 +1115,7 @@ class CpatternColl extends CpatternBase{
             
             $encode=$this->config['encode'];
         }
-        $encode=strtolower($encode);
+        $encode=isset($encode)?strtolower($encode):'';
         return $encode;
     }
     
@@ -1508,7 +1508,12 @@ class CpatternColl extends CpatternBase{
                     $chromeSocket->websocket(null);
                     $htmlInfo=$chromeSocket->getRenderHtml($url,$headers,$options,$charset,$postData,true);
                 }catch (\Exception $ex){
-                    $this->echo_error('页面渲染失败：'.$ex->getMessage().' 请检查<a href="'.url('setting/page_render').'" target="_blank">渲染设置</a>');
+                    $ex='页面渲染失败：'.$ex->getMessage().' 请检查<a href="'.url('setting/page_render').'" target="_blank">渲染设置</a>';
+                    if(!is_empty(g_sc_c('proxy','open'))){
+                        
+                        $ex.=' <a href="'.url('setting/proxy').'" target="_blank">代理设置</a>';
+                    }
+                    $this->echo_error($ex);
                     return null;
                 }
             }else{

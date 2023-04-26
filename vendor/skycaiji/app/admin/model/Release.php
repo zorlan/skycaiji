@@ -72,6 +72,37 @@ class Release extends \skycaiji\common\model\BaseModel{
             unset($config['db_table']);
             $config['db_tables']=$dbTables;
         }
+        if(is_array($config['toapi'])){
+            
+            
+            if(is_array($config['toapi']['param_addon'])&&!empty($config['toapi']['param_addon'])){
+                init_array($config['toapi']['param_val']);
+                foreach ($config['toapi']['param_val'] as $k=>$v){
+                    if($v=='custom'){
+                        
+                        $v=$config['toapi']['param_addon'][$k];
+                    }elseif(preg_match('/^field\:(.+)$/ui',$v,$mField)){
+                        
+                        $v='[采集字段:'.$mField[1].']';
+                    }
+                    $config['toapi']['param_val'][$k]=$v;
+                }
+            }
+            
+            if(is_array($config['toapi']['header_addon'])&&!empty($config['toapi']['header_addon'])){
+                init_array($config['toapi']['header_val']);
+                foreach ($config['toapi']['header_val'] as $k=>$v){
+                    if($v=='custom'){
+                        
+                        $v=$config['toapi']['header_addon'][$k];
+                    }elseif(preg_match('/^field\:(.+)$/ui',$v,$mField)){
+                        
+                        $v='[采集字段:'.$mField[1].']';
+                    }
+                    $config['toapi']['header_val'][$k]=$v;
+                }
+            }
+        }
         return $config;
     }
     

@@ -321,11 +321,9 @@ class Funcs{
 	            $params=\util\Funcs::convert_charset($params,'utf-8',$charset);
 	        }
 	        
-	        foreach ($params as $k=>$v){
-	            $params[$k]=$k.'='.rawurlencode($v);
-	        }
+	        $params=http_build_query($params);
 	        $url.=strpos($url, '?')===false?'?':'&';
-	        $url.=implode('&', $params);
+	        $url.=$params;
 	    }
 	    return $url;
 	}

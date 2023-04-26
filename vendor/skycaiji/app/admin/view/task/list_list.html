@@ -20,6 +20,7 @@
 	                <th class="sorting{$orderClass['auto']}" data-order="auto" title="{$orderSort['auto']}" style="min-width:90px;">{$Think.lang.task_auto}</th>
 	                <th class="sorting{$orderClass['addtime']}" data-order="addtime" title="{$orderSort['addtime']}">{$Think.lang.task_addtime}</th>
 	                <th class="sorting{$orderClass['caijitime']}" data-order="caijitime" title="{$orderSort['caijitime']}">{$Think.lang.task_caijitime}</th>
+	                <th>{$Think.lang.task_collected}</th>
 	                <th>{$Think.lang.op}</th>
 	            </tr>
 			</thead>
@@ -50,10 +51,21 @@
 	                	</ul>
 	                </td>
 	                <td>
+	                	{if is_array($item['_collected_info'])}
+	                		<ul class="in-line">
+		                		<li>今日<a href="{:url('collected/list?task_id='.$item['id'].'&begin='.$todayDate)}" target="_blank">{$item['_collected_info']['today']}</a>条</li>
+		                		<li class="sep">|</li>
+								<li>总共<a href="{:url('collected/list?task_id='.$item['id'])}" target="_blank">{$item['_collected_info']['total']}</a>条</li>
+	                		</ul>
+	                	{else/}
+	                		无
+	                	{/if}
+	                </td>
+	                <td>
 	                	<ul class="in-line">
 	                		<li><a href="{:url('collector/set?task_id='.$item['id'])}">规则</a></li>
 	                		<li class="sep">|</li>
-	                		<li><a href="{:url('release/set?task_id='.$item['id'])}">发布</a></li>
+	                		<li><a href="{:url('release/set?task_id='.$item['id'])}" title="{$item['_rele_module']?:''}">发布</a></li>
 	                		<li class="sep">|</li>
 	                		<li><a href="javascript:;" class="delete">{$Think.lang.delete}</a></li>
 	                	</ul>
@@ -68,7 +80,7 @@
 						<button type="submit" class="btn btn-default">{$Think.lang.save}</button>
 						<a href="{:url('task/save')}" class="btn btn-primary">{$Think.lang.task_add}</a>
 					</td>
-					<td colspan="2">
+					<td colspan="3">
 						<label class="checkbox-inline chk-inline">
 	                		<input type="checkbox" onclick="checkall(this,'batch[]')" />
 	                		全选
@@ -82,7 +94,7 @@
 				</tr>
     			{if condition="!empty($pagenav)"}
 				<tr>
-					<td colspan="7">{$pagenav}</td>
+					<td colspan="8">{$pagenav}</td>
 				</tr>
 				{/if}
 			</tfoot>

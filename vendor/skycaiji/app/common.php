@@ -10,7 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.5.2');
+define('SKYCAIJI_VERSION', '2.5.3');
 \think\Loader::addNamespace('plugin', realpath(SKYCAIJI_PATH.'plugin'));
 \think\Loader::addNamespace('util',realpath(APP_PATH.'extend/util'));
 
@@ -250,7 +250,7 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
                 
                 $postDataJson=array();
                 foreach ($postData as $k=>$v){
-                    if(strpos($v,'{')===0||strpos($v,'[')===0){
+                    if(!is_array($v)&&(strpos($v,'{')===0||strpos($v,'[')===0)){
                         
                         $vJson=\util\Funcs::convert_html2json($v);
                         if(!empty($vJson)){

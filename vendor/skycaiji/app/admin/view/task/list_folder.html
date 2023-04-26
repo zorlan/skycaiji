@@ -10,7 +10,7 @@
 		<input type="hidden" name="show" value="folder" /> 
 		<input type="hidden" name="op" value="saveall" />
 		<div class="table-responsive" style="border:0;">
-			<table id="task_list_folder" class="table table-bordered table-hover datatable">
+			<table id="task_list_folder" class="table table-hover datatable">
 				<thead>
 				<tr>
 	                <th>{$Think.lang.task_name}</th>
@@ -18,6 +18,7 @@
 	                <th>{$Think.lang.task_auto}</th>
 	                <th>{$Think.lang.task_addtime}</th>
 	                <th>{$Think.lang.task_caijitime}</th>
+	                <th>{$Think.lang.task_collected}</th>
 	                <th>{$Think.lang.op}</th>
 				</tr>
 				</thead>
@@ -37,7 +38,7 @@
 						<button type="submit" class="btn btn-default">{$Think.lang.save}</button>
 						<a href="{:url('task/save')}" class="btn btn-primary">{$Think.lang.task_add}</a>
 					</td>
-					<td colspan="2">
+					<td colspan="3">
 						<label class="checkbox-inline chk-inline">
 	                		<input type="checkbox" onclick="checkall(this,'batch[]')" />
 	                		全选

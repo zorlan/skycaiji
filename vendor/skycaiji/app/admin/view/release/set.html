@@ -242,191 +242,233 @@
 		</div>
 	</div>
 	<div class="rele-module" id="rele_module_toapi" module="toapi" style="display:none;">
-		<div class="box box-default">
-			<div class="box-body">
-				<div class="form-group">
-					<label>接口地址</label>
-					<input type="text" name="toapi[url]" class="form-control" />
-					<p class="help-block">以/开头自动补全为{:config('root_website')}/</p>
-				</div>
-				<div class="form-group">
-					<label>网页编码</label>
-					<div class="input-group input-select-custom">
-						<div class="input-group-btn">
-							<select name="toapi[charset]" class="form-control">
-								<option value="">utf-8</option>
-								<option value="gbk">gbk</option>
-								<option value="gb2312">gb2312</option>
-								<option value="custom">自定义</option>
+		<input type="hidden" name="toapi[module]" value="">
+		<ul id="toapi_tab" class="nav nav-tabs">
+			<li class="active"><a href="#toapi_tab_" data-toggle="tab" data-module="">自定义</a></li>
+			<li><a href="#toapi_tab_app" data-toggle="tab" data-module="app">一键导入</a></li>
+			<li style="float:right"><a href="{:\\skycaiji\\admin\\model\\Provider::create_store_url(null,'client/go/toapi')}" target="_blank">远程接口大全</a></li>
+		</ul>
+		<div id="toapi_tab_content" class="tab-content" style="margin-top:-1px">
+			<div class="tab-pane in active" id="toapi_tab_">
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<div class="form-group">
+							<label>接口地址</label>
+							<input type="text" name="toapi[url]" class="form-control" />
+							<p class="help-block">以/开头自动补全为{:config('root_website')}/</p>
+						</div>
+						<div class="form-group">
+							<label>网页编码</label>
+							<div class="input-group input-select-custom">
+								<div class="input-group-btn">
+									<select name="toapi[charset]" class="form-control">
+										<option value="">utf-8</option>
+										<option value="gbk">gbk</option>
+										<option value="gb2312">gb2312</option>
+										<option value="custom">自定义</option>
+									</select>
+								</div>
+								<input type="text" class="form-control" name="toapi[charset_custom]">
+							</div>
+						</div>
+						<div class="form-group">
+							<label>内容解压缩</label>
+							<div class="input-group input-select-custom">
+								<div class="input-group-btn">
+									<select name="toapi[encode]" class="form-control">
+										<option value="">系统默认</option>
+										<option value="gzip">gzip</option>
+										<option value="br">br</option>
+										<option value="compress">compress</option>
+										<option value="deflate">deflate</option>
+										<option value="identity">identity</option>
+										<option value="custom">自定义</option>
+									</select>
+								</div>
+								<input type="text" class="form-control" name="toapi[encode_custom]">
+							</div>
+						</div>
+						<div class="form-group">
+							<label>请求方式</label>
+							<select name="toapi[type]" class="form-control">
+								<option value="post">POST</option>
+								<option value="">GET</option>
 							</select>
 						</div>
-						<input type="text" class="form-control" name="toapi[charset_custom]">
-					</div>
-				</div>
-				<div class="form-group">
-					<label>内容解压缩</label>
-					<div class="input-group input-select-custom">
-						<div class="input-group-btn">
-							<select name="toapi[encode]" class="form-control">
-								<option value="">系统默认</option>
-								<option value="gzip">gzip</option>
-								<option value="br">br</option>
-								<option value="compress">compress</option>
-								<option value="deflate">deflate</option>
-								<option value="identity">identity</option>
-								<option value="custom">自定义</option>
+						<div class="form-group toapi-content-type">
+							<label>POST数据类型 <a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="tipsCurlPost()"></a></label>
+							<select name="toapi[content_type]" class="form-control">
+								<option value="">默认表单数据：application/x-www-form-urlencoded</option>
+								<option value="application/json">JSON数组：application/json</option>
+								<option value="multipart/form-data">表单上传：multipart/form-data</option>
 							</select>
 						</div>
-						<input type="text" class="form-control" name="toapi[encode_custom]">
+						<div class="form-group">
+					     	<label>发送数据</label>
+					      	<a href="javascript:;" class="glyphicon glyphicon-plus toapi-add-param" title="添加"></a>
+					   		<div class="toapi-param-table">
+					           	<table class="table table-bordered table-hover">
+						            <thead>
+					                <tr>
+					                    <td>名称</td>
+					                    <td>值</td>
+					                    <td>删除</td>
+					                </tr>
+						            </thead>
+						            <tbody>
+									<tr class="toapi-param-tpl" style="display:none;">
+										<td>
+											<input type="text" name="toapi[param_name][]" class="form-control" autocomplete="off" />
+										</td>
+										<td>
+											<div class="input-group toapi-txt-field">
+												<input type="text" name="toapi[param_val][]" class="form-control" autocomplete="off" />
+												<div class="input-group-btn">
+													<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">字段 <span class="caret"></span></button>
+											        <ul class="dropdown-menu dropdown-menu-right">
+											        	{if !empty($collFields)}
+														{foreach $collFields as $v}
+														<li><a href="javascript:;" data-val="[采集字段:{$v}]">采集字段：{$v}</a></li>
+														{/foreach}
+														{/if}
+											        </ul>
+												</div>
+											</div>
+										</td>
+										<td>
+											<a href="javascript:;" class="glyphicon glyphicon-remove toapi-del-param" style="margin-top:8px;"></a>
+										</td>
+									</tr>
+									</tbody>
+								</table>
+					       	</div>
+						</div>
+						<div class="form-group">
+					     	<label>请求头信息</label>
+					      	<a href="javascript:;" class="glyphicon glyphicon-plus toapi-add-header" title="添加"></a>
+					   		<div class="toapi-header-table">
+					           	<table class="table table-bordered table-hover">
+						            <thead>
+					                <tr>
+					                    <td>名称</td>
+					                    <td>值</td>
+					                    <td>删除</td>
+					                </tr>
+						            </thead>
+						            <tbody>
+									<tr class="toapi-header-tpl" style="display:none;">
+										<td>
+											<input type="text" name="toapi[header_name][]" class="form-control" autocomplete="off" />
+										</td>
+										<td>
+											<div class="input-group toapi-txt-field">
+												<input type="text" name="toapi[header_val][]" class="form-control" autocomplete="off" />
+												<div class="input-group-btn">
+													<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">字段 <span class="caret"></span></button>
+											        <ul class="dropdown-menu dropdown-menu-right">
+											        	{if !empty($collFields)}
+														{foreach $collFields as $v}
+														<li><a href="javascript:;" data-val="[采集字段:{$v}]">采集字段：{$v}</a></li>
+														{/foreach}
+														{/if}
+											        </ul>
+												</div>
+											</div>
+										</td>
+										<td>
+											<a href="javascript:;" class="glyphicon glyphicon-remove toapi-del-header" style="margin-top:8px;"></a>
+										</td>
+									</tr>
+									</tbody>
+								</table>
+					       	</div>
+						</div>
+						<div class="form-group">
+					     	<div>
+					     		<label>响应状态</label>
+					        	<small style="margin-left:5px;color:#999;">接口必须返回json格式的数组用来记录数据入库的状态，否则会标记为失败</small>
+					        </div>
+					     	<div class="table-responsive">
+					           	<table class="table table-hover" style="margin-bottom:0;">
+					           		<thead>
+					                <tr>
+					                    <td style="width:150px;">名称</td>
+					                    <td>绑定响应的json数组健名</td>
+					                </tr>
+						            </thead>
+						            <tbody>
+						            	<tr>
+						            		<td>id（编号）</td>
+						            		<td><input type="text" name="toapi[response][id]" class="form-control" placeholder="默认：id，表示入库返回的自增id或入库状态" /></td>
+						            	</tr>
+						            	<tr>
+						            		<td>target（位置）</td>
+						            		<td><input type="text" name="toapi[response][target]" class="form-control" placeholder="默认：target，记录入库的数据位置（发布的网址等）" /></td>
+						            	</tr>
+						            	<tr>
+						            		<td>desc（描述）</td>
+						            		<td><input type="text" name="toapi[response][desc]" class="form-control" placeholder="默认：desc，记录入库的数据位置附加信息" /></td>
+						            	</tr>
+						            	<tr>
+						            		<td>error（错误）</td>
+						            		<td><input type="text" name="toapi[response][error]" class="form-control" placeholder="默认：error，记录入库失败的错误信息" /></td>
+						            	</tr>
+						            </tbody>
+					           	</table>
+					        </div>
+						</div>
 					</div>
 				</div>
-				<div class="form-group">
-					<label>请求方式</label>
-					<select name="toapi[type]" class="form-control">
-						<option value="post">POST</option>
-						<option value="">GET</option>
-					</select>
-				</div>
-				<div class="form-group toapi-content-type">
-					<label>POST数据类型 <a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="tipsCurlPost()"></a></label>
-					<select name="toapi[content_type]" class="form-control">
-						<option value="">默认表单数据：application/x-www-form-urlencoded</option>
-						<option value="application/json">JSON数组：application/json</option>
-						<option value="multipart/form-data">表单上传：multipart/form-data</option>
-					</select>
-				</div>
-				<div class="form-group">
-			     	<label>发送数据</label>
-			      	<a href="javascript:;" class="glyphicon glyphicon-plus toapi-add-param" title="添加"></a>
-			   		<div class="table-responsive toapi-param-table">
-			           	<table class="table table-bordered table-hover">
-				            <thead>
-			                <tr>
-			                    <td>名称</td>
-			                    <td>值</td>
-			                    <td>删除</td>
-			                </tr>
-				            </thead>
-				            <tbody>
-							<tr class="toapi-param-tpl" style="display:none;">
-								<td>
-									<input type="text" name="toapi[param_name][]" class="form-control">
-								</td>
-								<td>
-									<div class="input-group input-select-custom">
-										<div class="input-group-btn">
-											<select name="toapi[param_val][]" class="form-control">
-												<option value="">空</option>
-												{if !empty($collFields)}
-												{foreach $collFields as $v}
-												<option value="field:{$v}">采集字段：{$v}</option>
-												{/foreach}
-												{/if}
-												<option value="custom">自定义</option>
-											</select>
-										</div>
-										<input type="text"  name="toapi[param_addon][]" class="form-control">
-									</div>
-								</td>
-								<td>
-									<a href="javascript:;" class="glyphicon glyphicon-remove toapi-del-param" style="margin-top:8px;"></a>
-								</td>
-							</tr>
-							</tbody>
-						</table>
-			       	</div>
-				</div>
-				<div class="form-group">
-			     	<label>请求头信息</label>
-			      	<a href="javascript:;" class="glyphicon glyphicon-plus toapi-add-header" title="添加"></a>
-			   		<div class="table-responsive toapi-header-table">
-			           	<table class="table table-bordered table-hover">
-				            <thead>
-			                <tr>
-			                    <td>名称</td>
-			                    <td>值</td>
-			                    <td>删除</td>
-			                </tr>
-				            </thead>
-				            <tbody>
-							<tr class="toapi-header-tpl" style="display:none;">
-								<td>
-									<input type="text" name="toapi[header_name][]" class="form-control">
-								</td>
-								<td>
-									<div class="input-group input-select-custom">
-										<div class="input-group-btn">
-											<select name="toapi[header_val][]" class="form-control">
-												<option value="">空</option>
-												{if !empty($collFields)}
-												{foreach $collFields as $v}
-												<option value="field:{$v}">采集字段：{$v}</option>
-												{/foreach}
-												{/if}
-												<option value="custom">自定义</option>
-											</select>
-										</div>
-										<input type="text"  name="toapi[header_addon][]" class="form-control">
-									</div>
-								</td>
-								<td>
-									<a href="javascript:;" class="glyphicon glyphicon-remove toapi-del-header" style="margin-top:8px;"></a>
-								</td>
-							</tr>
-							</tbody>
-						</table>
-			       	</div>
-				</div>
-				<div class="form-group">
-			     	<div>
-			     		<label>响应状态</label>
-			        	<small style="margin-left:5px;color:#999;">接口必须返回json格式的数组用来记录数据入库的状态，否则会标记为失败</small>
-			        </div>
-			     	<div class="table-responsive">
-			           	<table class="table table-hover" style="margin-bottom:0;">
-			           		<thead>
-			                <tr>
-			                    <td style="width:150px;">名称</td>
-			                    <td>绑定响应的json数组健名</td>
-			                </tr>
-				            </thead>
-				            <tbody>
-				            	<tr>
-				            		<td>id（编号）</td>
-				            		<td><input type="text" name="toapi[response][id]" class="form-control" placeholder="默认：id，表示入库返回的自增id或入库状态" /></td>
-				            	</tr>
-				            	<tr>
-				            		<td>target（位置）</td>
-				            		<td><input type="text" name="toapi[response][target]" class="form-control" placeholder="默认：target，记录入库的数据位置（发布的网址等）" /></td>
-				            	</tr>
-				            	<tr>
-				            		<td>desc（描述）</td>
-				            		<td><input type="text" name="toapi[response][desc]" class="form-control" placeholder="默认：desc，记录入库的数据位置附加信息" /></td>
-				            	</tr>
-				            	<tr>
-				            		<td>error（错误）</td>
-				            		<td><input type="text" name="toapi[response][error]" class="form-control" placeholder="默认：error，记录入库失败的错误信息" /></td>
-				            	</tr>
-				            </tbody>
-			           	</table>
-			        </div>
-				</div>
-			    <div class="form-group">
-			        <label>调用间隔（毫秒，1000毫秒=1秒）</label>
-			        <input type="number" name="toapi[interval]" class="form-control">
-			        <p class="help-block">发布间隔时间</p>
-			    </div>
-			    <div class="form-group">
-			        <label>失败等待（秒）</label>
-			        <input type="number" name="toapi[wait]" class="form-control">
-			        <p class="help-block">发布失败，等待一段时间再继续</p>
-			    </div>
-			    <div class="form-group">
-			        <label>失败重试</label>
-			        <input type="number" name="toapi[retry]" class="form-control">
-			        <p class="help-block">发布失败重试次数，留空或0表示不重试</p>
-			    </div>
 			</div>
+			<div class="tab-pane" id="toapi_tab_app">
+				<div class="panel panel-default">
+					<div class="panel-body">
+			    		<div class="form-group">
+							<label>接口地址</label>
+							<div class="input-group">
+								<input type="text" name="toapi[app_url]" class="form-control" autocomplete="off" />
+								<div class="input-group-btn"><button class="btn btn-default" type="button" id="btn_toapi_app">一键导入</button></div>
+							</div>
+							<div class="help-block">
+								以/开头自动补全为{:config('root_website')}/
+								<select id="toapi_app_url_field" style="color:#333;margin-left:5px;border:0;width:80px;cursor:pointer;">
+									<option value="">插入字段</option>
+									{if !empty($collFields)}
+									{foreach $collFields as $v}
+									<option value="[采集字段:{$v}]">采集字段：{$v}</option>
+									{/foreach}
+									{/if}
+								</select>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="toapi_app_params"></div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h4 class="panel-title"><a data-toggle="collapse" href="#panel_toapi" aria-expanded="false" class="collapsed">更多设置</a></h4>
+			</div>
+   			<div class="panel-collapse collapse" id="panel_toapi">
+   				<div class="panel-body">
+				    <div class="form-group">
+				        <label>调用间隔（毫秒，1000毫秒=1秒）</label>
+				        <input type="number" name="toapi[interval]" class="form-control">
+				        <p class="help-block">发布间隔时间</p>
+				    </div>
+				    <div class="form-group">
+				        <label>失败等待（秒）</label>
+				        <input type="number" name="toapi[wait]" class="form-control">
+				        <p class="help-block">发布失败，等待一段时间再继续</p>
+				    </div>
+				    <div class="form-group">
+				        <label>失败重试</label>
+				        <input type="number" name="toapi[retry]" class="form-control">
+				        <p class="help-block">发布失败重试次数，留空或0表示不重试</p>
+				    </div>
+			    </div>
+		    </div>
 		</div>
 	</div>
 	<div class="rele-module" id="rele_module_diy" module="diy" style="display:none;">

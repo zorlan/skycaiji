@@ -556,7 +556,7 @@ class Index extends CollectController{
 	private function _collect_check_key(){
 	    if(is_empty(session('user_login'))){
 	        
-	        if(!\util\Param::exist_temp_cahce_key(input('key'))){
+	        if(!\util\Param::exist_cache_key(input('key'))){
 	            
 	            return false;
 	        }

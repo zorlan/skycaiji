@@ -457,7 +457,10 @@
 				<option value="jsonencode">json编码</option>
 				<option value="serialize">序列化</option>
 			</select>
-			<textarea data-process="api:api_json_implode" class="form-control" rows="1" placeholder="输入分隔符" style="margin-top:5px;"></textarea>
+			<div class="input-group p-m-api-json-implode" style="margin-top:5px;">
+				<textarea data-process="api:api_json_implode" class="form-control" rows="1" placeholder="输入分隔符"></textarea>
+ 				<div class="input-group-addon" style="padding-left:9px;padding-right:9px;"><span title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="cpDelimiterTips()"></span></div>
+			</div>
 		</div>
 		<div class="form-group">
 	     	<label>调用间隔（毫秒，1000毫秒=1秒）</label>

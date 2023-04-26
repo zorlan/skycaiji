@@ -64,7 +64,7 @@ div.in-line-mg{display:inline;margin-right:5px;}
 .table-responsive .table:last-child{margin-bottom:0;}
 .table-responsive .table input.form-control{min-width:150px;}
 .table-responsive .table textarea.form-control{min-width:150px;}
-.table-responsive .table select.form-control{min-width:70px;}
+.table-responsive .table select.form-control{min-width:90px;}
 
 .icon-info-tips{font-size:12px;cursor:pointer;color:#bbb;}
 .icon-info-tips:hover{color:#3c8dbc;}
@@ -435,6 +435,7 @@ table.table thead .sorting_desc:after {
 }
 /**/
 #cms_bind em{color:red;}
+#toapi_app_params em{color:red;}
 
 /*my store*/
 .nav-tabs-color li.active{border-top-color:#3c8dbc!important;}
@@ -623,4 +624,6 @@ footer.footer-end{display:none;}
 	.c-p-url-web-form td:first-child,.c-p-url-web-header td:first-child{width:auto;}
 	.p-m-api-table td:first-child,.p-m-api-header-table td:first-child{width:auto;}
 	.toapi-param-table td:first-child,.toapi-header-table td:first-child{width:auto;}
+	
+	.list-footer .form-control{width:100%!important;}
 }

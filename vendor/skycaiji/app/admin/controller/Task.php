@@ -75,11 +75,22 @@ class Task extends CollectController {
 			
 			$orderBy=empty($orderKey)?'sort desc':($orderKey.' '.$sortBy);
 			
+			$search['num']=input('num/d');
+			if($search['num']<=0){
+			    
+			    $search['num']=$mcache->getCache('action_task_list_num','data');
+			    $search['num']=intval($search['num']);
+			    if($search['num']<=0){
+			        $search['num']=30;
+			    }
+			}
+			$mcache->setCache('action_task_list_num',$search['num']);
+			
     		$search['tg_id']=input('tg_id');
     		$search['name']=input('name');
     		$search['module']=input('module');
     		$search['show']='list';
-    		$limit=20;
+    		$limit=$search['num'];
     		$cond=array();
     		if(!empty($search['name'])){
     			$cond['name']=array('like','%'.addslashes($search['name']).'%');
@@ -125,9 +136,10 @@ class Task extends CollectController {
 		    		$this->assign('tgList',$tkTgList);
     			}
     		}
-    		$taskList=$this->_set_timer_infos($taskList);
+    		$taskList=$this->_set_tasks($taskList);
     		$this->assign('taskList',$taskList);
 	    	$this->assign('pagenav',$pagenav);
+	    	$this->assign('todayDate',date('Y-m-d',time()));
 	    	$tgSelect=$mtaskgroup->getLevelSelect();
 	    	$tgSelect=preg_replace('/<select[^<>]*>/i', "$0<option value=''>".lang('all')."</option>", $tgSelect);
 	    	$this->assign('tgSelect',$tgSelect);
@@ -168,7 +180,7 @@ class Task extends CollectController {
     			$tv['caijitime']=$tv['caijitime']>0?date('Y-m-d H:i',$tv['caijitime']):'无';
     			$taskList[$tk]=$tv;
     		}
-    		$taskList=$this->_set_timer_infos($taskList);
+    		$taskList=$this->_set_tasks($taskList);
     		$this->assign('taskList',$taskList);
     		$this->success('','',array('tgList'=>$subTgList,'taskList'=>$taskList));
     	}else{
@@ -192,11 +204,14 @@ class Task extends CollectController {
         $this->success('','');
     }
     
-    private function _set_timer_infos($taskList){
+    private function _set_tasks($taskList){
         if($taskList){
+            
             $mtask=model('Task');
+            $tids=array();
             $timerTids=array();
             foreach ($taskList as $v){
+                $tids[$v['id']]=$v['id'];
                 if($mtask->auto_is_timer($v['auto'])){
                     
                     $timerTids[$v['id']]=$v['id'];
@@ -217,10 +232,37 @@ class Task extends CollectController {
                     }
                 }
             }
+            
+            $mcollected=model('Collected');
+            $todayTime=strtotime(date('Y-m-d',time()));
+            foreach ($taskList as $k=>$v){
+                $taskId=$v['id'];
+                if(empty($taskId)){
+                    continue;
+                }
+                $collected=array();
+                $collected['today']=$mcollected->where(array('task_id'=>array('=',$taskId),'addtime'=>array('>',$todayTime)))->count();
+                $collected['total']=$mcollected->where('task_id',$taskId)->count();
+                $v['_collected_info']=$collected;
+                $taskList[$k]=$v;
+            }
+            
+            $mrele=model('Release');
+            if($tids){
+                $releModules=$mrele->where('task_id','in',$tids)->column('module','task_id');
+                foreach ($taskList as $k=>$v){
+                    if($releModules[$v['id']]){
+                        $v['_rele_module']=lang('rele_module_'.$releModules[$v['id']]);
+                    }
+                    if(empty($v['_rele_module'])){
+                        $v['_rele_module']='';
+                    }
+                    $taskList[$k]=$v;
+                }
+            }
         }
         return $taskList;
     }
-    
     public function saveAction(){
         $mtask=model('Task');
         $taskData=null;

@@ -25,7 +25,7 @@ class ChromeSocket{
     protected $tabId;
     protected $isProxy=false;
     protected $startTime=0;
-    static protected $passType=array('Stylesheet'=>1,'Image'=>1,'Media'=>1,'Font'=>1);
+    static protected $passType=array('Image'=>1,'Media'=>1,'Font'=>1);
     
     public function __construct($host,$port,$timeout=30,$filename='',$options=array()){
         if($host){
@@ -436,14 +436,15 @@ class ChromeSocket{
                     if($rdType=='val'){
                         $rdContent=addslashes($rdContent);
                         $expression='(function(){'
-                            .'var skycaijiXpathEle=document.evaluate("'.$rdElement.'",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;'
-                            .'skycaijiXpathEle.value="'.$rdContent.'";'
+                            .'var scjEle=document.evaluate("'.$rdElement.'",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;'
+                            .'scjEle.value="'.$rdContent.'";'
                             .'})();';
                     }elseif($rdType=='click'){
                         $expression='(function(){'
-                            .'var skycaijiXpathEle=document.evaluate("'.$rdElement.'",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;'
-                            .'skycaijiXpathEle.click();'
-                            .'})();';
+                            .'var scjEle=document.evaluate("'.$rdElement.'",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;'
+                            .'if(scjEle.tagName&&scjEle.tagName.toLowerCase()=="a"){scjEle.target="_self";}'
+                            .'var scjForms=document.getElementsByTagName("form");if(scjForms.length>0){for(var i in scjForms){scjForms[i].target="_self";}}'
+                            .'scjEle.click();})();';
                     }
                     if($expression){
                         $sendData=$this->send('Runtime.evaluate',array('expression'=>$expression));
@@ -539,16 +540,18 @@ class ChromeSocket{
                 $result=$data;
                 break;
             }
-            if($data['method']=='Fetch.requestPaused'){
-                
-                $dataParams=is_array($data['params'])?$data['params']:array();
-                
-                $fParams=array('requestId'=>$dataParams['requestId']);
-                if(isset(self::$passType[$dataParams['resourceType']])){
-                    $fParams['errorReason']='Aborted';
-                    $this->send('Fetch.failRequest',$fParams);
-                }else{
-                    $this->send('Fetch.continueRequest',$fParams);
+            if(!empty(self::$passType)){
+                if($data['method']=='Fetch.requestPaused'){
+                    
+                    $dataParams=is_array($data['params'])?$data['params']:array();
+                    
+                    $fParams=array('requestId'=>$dataParams['requestId']);
+                    if(isset(self::$passType[$dataParams['resourceType']])){
+                        $fParams['errorReason']='Aborted';
+                        $this->send('Fetch.failRequest',$fParams);
+                    }else{
+                        $this->send('Fetch.continueRequest',$fParams);
+                    }
                 }
             }
             if($returnAll){
@@ -585,8 +588,20 @@ class ChromeSocket{
             $this->websocket($verData['webSocketDebuggerUrl']);
             $sendData=$this->send('Target.createBrowserContext',array('proxyServer'=>$proxyServer));
             $data=$this->receiveById($sendData['id'],false);
+            if(!is_array($data)){
+                $data=array();
+            }
+            if(!is_array($data['result'])){
+                $data['result']=array();
+            }
             $sendData=$this->send('Target.createTarget',array('url'=>'about:blank','browserContextId'=>$data['result']['browserContextId']));
             $data=$this->receiveById($sendData['id'],false);
+            if(!is_array($data)){
+                $data=array();
+            }
+            if(!is_array($data['result'])){
+                $data['result']=array();
+            }
             $tabId=$data['result']['targetId'];
         }else{
             

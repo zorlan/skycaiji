@@ -1,5 +1,7 @@
 {extend name="common:main" /}
 {block name="cssjs"}
+<link href="__PUBLIC__/static/css/jquery.datetimepicker.css?{$Think.config.html_v}" rel="stylesheet">
+<script type="text/javascript" src="__PUBLIC__/static/js/jquery.datetimepicker.js?{$Think.config.html_v}"></script>
 <script type="text/javascript" src="__PUBLIC__/static/js/admin/collected.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
@@ -78,6 +80,22 @@
 		    </select>
 	    </div>
 		<div class="form-group form-group-sm">
+			<label>任务名</label>
+        	<input type="text" style="width:135px;" name="task_name" class="form-control" value="{$search['task_name']}" placeholder="模糊搜索，默认全部">
+	    </div>
+		<div class="form-group form-group-sm">
+			<label>网址</label>
+        	<input type="text" style="width:135px;" name="url" class="form-control" value="{$search['url']}" placeholder="模糊搜索，默认全部">
+	    </div>
+		<div class="form-group form-group-sm">
+			<label>状态</label>
+		    <select name="status" class="form-control">
+			    <option value="">全部</option>
+			    <option value="1">发布成功</option>
+			    <option value="2">发布失败</option>
+		    </select>
+	    </div>
+		<div class="form-group form-group-sm">
 			<label>发布方式</label>
 		    <select name="release" class="form-control">
 			    <option value="">全部</option>
@@ -87,19 +105,10 @@
 		    </select>
 	    </div>
 		<div class="form-group form-group-sm">
-			<label>网址</label>
-        	<input type="text" name="url" class="form-control" value="{$search['url']}" placeholder="模糊搜索，默认全部">
-	    </div>
-		<div class="form-group form-group-sm">
-			<label>任务名</label>
-        	<input type="text" name="task_name" class="form-control" value="{$search['task_name']}" placeholder="模糊搜索，默认全部">
-	    </div>
-		<div class="form-group form-group-sm">
-		    <select name="status" class="form-control">
-			    <option value="">全部</option>
-			    <option value="1">发布成功</option>
-			    <option value="2">发布失败</option>
-		    </select>
+			<label>时间范围</label>
+        	<input type="text" style="width:125px;" name="begin" class="form-control" value="{$search['begin']?:''}" placeholder="开始时间" autocomplete="off" />
+        	<label>-</label>
+        	<input type="text" style="width:125px;" name="end" class="form-control" value="{$search['end']?:''}" placeholder="结束时间" autocomplete="off" />
 	    </div>
         <button type="submit" class="btn btn-default btn-sm">{$Think.lang.search}</button>
 	</form>

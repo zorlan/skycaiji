@@ -12,6 +12,7 @@
 namespace skycaiji\admin\controller;
 
 use skycaiji\admin\model\CacheModel;
+use think\db\Query;
 class Backstage extends BaseController{
 	public function indexAction(){
 		$runInfo=array();
@@ -170,6 +171,7 @@ class Backstage extends BaseController{
 	    $info=array(
 	        'pageRenderInvalid'=>false,
 	        'phpInvalid'=>false,
+	        'repairTables'=>'',
 	    );
 	    
 	    try{
@@ -233,11 +235,51 @@ class Backstage extends BaseController{
 	        $tongji['task_auto']=model('Task')->where('`auto`>0')->count();
 	        $tongji['task_other']=model('Task')->where('`auto`=0')->count();
 	        $info['tongji']=$tongji;
+	        
+	        
+	        $dbName=config('database.database');
+	        $dbTables=db()->getConnection()->getTables($dbName);
+	        if(!empty($dbTables)){
+	            
+	            $dbTables1=array();
+	            foreach ($dbTables as $k=>$v){
+	                $v=strtolower($v);
+	                if(stripos($v,config('database.prefix'))!==false){
+	                    $dbTables1[$v]=$v;
+	                }
+	            }
+	            $dbTables=$dbTables1;
+	            $checkList=db()->query('check table '.implode(',',$dbTables));
+	            $dbTables=array();
+	            foreach ($checkList as $v){
+	                if(is_array($v)&&$v['Msg_type']&&strtolower($v['Msg_type'])=='error'){
+	                    $v['Table']=preg_replace('/^'.$dbName.'\./i', '', $v['Table']);
+	                    $dbTables[$v['Table']]=$v['Table'];
+	                }
+	            }
+	            if($dbTables){
+	                $info['repairTables']=implode(',',$dbTables);
+	            }
+	        }
 	    }catch (\Exception $ex){
 	        
 	    }
 	    
 	    $this->success('','',$info);
+	}
+	
+	public function repairTablesAction(){
+	    if(request()->isPost()){
+	        $tables=input('tables','');
+	        $tables=explode(',', $tables);
+	        $tables=array_unique($tables);
+	        $tables=array_values($tables);
+	        if($tables){
+	            db()->query('repair table '.implode(',', $tables));
+	            $this->success('修复完成','backstage/index');
+	        }
+	    }
+	    $this->error('修复失败');
 	}
 	
 	/*检测更新*/
