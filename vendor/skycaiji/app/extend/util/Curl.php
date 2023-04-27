@@ -91,6 +91,10 @@ class Curl{
 		    curl_setopt($ch, CURLOPT_RANGE, $options['range_size']);
 		}
 		
+		if($options['custom_request']){
+		    curl_setopt ( $ch, CURLOPT_CUSTOMREQUEST, $options['custom_request']);
+		}
+		
 		if($isPost){
 			
 			curl_setopt ( $ch, CURLOPT_POST, 1 );

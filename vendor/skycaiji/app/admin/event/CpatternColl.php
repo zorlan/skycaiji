@@ -1511,7 +1511,7 @@ class CpatternColl extends CpatternBase{
                     $ex='页面渲染失败：'.$ex->getMessage().' 请检查<a href="'.url('setting/page_render').'" target="_blank">渲染设置</a>';
                     if(!is_empty(g_sc_c('proxy','open'))){
                         
-                        $ex.=' <a href="'.url('setting/proxy').'" target="_blank">代理设置</a>';
+                        $ex.=' <a href="'.(is_empty(g_sc('c_original','proxy','open'))?url('admin/task/save&id='.$this->collector['task_id']):url('setting/proxy')).'" target="_blank">代理设置</a>';
                     }
                     $this->echo_error($ex);
                     return null;

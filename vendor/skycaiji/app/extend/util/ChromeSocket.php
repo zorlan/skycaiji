@@ -567,7 +567,7 @@ class ChromeSocket{
     }
     
     public function getTabs(){
-        $data=get_html($this->addressUrl.'/json');
+        $data=$this->getHtml('/json');
         $data=empty($data)?array():json_decode($data,true);
         return $data;
     }
@@ -605,20 +605,28 @@ class ChromeSocket{
             $tabId=$data['result']['targetId'];
         }else{
             
-            $tabData=get_html($this->addressUrl.'/json/new');
+            $tabData=$this->getHtml('/json/new');
             $tabData=empty($tabData)?array():json_decode($tabData,true);
             $tabId=$tabData['id'];
         }
         $tabId=$tabId?$tabId:'';
         $this->tabId=$tabId;
     }
+    public function getHtml($uri,$timeout=null){
+        $options=array('custom_request'=>'put');
+        if($timeout){
+            $options['timeout']=$timeout;
+        }
+        $data=get_html($this->addressUrl.$uri,null,$options);
+        return $data;
+    }
     
     public function closeTab($id){
-        get_html($this->addressUrl.'/json/close/'.$id,null,array('timeout'=>3));
+        $this->getHtml('/json/close/'.$id,3);
     }
     
     public function getVersion(){
-        $data=get_html($this->addressUrl.'/json/version');
+        $data=$this->getHtml('/json/version');
         $data=empty($data)?array():json_decode($data,true);
         return $data;
     }
