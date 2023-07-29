@@ -37,11 +37,11 @@
 				     	</select>
 				    	<ul class="op">
 							<li data-module="" style="display:block;">
-								<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'{$_tpl_name}[area]\']')">{$Think.lang.sign_wildcard}</a></div>
-					    		<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match_global}" onclick="cpMatch('[name=\'{$_tpl_name}[area]\']',{zimu:{$_tpl_match_global?1:0}})">{:cp_sign('match')}</a></div>
+								<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="ruleInsertSign.wildcard('[name=\'{$_tpl_name}[area]\']')">{$Think.lang.sign_wildcard}</a></div>
+					    		<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[area]\']',{zimu:{$_tpl_match_global?1:0}})">{:cp_sign('match')}</a></div>
 								<div>
-									<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group_global}" onclick="cpMatch('[name=\'{$_tpl_name}[area]\']',{group:1,zimu:{$_tpl_match_global?1:0}})">捕获组</a></div>
-									<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="cpRuleTips({$_tpl_match_global?1:''})"></a></div>
+									<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[area]\']',{group:1,zimu:{$_tpl_match_global?1:0}})">捕获组</a></div>
+									<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tips({$_tpl_match_global?1:''})"></a></div>
 								</div>
 							</li>
 							<li data-module="xpath">xpath语法</li>
@@ -69,7 +69,7 @@
 		    		</div>
 		    		{else/}
 		    		<div class="input-group-addon iga-rt">
-		    			<a href="javascript:;" title="调用当前规则中的内容标签" onclick="cpMatchN('[name=\'{$_tpl_name}[area]\']','[name=\'{$_tpl_name}[area_merge]\']',{def:1})">{:cp_sign('match','N')}</a>
+		    			<a href="javascript:;" title="调用当前规则中的内容标签" onclick="ruleInsertSign.matchN('[name=\'{$_tpl_name}[area]\']','[name=\'{$_tpl_name}[area_merge]\']',{def:1})">{:cp_sign('match','N')}</a>
 		    		</div>
 		    		{/if}
 		      	</div>
@@ -98,11 +98,11 @@
 			     		</select>
 			     		<ul class="op">
 			     			<li data-module="" style="display:block;">
-			    				<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="cpWildcard('[name=\'{$_tpl_name}[url_rule]\']')">{$Think.lang.sign_wildcard}</a></div>
-			    				<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match_global}" onclick="cpMatch('[name=\'{$_tpl_name}[url_rule]\']',{zimu:{$_tpl_match_global?1:0}})">{:cp_sign('match')}</a></div>
+			    				<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" onclick="ruleInsertSign.wildcard('[name=\'{$_tpl_name}[url_rule]\']')">{$Think.lang.sign_wildcard}</a></div>
+			    				<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[url_rule]\']',{zimu:{$_tpl_match_global?1:0}})">{:cp_sign('match')}</a></div>
 			    				<div>
-			    					<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group_global}" onclick="cpMatch('[name=\'{$_tpl_name}[url_rule]\']',{group:1,zimu:{$_tpl_match_global?1:0}})">捕获组</a></div>
-			    					<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="cpRuleTips({$_tpl_match_global?1:''})"></a></div>
+			    					<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[url_rule]\']',{group:1,zimu:{$_tpl_match_global?1:0}})">捕获组</a></div>
+			    					<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tips({$_tpl_match_global?1:''})"></a></div>
 								</div>
 			    			</li>
 					      	<li data-module="xpath">xpath语法</li>
@@ -130,7 +130,7 @@
 		    		</div>
 		    		{else/}
 		    		<div class="input-group-addon iga-rt">
-		    			<a href="javascript:;" title="调用当前规则中的内容标签" onclick="cpMatchN('[name=\'{$_tpl_name}[url_rule]\']','[name=\'{$_tpl_name}[url_merge]\']',{def:1})">{:cp_sign('match','N')}</a>
+		    			<a href="javascript:;" title="调用当前规则中的内容标签" onclick="ruleInsertSign.matchN('[name=\'{$_tpl_name}[url_rule]\']','[name=\'{$_tpl_name}[url_merge]\']',{def:1})">{:cp_sign('match','N')}</a>
 		    		</div>
 		    		{/if}
 		      	</div>
@@ -152,7 +152,7 @@
 			       	<span class="input-group-addon">必须包含</span>
 			       	<input type="text" name="{$_tpl_name}[url_must]" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
 		      		<div class="input-group-addon iga-rt">
-		      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'{$_tpl_name}[url_must]\']')">{$Think.lang.sign_wildcard}</a>
+		      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="ruleInsertSign.wildcard('[name=\'{$_tpl_name}[url_must]\']')">{$Think.lang.sign_wildcard}</a>
 						<span title="{$Think.lang.tips_regular}">正则</span>
 		      		</div>
 			    </div>
@@ -160,7 +160,7 @@
 			    	<span class="input-group-addon">不能包含</span>
 			    	<input type="text" name="{$_tpl_name}[url_ban]" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
 		      		<div class="input-group-addon iga-rt">
-		      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="cpWildcard('[name=\'{$_tpl_name}[url_ban]\']')">{$Think.lang.sign_wildcard}</a>
+		      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="mgr" onclick="ruleInsertSign.wildcard('[name=\'{$_tpl_name}[url_ban]\']')">{$Think.lang.sign_wildcard}</a>
 						<span title="{$Think.lang.tips_regular}">正则</span>
 		      		</div>
 				</div>

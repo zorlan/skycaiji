@@ -3,7 +3,7 @@
 <script src="__PUBLIC__/static/js/admin/setting.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
-<form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('admin/setting/download_img')}">
+<form id="form_set" method="post" ajax-submit="true" enctype="multipart/form-data" role="form" action="{:url('admin/setting/download_img')}">
 {:html_usertoken()}
 <div class="nav-tabs-custom">
 	{include file="setting/caiji_nav" /}
@@ -15,7 +15,7 @@
 			        <label class="radio-inline"><input type="radio" name="download_img" value="1">是</label>
 					<label class="radio-inline"><input type="radio" name="download_img" value="0" checked="checked">否</label>
 		        </div>
-		        <p class="help-block">将网页中的图片下载到本地，可单独在任务»更多设置中控制开关</p>
+		        <p class="help-block">开启后可自动将网页中的图片下载到本地，可单独在任务»更多设置中控制开关</p>
 		    </div>
 		    <div class="form-group">
 	        	<label>下载间隔（毫秒，1000毫秒=1秒）</label>
@@ -44,9 +44,9 @@
 		    <div class="form-group">
 	        	<label>图片名称</label>
 		       	<select name="img_name" class="form-control">
-		       		<option value="">{$Think.lang.down_img_name_}</option>
-		       		<option value="url">{$Think.lang.down_img_name_url}</option>
-		       		<option value="custom">{$Think.lang.down_img_name_custom}</option>
+		       		<option value="url">{$Think.lang.down_file_name_url}</option>
+		       		<option value="">{$Think.lang.down_file_name_}</option>
+		       		<option value="custom">{$Think.lang.down_file_name_custom}</option>
 		       	</select>
 		       	<div id="img_name_custom" style="margin-top:5px;display:none;">
 		       		<div class="input-group">
@@ -115,6 +115,30 @@
 	        	<input type="number" name="img_max" class="form-control" />
 		   		<p class="help-block">超过兆数的图片不下载，留空或0表示不限制</p>        
 		    </div>
+		    <div class="form-group">
+				<label>图片加水印 {if $imgWmError}<span style="color:red;margin-left:5px;">{$imgWmError}</span>{/if}</label>
+		        <div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="img_watermark" value="1">是</label>
+					<label class="radio-inline"><input type="radio" name="img_watermark" value="0" checked="checked">否</label>
+		        </div>
+		    </div>
+		    <div class="box-enable-wrapper">
+			    <div class="form-group">
+		        	<label>水印logo</label>
+		        	<div class="input-group">
+		        		<span class="input-group-addon">logo</span>
+		        		<input type="file" name="img_wm_logo_upload" class="form-control" />
+		        		<span class="input-group-addon brl_0 brr_0">下边距</span>
+		        		<input type="number" name="img_wm_bottom" class="form-control" placeholder="默认0" />
+		        		<span class="input-group-addon brl_0 brr_0">右边距</span>
+		        		<input type="number" name="img_wm_right" class="form-control" placeholder="默认0" />
+		        		<span class="input-group-addon brl_0 brr_0">透明度</span>
+		        		<input type="number" name="img_wm_opacity" class="form-control" placeholder="默认不透明" />
+		        	</div>
+		        	<input type="hidden" name="img_wm_logo" class="form-control" />
+		        	<img src="" id="img_wm_logo_show" style="max-width:300px;margin-top:10px;border:solid 1px #ccc;display:none;" />
+			    </div>
+		    </div>
     	</div>
     </div>
 </div>
@@ -127,9 +151,12 @@
     		<p class="help-block">图片下载后使用函数</p>
 	        <div class="form-group">
 	        	<label>函数名</label>
-		   		<select name="img_func" class="form-control">
-		   			<option value="">不使用</option>
-		       	</select>
+		       	<div class="input-group">
+			   		<select name="img_func" class="form-control">
+			   			<option value="">不使用</option>
+			       	</select>
+			       	<div class="input-group-addon"><a href="javascript:;" onclick="tipsPluginFunc('downloadImg')">扩展函数</a></div>
+	        	</div>
 			</div>
 			<div class="form-group">
 				<label>传入参数</label>
@@ -149,7 +176,7 @@
 							<li><a href="javascript:;" data-val="[图片:网址]">[图片:网址]（图片源网址）</a></li>
 						</ul>
 					</div>
-					&nbsp;请按函数传参，否则运行出错！<a href="javascript:;" onclick="tipsPluginFunc('downloadImg')">扩展函数</a>
+					&nbsp;请按函数传参，否则运行出错！
 				</div>
 			</div>
     	</div>

@@ -406,7 +406,7 @@ class Translator
                 }
             }
         }
-        return is_array($apiLangs) ? $apiLangs : null;
+        return is_array($apiLangs) ? $apiLangs : array();
     }
 }
 

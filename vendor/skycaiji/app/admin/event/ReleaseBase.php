@@ -55,12 +55,12 @@ class ReleaseBase extends CollectBase{
 						'target' => '',
 						'desc'=>'',
 						'error' => $returnData['error'],
-						'task_id' => $release ['task_id'],
+						'task_id' => $release['task_id'],
 						'release' => $release['module'],
 						'addtime'=>time()
 					));
 				}
-				$this->echo_msg(array('%s',$returnData['error']),'red',$echo);
+				$this->echo_msg(array('发布失败：%s',$returnData['error']),'red',$echo);
 			}
 		}
 		
@@ -106,8 +106,37 @@ class ReleaseBase extends CollectBase{
 				}
 			}
 		}
+		if(!is_empty(g_sc_c('download_file','download_file'))){
+		    
+		    if(!empty($collFieldVal['file'])){
+		        
+		        if(!is_array($collFieldVal['file'])){
+		            
+		            $collFieldVal['file']=array($collFieldVal['file']);
+		        }
+		        $total=count($collFieldVal['file']);
+		        if($total>0){
+		            $this->echo_msg(array('正在下载：%s » %s个文件',$collFieldVal['name'],$total),'black');
+		        }
+		        $curI=0;
+		        foreach ($collFieldVal['file'] as $fileUrl){
+		            $this->collect_stopped(g_sc('collect_task_id'));
+		            $newFileUrl=$this->download_file($fileUrl);
+		            if($newFileUrl!=$fileUrl){
+		                
+		                $val=str_replace($fileUrl, $newFileUrl, $val);
+		            }
+		            $curI++;
+		            if($curI<$total){
+		                
+		                $this->collect_sleep(g_sc_c('download_file','file_interval'),true);
+		            }
+		        }
+		    }
+		}
 		return $val;
 	}
+	
 	/*下载图片*/
 	private $cache_img_list=array();
 	public function download_img($url){
@@ -115,12 +144,9 @@ class ReleaseBase extends CollectBase{
 		static $imgPaths=array();
 		static $imgUrls=array();
 		
+		$originalUrl=$url;
+		
 		$retryMax=intval(g_sc_c('download_img','retry'));
-		$retryParams=null;
-		if($retryMax>0){
-		    
-		    $retryParams=array(0=>$url);
-		}
 		
 		$img_path=g_sc_c('download_img','img_path');
 		$img_url=g_sc_c('download_img','img_url');
@@ -193,7 +219,7 @@ class ReleaseBase extends CollectBase{
 		
 		static $imgSuffixes=null;
 		if(!isset($imgSuffixes)){
-		    $imgSuffixes=array('jpg','jpeg','gif','png','bmp');
+		    $imgSuffixes=array('jpg','jpeg','gif','png','bmp','webp','wbmp');
 		    $moreSuffix=g_sc_c('download_img','more_suffix');
 		    if(!empty($moreSuffix)){
 		        $moreSuffix=explode(',', $moreSuffix);
@@ -217,11 +243,7 @@ class ReleaseBase extends CollectBase{
 		        }
 		    }else{
 		        
-		        if(preg_match('/\.([a-zA-Z][\w\-]+)([\?\#]|$)/',$url,$prop)){
-		            $prop=strtolower($prop[1]);
-		        }else{
-		            $prop='';
-		        }
+		        $prop=\util\Funcs::get_url_suffix($url);
 		    }
 		    if(!in_array($prop, $imgSuffixes)){
 		        
@@ -243,7 +265,7 @@ class ReleaseBase extends CollectBase{
 				
 				$imgname=substr($key,0,2).'/'.substr($key,-2,2).'/'.$key.'.'.$prop;
 				$filename=$img_path.$imgname;
-				$filename=$this->_convert_img_charset($filename);
+				$filename=$this->_convert_file_charset($filename,true);
 				$isExists=file_exists($filename);
 				
 				if(!$isExists){
@@ -251,7 +273,7 @@ class ReleaseBase extends CollectBase{
 					
 					$imgname=substr($key,0,2).'/'.substr($key,2).'.'.$prop;
 					$filename=$img_path.$imgname;
-					$filename=$this->_convert_img_charset($filename);
+					$filename=$this->_convert_file_charset($filename,true);
 					$isExists=file_exists($filename);
 				}
 			}elseif('custom'==$imgname){
@@ -268,13 +290,13 @@ class ReleaseBase extends CollectBase{
 			    $customName=model('Config')->convert_img_name_name($customName,$url);
 			    $imgname=$customPath.'/'.$customName.'.'.$prop;
 			    $filename=$img_path.$imgname;
-			    $filename=$this->_convert_img_charset($filename);
+			    $filename=$this->_convert_file_charset($filename,true);
 				$isExists=file_exists($filename);
 			}else{
 				
 				$imgname=date('Y-m-d',time()).'/'.$key.'.'.$prop;
 				$filename=$img_path.$imgname;
-				$filename=$this->_convert_img_charset($filename);
+				$filename=$this->_convert_file_charset($filename,true);
 				$isExists=file_exists($filename);
 			}
 			$imgurl=$img_url.$imgname;
@@ -292,7 +314,7 @@ class ReleaseBase extends CollectBase{
 			        
 			        try {
 			            $headers=array();
-			            $useCookieImg=\util\Param::get_gsc_use_cookie(true,true);
+			            $useCookieImg=\util\Param::get_gsc_use_cookie('img',true);
 			            if(!is_empty(g_sc('task_img_headers'))){
 			                
 			                $headers=g_sc('task_img_headers');
@@ -309,6 +331,8 @@ class ReleaseBase extends CollectBase{
 			            if(!is_empty(g_sc_c('download_img','img_timeout'))){
 			                
 			                $options['timeout']=g_sc_c('download_img','img_timeout');
+			            }else{
+			                $options['timeout']=300;
 			            }
 			            if(!is_empty(g_sc_c('download_img','img_max'))){
 			                
@@ -334,7 +358,6 @@ class ReleaseBase extends CollectBase{
 			                                    $imgname.='.'.$mImgProp;
 			                                    $imgurl.='.'.$mImgProp;
 			                                    $filename.='.'.$mImgProp;
-			                                    
 			                                    if(file_exists($filename)){
 			                                        
 			                                        $isExists=true;
@@ -347,6 +370,59 @@ class ReleaseBase extends CollectBase{
 			                    if(!$isExists){
 			                        if(write_dir_file($filename,$imgCodeInfo['html'])){
 			                            $this->cache_img_list[$key]=$imgurl;
+			                            $imgCodeInfo=null;
+			                            if(!is_empty(g_sc_c('download_img','img_watermark'))){
+			                                
+			                                $imgWmLogo=g_sc_c('download_img','img_wm_logo');
+			                                if($imgWmLogo){
+			                                    
+			                                    $imgWmLogo=config('root_path').$imgWmLogo;
+			                                    if(file_exists($imgWmLogo)){
+			                                        $imgInfoWm=getimagesize($imgWmLogo);
+			                                        $imgInfoImg=getimagesize($filename);
+			                                        $imgPropWm=str_replace('image/','',strtolower($imgInfoWm['mime']?:''));
+			                                        $imgPropImg=str_replace('image/','',strtolower($imgInfoImg['mime']?:''));
+			                                        $imgPropWm=$imgPropWm=='jpg'?'jpeg':$imgPropWm;
+			                                        $imgPropImg=$imgPropImg=='jpg'?'jpeg':$imgPropImg;
+			                                        if($imgPropWm&&$imgPropImg){
+			                                            
+    			                                        $funcImage='image'.$imgPropImg;
+    			                                        if(function_exists('imagecreatefromstring')){
+    			                                            if(function_exists($funcImage)){
+    			                                                
+    			                                                $icfWm=imagecreatefromstring(file_get_contents($imgWmLogo));
+    			                                                $icfImg=imagecreatefromstring(file_get_contents($filename));
+    			                                                
+    			                                                $cWmRight=intval(g_sc_c('download_img','img_wm_right'));
+    			                                                $cWmBottom=intval(g_sc_c('download_img','img_wm_bottom'));
+    			                                                $cWmOpacity=intval(g_sc_c('download_img','img_wm_opacity'));
+    			                                                $cWmOpacity=min(100,max(0,$cWmOpacity));
+    			                                                
+    			                                                $cWmRight=$imgInfoImg[0]-$imgInfoWm[0]-$cWmRight;
+    			                                                $cWmBottom=$imgInfoImg[1]-$imgInfoWm[1]-$cWmBottom;
+    			                                                
+    			                                                if($cWmOpacity>0){
+    			                                                    imagecopymerge($icfImg,$icfWm,$cWmRight,$cWmBottom,0,0,$imgInfoWm[0],$imgInfoWm[1],100-$cWmOpacity);
+    			                                                }else{
+    			                                                    
+    			                                                    imagecopy($icfImg,$icfWm,$cWmRight,$cWmBottom,0,0,$imgInfoWm[0],$imgInfoWm[1]);
+    			                                                }
+    			                                                call_user_func($funcImage,$icfImg,$filename);
+    			                                                imagedestroy($icfWm);
+    			                                                imagedestroy($icfImg);
+    			                                            }else{
+    			                                                $this->echo_msg('添加水印失败，不存在函数：'.$funcImage);
+    			                                            }
+    			                                        }else{
+    			                                            $this->echo_msg('添加水印失败，不存在函数：imagecreatefromstring');
+    			                                        }
+			                                        }
+			                                    }else{
+			                                        $this->echo_msg('不存在水印logo：'.$imgWmLogo);
+			                                    }
+			                                }
+			                            }
+			                            
 			                            
 			                            $funcName=g_sc_c('download_img','img_func');
 			                            if(!empty($funcName)){
@@ -375,25 +451,7 @@ class ReleaseBase extends CollectBase{
 			                }
 			            }else{
 			                
-			                if(!empty($proxyDbIp)){
-			                    $this->echo_msg(array('代理IP：%s',$proxyDbIp['ip']),'black',true,'','display:inline;margin-right:5px;');
-			                }
-			                
-			                $this->retry_first_echo($retryCur,'图片下载失败',$url,$imgCodeInfo);
-			                
-			                
-			                if(!empty($proxyDbIp)){
-			                    if($imgCodeInfo['code']!=404){
-			                        
-			                        $mproxy->set_ip_failed($proxyDbIp);
-			                    }
-			                }
-			                
-			                $this->collect_sleep(g_sc_c('download_img','wait'));
-			                
-			                if($this->retry_do_func($retryCur,$retryMax,'图片无效')){
-			                    return $this->download_img($retryParams[0]);
-			                }
+			                return $this->_down_retry($proxyDbIp, $originalUrl, $retryCur, $retryMax, $imgCodeInfo, true);
 			            }
 			        }catch (\Exception $ex){
 			            
@@ -406,15 +464,244 @@ class ReleaseBase extends CollectBase{
 		}
 		return empty($this->cache_img_list[$key])?$url:$this->cache_img_list[$key];
 	}
+	/*下载文件*/
+	private $cache_file_list=array();
+	public function download_file($url){
+	    static $retryCur=0;
+	    static $filePaths=array();
+	    static $fileUrls=array();
+	    
+	    $originalUrl=$url;
+	    
+	    $retryMax=intval(g_sc_c('download_file','retry'));
+	    
+	    $file_path=g_sc_c('download_file','file_path');
+	    $file_url=g_sc_c('download_file','file_url');
+	    
+	    if(!isset($filePaths[$file_path])){
+	        if(empty($file_path)){
+	            
+	            $filePaths[$file_path]=config('root_path').'/data/files/';
+	        }else{
+	            
+	            $filePaths[$file_path]=rtrim($file_path,'\/\\').'/';
+	        }
+	    }
+	    $file_path=$filePaths[$file_path];
+	    
+	    if(!isset($fileUrls[$file_url])){
+	        if(empty($file_url)){
+	            
+	            $fileUrls[$file_url]=config('root_website').'/data/files/';
+	        }else{
+	            
+	            $fileUrls[$file_url]=rtrim($file_url,'\/\\').'/';
+	        }
+	    }
+	    $file_url=$fileUrls[$file_url];
+	    
+	    if(empty($url)){
+	        return '';
+	    }
+	    
+	    $mproxy=model('ProxyIp');
+	    $options=array();
+	    $proxyDbIp=null;
+	    if(!is_empty(g_sc_c('proxy','open'))){
+	        
+	        $proxyDbIp=$mproxy->get_usable_ip();
+	        $proxyIp=$mproxy->to_proxy_ip($proxyDbIp);
+	        if(empty($proxyIp)){
+	            
+	            $this->echo_msg(array('没有可用的代理IP，跳过下载<a href="%s" target="_blank">文件</a>',$url));
+	            return $url;
+	        }else{
+	            
+	            $options['proxy']=$proxyIp;
+	        }
+	    }
+	    
+        
+        if(!is_empty(g_sc_c('caiji','robots'))){
+            
+            if(!$this->abide_by_robots($url,$options)){
+                $this->echo_msg(array('robots拒绝访问的网址：%s',$url));
+                return $url;
+            }
+        }
+	    
+	    $key=md5($url);
+	    if(!isset($this->cache_file_list[$key])){
+	        $headers=array();
+	        $useCookieFile=\util\Param::get_gsc_use_cookie('file',true);
+	        if(!is_empty(g_sc('task_file_headers'))){
+	            
+	            $headers=g_sc('task_file_headers');
+	            if(!is_array($headers)){
+	                $headers=array();
+	            }
+	        }
+	        if(!empty($useCookieFile)){
+	            
+	            unset($headers['cookie']);
+	            $headers['cookie']=$useCookieFile;
+	        }
+	        
+	        if(!is_empty(g_sc_c('download_file','file_timeout'))){
+	            
+	            $options['timeout']=g_sc_c('download_file','file_timeout');
+	        }else{
+	            $options['timeout']=1800;
+	        }
+	        if(!is_empty(g_sc_c('download_file','file_max'))){
+	            
+	            $options['max_bytes']=intval(g_sc_c('download_file','file_max'))*1024*1024;
+	        }
+	        
+	        $prop=\util\Funcs::get_url_suffix($url);
+	        
+	        static $urlProps=array('htm','html','php','asp','jsp');
+	        if(in_array($prop, $urlProps)||empty($prop)){
+	            
+	            $options['return_info']=true;
+	            $options['return_head']=true;
+	            $fileCodeInfo=get_html($url,$headers,$options,'utf-8',null,true);
+	            if(!empty($fileCodeInfo['ok'])){
+	                unset($options['max_bytes']);
+	                if($fileCodeInfo['info']['url']){
+	                    
+	                    
+	                    $url=$fileCodeInfo['info']['url'];
+	                    $prop=\util\Funcs::get_url_suffix($url);
+	                }
+	            }else{
+	                return $this->_down_retry($proxyDbIp, $originalUrl, $retryCur, $retryMax, $fileCodeInfo, false);
+	            }
+	        }
+	        
+	        if($prop){
+	            $prop='.'.$prop;
+	        }
+	        
+	        $filefull='';
+	        $fileurl='';
+	        $isExists=false;
+	        $filename=g_sc_c('download_file','file_name');
+	        
+	        if('url'==$filename){
+	            
+	            
+	            
+	            $filename=substr($key,0,2).'/'.substr($key,2).$prop;
+	            $filefull=$file_path.$filename;
+	            $filefull=$this->_convert_file_charset($filefull);
+	            $isExists=file_exists($filefull);
+	        }elseif('custom'==$filename){
+	            
+	            $customPath=g_sc_c('download_file','name_custom_path');
+	            if(!is_null(g_sc_c('download_file','_name_custom_path'))){
+	                $customPath=g_sc_c('download_file','_name_custom_path');
+	            }
+	            $customName=g_sc_c('download_file','name_custom_name');
+	            if(!is_null(g_sc_c('download_file','_name_custom_name'))){
+	                $customName=g_sc_c('download_file','_name_custom_name');
+	            }
+	            $customPath=model('Config')->convert_file_name_path($customPath,$url);
+	            $customName=model('Config')->convert_file_name_name($customName,$url);
+	            $filename=$customPath.'/'.$customName.$prop;
+	            $filefull=$file_path.$filename;
+	            $filefull=$this->_convert_file_charset($filefull);
+	            $isExists=file_exists($filefull);
+	        }else{
+	            
+	            $filename=date('Y-m-d',time()).'/'.$key.$prop;
+	            $filefull=$file_path.$filename;
+	            $filefull=$this->_convert_file_charset($filefull);
+	            $isExists=file_exists($filefull);
+	        }
+	        $fileurl=$file_url.$filename;
+	        
+	        if(!$isExists){
+	            
+                try {
+                    unset($options['return_head']);
+                    $options['return_info']=true;
+                    $fileCodeInfo=get_html($url,$headers,$options,'utf-8',null,true);
+                    if(!empty($fileCodeInfo['ok'])){
+                        
+                        $retryCur=0;
+                        if(!empty($fileCodeInfo['html'])){
+                            
+                            $mFileProp=\util\Funcs::get_url_suffix($fileCodeInfo['info']['url']);
+                            if($mFileProp){
+                                
+                                $mFileProp='.'.$mFileProp;
+                                if($prop!=$mFileProp){
+                                    
+                                    $filename.=$mFileProp;
+                                    $fileurl.=$mFileProp;
+                                    $filefull.=$mFileProp;
+                                    
+                                    if(file_exists($filefull)){
+                                        
+                                        $isExists=true;
+                                        $this->cache_file_list[$key]=$fileurl;
+                                    }
+                                }
+                            }
+                            if(!$isExists){
+                                if(write_dir_file($filefull,$fileCodeInfo['html'])){
+                                    $this->cache_file_list[$key]=$fileurl;
+                                    
+                                    $funcName=g_sc_c('download_file','file_func');
+                                    if(!empty($funcName)){
+                                        
+                                        $paramVals=array(
+                                            '[文件:文件名]'=>$filefull,
+                                            '[文件:路径]'=>$file_path,
+                                            '[文件:名称]'=>$filename,
+                                            '[文件:链接]'=>$fileurl,
+                                            '[文件:网址]'=>$url
+                                        );
+                                        $return=model('FuncApp')->execute_func('downloadFile',$funcName,$filefull,g_sc_c('download_file','file_func_param'),$paramVals);
+                                        if($return['success']){
+                                            
+                                            if($return['data']&&preg_match('/^\w+\:\/\//',$return['data'])){
+                                                
+                                                $this->cache_file_list[$key]=$return['data'];
+                                            }
+                                        }elseif($return['msg']){
+                                            
+                                            $this->echo_msg(array('%s',$return['msg']));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }else{
+                        
+                        return $this->_down_retry($proxyDbIp, $originalUrl, $retryCur, $retryMax, $fileCodeInfo, false);
+                    }
+                }catch (\Exception $ex){
+                    
+                }
+	        }else{
+	            
+	            $this->cache_file_list[$key]=$fileurl;
+	        }
+	    }
+	    return empty($this->cache_file_list[$key])?$url:$this->cache_file_list[$key];
+	}
 	
-	private function _convert_img_charset($filename){
+	private function _convert_file_charset($filename,$isImg=false){
 	    static $charset=null;
+	    $type=$isImg?'download_img':'download_file';
 	    if(!isset($charset)){
-	        $charset=g_sc_c('download_img','charset');
+	        $charset=g_sc_c($type,'charset');
 	        $charset=empty($charset)?'':strtolower($charset);
 	        if($charset=='custom'){
 	            
-	            $charset=g_sc_c('download_img','charset_custom');
+	            $charset=g_sc_c($type,'charset_custom');
 	            $charset=empty($charset)?'':strtolower($charset);
 	        }
 	        if($charset=='utf-8'){
@@ -427,6 +714,43 @@ class ReleaseBase extends CollectBase{
 	    }
 	    return $filename;
 	}
+	
+	private function _down_retry($proxyDbIp,$url,&$retryCur,$retryMax,$htmlInfo,$isImg){
+	    $type=$isImg?'图片':'文件';
+	    
+	    if(empty($htmlInfo['code'])&&!empty($htmlInfo['msg'])){
+	        
+	        $this->echo_msg($htmlInfo['msg'].'：'.$url,'black');
+	        return $url;
+	    }
+	    
+	    
+	    if(!empty($proxyDbIp)){
+	        $this->echo_msg(array('代理IP：%s',$proxyDbIp['ip']),'black',true,'','display:inline;margin-right:5px;');
+	    }
+	    
+	    
+	    $this->retry_first_echo($retryCur,$type.'下载失败',$url,$htmlInfo);
+	    
+	    
+	    if(!empty($proxyDbIp)){
+	        if($htmlInfo['code']!=404){
+	            
+	            model('ProxyIp')->set_ip_failed($proxyDbIp);
+	        }
+	    }
+	    
+	    $this->collect_sleep(g_sc_c(($isImg?'download_img':'download_file'),'wait'));
+	    
+	    if($this->retry_do_func($retryCur,$retryMax,$type.'无效')){
+	        if($isImg){
+	            return $this->download_img($url);
+	        }else{
+	            return $this->download_file($url);
+	        }
+	    }
+	}
+	
 	/*获取采集器字段*/
 	public function get_coll_fields($taskId,$taskModule){
 		static $fieldsList=array();
@@ -487,21 +811,17 @@ class ReleaseBase extends CollectBase{
 		return write_dir_file($filename,$data);
 	}
 	
-	/*初始化下载图片*/
-	public function init_download_img($taskData,$collFields){
+	/*初始化下载配置*/
+	public function init_download_config($taskData,$collFields){
+	    init_array($taskData);
+	    init_array($collFields);
 	    if(!is_empty(g_sc_c('download_img','download_img'))&&g_sc_c('download_img','img_name')=='custom'){
 	        
-	        if(empty($taskData)){
-	            $taskData=array();
-	        }
-	        if(empty($collFields)){
-	            $collFields=array();
-	        }
 	        
 	        $name_custom_path=g_sc_c('download_img','name_custom_path');
 	        $check=model('Config')->check_img_name_path($name_custom_path);
 	        if($check['success']){
-	            $name_custom_path=$this->_convert_img_params($name_custom_path, $taskData, $collFields);
+	            $name_custom_path=$this->_convert_download_params($name_custom_path, $taskData, $collFields);
 	        }else{
 	            $name_custom_path='temp';
 	        }
@@ -512,7 +832,7 @@ class ReleaseBase extends CollectBase{
 	        $name_custom_name=g_sc_c('download_img','name_custom_name');
 	        $check=model('Config')->check_img_name_name($name_custom_name);
 	        if($check['success']){
-	            $name_custom_name=$this->_convert_img_params($name_custom_name, $taskData, $collFields);
+	            $name_custom_name=$this->_convert_download_params($name_custom_name, $taskData, $collFields);
 	        }else{
 	            $name_custom_name='';
 	        }
@@ -523,9 +843,38 @@ class ReleaseBase extends CollectBase{
 	        set_g_sc(['c','download_img','_name_custom_path'],null);
 	        set_g_sc(['c','download_img','_name_custom_name'],null);
 	    }
+	    
+	    if(!is_empty(g_sc_c('download_file','download_file'))&&g_sc_c('download_file','file_name')=='custom'){
+	        
+	        
+	        $name_custom_path=g_sc_c('download_file','name_custom_path');
+	        $check=model('Config')->check_file_name_path($name_custom_path);
+	        if($check['success']){
+	            $name_custom_path=$this->_convert_download_params($name_custom_path, $taskData, $collFields);
+	        }else{
+	            $name_custom_path='temp';
+	        }
+	        
+	        set_g_sc(['c','download_file','_name_custom_path'],$name_custom_path);
+	        
+	        
+	        $name_custom_name=g_sc_c('download_file','name_custom_name');
+	        $check=model('Config')->check_file_name_name($name_custom_name);
+	        if($check['success']){
+	            $name_custom_name=$this->_convert_download_params($name_custom_name, $taskData, $collFields);
+	        }else{
+	            $name_custom_name='';
+	        }
+	        
+	        set_g_sc(['c','download_file','_name_custom_name'],$name_custom_name);
+	    }else{
+	        
+	        set_g_sc(['c','download_file','_name_custom_path'],null);
+	        set_g_sc(['c','download_file','_name_custom_name'],null);
+	    }
 	}
 	
-	private function _convert_img_params($str,$taskData,$collFields){
+	private function _convert_download_params($str,$taskData,$collFields){
 	    if(empty($taskData)){
 	        $taskData=array();
 	    }

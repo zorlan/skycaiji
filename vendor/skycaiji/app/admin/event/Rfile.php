@@ -83,7 +83,7 @@ class Rfile extends Release {
     			
     			foreach ($collFieldsList as $collFieldsKey=>$collFields){
     			    
-    			    $this->init_download_img($this->task,$collFields['fields']);
+    			    $this->init_download_config($this->task,$collFields['fields']);
     			    $this->hide_coll_fields($hideFields, $collFields);
     				$addedNum++;
     				$curRow=$rowNum+$addedNum;
@@ -121,7 +121,7 @@ class Rfile extends Release {
     			
     			foreach ($collFieldsList as $collFieldsKey=>$collFields){
     			    
-    			    $this->init_download_img($this->task,$collFields['fields']);
+    			    $this->init_download_config($this->task,$collFields['fields']);
     			    $this->hide_coll_fields($hideFields, $collFields);
     				$addedNum++;
     				$fieldVals=array();

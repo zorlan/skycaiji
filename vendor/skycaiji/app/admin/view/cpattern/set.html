@@ -69,6 +69,22 @@
        				<p class="help-block">默认将已采集网址排重过滤，选择“是”允许重复采集</p>
 				</div>
 	     		<div class="form-group">
+					<label class="control-label">网址中文转码</label>
+					<div class="input-group">
+       					<label class="radio-inline"><input type="radio" name="config[url_encode]" value="1"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_encode]" value="0" checked="checked"> 否</label>
+       				</div>
+       				<p class="help-block">网址中如果存在中文、特殊字符和空格会导致抓取失败，需要对中文、特殊字符和空格进行转码才能正常解析</p>
+				</div>
+	     		<div class="form-group">
+					<label class="control-label">网址去除锚点</label>
+					<div class="input-group">
+       					<label class="radio-inline"><input type="radio" name="config[url_no_name]" value="1"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_no_name]" value="0" checked="checked"> 否</label>
+       				</div>
+       				<p class="help-block">通常情况下网址中有锚点（#）和无锚点解析出的内容是相同的，为避免采集到重复内容可去除网址锚点</p>
+				</div>
+	     		<div class="form-group">
 					<label class="control-label">倒序采集</label>
 					<div class="input-group">
        					<label class="radio-inline"><input type="radio" name="config[url_reverse]" value="1"> 是</label>
@@ -83,14 +99,6 @@
        					<label class="radio-inline"><input type="radio" name="config[page_render]" value="0" checked="checked"> 否</label>
        				</div>
        				<p class="help-block">需先配置<a href="{:url('setting/page_render')}" target="_blank">页面渲染</a>，可自动加载ajax内容，注意：渲染后的html源码与未渲染时的不相同，html的变动可能会导致原来的规则失效！</p>
-				</div>
-	     		<div class="form-group">
-					<label class="control-label">网址去除锚点</label>
-					<div class="input-group">
-       					<label class="radio-inline"><input type="radio" name="config[url_no_name]" value="1"> 是</label>
-       					<label class="radio-inline"><input type="radio" name="config[url_no_name]" value="0" checked="checked"> 否</label>
-       				</div>
-       				<p class="help-block">通常情况下网址中有锚点（#）和无锚点解析出的内容是相同的，为避免采集到重复内容可去除网址锚点</p>
 				</div>
 	     		<div class="form-group">
 					<label class="control-label">正则匹配模式</label>
@@ -179,7 +187,7 @@
 				      	</div>
 		      		</div>
 		      		
-	      			<div class="panel panel-default" style="margin-bottom:0;">
+	      			<div class="panel panel-default">
 	      				<div class="panel-heading">
 		                    <h4 class="panel-title">
 		                        <a data-toggle="collapse" href="#c_p_request_headers_img" aria-expanded="false">下载图片</a>
@@ -207,6 +215,52 @@
 				       			<div class="form-group">
 				     				<label class="control-label">自定义 <a href="javascript:;" class="glyphicon glyphicon-plus add-request-header-img" title="添加"></a></label>
 				      				<div class="table-responsive c-p-request-headers-img">
+						            	<table class="table table-bordered">
+						                   <thead>
+						                       <tr>
+						                           <td>名称</td>
+						                           <td>值</td>
+						                           <td>删除</td>
+						                       </tr>
+						                   </thead>
+						                   <tbody>
+						                   </tbody>
+										</table>
+						        	</div>
+				       				<p class="help-block">添加新的或者覆盖已有的请求头信息</p>
+				      			</div>
+		      				</div>
+		      			</div>
+			      	</div>
+			      	
+			      	<div class="panel panel-default" style="margin-bottom:0;">
+	      				<div class="panel-heading">
+		                    <h4 class="panel-title">
+		                        <a data-toggle="collapse" href="#c_p_request_headers_file" aria-expanded="false">下载文件</a>
+		                    </h4>
+		                </div>
+	      				<div id="c_p_request_headers_file" class="panel-collapse collapse">
+		      				<div class="panel-body">
+		      					<div class="form-group">
+				       				<label class="control-label">开启</label>
+				       				<div class="input-group">
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][file]" value="1"> 是</label>
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][file]" value="0" checked="checked"> 否</label>
+				       				</div>
+				       				<p class="help-block">下载文件时使用请求头</p>
+				       			</div>
+				       			<div class="form-group">
+				       				<label class="control-label">使用全局请求头</label>
+				       				<div class="input-group">
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][file_use_page]" value="" checked="checked"> 默认：<span class="def-config-request-headers-open">否</span></label>
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][file_use_page]" value="y"> 是</label>
+				       					<label class="radio-inline"><input type="radio" name="config[request_headers][file_use_page]" value="n"> 否</label>
+				       				</div>
+				       				<p class="help-block">默认使用采集器设置»请求头信息»抓取页面中的配置（受全局开启状态影响）</p>
+				       			</div>
+				       			<div class="form-group">
+				     				<label class="control-label">自定义 <a href="javascript:;" class="glyphicon glyphicon-plus add-request-header-file" title="添加"></a></label>
+				      				<div class="table-responsive c-p-request-headers-file">
 						            	<table class="table table-bordered">
 						                   <thead>
 						                       <tr>

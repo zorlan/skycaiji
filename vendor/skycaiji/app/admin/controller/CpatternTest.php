@@ -76,7 +76,8 @@ class CpatternTest extends BaseController {
             if(!empty($this->eCpattern->config['front_urls'])){
                 
                 $keyUseCookie=\util\Param::key_gsc_use_cookie();
-                $keyUseCookieImg=\util\Param::key_gsc_use_cookie(true);
+                $keyUseCookieImg=\util\Param::key_gsc_use_cookie('img');
+                $keyUseCookieFile=\util\Param::key_gsc_use_cookie('file');
                 
                 $cacheFrontData=cache($cacheFrontKey);
                 if($clearCache||empty($cacheFrontData)||($cacheFrontData['update_time']!=$collData['uptime'])){
@@ -88,7 +89,8 @@ class CpatternTest extends BaseController {
                         'page_content_matches'=>$this->eCpattern->page_content_matches,
                         'cur_front_urls'=>$this->eCpattern->cur_front_urls,
                         $keyUseCookie=>\util\Param::get_gsc_use_cookie(),
-                        $keyUseCookieImg=>\util\Param::get_gsc_use_cookie(true),
+                        $keyUseCookieImg=>\util\Param::get_gsc_use_cookie('img'),
+                        $keyUseCookieFile=>\util\Param::get_gsc_use_cookie('file'),
                         'update_time'=>$collData['uptime']
                     );
                     cache($cacheFrontKey,$cacheFrontData,1200);
@@ -110,10 +112,13 @@ class CpatternTest extends BaseController {
                     }
                     
                     if($cacheFrontData[$keyUseCookie]){
-                        \util\Param::set_gsc_use_cookie(false,$cacheFrontData[$keyUseCookie]);
+                        \util\Param::set_gsc_use_cookie('',$cacheFrontData[$keyUseCookie]);
                     }
                     if($cacheFrontData[$keyUseCookieImg]){
-                        \util\Param::set_gsc_use_cookie(true,$cacheFrontData[$keyUseCookieImg]);
+                        \util\Param::set_gsc_use_cookie('img',$cacheFrontData[$keyUseCookieImg]);
+                    }
+                    if($cacheFrontData[$keyUseCookieFile]){
+                        \util\Param::set_gsc_use_cookie('file',$cacheFrontData[$keyUseCookieFile]);
                     }
                 }
             }
@@ -962,7 +967,6 @@ class CpatternTest extends BaseController {
                     $msg='通过数据处理筛除了'.$num.'条数据';
                 }
             }
-            
             foreach ($val_list as $v_k=>$vals){
                 foreach ($vals as $k=>$v){
                     $vals[$k]=$v['value'];
@@ -1260,20 +1264,12 @@ class CpatternTest extends BaseController {
             
             if($type=='rule'){
                 
-                $rule=$this->eCpattern->convert_sign_match($field['rule']);
-                $rule=$this->eCpattern->correct_reg_pattern($rule);
-                
-                $rule_merge=$this->eCpattern->set_merge_default($rule, $field['rule_merge']);
-                if(empty($rule_merge)){
-                    
-                    $rule_merge=cp_sign('match');
-                }
-                
-                $val=$this->eCpattern->get_rule_module_rule_data(array(
-                    'rule' => $rule,
-                    'rule_merge' => $rule_merge,
+                $val=$this->eCpattern->rule_module_rule_data_get(array(
+                    'rule' => $field['rule'],
+                    'rule_merge' => $field['rule_merge'],
                     'rule_multi' => $field['rule_multi'],
-                    'rule_multi_str' => $field['rule_multi_str']
+                    'rule_multi_str' => $field['rule_multi_str'],
+                    'rule_flags'=>$this->eCpattern->config['reg_regexp_flags'],
                 ), $content,array(),true);
                 
             }elseif($type=='xpath'){
@@ -1289,7 +1285,6 @@ class CpatternTest extends BaseController {
                     'json_arr' =>  $field['json_arr'],
                     'json_arr_implode' =>  $field['json_arr_implode'],
                 ), $content);
-                $val = trim($val);
             }
             $this->success($val);
         }else{

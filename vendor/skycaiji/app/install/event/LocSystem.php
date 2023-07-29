@@ -48,7 +48,7 @@ class LocSystem extends BaseController{
     }
     public function environmentPath(){
         
-        $pathFiles=array('./data','./data/config.php','./data/images','./data/app','./data/program/upgrade','./data/program/backup','./app','./plugin','./runtime');
+        $pathFiles=array('./data','./data/config.php','./data/images','./data/files','./data/app','./data/program/upgrade','./data/program/backup','./app','./plugin','./runtime');
         $pathFileList=array();
         foreach ($pathFiles as $pathFile){
             $filename=config('root_path').'/'.$pathFile;

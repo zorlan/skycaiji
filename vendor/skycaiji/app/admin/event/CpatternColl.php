@@ -40,22 +40,28 @@ class CpatternColl extends CpatternBase{
     public $show_opened_tools=false;
     protected $cache_page_htmls=array();
     protected $cache_page_urls=array();
-    
+    protected $field_url_complete=true;
+    protected $field_down_img=true;
     /*对象销毁时处理*/
     public function __destruct(){
+        
+        $usedContUrls=array();
         if(!empty($this->used_cont_urls)){
-            
             $usedContUrls=array_keys($this->used_cont_urls);
-            if(!empty($usedContUrls)&&is_array($usedContUrls)){
-                $total=count($usedContUrls);
-                $limit=100;
-                $batch=ceil($total/$limit);
-                for($i=1;$i<=$batch;$i++){
-                    
-                    $list=array_slice($usedContUrls,($i-1)*$limit,$limit);
-                    if(!empty($list)){
-                        CacheModel::getInstance('cont_url')->deleteCache($list);
-                    }
+            init_array($usedContUrls);
+        }
+        if($this->cur_cont_url){
+            $usedContUrls[]=md5($this->cur_cont_url);
+        }
+        if(!empty($usedContUrls)){
+            $total=count($usedContUrls);
+            $limit=100;
+            $batch=ceil($total/$limit);
+            for($i=1;$i<=$batch;$i++){
+                
+                $list=array_slice($usedContUrls,($i-1)*$limit,$limit);
+                if(!empty($list)){
+                    CacheModel::getInstance('cont_url')->deleteCache($list);
                 }
             }
         }
@@ -246,6 +252,16 @@ class CpatternColl extends CpatternBase{
             $doBan=true;
         }
         
+        $urlCharset='';
+        if(!empty($this->config['url_encode'])){
+            
+            $urlWebConfig=$this->get_page_config($pageType,$pageName,'url_web');
+            $urlCharset=$this->page_url_web_charset($urlWebConfig);
+            if(empty($urlCharset)||in_array($urlCharset,array('auto','utf-8','utf8'))){
+                $urlCharset='';
+            }
+        }
+        
         $urlMatchesMd5s=array();
         
         
@@ -291,6 +307,22 @@ class CpatternColl extends CpatternBase{
                     
                     $doDelete=true;
                 }
+                
+                if(!$doDelete&&!empty($this->config['url_encode'])){
+                    
+                    $contUrl=preg_replace_callback('/[^\x21-\x7E]+/',function($mstr)use($urlCharset){
+                        
+                        $mstr=$mstr[0];
+                        if(!empty($urlCharset)){
+                            
+                            $mstr=\util\Funcs::convert_charset($mstr,'utf-8',$urlCharset);
+                        }
+                        $mstr=rawurlencode($mstr);
+                        return $mstr;
+                    },$contUrl);
+                    $cont_urls[$k]=$contUrl;
+                }
+                
                 if(!$doDelete&&strpos($contUrl,' ')!==false){
                     
                     $doDelete=true;
@@ -1170,7 +1202,6 @@ class CpatternColl extends CpatternBase{
     }
     
     
-    
     /*获取页面代码*/
     public function get_page_html($url,$pageType,$pageName,$isPagination=false,$returnInfo=false){
         $pageName=$pageName?$pageName:'';
@@ -1184,7 +1215,7 @@ class CpatternColl extends CpatternBase{
         
         if(!empty($pageSource)){
             
-            $useCookie=\util\Param::get_gsc_use_cookie(false,true);
+            $useCookie=\util\Param::get_gsc_use_cookie('',true);
             if($openUrlWeb){
                 
                 $headers=$this->arrays_to_key_val($urlWebConfig['header_names'], $urlWebConfig['header_vals']);
@@ -1522,14 +1553,9 @@ class CpatternColl extends CpatternBase{
             }
         }else{
             $options['curlopts']=$otherConfig['curlopts'];
-            
             init_array($options['curlopts']);
-            $confMaxRedirs=g_sc_c('caiji','max_redirs');
-            $confMaxRedirs=intval($confMaxRedirs);
-            if($confMaxRedirs>0){
-                
-                $options['curlopts'][CURLOPT_MAXREDIRS]=$confMaxRedirs;
-            }
+            
+            $options['max_redirs']=g_sc_c('caiji','max_redirs');
             $htmlInfo=get_html($url,$headers,$options,$charset,$postData,true);
         }
         init_array($htmlInfo);

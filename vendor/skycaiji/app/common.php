@@ -10,7 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.5.4');
+define('SKYCAIJI_VERSION', '2.5.5');
 \think\Loader::addNamespace('plugin', realpath(SKYCAIJI_PATH.'plugin'));
 \think\Loader::addNamespace('util',realpath(APP_PATH.'extend/util'));
 
@@ -82,8 +82,19 @@ function g_sc_c($key1,$key2=null,$key3=null){
     return \util\Funcs::array_get($GLOBALS['_sc']['c'], $keys);
 }
 
-function is_empty($val){
-    return empty($val);
+function is_empty($val,$notContainZero=false){
+    if(empty($val)){
+        
+        if($notContainZero){
+            
+            if($val===0||$val==='0'){
+                return false;
+            }
+        }
+        return true;
+    }else{
+        return false;
+    }
 }
 /*写入文件*/
 function write_dir_file($filename,$data,$flags=0,$content=null){
@@ -240,7 +251,7 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
         
         $options['curlopts'][CURLOPT_IPRESOLVE]=$confIpResolve=='ipv6'?CURL_IPRESOLVE_V6:CURL_IPRESOLVE_V4;
     }
-    
+    $msg='';
     $curl=null;
     try {
         if(isset($postData)&&$postData!==false){
@@ -308,12 +319,21 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
                     $contLen=intval($contLen[1]);
                     if($contLen>=$max_bytes){
                         $allow_get=false;
+                        $msg='超出限制大小';
                     }
                 }
             }
             if($allow_get){
                 
-                $curl=\util\Curl::get($url,$headers,$options);
+                if(!empty($options['return_head'])){
+                    
+                    if(empty($curl)){
+                        $curl=\util\Curl::head($url,$headers,$options);
+                    }
+                }else{
+                    
+                    $curl=\util\Curl::get($url,$headers,$options);
+                }
             }else{
                 $curl=null;
             }
@@ -417,6 +437,10 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
             
             $info['error']=$curl->error;
             $info['info']=$curl->info;
+        }
+        if($msg){
+            
+            $info['msg']=$msg;
         }
         return $info;
     }else{

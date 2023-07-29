@@ -11,6 +11,21 @@
 
 namespace skycaiji\admin\model;
 class Task extends \skycaiji\common\model\BaseModel{
+    public function getById($id){
+        $data=$this->where('id',$id)->find();
+        if($data){
+            $data=$data->toArray();
+            if(!empty($data['config'])){
+                $data['config']=unserialize($data['config']);
+            }
+            if(empty($data['config'])){
+                $data['config']=array();
+            }
+        }else{
+            $data=array();
+        }
+        return $data;
+    }
     public function loadConfig($taskData){
         $config=$taskData['config'];
 		if(empty($config)){
@@ -24,12 +39,12 @@ class Task extends \skycaiji\common\model\BaseModel{
 		    $config=array();
 		}
 		
+		$config=$this->compatible_config($config);
+		
 		$original_config=g_sc('c_original');
 		
 		
-		set_g_sc(['c','caiji','interval'],empty($config['interval'])?$original_config['caiji']['interval']:$config['interval']);
-		
-		set_g_sc(['c','caiji','interval_html'],empty($config['interval_html'])?$original_config['caiji']['interval_html']:$config['interval_html']);
+		$this->set_c_num_names('caiji', array('interval'=>'num_interval','interval_html'=>'num_interval_html'), $config, $original_config);
 		
 		
 		if(empty($config['same_url'])){
@@ -71,6 +86,30 @@ class Task extends \skycaiji\common\model\BaseModel{
 		}
 		
 		
+		if(empty($config['download_file'])){
+		    
+		    set_g_sc(['c','download_file','download_file'],$original_config['download_file']['download_file']);
+		}else{
+		    set_g_sc(['c','download_file','download_file'],$config['download_file']=='n'?0:1);
+		}
+		
+		if(empty($config['file_func'])){
+		    
+		    set_g_sc(['c','download_file','file_func'],$original_config['download_file']['file_func']);
+		}else{
+		    
+		    set_g_sc(['c','download_file','file_func'],$config['file_func']=='n'?'':$config['file_func']);
+		}
+		
+		
+		if(empty($config['translate'])){
+		    
+		    set_g_sc(['c','translate','open'],$original_config['translate']['open']);
+		}else{
+		    set_g_sc(['c','translate','open'],$config['translate']=='n'?0:1);
+		}
+		
+		
 		if(empty($config['proxy'])){
 		    
 		    set_g_sc(['c','proxy','open'],$original_config['proxy']['open']);
@@ -86,7 +125,7 @@ class Task extends \skycaiji\common\model\BaseModel{
 		    set_g_sc(['c','proxy','group_id'],$config['proxy_group_id']);
 		}
 		
-		static $imgParams=array('img_path','img_url','img_name','name_custom_path','name_custom_name','interval_img','img_func_param');
+		static $imgParams=array('img_path','img_url','img_name','name_custom_path','name_custom_name','img_func_param','img_wm_logo');
 		foreach ($imgParams as $imgParam){
 		    
 		    set_g_sc(['c','download_img',$imgParam],empty($config[$imgParam])?$original_config['download_img'][$imgParam]:$config[$imgParam]);
@@ -97,21 +136,56 @@ class Task extends \skycaiji\common\model\BaseModel{
 		    set_g_sc(['c','download_img','name_custom_name'],$original_config['download_img']['name_custom_name']);
 		}
 		
-		
-		$htmlMillisecond=g_sc_c('caiji','interval_html');
-		if(empty($htmlMillisecond)&&$original_config['caiji']['html_interval']>0){
+		if(empty($config['img_watermark'])){
 		    
-		    $htmlMillisecond=$original_config['caiji']['html_interval']*1000;
-		    set_g_sc(['c','caiji','interval_html'],$htmlMillisecond);
+		    set_g_sc(['c','download_img','img_watermark'],$original_config['download_img']['img_watermark']);
+		}else{
+		    set_g_sc(['c','download_img','img_watermark'],$config['img_watermark']=='n'?0:1);
+		}
+		$this->set_c_num_names('download_img', array('interval_img'=>'num_interval_img','img_wm_bottom'=>'img_wm_bottom','img_wm_right'=>'img_wm_right','img_wm_opacity'=>'img_wm_opacity'), $config, $original_config);
+		
+		
+		static $fileParams=array('file_path','file_url','file_name','file_func_param');
+		foreach ($fileParams as $fileParam){
+		    
+		    set_g_sc(['c','download_file',$fileParam],empty($config[$fileParam])?$original_config['download_file'][$fileParam]:$config[$fileParam]);
 		}
 		
-		$imgMillisecond=g_sc_c('download_img','interval_img');
-		if(empty($imgMillisecond)&&$original_config['download_img']['img_interval']>0){
+		set_g_sc(['c','download_file','name_custom_path'],empty($config['file_custom_path'])?$original_config['download_file']['name_custom_path']:$config['file_custom_path']);
+		set_g_sc(['c','download_file','name_custom_name'],empty($config['file_custom_name'])?$original_config['download_file']['name_custom_name']:$config['file_custom_name']);
+		
+		if(empty($config['file_name'])){
 		    
-		    $imgMillisecond=$original_config['download_img']['img_interval']*1000;
-		    set_g_sc(['c','download_img','interval_img'],$imgMillisecond);
+		    set_g_sc(['c','download_file','name_custom_path'],$original_config['download_file']['name_custom_path']);
+		    set_g_sc(['c','download_file','name_custom_name'],$original_config['download_file']['name_custom_name']);
 		}
-	}
+		$this->set_c_num_names('download_file', array('file_interval'=>'file_interval'), $config, $original_config);
+    }
+    
+    private function set_c_num_names($cKey,$names,&$config,&$original_config){
+        foreach ($names as $k=>$v){
+            set_g_sc(['c',$cKey,$k],is_empty($config[$v],true)?$original_config[$cKey][$k]:$config[$v]);
+        }
+    }
+    public function compatible_config($config){
+        
+        if(!empty($config)&&is_array($config)){
+            
+            $oldNumNames=array('interval'=>'num_interval','interval_html'=>'num_interval_html','interval_img'=>'num_interval_img');
+            foreach($oldNumNames as $k=>$v){
+                if(isset($config[$k])){
+                    if(empty($config[$k])){
+                        $config[$v]='';
+                    }elseif($config[$k]==='-1'||$config[$k]===-1){
+                        $config[$v]=0;
+                    }else{
+                        $config[$v]=$config[$k];
+                    }
+                }
+            }
+        }
+        return $config;
+    }
 	
 	public function set_backstage($taskId){
 	    if($taskId>0){

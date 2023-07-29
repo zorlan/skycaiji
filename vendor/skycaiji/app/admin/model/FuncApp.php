@@ -29,6 +29,10 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 	        'name'=>'下载图片',
 	        'loc'=>'设置»采集设置»图片本地化»使用函数',
 	    ),
+	    'downloadFile'=>array(
+	        'name'=>'下载文件',
+	        'loc'=>'设置»采集设置»文件本地化»使用函数',
+	    ),
 	    'contentSign'=>array(
 	        'name'=>'内容标签',
 	        'loc'=>'任务»采集器设置»页面配置»提取内容标签»使用函数',
@@ -326,13 +330,14 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 	 */
 	public function execute_func($module,$funcName,$defaultVal,$paramsStr,$paramValList=null){
 	    
-	    static $func_class_list=array('process'=>array(),'processIf'=>array(),'contentSign'=>array(),'downloadImg'=>array());
-	    static $func_param_num_list=array('process'=>array(),'processIf'=>array(),'contentSign'=>array(),'downloadImg'=>array());
+	    static $func_class_list=array('process'=>array(),'processIf'=>array(),'contentSign'=>array(),'downloadImg'=>array(),'downloadFile'=>array());
+	    static $func_param_num_list=array('process'=>array(),'processIf'=>array(),'contentSign'=>array(),'downloadImg'=>array(),'downloadFile'=>array());
 	    static $func_param_rules=array(
 	        'process'=>'/\[\x{5b57}\x{6bb5}\:.+?\]/u',
 	        'processIf'=>'/\[\x{5b57}\x{6bb5}\:.+?\]/u',
 	        'contentSign'=>null,
 	        'downloadImg'=>'/\[\x{56fe}\x{7247}\:.+?\]/u',
+	        'downloadFile'=>'/\[\x{6587}\x{4ef6}\:.+?\]/u',
 	    );
 	    $class_list=&$func_class_list[$module];
 	    $param_num_list=&$func_param_num_list[$module];
@@ -378,7 +383,7 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 	            if(is_object($class_list[$className])){
 	                
 	                if(!method_exists($class_list[$className], $methodName)){
-	                    $result['msg']=$options['loc'].'»不存在方法：'.$className.'-&gt;'.$methodName;
+	                    $result['msg']=$options['loc'].'»不存在方法：'.$className.'->'.$methodName;
 	                }else{
 	                    $result['success']=true;
 	                }

@@ -35,7 +35,7 @@
 	<div class="col-sm-8 col-md-9 deve-editor-left">
 		<textarea id="code_editor_txt" style="display:none;">{$appcode?htmlspecialchars($appcode):''}</textarea>
 		<div id="code_editor_box"><iframe id="code_editor_ifr" style="width:100%;height:100%;border:0;"></iframe></div>
-		<button type="submit" id="btn_editor_save" class="btn btn-default btn-block" style="margin:0;margin-top:12px;">修改插件</button>
+		<button type="submit" id="btn_editor_save" class="btn btn-primary btn-block" style="margin:0;margin-top:12px;">修改插件</button>
 	</div>
 	<div class="col-sm-4 col-md-3 deve-editor-right">
 		<div class="nav-tabs-custom deve-editor-apps-nav">
@@ -63,6 +63,14 @@
 				{/if}
 				</div>
 			</div>
+		</div>
+		<div class="dropup" style="margin:12px 0 0 10px;">
+			<button class="btn btn-default btn-block" id="plugin_skycaiji" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		    	可用方法 
+		    	<span class="caret"></span>
+		  	</button>
+			<ul class="dropdown-menu" id="plugin_skycaiji_ul" style="width:100%;height:400px;overflow:scroll;border:2px solid #ddd;" aria-labelledby="plugin_skycaiji">
+			</ul>
 		</div>
 	</div>
 </div>

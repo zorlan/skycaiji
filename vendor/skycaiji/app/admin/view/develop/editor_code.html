@@ -52,13 +52,26 @@ body{padding:0;margin:0;width:100%;height:100%;}
 		window.codeEditor.setSize(null,bodyHeight);
 	}
 })();
-function set_editor_code(val){
-	window.codeEditor.setValue(val);
-}
-function get_editor_code(val){
-	var val=window.codeEditor.getValue(val);
-	val=val?val:'';
-	return val;
-}
+var editor_code_op={
+	get:function(val){
+		var val=window.codeEditor.getValue(val);
+		val=val?val:'';
+		return val;
+	},
+	set:function(val){
+		window.codeEditor.setValue(val);
+	},
+	ctrl_s:function(func){
+		$(document).bind('keydown', function(e){
+		    if(e.ctrlKey && e.which == 83){
+		    	e.preventDefault();
+				if(func&&typeof(func)=='function'){
+					func();
+				}
+		    	return false;
+		    }
+		});
+	}
+};
 </script>
 {/block}

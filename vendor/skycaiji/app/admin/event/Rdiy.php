@@ -81,7 +81,7 @@ class Rdiy extends Release{
 			$releDiy->db()->startTrans();
 			$errorMsg=false;
 			$contUrl=$collFields['url'];
-			$this->init_download_img($this->task,$collFields['fields']);
+			$this->init_download_config($this->task,$collFields['fields']);
 			try {
 				$return=$releDiy->runExport($contUrl,$collFields['fields']);
 				if(empty($return)){

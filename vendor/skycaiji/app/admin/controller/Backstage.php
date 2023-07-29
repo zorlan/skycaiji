@@ -183,8 +183,6 @@ class Backstage extends BaseController{
 	        
 	        $cacheTimeout=time()-(3600*24);
 	        CacheModel::getInstance('cont_url')->db()->where('dateline','<',$cacheTimeout)->delete();
-	        CacheModel::getInstance('temp')->db()->where('dateline','<',$cacheTimeout)->delete();
-	        
 	        
 	        $mconfig=model('Config');
 	        

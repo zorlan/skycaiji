@@ -60,7 +60,7 @@
 		<div class="input-group">
 			<textarea data-process="replace:replace_from" rows="3" class="form-control"></textarea>
 			<div class="input-group-addon iga-rt">
-		      	<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk sign-wildcard">{$Think.lang.sign_wildcard}</a>
+		      	<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk c-p-process-sign-wildcard">{$Think.lang.sign_wildcard}</a>
 				<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
 			</div>
 		</div>
@@ -214,9 +214,10 @@
 		</section>
 	</div>
 	<div class="c-p-process-module" module="translate">
-		{if empty($transApiLangs)}
-		<a href="{:url('setting/translate')}" target="_blank">请先开启并配置翻译接口</a>
-		{else/}
+		{if !empty($transUrl)}
+		<a href="{$transUrl}" target="_blank">请先开启并配置翻译</a>
+		{/if}
+		<div{if !empty($transUrl)} style="display:none;"{/if}>
 		<div class="form-group">
 			<label>源语言</label>
 			<div class="input-group input-select-custom">
@@ -248,14 +249,91 @@
 				<input type="text" data-process="translate:translate_to_custom" class="form-control" placeholder="请输入语言代码">
 			</div>
 		</div>
-		{/if}
+		</div>
 	</div>
 	<div class="c-p-process-module" module="tool">
 		<div class="checkbox">
 			<label><input type="checkbox" data-process="tool:tool_list" value="trim" />去除前后空格</label>
 			&nbsp; <label><input type="checkbox" data-process="tool:tool_list" value="format" />清除文本格式（去除html元素所有样式，如：id、class、style等）</label>
-			&nbsp; <label title="如果字段的值是完整的url链接，标记为图片链接后可将其图片本地化"><input type="checkbox" data-process="tool:tool_list" value="is_img" />将文本链接标记为图片链接</label>
+			&nbsp; <label><input type="checkbox" data-process="tool:tool_list" value="url_not_complete" />禁止补全网址</label>
 		</div>
+	</div>
+	<div class="c-p-process-module" module="download">
+		<section>
+		<div class="form-group">
+			<label>操作</label>
+			<select data-process="download:download_op" class="form-control">
+				<option value="">--选择操作--</option>
+				<option value="is_img">将文本链接标记为图片</option>
+				<option value="is_file">将文本链接标记为文件</option>
+				<option value="no_img">不下载图片</option>
+				<option value="file">下载文件</option>
+			</select>
+			<div class="p-m-download-op" data-op="is_img">
+				{if !empty($downImgUrl)}
+				<a href="{$downImgUrl}" target="_blank">请先开启并配置图片本地化</a>
+				{/if}
+				<p class="help-block">如果字段的值是完整的url链接，标记为图片后可将其本地化</p>
+			</div>
+			<div class="p-m-download-op" data-op="is_file">
+				{if !empty($downFileUrl)}
+				<a href="{$downFileUrl}" target="_blank">请先开启并配置文件本地化</a>
+				{/if}
+				<p class="help-block">如果字段的值是完整的url链接，标记为文件后可将其本地化</p>
+			</div>
+			<div class="p-m-download-op" data-op="no_img">
+				{if !empty($downImgUrl)}
+				<a href="{$downImgUrl}" target="_blank">请先开启并配置图片本地化</a>
+				{/if}
+				<p class="help-block">默认自动下载&lt;img&gt;标签中的图片，该选项可不下载图片</p>
+			</div>
+			<div class="p-m-download-op" data-op="file">
+				{if !empty($downFileUrl)}
+				<a href="{$downFileUrl}" target="_blank">请先开启并配置文件本地化</a>
+				{/if}
+				<div class="form-group p-m-download-file-tag"{if !empty($downFileUrl)} style="display:none;"{/if}>
+					<label>下载标签属性中的文件</label>
+					<input type="text" data-process="download:download_file_tag" class="form-control" placeholder="" autocomplete="off" />
+					<div class="help-block">
+						<div class="dropdown" style="display:inline;">
+							<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								填入html标签及属性
+								<span class="caret"></span>
+							</a>
+							<ul class="dropdown-menu">
+								<li><a href="javascript:;" data-val="object:data">object标签data属性</a></li>
+								<li><a href="javascript:;" data-val="embed:src">embed标签src属性</a></li>
+								<li><a href="javascript:;" data-val="source:src">source标签src属性</a></li>
+								<li><a href="javascript:;" data-val="link:href">link标签href属性</a></li>
+								<li><a href="javascript:;" data-val="script:src">script标签src属性</a></li>
+								<li><a href="javascript:;" data-val="a:href">a标签href属性</a></li>
+							</ul>
+						</div>
+				  		或直接输入<b>标签名:属性名</b>（多个用逗号分隔）可实现自动下载相应标签属性中的文件
+					</div>
+					<div class="form-group">
+						<label>文件网址过滤</label>
+						<div class="input-group" style="margin-bottom:7px;">
+					       	<span class="input-group-addon">必须包含</span>
+					       	<input type="text" data-process="download:download_file_must" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
+				      		<div class="input-group-addon iga-rt">
+				      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="c-p-process-sign-wildcard">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
+				      		</div>
+					    </div>
+					    <div class="input-group">
+					    	<span class="input-group-addon">不能包含</span>
+					    	<input type="text" data-process="download:download_file_ban" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
+				      		<div class="input-group-addon iga-rt">
+				      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="c-p-process-sign-wildcard">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
+				      		</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		</section>
 	</div>
 	<div class="c-p-process-module" module="batch">
 		<div class="form-group">
@@ -446,36 +524,38 @@
 	       	</div>
 		</div>
 		<div class="form-group">
-	     	<label>提取结果</label>
-			<input type="text" data-process="api:api_json" class="form-control" />
-			<p class="help-block">json规则： a.b.c 通配符 *</p>
-		</div>
-		<div class="form-group">
-			<label>结果是数组则转换为</label>
-			<select data-process="api:api_json_arr" class="form-control">
-				<option value="implode">字符串</option>
-				<option value="jsonencode">json编码</option>
-				<option value="serialize">序列化</option>
-			</select>
-			<div class="input-group p-m-api-json-implode" style="margin-top:5px;">
-				<textarea data-process="api:api_json_implode" class="form-control" rows="1" placeholder="输入分隔符"></textarea>
- 				<div class="input-group-addon" style="padding-left:9px;padding-right:9px;"><span title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="cpDelimiterTips()"></span></div>
-			</div>
-		</div>
-		<div class="form-group">
 	     	<label>调用间隔（毫秒，1000毫秒=1秒）</label>
-			<input type="number" data-process="api:api_interval" class="form-control" />
+			<input type="number" data-process="api:api_interval" class="form-control" placeholder="默认0" />
 			<p class="help-block">如接口有频率限制，可设置间隔时间避免调用过快导致失败</p>
 	    </div>
 		<div class="form-group">
 	     	<label>失败等待（秒）</label>
-			<input type="number" data-process="api:api_wait" class="form-control" />
+			<input type="number" data-process="api:api_wait" class="form-control" placeholder="默认0" />
 			<p class="help-block">一般情况下调用失败都是频繁请求接口导致被禁用，设置该值等待一段时间让接口恢复正常</p>
 	    </div>
 		<div class="form-group">
 	     	<label>失败重试</label>
-			<input type="number" data-process="api:api_retry" class="form-control" />
+			<input type="number" data-process="api:api_retry" class="form-control" placeholder="默认0" />
 			<p class="help-block">调用失败重试次数，留空或0表示不重试</p>
+		</div>
+		<div class="form-group">
+			<label>获取结果方式</label>
+			<select class="form-control" data-process="api:api_rule_module">
+				<option value="" checked="checked">JSON提取</option>
+				<option value="rule">规则匹配</option>
+				<option value="xpath">XPath匹配</option>
+			</select>
+		</div>
+		<div class="form-group">
+			<div class="p-m-api-rule-module" data-rule-module="">
+				{include file="cpattern:rule_module" _type="json" _name="data-process" _name_pre="api:api_" _allow_loop="" /}
+			</div>
+			<div class="p-m-api-rule-module" data-rule-module="rule">
+				{include file="cpattern:rule_module" _type="rule" _name="data-process" _name_pre="api:api_" _allow_loop="" /}
+			</div>
+			<div class="p-m-api-rule-module" data-rule-module="xpath">
+				{include file="cpattern:rule_module" _type="xpath" _name="data-process" _name_pre="api:api_" _allow_loop="" /}
+			</div>
 		</div>
 		</section>
 	</div>

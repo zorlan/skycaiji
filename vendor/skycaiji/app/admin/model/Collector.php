@@ -73,29 +73,60 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	    
 	    if(is_array($config['field_process'])){
 	        foreach($config['field_process'] as $k=>$v){
-	            $config['field_process'][$k]=$this->_compatible_process_api($v);
+	            $config['field_process'][$k]=$this->_compatible_processes($v);
 	        }
 	    }
 	    if(is_array($config['common_process'])){
-	        $config['common_process']=$this->_compatible_process_api($config['common_process']);
+	        $config['common_process']=$this->_compatible_processes($config['common_process']);
 	    }
 	    return $config;
 	}
 	
-	private function _compatible_process_api($processes){
+	private function _compatible_processes($processes){
 	    if(is_array($processes)){
+	        $processes=array_values($processes);
+	        $toolIsImg=array();
 	        foreach ($processes as $pk=>$pv){
-	            if(is_array($pv)&&$pv['module']=='api'){
-	                if(is_array($pv['api_headers'])&&!isset($pv['api_headers']['addon'])){
+	            if(is_array($pv)){
+	                if($pv['module']=='api'){
 	                    
-	                    $pv['api_headers']['addon']=$pv['api_headers']['val'];
-	                    foreach ($pv['api_headers']['val'] as $vk=>$vv){
-	                        if($vv){
-	                            $pv['api_headers']['val'][$vk]='custom';
+	                    if(is_array($pv['api_headers'])&&!isset($pv['api_headers']['addon'])){
+	                        
+	                        $pv['api_headers']['addon']=$pv['api_headers']['val'];
+	                        foreach ($pv['api_headers']['val'] as $vk=>$vv){
+	                            if($vv){
+	                                $pv['api_headers']['val'][$vk]='custom';
+	                            }
 	                        }
+	                        $processes[$pk]=$pv;
 	                    }
-	                    $processes[$pk]=$pv;
+	                    if(isset($pv['api_json_implode'])){
+	                        
+	                        $pv['api_json_arr_implode']=$pv['api_json_implode'];
+	                        unset($pv['api_json_implode']);
+	                        $processes[$pk]=$pv;
+	                    }
+	                }elseif($pv['module']=='tool'){
+	                    
+	                    if(is_array($pv['tool_list'])){
+	                        foreach ($pv['tool_list'] as $k=>$v){
+	                            if($v=='is_img'){
+	                                $toolIsImg[]=$pk;
+	                                unset($pv['tool_list'][$k]);
+	                            }
+	                        }
+	                        $pv['tool_list']=array_values($pv['tool_list']);
+	                        $processes[$pk]=$pv;
+	                    }
 	                }
+	            }
+	        }
+	        if(!empty($toolIsImg)){
+	            
+	            $count=0;
+	            foreach ($toolIsImg as $k){
+	                array_splice($processes,$k+1+$count,0,array(array('title'=>'','module'=>'download','download_op'=>'is_img')));
+	                $count++;
 	            }
 	        }
 	    }
@@ -259,7 +290,7 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	    return $lockList;
 	}
 	/*触发运行自动采集*/
-	public static function collect_run_auto($rootUrl=''){
+	public static function collect_run_auto($rootUrl='',$taskIds=null){
 	    try{
 	        
 	        $url='';
@@ -269,6 +300,11 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	            $url=url('admin/index/auto_collect',null,false,true);
 	        }
 	        $url.=(strpos($url, '?')===false?'?':'&').'backstage_run=1&key='.\util\Param::set_cache_key('auto_collect');
+	        if($taskIds&&is_array($taskIds)){
+	            
+	            $taskIds=implode(',', $taskIds);
+	            $url.='&task_ids='.rawurlencode($taskIds);
+	        }
 	        get_html($url,null,array('timeout'=>3));
 	    }catch(\Exception $ex){}
 	}

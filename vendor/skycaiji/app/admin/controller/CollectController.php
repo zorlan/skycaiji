@@ -181,7 +181,6 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
             
             return $this->_collect_echo_end($isBatch, lang('task_error_empty_task'));
         }
-        $taskData=$taskData->toArray();
         $taskTips='任务：'.$taskData['name'].' » ';
         if(empty($taskData['module'])){
             
@@ -203,7 +202,6 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
         }
         $collData=$collData->toArray();
         $releData=$releData->toArray();
-        $taskData['config']=unserialize($taskData['config']?:'');
         $mtask->loadConfig($taskData);
         $taskData['caijitime']=intval($taskData['caijitime']);
         

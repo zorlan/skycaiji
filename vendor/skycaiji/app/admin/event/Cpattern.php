@@ -20,6 +20,7 @@ class Cpattern extends CpatternEvent{
         $config['page_render']=intval($config['page_render']);
         $config['url_repeat']=intval($config['url_repeat']);
         $config['url_no_name']=intval($config['url_no_name']);
+        $config['url_encode']=intval($config['url_encode']);
         
         if(!is_array($config['regexp_flags'])){
             $config['regexp_flags']=array();
@@ -32,6 +33,8 @@ class Cpattern extends CpatternEvent{
         \util\Funcs::filter_key_val_list($config['request_headers']['custom_names'], $config['request_headers']['custom_vals']);
         
         \util\Funcs::filter_key_val_list($config['request_headers']['img_names'], $config['request_headers']['img_vals']);
+        
+        \util\Funcs::filter_key_val_list($config['request_headers']['file_names'], $config['request_headers']['file_vals']);
         
         
         if(is_array($config['front_urls'])){
@@ -90,7 +93,7 @@ class Cpattern extends CpatternEvent{
                 $config['field_process'][$k]=$this->set_process($config['field_process'][$k]);
             }
         }
-        $config['common_process']=input('process/a',array(),'trim');
+        $config['common_process']=trim_input_process('process/a');
         $config['common_process']=$this->set_process($config['common_process']);
         
         
@@ -153,12 +156,18 @@ class Cpattern extends CpatternEvent{
         if(is_array($this->config_params['headers'])){
             
             set_g_sc('task_img_headers',$this->config_params['headers']['img']);
+            
+            set_g_sc('task_file_headers',$this->config_params['headers']['file']);
         }
         if(!is_array(g_sc('task_img_headers'))){
             set_g_sc('task_img_headers',array());
         }
-        \util\Param::set_gsc_use_cookie(false,null);
-        \util\Param::set_gsc_use_cookie(true,null);
+        if(!is_array(g_sc('task_file_headers'))){
+            set_g_sc('task_file_headers',array());
+        }
+        \util\Param::set_gsc_use_cookie('',null);
+        \util\Param::set_gsc_use_cookie('img',null);
+        \util\Param::set_gsc_use_cookie('file',null);
     }
     
     public function initConfig($config){
@@ -404,7 +413,7 @@ class Cpattern extends CpatternEvent{
         
         $signs=array();
         
-        $headers=array('page'=>array(),'page_headers'=>array(),'img'=>array());
+        $headers=array('page'=>array(),'page_headers'=>array(),'img'=>array(),'file'=>array());
         if(!empty($config['request_headers']['useragent'])){
             $headers['page']['useragent']=$config['request_headers']['useragent'];
         }
@@ -432,12 +441,27 @@ class Cpattern extends CpatternEvent{
             $headers['img']=$headers['page_headers'];
         }
         
-        
         $imgHeaders=$this->arrays_to_key_val($config['request_headers']['img_names'], $config['request_headers']['img_vals']);
         if(!empty($imgHeaders)&&is_array($imgHeaders)){
             $headers['img']=\util\Funcs::array_key_merge($headers['img'],$imgHeaders);
             unset($imgHeaders);
         }
+        
+        
+        if(empty($config['request_headers']['file_use_page'])){
+            
+            $headers['file']=empty($config['request_headers']['open'])?array():$headers['page_headers'];
+        }elseif($config['request_headers']['file_use_page']=='y'){
+            
+            $headers['file']=$headers['page_headers'];
+        }
+        
+        $fileHeaders=$this->arrays_to_key_val($config['request_headers']['file_names'], $config['request_headers']['file_vals']);
+        if(!empty($fileHeaders)&&is_array($fileHeaders)){
+            $headers['file']=\util\Funcs::array_key_merge($headers['file'],$fileHeaders);
+            unset($fileHeaders);
+        }
+        
         
         if(empty($config['request_headers']['open'])){
             
@@ -455,6 +479,11 @@ class Cpattern extends CpatternEvent{
         }
         if(!$openImgHeader){
             $headers['img']=null;
+        }
+        
+        if(empty($config['request_headers']['file'])){
+            
+            $headers['file']=null;
         }
         
         if(!is_array($this->config_params)){
@@ -501,6 +530,9 @@ class Cpattern extends CpatternEvent{
 		    }
 		    if(g_sc_c('download_img','download_img')){
 		        $opened_tools[]='图片本地化';
+		    }
+		    if(g_sc_c('download_file','download_file')){
+		        $opened_tools[]='文件本地化';
 		    }
 		    if(g_sc_c('proxy','open')){
 		        $opened_tools[]='代理';
@@ -697,8 +729,9 @@ class Cpattern extends CpatternEvent{
 	public function collFrontUrls($resetColl=false){
 	    if($resetColl){
 	        
-	        \util\Param::set_gsc_use_cookie(false,null);
-	        \util\Param::set_gsc_use_cookie(true,null);
+	        \util\Param::set_gsc_use_cookie('',null);
+	        \util\Param::set_gsc_use_cookie('img',null);
+	        \util\Param::set_gsc_use_cookie('file',null);
 	    }elseif($this->front_collected){
 	        
 	        return;
@@ -722,7 +755,7 @@ class Cpattern extends CpatternEvent{
 	                $pageOpened=$this->page_opened_tips('front_url',$fuv['name']);
 	                $this->echo_msg($pageOpened?array('采集前置页“%s”：%s',$fuv['name'],$pageOpened.$frontUrl):array('采集前置页“%s”：<a href="%s" target="_blank">%s</a>',$fuv['name'],$frontUrl,$frontUrl),'black');
 	                $htmlInfo=$this->get_page_html($frontUrl,'front_url',$fuv['name'],false,true);
-	                if($fuv['use_cookie']||$fuv['use_cookie_img']){
+	                if($fuv['use_cookie']||$fuv['use_cookie_img']||$fuv['use_cookie_file']){
 	                    
 	                    $mUseCookie=array();
 	                    if($htmlInfo['header']){
@@ -752,14 +785,20 @@ class Cpattern extends CpatternEvent{
 	                    if($fuv['use_cookie']){
 	                        $gUseCookie=\util\Param::get_gsc_use_cookie();
 	                        init_array($gUseCookie);
-	                        \util\Param::set_gsc_use_cookie(false,array_merge($gUseCookie,$mUseCookie));
+	                        \util\Param::set_gsc_use_cookie('',array_merge($gUseCookie,$mUseCookie));
 	                        $this->echo_msg('获取前置页cookie并在全局抓取页面时使用','black');
 	                    }
 	                    if($fuv['use_cookie_img']){
-	                        $gUseCookieImg=\util\Param::get_gsc_use_cookie(true);
+	                        $gUseCookieImg=\util\Param::get_gsc_use_cookie('img');
 	                        init_array($gUseCookieImg);
-	                        \util\Param::set_gsc_use_cookie(true,array_merge($gUseCookieImg,$mUseCookie));
+	                        \util\Param::set_gsc_use_cookie('img',array_merge($gUseCookieImg,$mUseCookie));
 	                        $this->echo_msg('获取前置页cookie并在全局下载图片时使用','black');
+	                    }
+	                    if($fuv['use_cookie_file']){
+	                        $gUseCookieFile=\util\Param::get_gsc_use_cookie('file');
+	                        init_array($gUseCookieFile);
+	                        \util\Param::set_gsc_use_cookie('file',array_merge($gUseCookieFile,$mUseCookie));
+	                        $this->echo_msg('获取前置页cookie并在全局下载文件时使用','black');
 	                    }
 	                }
 	            }
@@ -995,7 +1034,7 @@ class Cpattern extends CpatternEvent{
 		$field_name=$field_params['name'];
 		if(!isset($this->field_val_list[$field_name])){
 		    
-		    $this->field_val_list[$field_name]=array('values'=>array(),'imgs'=>array());
+		    $this->field_val_list[$field_name]=array('values'=>array(),'imgs'=>array(),'files'=>array());
 		}
 		
 		if(!empty($field_params['source'])&&in_array($module, array('rule','xpath','json','auto','sign'))){
@@ -1066,7 +1105,8 @@ class Cpattern extends CpatternEvent{
 					foreach ($this->field_val_list[$field_params['extract']]['values'][$cur_url_md5] as $k=>$v){
 						$extract_field_val=array(
 							'value'=>$v,
-							'img'=>$this->field_val_list[$field_params['extract']]['imgs'][$cur_url_md5][$k],
+						    'img'=>$this->field_val_list[$field_params['extract']]['imgs'][$cur_url_md5][$k],
+						    'file'=>$this->field_val_list[$field_params['extract']]['files'][$cur_url_md5][$k],
 						);
 						$val[$k]=$this->field_module_extract($field_params, $extract_field_val, $url_info);
 					}
@@ -1074,7 +1114,8 @@ class Cpattern extends CpatternEvent{
 					
 					$extract_field_val=array(
 						'value'=>$this->field_val_list[$field_params['extract']]['values'][$cur_url_md5],
-						'img'=>$this->field_val_list[$field_params['extract']]['imgs'][$cur_url_md5],
+					    'img'=>$this->field_val_list[$field_params['extract']]['imgs'][$cur_url_md5],
+					    'file'=>$this->field_val_list[$field_params['extract']]['files'][$cur_url_md5],
 					);
 					$val=$this->field_module_extract($field_params, $extract_field_val, $url_info);
 				}
@@ -1086,7 +1127,8 @@ class Cpattern extends CpatternEvent{
 					foreach ($this->field_val_list as $k=>$v){
 						$cur_field_val_list[$k]=array(
 							'value'=>$v['values'][$cur_url_md5],
-							'img'=>$v['imgs'][$cur_url_md5]
+						    'img'=>$v['imgs'][$cur_url_md5],
+						    'file'=>$v['files'][$cur_url_md5]
 						);
 					}
 					$val=$this->field_module_merge($field_params,$cur_field_val_list);
@@ -1100,7 +1142,8 @@ class Cpattern extends CpatternEvent{
     						foreach ($this->field_val_list as $k=>$v){
     							$cur_field_val_list[$k]=array(
     								'value'=>(is_array($v['values'][$cur_url_md5])?$v['values'][$cur_url_md5][$v_k]:$v['values'][$cur_url_md5]),
-    							    'img'=>((is_array($v['imgs'][$cur_url_md5])&&is_array($v['imgs'][$cur_url_md5][$v_k]))?$v['imgs'][$cur_url_md5][$v_k]:$v['imgs'][$cur_url_md5])
+    							    'img'=>((is_array($v['imgs'][$cur_url_md5])&&is_array($v['imgs'][$cur_url_md5][$v_k]))?$v['imgs'][$cur_url_md5][$v_k]:$v['imgs'][$cur_url_md5]),
+    							    'file'=>((is_array($v['files'][$cur_url_md5])&&is_array($v['files'][$cur_url_md5][$v_k]))?$v['files'][$cur_url_md5][$v_k]:$v['files'][$cur_url_md5])
     							);
     						}
     						$val[$v_k]=$this->field_module_merge($field_params,$cur_field_val_list);
@@ -1149,6 +1192,18 @@ class Cpattern extends CpatternEvent{
 		
 		foreach ($vals as $v_k=>$val){
 			$loopIndex=$is_loop?$v_k:-1;
+			$this->field_url_complete=true;
+			$this->field_down_img=true;
+			
+			if($is_loop){
+			    
+			    if(!isset($this->field_val_list[$field_name]['values'][$cur_url_md5])){
+			        $this->field_val_list[$field_name]['values'][$cur_url_md5]=array();
+			        $this->field_val_list[$field_name]['imgs'][$cur_url_md5]=array();
+			        $this->field_val_list[$field_name]['files'][$cur_url_md5]=array();
+			    }
+			}
+			
 			if(!empty($field_process)){
 				
 			    $val=$this->process_field($field_name,$val,$field_process,$cur_url_md5,$loopIndex,$cont_url_md5);
@@ -1165,6 +1220,7 @@ class Cpattern extends CpatternEvent{
 						
 						unset($this->field_val_list[$f_k]['values'][$cur_url_md5]);
 						unset($this->field_val_list[$f_k]['imgs'][$cur_url_md5]);
+						unset($this->field_val_list[$f_k]['files'][$cur_url_md5]);
 					}
 					return;
 				}else{
@@ -1177,6 +1233,7 @@ class Cpattern extends CpatternEvent{
 								
 								unset($this->field_val_list[$f_k]['values'][$cur_url_md5]);
 								unset($this->field_val_list[$f_k]['imgs'][$cur_url_md5]);
+								unset($this->field_val_list[$f_k]['files'][$cur_url_md5]);
 							}
 							return;
 						}else{
@@ -1191,6 +1248,10 @@ class Cpattern extends CpatternEvent{
 									
 									unset($this->field_val_list[$f_k]['imgs'][$cur_url_md5][$v_k]);
 								}
+								if(is_array($this->field_val_list[$f_k]['files'][$cur_url_md5])){
+								    
+								    unset($this->field_val_list[$f_k]['files'][$cur_url_md5][$v_k]);
+								}
 							}
 							continue;
 						}
@@ -1198,29 +1259,32 @@ class Cpattern extends CpatternEvent{
 				}
 			}
 	
-			
-			$val=preg_replace_callback('/(\bhref\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($url_info){
-				
-			    $matche[2]=\util\Tools::create_complete_url($matche[2], $url_info);
-			    return $matche[1].$matche[2].$matche[3];
-			},$val);
-			$val=preg_replace_callback('/(\bsrc\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($url_info){
-			    $matche[2]=\util\Tools::create_complete_url($matche[2], $url_info);
-				return $matche[1].$matche[2].$matche[3];
-			},$val);
+			if($this->field_url_complete){
+    			
+    			$val=preg_replace_callback('/(\bhref\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($url_info){
+    				
+    			    $matche[2]=\util\Tools::create_complete_url($matche[2], $url_info);
+    			    return $matche[1].$matche[2].$matche[3];
+    			},$val);
+    			$val=preg_replace_callback('/(\bsrc\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use ($url_info){
+    			    $matche[2]=\util\Tools::create_complete_url($matche[2], $url_info);
+    				return $matche[1].$matche[2].$matche[3];
+    			},$val);
+			}
 					
 			if($is_loop){
 				
 				if(!isset($this->field_val_list[$field_name]['values'][$cur_url_md5])){
 					$this->field_val_list[$field_name]['values'][$cur_url_md5]=array();
 					$this->field_val_list[$field_name]['imgs'][$cur_url_md5]=array();
+					$this->field_val_list[$field_name]['files'][$cur_url_md5]=array();
 				}
 				$this->field_val_list[$field_name]['values'][$cur_url_md5][$v_k]=$val;
 			}else{
 				
 				$this->field_val_list[$field_name]['values'][$cur_url_md5]=$val;
 			}
-			if(!is_empty(g_sc_c('download_img','download_img'))&&!empty($val)){
+			if(!is_empty(g_sc_c('download_img','download_img'))&&!empty($val)&&$this->field_down_img){
 				
 				$valImgs=array();
 				if(preg_match_all('/<img\b[^<>]*\bsrc\s*=\s*[\'\"](\w+\:[^\'\"]+?)[\'\"]/i',$val,$imgUrls)){
@@ -1231,30 +1295,23 @@ class Cpattern extends CpatternEvent{
 					
 					$valImgs=array_merge($valImgs,array($val));
 				}
-				
-				$noImgVal=preg_replace_callback('/\{\[img\]\}(http[s]{0,1}\:\/\/[^\s]+?)\{\[\/img\]\}/i',function($matche) use (&$valImgs){
-					$valImgs[]=$matche[1];
-					return $matche[1];
-				},$val);
-	
-				if($noImgVal!=$val){
-					
-					if($is_loop){
-						$this->field_val_list[$field_name]['values'][$cur_url_md5][$v_k]=$noImgVal;
-					}else{
-						$this->field_val_list[$field_name]['values'][$cur_url_md5]=$noImgVal;
-					}
-				}
-
 				if(!empty($valImgs)){
-					$valImgs=array_unique($valImgs);
-					$valImgs=array_values($valImgs);
+				    $fieldImgs=array();
 					if($is_loop){
 						
-						$this->field_val_list[$field_name]['imgs'][$cur_url_md5][$v_k]=$valImgs;
+					    $fieldImgs=$this->field_val_list[$field_name]['imgs'][$cur_url_md5][$v_k];
 					}else{
-						
-						$this->field_val_list[$field_name]['imgs'][$cur_url_md5]=$valImgs;
+					    
+					    $fieldImgs=$this->field_val_list[$field_name]['imgs'][$cur_url_md5];
+					}
+					init_array($fieldImgs);
+					$fieldImgs=array_merge($fieldImgs,$valImgs);
+					$fieldImgs=array_unique($fieldImgs);
+					$fieldImgs=array_values($fieldImgs);
+					if($is_loop){
+					    $this->field_val_list[$field_name]['imgs'][$cur_url_md5][$v_k]=$fieldImgs;
+					}else{
+					    $this->field_val_list[$field_name]['imgs'][$cur_url_md5]=$fieldImgs;
 					}
 				}
 			}
@@ -1510,7 +1567,26 @@ class Cpattern extends CpatternEvent{
 							$val_imgs=array_values($val_imgs);
 						}
 					}
-					$val_list[$fieldName]=array('name'=>$fieldName,'value'=>$val_values,'img'=>$val_imgs);
+					
+					$val_files=array();
+					if(!empty($fieldVal['files'])){
+					    foreach ($fieldVal['files'] as $v){
+					        if(!empty($v)){
+					            if(is_array($v)){
+					                $val_files=array_merge($val_files,$v);
+					            }else{
+					                $val_files[]=$v;
+					            }
+					        }
+					    }
+					    if(!empty($val_files)){
+					        $val_files=array_unique($val_files);
+					        $val_files=array_filter($val_files);
+					        $val_files=array_values($val_files);
+					    }
+					}
+					
+					$val_list[$fieldName]=array('name'=>$fieldName,'value'=>$val_values,'img'=>$val_imgs,'file'=>$val_files);
 				}
 			}else{
 				
@@ -1529,17 +1605,24 @@ class Cpattern extends CpatternEvent{
 								
 								$val_values=$fieldVals['values'][$page_key][$loop_index];
 								$val_imgs=$fieldVals['imgs'][$page_key][$loop_index];
+								$val_files=$fieldVals['files'][$page_key][$loop_index];
 							}else{
 								
 								$val_values=$fieldVals['values'][$page_key];
 								$val_imgs=$fieldVals['imgs'][$page_key];
+								$val_files=$fieldVals['files'][$page_key];
 							}
 							if(!empty($val_imgs)){
 								$val_imgs=array_unique($val_imgs);
 								$val_imgs=array_filter($val_imgs);
 								$val_imgs=array_values($val_imgs);
 							}
-							$vals[$fieldName]=array('name'=>$fieldName,'value'=>$val_values,'img'=>$val_imgs);
+							if(!empty($val_files)){
+							    $val_files=array_unique($val_files);
+							    $val_files=array_filter($val_files);
+							    $val_files=array_values($val_files);
+							}
+							$vals[$fieldName]=array('name'=>$fieldName,'value'=>$val_values,'img'=>$val_imgs,'file'=>$val_files);
 						}
 						$val_list[]=$vals;
 					}
@@ -1555,6 +1638,9 @@ class Cpattern extends CpatternEvent{
 			foreach ($processList as $k=>$v){
 				if('replace'==$v['module']){
 				    $v['replace_from']=$this->correct_reg_pattern($v['replace_from']);
+				}elseif('download'==$v['module']){
+				    $v['download_file_must']=$this->correct_reg_pattern($v['download_file_must']);
+				    $v['download_file_ban']=$this->correct_reg_pattern($v['download_file_ban']);
 				}
 				$processList[$k]=$v;
 			}

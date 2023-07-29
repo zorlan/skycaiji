@@ -386,32 +386,54 @@
 						<div class="form-group">
 					     	<div>
 					     		<label>响应状态</label>
-					        	<small style="margin-left:5px;color:#999;">接口必须返回json格式的数组用来记录数据入库的状态，否则会标记为失败</small>
+					        	<small style="margin-left:5px;color:#999;">接口必须返回内容用来记录数据入库的状态，否则会标记为失败</small>
 					        </div>
 					     	<div class="table-responsive">
 					           	<table class="table table-hover" style="margin-bottom:0;">
 					           		<thead>
 					                <tr>
 					                    <td style="width:150px;">名称</td>
-					                    <td>绑定响应的json数组健名</td>
+					                    <td>
+					                    	绑定响应的数据
+					                    	<select name="toapi[response][module]" class="form-control" style="width:110px;height:auto;display:inline;padding:2px 5px;">
+					                    		<option value="">json提取</option>
+					                    		<option value="xpath">xpath匹配</option>
+					                    		<option value="rule">正则匹配</option>
+					                    	</select>
+					                    </td>
 					                </tr>
 						            </thead>
 						            <tbody>
 						            	<tr>
 						            		<td>id（编号）</td>
-						            		<td><input type="text" name="toapi[response][id]" class="form-control" placeholder="默认：id，表示入库返回的自增id或入库状态" /></td>
+						            		<td><input type="text" name="toapi[response][id]" class="form-control" data-placeholder="记录入库的自增id或入库状态" autocomplete="off" /></td>
 						            	</tr>
 						            	<tr>
 						            		<td>target（位置）</td>
-						            		<td><input type="text" name="toapi[response][target]" class="form-control" placeholder="默认：target，记录入库的数据位置（发布的网址等）" /></td>
+						            		<td><input type="text" name="toapi[response][target]" class="form-control" data-placeholder="记录入库的数据位置（发布的网址等）" autocomplete="off" /></td>
 						            	</tr>
 						            	<tr>
 						            		<td>desc（描述）</td>
-						            		<td><input type="text" name="toapi[response][desc]" class="form-control" placeholder="默认：desc，记录入库的数据位置附加信息" /></td>
+						            		<td><input type="text" name="toapi[response][desc]" class="form-control" data-placeholder="记录入库的数据位置附加信息" autocomplete="off" /></td>
 						            	</tr>
 						            	<tr>
 						            		<td>error（错误）</td>
-						            		<td><input type="text" name="toapi[response][error]" class="form-control" placeholder="默认：error，记录入库失败的错误信息" /></td>
+						            		<td><input type="text" name="toapi[response][error]" class="form-control" data-placeholder="记录入库失败的错误信息" autocomplete="off" /></td>
+						            	</tr>
+						            	<tr>
+						            		<td></td>
+						            		<td id="toapi_resp_module_help">
+										        <p class="help-block" data-module="">直接输入键名，子节点用：a.b.c</p>
+										        <p class="help-block" data-module="xpath">使用xpath规则</p>
+										        <p class="help-block" data-module="rule">
+										        	使用正则表达式
+													<a href="javascript:;" data-rule-sign="sign_wildcard" title="{$Think.lang.tips_sign_wildcard}">{$Think.lang.sign_wildcard}</a>
+									      			<a href="javascript:;" data-rule-sign="sign_match" title="{$Think.lang.tips_sign_match}">{:cp_sign('match')}</a>
+									      			<a href="javascript:;" data-rule-sign="sign_group" title="{$Think.lang.tips_sign_group}">捕获组</a>
+									      			，规则中有{:cp_sign('match')}标签时将所有{:cp_sign('match')}拼接为结果，否则将完全匹配的值作为结果
+			    									<a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tips()"></a>
+										        </p>
+						            		</td>
 						            	</tr>
 						            </tbody>
 					           	</table>
@@ -546,7 +568,7 @@
 							<iframe id="diy_editor_ifr" style="width:100%;height:300px;border:0"></iframe>
 							<div class="help-block">
 								可用变量：$fields = 采集到的字段数据列表，$url = 采集的页面网址，$this->db() = 数据库操作， 可参考thinkphp5的数据库操作
-								<br>获取字段值必须使用 $this->get_field_val($field);方法(可处理图片本地化等)，否则使用$field['value']调用字段原始值
+								<br>获取字段值必须使用 $this->get_field_val($field);方法(可处理图片、文件本地化等)，否则使用$field['value']调用字段原始值
 		
 		<p style="border-top:dashed 1px #ccc;padding-top:10px;margin-top:10px;">
 		必须以数组形式返回：

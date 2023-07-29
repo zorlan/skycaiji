@@ -419,19 +419,50 @@ class Index extends CollectController{
 	    if(g_sc_c('caiji','run')!='visit'){
 	        $this->error('不是访问触发方式');
 	    }
+	    $taskIds=input('task_ids','');
+	    
+	    $cacheKey='collect_visit_time'.($taskIds?('_'.$taskIds):'');
+	    $cacheKey=md5($cacheKey);
+	    $url='admin/index/caiji'.($taskIds?('?task_ids='.rawurlencode($taskIds)):'');
+	    
 	    $mcache=CacheModel::getInstance();
-	    $collectVisitTime=$mcache->getCache('collect_visit_time','data');
+	    $collectVisitTime=$mcache->getCache($cacheKey,'data');
 	    $nowTime=time();
 	    if($collectVisitTime&&$nowTime-$collectVisitTime<=15){
 	        
-	        $this->success('正在运行','admin/index/caiji',null,10);
+	        $this->success('正在运行',$url,null,10);
 	    }
 	    
+	    $mcache->setCache($cacheKey,$nowTime);
 	    $mcache->setCache('collect_visit_time',$nowTime);
 	    
-	    \skycaiji\admin\model\Collector::collect_run_auto();
 	    
-	    $this->success('正在采集...','admin/index/caiji',null,10);
+	    $autoIds=array();
+	    if($taskIds){
+	        $taskIds=explode(',',$taskIds);
+	        init_array($taskIds);
+	        $taskIds=array_map('intval',$taskIds);
+	        
+	        $autoIds=model('Task')->where(array(
+	            'id'=>array('in',$taskIds),
+	            'auto'=>array('>',0),
+	            'module'=>'pattern',
+	        ))->order('caijitime asc')->column('id');
+	        foreach ($taskIds as $k=>$v){
+	            if(in_array($v, $autoIds)){
+	                
+	                unset($taskIds[$k]);
+	            }
+	        }
+	        if($taskIds){
+	            $taskIds='<br/>id:'.implode(',', $taskIds).'不是自动采集任务';
+	        }
+	    }
+	    $taskIds=$taskIds?:'';
+	    
+	    \skycaiji\admin\model\Collector::collect_run_auto('',$autoIds);
+	    
+	    $this->success('正在采集...'.$taskIds,$url,null,10);
 	}
 	/*运行自动采集*/
 	public function auto_collectAction(){
@@ -445,7 +476,18 @@ class Index extends CollectController{
 	    }
 	    
 	    $this->collect_create_or_run(function(){
-	        $taskIds=model('Task')->where("auto>0 and module='pattern'")->order('caijitime asc')->column('id');
+	        $cond=array();
+	        $taskIds=input('task_ids','');
+	        if($taskIds){
+	            
+	            $taskIds=explode(',', $taskIds);
+	            init_array($taskIds);
+	            $taskIds=array_map('intval',$taskIds);
+	            $cond['id']=array('in',$taskIds);
+	        }
+	        $cond['auto']=array('>',0);
+	        $cond['module']='pattern';
+	        $taskIds=model('Task')->where($cond)->order('caijitime asc')->column('id');
 	        if(empty($taskIds)){
 	            $this->echo_msg_exit('没有可自动采集的任务 <a href="'.url('admin/task/list').'" target="_blank">设置</a>');
 	        }

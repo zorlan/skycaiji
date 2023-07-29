@@ -48,18 +48,13 @@ return array(
     'setting_store'=>'云端设置',
     'store_authkey_error'=>'通信密钥只能由字母和数字组成且长度在6-100位之间',
     
+    'down_file_name_'=>'按时间生成（方便日期归类）',
+    'down_file_name_time'=>'按时间生成（方便日期归类）',
+    'down_file_name_url'=>'按网址生成（防止重复下载）',
+    'down_file_name_custom'=>'自定义',
     
-    'down_img_m_'=>'本地存储',
-    'down_img_m_loc'=>'本地存储',
-    'down_img_m_func'=>'使用函数',
-    
-    'down_img_name_'=>'按时间生成（方便日期归类）',
-    'down_img_name_time'=>'按时间生成（方便日期归类）',
-    'down_img_name_url'=>'按网址生成（防止重复下载）',
-    'down_img_name_custom'=>'自定义',
-    
+    'down_file_name_custom_name_'=>'文件网址MD5码',
     'down_img_name_custom_name_'=>'图片网址MD5码',
-    
     
 	'config_error_none_email'=>'没有邮箱服务器配置，请在后台设置！',	
 
@@ -180,7 +175,8 @@ return array(
     'process_module_insert'=>'插入内容',
 	'process_module_replace'=>'内容替换',
     'process_module_filter'=>'关键词过滤',
-	'process_module_if'=>'条件判断',
+    'process_module_if'=>'条件判断',
+    'process_module_download'=>'本地化',
 	'process_module_translate'=>'翻译',
 	'process_module_tool'=>'工具箱',
 	'process_module_batch'=>'批量替换',

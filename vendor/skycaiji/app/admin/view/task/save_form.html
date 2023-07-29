@@ -148,17 +148,17 @@
 		    <div class="form-group">
 		        <label>{$Think.lang.set_caiji_num}</label>
 		        <input type="number" name="config[num]" class="form-control" placeholder="全局设置：{$gConfig['num']}" />
-		        <p class="help-block">该任务每次采集的数据量，不能超过采集设置中的“{$Think.lang.set_caiji_num}”，留空或0使用全局设置</p>
+		        <p class="help-block">该任务每次采集的数据量，不能超过采集设置中的“{$Think.lang.set_caiji_num}”，留空使用全局设置</p>
 		    </div>
 		    <div class="form-group">
 		        <label>{$Think.lang.set_caiji_interval}（分钟）</label>
-		        <input type="number" name="config[interval]" class="form-control" placeholder="全局设置：{$gConfig['interval']}" />
-		        <p class="help-block">留空或0使用全局设置，输入-1表示无间隔</p>
+		        <input type="number" name="config[num_interval]" class="form-control" placeholder="全局设置：{$gConfig['num_interval']}" />
+		        <p class="help-block">留空使用全局设置</p>
 		    </div>
 		    <div class="form-group">
 		        <label>页面抓取间隔（毫秒，1000毫秒=1秒）</label>
-		        <input type="number" name="config[interval_html]" class="form-control" placeholder="全局设置：{$gConfig['interval_html']}" />
-		        <p class="help-block">留空或0使用全局设置，输入-1表示无间隔</p>
+		        <input type="number" name="config[num_interval_html]" class="form-control" placeholder="全局设置：{$gConfig['num_interval_html']}" />
+		        <p class="help-block">留空使用全局设置</p>
 		    </div>
 		    <div class="form-group">
 		        <label>不同任务采集同一网址</label>
@@ -190,9 +190,19 @@
 					<label class="radio-inline"><input type="radio" name="config[real_time]" value="n">否</label>
 		        </div>
 		    </div>
+		    <div class="form-group">
+		        <label>使用翻译</label>
+		        <div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="config[translate]" value="" checked="checked">
+						全局设置：{$gConfig['translate']?'是':'否'}
+					</label>
+			        <label class="radio-inline"><input type="radio" name="config[translate]" value="y">是</label>
+					<label class="radio-inline"><input type="radio" name="config[translate]" value="n">否</label>
+		        </div>
+		    </div>
 		</div>
 		<div class="panel-body{$gConfig['proxy']?'':' box-not-enable'}" id="config_proxy" style="border-top:solid 1px #ddd;">
-		    <div class="form-group">
+		    <div class="form-group" style="margin-bottom:0;">
 		        <label>使用代理</label>
 		        <div class="input-group">
 			        <label class="radio-inline"><input type="radio" name="config[proxy]" value="" data-global="{$gConfig['proxy']}" checked="checked">
@@ -202,19 +212,21 @@
 					<label class="radio-inline"><input type="radio" name="config[proxy]" value="n">否</label>
 		        </div>
 		    </div>
-		    <div class="form-group">
-		        <label>使用分组IP</label>
-		    	<select name="config[proxy_group_id]" class="form-control">
-		    		<option value="">全局设置：{$gConfig['proxy_group_id']}</option>
-					<option value="0">全部</option>
-					{foreach $proxyGroups as $proxyGroup}
-					<option value="{$proxyGroup['id']}">{$proxyGroup['name']}</option>
-					{/foreach}
-				</select>
+		    <div class="box-enable-wrapper">
+			    <div class="form-group">
+			        <label>使用分组IP</label>
+			    	<select name="config[proxy_group_id]" class="form-control">
+			    		<option value="">全局设置：{$gConfig['proxy_group_id']}</option>
+						<option value="0">全部</option>
+						{foreach $proxyGroups as $proxyGroup}
+						<option value="{$proxyGroup['id']}">{$proxyGroup['name']}</option>
+						{/foreach}
+					</select>
+			    </div>
 		    </div>
 		</div>
     	<div class="panel-body{$gConfig['download_img']?'':' box-not-enable'}" id="config_download_img" style="border-top:solid 1px #ddd;">
-		    <div class="form-group">
+		    <div class="form-group" style="margin-bottom:0;">
 		        <label>图片本地化</label>
 		        <div class="input-group">
 			        <label class="radio-inline"><input type="radio" name="config[download_img]" value="" data-global="{$gConfig['download_img']}" checked="checked">
@@ -224,135 +236,319 @@
 					<label class="radio-inline"><input type="radio" name="config[download_img]" value="n">否</label>
 		        </div>
 		    </div>
-		    <div class="form-group">
-		        <label>图片下载间隔（毫秒，1000毫秒=1秒）</label>
-		        <input type="number" name="config[interval_img]" class="form-control" placeholder="全局设置：{$gConfig['interval_img']}" />
-		        <p class="help-block">留空或0使用全局设置，输入-1表示无间隔</p>
-		    </div>
-			<div class="form-group">
-	        	<label>图片保存目录（绝对路径）</label>
-		        <input type="text" name="config[img_path]" class="form-control" placeholder="全局设置：{$gConfig['img_path']}">
-		    </div>
-		    <div class="form-group">
-	        	<label>图片链接地址（绝对地址）</label>
-		        <input type="text" name="config[img_url]" class="form-control" placeholder="全局设置：{$gConfig['img_url']}">
-		    </div>
-		    <div class="form-group">
-	        	<label>图片名称</label>
-		       	<select name="config[img_name]" class="form-control">
-		       		<option value="">全局设置：{:lang('down_img_name_'.$gConfig['img_name'])}</option>
-		       		<option value="time">{$Think.lang.down_img_name_time}</option>
-		       		<option value="url">{$Think.lang.down_img_name_url}</option>
-		       		<option value="custom">{$Think.lang.down_img_name_custom}</option>
-		       	</select>
-		       	<div id="config_img_name_custom" style="display:none;">
-		       		<p class="help-block" style="margin-bottom:5px;font-size:12px;">注意：字段值的长度限制100字内（超出自动截取），字段值中任何特殊字符都会被替换成下划线，自定义路径或名称太长都可能导致图片保存失败</p>
-	       			<div style="width:100%;">
-	       				<div style="width:50%;float:left">
-		       				<div class="input-group">
-		       					<input type="text" name="config[name_custom_path]" class="form-control" placeholder="路径，全局设置：{$gConfig['name_custom_path']}" autocomplete="off" />
-		       					<div class="input-group-addon" style="border-left:0;border-right:0;font-weight:bold;">/</div>
-		       				</div>
-		       				<div class="help-block name-custom-path">
-		       					<div class="dropup" style="display:inline;">
-									<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										系统
-										<span class="caret"></span>
-									</a>
-									<ul class="dropdown-menu">
-										<li><a href="javascript:;" data-val="[年]">[年]</a></li>
-										<li><a href="javascript:;" data-val="[月]">[月]</a></li>
-										<li><a href="javascript:;" data-val="[日]">[日]</a></li>
-										<li><a href="javascript:;" data-val="[时]">[时]</a></li>
-										<li><a href="javascript:;" data-val="[分]">[分]</a></li>
-										<li><a href="javascript:;" data-val="[秒]">[秒]</a></li>
-										<li><a href="javascript:;" data-val="[前两位]" title="图片网址MD5码的前两位">[前两位]</a></li>
-										<li><a href="javascript:;" data-val="[后两位]" title="图片网址MD5码的后两位">[后两位]</a></li>
-										<li><a href="javascript:;" data-val="[任务名]">[任务名]</a></li>
-										<li><a href="javascript:;" data-val="[任务ID]">[任务ID]</a></li>
-									</ul>
-								</div>&nbsp;
-				       			<div class="dropup" style="display:inline;">
-									<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										采集器字段
-										<span class="caret"></span>
-									</a>
-									<ul class="dropdown-menu name-custom-path-fields">
-										<li><a href="javascript:;">没有字段，请先配置采集器设置！</a></li>
-									</ul>
-								</div>&nbsp;
-				       			用/分隔子目录
-				       		</div>
-	       				</div>
-	       				<div style="width:50%;float:left">
-		       				<input type="text" name="config[name_custom_name]" class="form-control" placeholder="名称，全局设置：{$gConfig['name_custom_name']}" autocomplete="off" />
-	       					<div class="help-block name-custom-name">
-		       					<div class="dropup" style="display:inline;">
-									<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										系统
-										<span class="caret"></span>
-									</a>
-									<ul class="dropdown-menu">
-										<li><a href="javascript:;" data-val="[图片网址MD5码]">[图片网址MD5码]</a></li>
-										<li><a href="javascript:;" data-val="[图片原名]">[图片原名]</a></li>
-										<li><a href="javascript:;" data-val="[年]">[年]</a></li>
-										<li><a href="javascript:;" data-val="[月]">[月]</a></li>
-										<li><a href="javascript:;" data-val="[日]">[日]</a></li>
-										<li><a href="javascript:;" data-val="[时]">[时]</a></li>
-										<li><a href="javascript:;" data-val="[分]">[分]</a></li>
-										<li><a href="javascript:;" data-val="[秒]">[秒]</a></li>
-										<li><a href="javascript:;" data-val="[前两位]" title="图片网址MD5码的前两位">[前两位]</a></li>
-										<li><a href="javascript:;" data-val="[后两位]" title="图片网址MD5码的后两位">[后两位]</a></li>
-										<li><a href="javascript:;" data-val="[任务名]">[任务名]</a></li>
-										<li><a href="javascript:;" data-val="[任务ID]">[任务ID]</a></li>
-									</ul>
-								</div>&nbsp;
-				       			<div class="dropup" style="display:inline;">
-									<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										采集器字段
-										<span class="caret"></span>
-									</a>
-									<ul class="dropdown-menu name-custom-name-fields">
-										<li><a href="javascript:;">没有字段，请先配置采集器设置！</a></li>
-									</ul>
-								</div>
-				       		</div>
-	       				</div>
-		       		</div>
-					<div style="clear:both;height:0;">&nbsp;</div>
-		       	</div>
-			</div>
-	        <div class="form-group">
-	        	<label>使用函数</label>
-		   		<select name="config[img_func]" class="form-control" data-global="{$gConfig['img_func']}">
-		   			<option value="">全局设置：{$gConfig['img_func']?$gConfig['img_func']:'不使用'}</option>
-		   			<option value="n">不使用</option>
-		       	</select>
-			</div>
-			<div id="config_img_func" style="display:none;">
+		    <div class="box-enable-wrapper">
+			    <div class="form-group">
+			        <label>图片下载间隔（毫秒，1000毫秒=1秒）</label>
+			        <input type="number" name="config[num_interval_img]" class="form-control" placeholder="全局设置：{$gConfig['num_interval_img']}" />
+			        <p class="help-block">留空使用全局设置</p>
+			    </div>
 				<div class="form-group">
-					<label>传入参数</label>
-					<textarea name="config[img_func_param]" rows="2" class="form-control" data-placeholder="{$gConfig['img_func_param']?('全局设置：'.$gConfig['img_func_param']):'默认传入[图片:文件名]'}"></textarea>
-					<div class="help-block">
-						一行一个值，可输入任何内容或
-						<div class="dropup dropup-img-params" style="display:inline;">
-							<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-								调用图片参数
-								<span class="caret"></span>
-							</a>
-							<ul class="dropdown-menu">
-								<li><a href="javascript:;" data-val="[图片:文件名]">[图片:文件名]（包含路径和名称）</a></li>
-								<li><a href="javascript:;" data-val="[图片:路径]">[图片:路径]（保存的目录）</a></li>
-								<li><a href="javascript:;" data-val="[图片:名称]">[图片:名称]（保存的名称）</a></li>
-								<li><a href="javascript:;" data-val="[图片:链接]">[图片:链接]（下载后的链接）</a></li>
-								<li><a href="javascript:;" data-val="[图片:网址]">[图片:网址]（图片源网址）</a></li>
-							</ul>
+		        	<label>图片保存目录（绝对路径）</label>
+			        <input type="text" name="config[img_path]" class="form-control" placeholder="全局设置：{$gConfig['img_path']}">
+			    </div>
+			    <div class="form-group">
+		        	<label>图片链接地址（绝对地址）</label>
+			        <input type="text" name="config[img_url]" class="form-control" placeholder="全局设置：{$gConfig['img_url']}">
+			    </div>
+			    <div class="form-group">
+		        	<label>图片名称</label>
+			       	<select name="config[img_name]" class="form-control">
+			       		<option value="">全局设置：{:lang('down_file_name_'.$gConfig['img_name'])}</option>
+			       		<option value="url">{$Think.lang.down_file_name_url}</option>
+			       		<option value="time">{$Think.lang.down_file_name_time}</option>
+			       		<option value="custom">{$Think.lang.down_file_name_custom}</option>
+			       	</select>
+			       	<div id="config_img_name_custom" style="display:none;">
+			       		<p class="help-block" style="margin-bottom:5px;font-size:12px;">注意：字段值的长度限制100字内（超出自动截取），字段值中任何特殊字符都会被替换成下划线，自定义路径或名称太长都可能导致图片保存失败</p>
+		       			<div style="width:100%;">
+		       				<div style="width:50%;float:left">
+			       				<div class="input-group">
+			       					<input type="text" name="config[name_custom_path]" class="form-control" placeholder="路径，全局设置：{$gConfig['name_custom_path']}" autocomplete="off" />
+			       					<div class="input-group-addon" style="border-left:0;border-right:0;font-weight:bold;">/</div>
+			       				</div>
+			       				<div class="help-block name-custom-path">
+			       					<div class="dropup" style="display:inline;">
+										<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											系统
+											<span class="caret"></span>
+										</a>
+										<ul class="dropdown-menu">
+											<li><a href="javascript:;" data-val="[年]">[年]</a></li>
+											<li><a href="javascript:;" data-val="[月]">[月]</a></li>
+											<li><a href="javascript:;" data-val="[日]">[日]</a></li>
+											<li><a href="javascript:;" data-val="[时]">[时]</a></li>
+											<li><a href="javascript:;" data-val="[分]">[分]</a></li>
+											<li><a href="javascript:;" data-val="[秒]">[秒]</a></li>
+											<li><a href="javascript:;" data-val="[前两位]" title="图片网址MD5码的前两位">[前两位]</a></li>
+											<li><a href="javascript:;" data-val="[后两位]" title="图片网址MD5码的后两位">[后两位]</a></li>
+											<li><a href="javascript:;" data-val="[任务名]">[任务名]</a></li>
+											<li><a href="javascript:;" data-val="[任务ID]">[任务ID]</a></li>
+										</ul>
+									</div>&nbsp;
+					       			<div class="dropup" style="display:inline;">
+										<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											采集器字段
+											<span class="caret"></span>
+										</a>
+										<ul class="dropdown-menu name-custom-path-fields">
+											<li><a href="javascript:;">没有字段，请先配置采集器设置！</a></li>
+										</ul>
+									</div>&nbsp;
+					       			用/分隔子目录
+					       		</div>
+		       				</div>
+		       				<div style="width:50%;float:left">
+			       				<input type="text" name="config[name_custom_name]" class="form-control" placeholder="名称，全局设置：{$gConfig['name_custom_name']}" autocomplete="off" />
+		       					<div class="help-block name-custom-name">
+			       					<div class="dropup" style="display:inline;">
+										<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											系统
+											<span class="caret"></span>
+										</a>
+										<ul class="dropdown-menu">
+											<li><a href="javascript:;" data-val="[图片网址MD5码]">[图片网址MD5码]</a></li>
+											<li><a href="javascript:;" data-val="[图片原名]">[图片原名]</a></li>
+											<li><a href="javascript:;" data-val="[年]">[年]</a></li>
+											<li><a href="javascript:;" data-val="[月]">[月]</a></li>
+											<li><a href="javascript:;" data-val="[日]">[日]</a></li>
+											<li><a href="javascript:;" data-val="[时]">[时]</a></li>
+											<li><a href="javascript:;" data-val="[分]">[分]</a></li>
+											<li><a href="javascript:;" data-val="[秒]">[秒]</a></li>
+											<li><a href="javascript:;" data-val="[前两位]" title="图片网址MD5码的前两位">[前两位]</a></li>
+											<li><a href="javascript:;" data-val="[后两位]" title="图片网址MD5码的后两位">[后两位]</a></li>
+											<li><a href="javascript:;" data-val="[任务名]">[任务名]</a></li>
+											<li><a href="javascript:;" data-val="[任务ID]">[任务ID]</a></li>
+										</ul>
+									</div>&nbsp;
+					       			<div class="dropup" style="display:inline;">
+										<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											采集器字段
+											<span class="caret"></span>
+										</a>
+										<ul class="dropdown-menu name-custom-name-fields">
+											<li><a href="javascript:;">没有字段，请先配置采集器设置！</a></li>
+										</ul>
+									</div>
+					       		</div>
+		       				</div>
+			       		</div>
+						<div style="clear:both;height:0;">&nbsp;</div>
+			       	</div>
+				</div>
+				<div class="form-group">
+					<label>图片加水印</label>
+			        <div class="input-group">
+				        <label class="radio-inline"><input type="radio" name="config[img_watermark]" value="" data-global="{$gConfig['img_watermark']}" checked="checked">
+							全局设置：{$gConfig['img_watermark']?'是':'否'}
+						</label>
+				        <label class="radio-inline"><input type="radio" name="config[img_watermark]" value="y">是</label>
+						<label class="radio-inline"><input type="radio" name="config[img_watermark]" value="n">否</label>
+			        </div>
+			    </div>
+			    <div class="form-group" id="config_img_watermark" style="{$gConfig['img_watermark']?'':'display:none;'}">
+				    <div class="form-group">
+			        	<label>水印logo</label>
+			        	<div class="input-group">
+			        		<span class="input-group-addon">logo</span>
+			        		<input type="file" name="img_wm_logo_upload" class="form-control" />
+			        		<span class="input-group-addon brl_0 brr_0">下边距</span>
+			        		<input type="number" name="config[img_wm_bottom]" class="form-control" placeholder="全局设置：{$gConfig['img_wm_bottom']}" />
+			        		<span class="input-group-addon brl_0 brr_0">右边距</span>
+			        		<input type="number" name="config[img_wm_right]" class="form-control" placeholder="全局设置：{$gConfig['img_wm_right']}" />
+		        			<span class="input-group-addon brl_0 brr_0">透明度</span>
+		        			<input type="number" name="config[img_wm_opacity]" class="form-control" placeholder="全局设置：{$gConfig['img_wm_opacity']}" />
+			        	</div>
+			        	<p class="help-block">留空使用全局设置</p>
+			        	<input type="hidden" name="config[img_wm_logo]" class="form-control" />
+			        	<div id="img_wm_logo_show" data-global="{$gConfig['img_wm_logo']}" style="display:none;">
+			        		<p class="help-block">默认使用全局设置logo</p>
+			        		<div>
+			        			<img src="" style="max-width:300px;border:solid 1px #ccc;" />
+			        			<a href="javascript:;" class="glyphicon glyphicon-remove" style="display:none;font-size:20px;margin:10px;"></a>
+			        		</div>
+			        	</div>
+				    </div>
+				</div>
+		        <div class="form-group">
+		        	<label>使用函数</label>
+		        	<div class="input-group">
+				   		<select name="config[img_func]" class="form-control" data-global="{$gConfig['img_func']}">
+				   			<option value="">全局设置：{$gConfig['img_func']?$gConfig['img_func']:'不使用'}</option>
+				   			<option value="n">不使用</option>
+				       	</select>
+				       	<div class="input-group-addon"><a href="javascript:;" onclick="tipsPluginFunc('downloadImg')">扩展函数</a></div>
+		        	</div>
+				</div>
+				<div id="config_img_func" style="display:none;">
+					<div class="form-group">
+						<label>传入参数</label>
+						<textarea name="config[img_func_param]" rows="2" class="form-control" data-placeholder="{$gConfig['img_func_param']?('全局设置：'.$gConfig['img_func_param']):'默认传入[图片:文件名]'}"></textarea>
+						<div class="help-block">
+							一行一个值，可输入任何内容或
+							<div class="dropup dropup-img-params" style="display:inline;">
+								<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									调用图片参数
+									<span class="caret"></span>
+								</a>
+								<ul class="dropdown-menu">
+									<li><a href="javascript:;" data-val="[图片:文件名]">[图片:文件名]（包含路径和名称）</a></li>
+									<li><a href="javascript:;" data-val="[图片:路径]">[图片:路径]（保存的目录）</a></li>
+									<li><a href="javascript:;" data-val="[图片:名称]">[图片:名称]（保存的名称）</a></li>
+									<li><a href="javascript:;" data-val="[图片:链接]">[图片:链接]（下载后的链接）</a></li>
+									<li><a href="javascript:;" data-val="[图片:网址]">[图片:网址]（图片源网址）</a></li>
+								</ul>
+							</div>
+							&nbsp;请按函数传参，否则运行出错！
 						</div>
-						&nbsp;请按函数传参，否则运行出错！<a href="javascript:;" onclick="tipsPluginFunc('downloadImg')">扩展函数</a>
 					</div>
 				</div>
 			</div>
     	</div>
+    	<div class="panel-body{$gConfig['download_file']?'':' box-not-enable'}" id="config_download_file" style="border-top:solid 1px #ddd;">
+			<div class="form-group" style="margin-bottom:0;">
+				<label>文件本地化</label>
+				<div class="input-group">
+					<label class="radio-inline"><input type="radio" name="config[download_file]" value="" data-global="{$gConfig['download_file']}" checked="checked">
+						全局设置：{$gConfig['download_file']?'是':'否'}
+					</label>
+					<label class="radio-inline"><input type="radio" name="config[download_file]" value="y">是</label>
+					<label class="radio-inline"><input type="radio" name="config[download_file]" value="n">否</label>
+				</div>
+			</div>
+			<div class="box-enable-wrapper">
+				<div class="form-group">
+					<label>文件下载间隔（毫秒，1000毫秒=1秒）</label>
+					<input type="number" name="config[file_interval]" class="form-control" placeholder="全局设置：{$gConfig['file_interval']}" />
+					<p class="help-block">留空使用全局设置</p>
+				</div>
+				<div class="form-group">
+					<label>文件保存目录（绝对路径）</label>
+					<input type="text" name="config[file_path]" class="form-control" placeholder="全局设置：{$gConfig['file_path']}">
+				</div>
+				<div class="form-group">
+					<label>文件链接地址（绝对地址）</label>
+					<input type="text" name="config[file_url]" class="form-control" placeholder="全局设置：{$gConfig['file_url']}">
+				</div>
+				<div class="form-group">
+					<label>文件名称</label>
+					<select name="config[file_name]" class="form-control">
+						<option value="">全局设置：{:lang('down_file_name_'.$gConfig['file_name'])}</option>
+						<option value="url">{$Think.lang.down_file_name_url}</option>
+						<option value="time">{$Think.lang.down_file_name_time}</option>
+						<option value="custom">{$Think.lang.down_file_name_custom}</option>
+					</select>
+					<div id="config_file_name_custom" style="display:none;">
+						<p class="help-block" style="margin-bottom:5px;font-size:12px;">注意：字段值的长度限制100字内（超出自动截取），字段值中任何特殊字符都会被替换成下划线，自定义路径或名称太长都可能导致文件保存失败</p>
+						<div style="width:100%;">
+							<div style="width:50%;float:left">
+								<div class="input-group">
+									<input type="text" name="config[file_custom_path]" class="form-control" placeholder="路径，全局设置：{$gConfig['file_custom_path']}" autocomplete="off" />
+									<div class="input-group-addon" style="border-left:0;border-right:0;font-weight:bold;">/</div>
+								</div>
+								<div class="help-block file-custom-path">
+									<div class="dropup" style="display:inline;">
+										<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											系统
+											<span class="caret"></span>
+										</a>
+										<ul class="dropdown-menu">
+											<li><a href="javascript:;" data-val="[年]">[年]</a></li>
+											<li><a href="javascript:;" data-val="[月]">[月]</a></li>
+											<li><a href="javascript:;" data-val="[日]">[日]</a></li>
+											<li><a href="javascript:;" data-val="[时]">[时]</a></li>
+											<li><a href="javascript:;" data-val="[分]">[分]</a></li>
+											<li><a href="javascript:;" data-val="[秒]">[秒]</a></li>
+											<li><a href="javascript:;" data-val="[前两位]" title="文件网址MD5码的前两位">[前两位]</a></li>
+											<li><a href="javascript:;" data-val="[后两位]" title="文件网址MD5码的后两位">[后两位]</a></li>
+											<li><a href="javascript:;" data-val="[任务名]">[任务名]</a></li>
+											<li><a href="javascript:;" data-val="[任务ID]">[任务ID]</a></li>
+										</ul>
+									</div>&nbsp;
+									<div class="dropup" style="display:inline;">
+										<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											采集器字段
+											<span class="caret"></span>
+										</a>
+										<ul class="dropdown-menu file-custom-path-fields">
+											<li><a href="javascript:;">没有字段，请先配置采集器设置！</a></li>
+										</ul>
+									</div>&nbsp;
+									用/分隔子目录
+								</div>
+							</div>
+							<div style="width:50%;float:left">
+								<input type="text" name="config[file_custom_name]" class="form-control" placeholder="名称，全局设置：{$gConfig['file_custom_name']}" autocomplete="off" />
+								<div class="help-block file-custom-name">
+									<div class="dropup" style="display:inline;">
+										<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											系统
+											<span class="caret"></span>
+										</a>
+										<ul class="dropdown-menu">
+											<li><a href="javascript:;" data-val="[文件网址MD5码]">[文件网址MD5码]</a></li>
+											<li><a href="javascript:;" data-val="[文件原名]">[文件原名]</a></li>
+											<li><a href="javascript:;" data-val="[年]">[年]</a></li>
+											<li><a href="javascript:;" data-val="[月]">[月]</a></li>
+											<li><a href="javascript:;" data-val="[日]">[日]</a></li>
+											<li><a href="javascript:;" data-val="[时]">[时]</a></li>
+											<li><a href="javascript:;" data-val="[分]">[分]</a></li>
+											<li><a href="javascript:;" data-val="[秒]">[秒]</a></li>
+											<li><a href="javascript:;" data-val="[前两位]" title="文件网址MD5码的前两位">[前两位]</a></li>
+											<li><a href="javascript:;" data-val="[后两位]" title="文件网址MD5码的后两位">[后两位]</a></li>
+											<li><a href="javascript:;" data-val="[任务名]">[任务名]</a></li>
+											<li><a href="javascript:;" data-val="[任务ID]">[任务ID]</a></li>
+										</ul>
+									</div>&nbsp;
+									<div class="dropup" style="display:inline;">
+										<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											采集器字段
+											<span class="caret"></span>
+										</a>
+										<ul class="dropdown-menu file-custom-name-fields">
+											<li><a href="javascript:;">没有字段，请先配置采集器设置！</a></li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div style="clear:both;height:0;">&nbsp;</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label>使用函数</label>
+					<div class="input-group">
+						<select name="config[file_func]" class="form-control" data-global="{$gConfig['file_func']}">
+							<option value="">全局设置：{$gConfig['file_func']?$gConfig['file_func']:'不使用'}</option>
+							<option value="n">不使用</option>
+						</select>
+				       	<div class="input-group-addon"><a href="javascript:;" onclick="tipsPluginFunc('downloadFile')">扩展函数</a></div>
+		        	</div>
+				</div>
+				<div id="config_file_func" style="display:none;">
+					<div class="form-group">
+						<label>传入参数</label>
+						<textarea name="config[file_func_param]" rows="2" class="form-control" data-placeholder="{$gConfig['file_func_param']?('全局设置：'.$gConfig['file_func_param']):'默认传入[文件:文件名]'}"></textarea>
+						<div class="help-block">
+							一行一个值，可输入任何内容或
+							<div class="dropup dropup-file-params" style="display:inline;">
+								<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									调用文件参数
+									<span class="caret"></span>
+								</a>
+								<ul class="dropdown-menu">
+									<li><a href="javascript:;" data-val="[文件:文件名]">[文件:文件名]（包含路径和名称）</a></li>
+									<li><a href="javascript:;" data-val="[文件:路径]">[文件:路径]（保存的目录）</a></li>
+									<li><a href="javascript:;" data-val="[文件:名称]">[文件:名称]（保存的名称）</a></li>
+									<li><a href="javascript:;" data-val="[文件:链接]">[文件:链接]（下载后的链接）</a></li>
+									<li><a href="javascript:;" data-val="[文件:网址]">[文件:网址]（文件源网址）</a></li>
+								</ul>
+							</div>
+							&nbsp;请按函数传参，否则运行出错！
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
     </div>
 </div>
 <div class="form-group">

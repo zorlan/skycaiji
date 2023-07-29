@@ -259,14 +259,58 @@ class Cpattern extends BaseController {
 	    $this->assign('type',$type);
 	    $op=input('op');
 	    
+	    $taskId=input('task_id/d',0);
 	    
-	    $transApiLangs=null;
-	    if(!is_empty(g_sc_c('translate'))&&!is_empty(g_sc_c('translate','open'))){
-	    	
-	        $transApiLangs=\util\Translator::get_api_langs(g_sc_c('translate','api'));
-	    	$transApiLangs=$transApiLangs?$transApiLangs:null;
+	    $downImgUrl='';
+	    $downFileUrl='';
+	    if(is_empty(g_sc_c('download_img','download_img'))){
+	        $downImgUrl=url('setting/download_img');
 	    }
+	    if(is_empty(g_sc_c('download_file','download_file'))){
+	        $downFileUrl=url('setting/download_file');
+	    }
+	    
+	    $transUrl='';
+	    if(is_empty(g_sc_c('translate','open'))){
+	        $transUrl=url('setting/translate');
+	    }
+	    
+	    $transApiLangs=\util\Translator::get_api_langs(g_sc_c('translate','api'));
+	    init_array($transApiLangs);
 	    $this->assign('transApiLangs',$transApiLangs);
+	    
+	    
+	    if($taskId>0){
+	        $taskData=model('Task')->getById($taskId);
+	        model('Task')->loadConfig($taskData);
+	        
+	        if(is_empty(g_sc_c('download_img','download_img'))){
+	            if(!empty($taskData['config']['download_img'])){
+	                $downImgUrl=url('task/save?id='.$taskId);
+	            }
+	        }else{
+	            $downImgUrl='';
+	        }
+	        if(is_empty(g_sc_c('download_file','download_file'))){
+	            if(!empty($taskData['config']['download_file'])){
+	                $downFileUrl=url('task/save?id='.$taskId);
+	            }
+	        }else{
+	            $downFileUrl='';
+	        }
+	        
+	        if(is_empty(g_sc_c('translate','open'))){
+	            if(!empty($taskData['config']['translate'])){
+	                $transUrl=url('task/save?id='.$taskId);
+	            }
+	        }else{
+	            $transUrl='';
+	        }
+	    }
+	    
+	    $this->assign('downImgUrl',$downImgUrl);
+	    $this->assign('downFileUrl',$downFileUrl);
+	    $this->assign('transUrl',$transUrl);
 	    
     	if(empty($type)){
     		
@@ -281,7 +325,7 @@ class Cpattern extends BaseController {
     			return $this->fetch();
     		}elseif($op=='sub'){
     			
-    		    $process=trim_input_array('process');
+    		    $process=trim_input_process('process/a');
     			if(empty($process)){
     				$process='';
     			}else{
@@ -296,7 +340,7 @@ class Cpattern extends BaseController {
     			return $this->fetch();
     		}elseif($op=='load'){
     			
-    		    $process=trim_input_array('process');
+    		    $process=trim_input_process('process/a');
     			$this->assign('process',$process);
     			return $this->fetch('process_load');
     		}
@@ -309,7 +353,7 @@ class Cpattern extends BaseController {
             
             if(request()->isPost()){
                 
-                $process=trim_input_array('process');
+                $process=trim_input_process('process/a');
                 if(is_array($process)){
                     
                     $process=reset($process);
@@ -387,6 +431,7 @@ class Cpattern extends BaseController {
             
             $front_url['use_cookie']=intval($front_url['use_cookie']);
             $front_url['use_cookie_img']=intval($front_url['use_cookie_img']);
+            $front_url['use_cookie_file']=intval($front_url['use_cookie_file']);
             
             
             $front_url=controller('admin/Cpattern','event')->page_set_config('front_url',$front_url);

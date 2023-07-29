@@ -53,160 +53,27 @@ class Config extends \skycaiji\common\model\Config {
 	
 	/*检查图片路径*/
 	public function check_img_path($imgPath){
-		$result=return_result('',false);
-		if(!empty($imgPath)){
-			
-			if(!preg_match('/(^\w+\:)|(^[\/\\\])/i', $imgPath)){
-				$result['msg']='图片目录必须为绝对路径！';
-			}else{
-				if(!is_dir($imgPath)){
-				    $result['msg']='图片目录不存在！'.(self::check_basedir_limited($imgPath)?lang('error_open_basedir'):'');
-				}else{
-					$imgPath=realpath($imgPath);
-					$root_path=rtrim(realpath(config('root_path')),'\\\/');
-					if(preg_match('/^'.addslashes($root_path).'\b/i',$imgPath)){
-						
-						if(!preg_match('/^'.addslashes($root_path).'[\/\\\]data[\/\\\].+/i', $imgPath)){
-							$result['msg']='图片保存到本程序中，目录必须在data文件夹里';
-						}else{
-							$result['success']=true;
-						}
-					}else{
-						$result['success']=true;
-					}
-				}
-			}
-		}
-		return $result;
+	    return $this->_check_file_path(true,$imgPath);
 	}
-
 	/*检查图片网址*/
 	public function check_img_url($imgUrl){
-		$result=return_result('',false);
-		if(!empty($imgUrl)){
-			if(!preg_match('/^\w+\:\/\//i',$imgUrl)){
-				$result['msg']='图片链接地址必须以http://或者https://开头';
-			}else{
-				$result['success']=true;
-			}
-		}
-		return $result;
+	    return $this->_check_file_url(true,$imgUrl);
 	}
 	/*检查自定义图片名的路径设置*/
 	public function check_img_name_path($path){
-		static $check_list=array(); 
-		$pathMd5=md5($path);
-		if(!isset($check_list[$pathMd5])){
-			$result=return_result('',false);
-			if(!empty($path)){
-				if(!preg_match('/^(\w+|\-|\/|(\[(年|月|日|时|分|秒|前两位|后两位|任务名|任务ID)\])|(\[字段\:[^\/\[\]]+?\]))+$/u',$path)){
-					$result['msg']='图片名称自定义路径只能输入字母、数字、下划线、/ 或 使用标签';
-				}else{
-					if(preg_match('/^\/+$/', $path)){
-						$result['msg']='图片名称自定义路径不能只由/组成';
-					}else{
-						$result['success']=true;
-					}
-				}
-			}
-			$check_list[$pathMd5]=$result;
-		}else{
-		    $result=$check_list[$pathMd5];
-		}
-		return $result;
+	    return $this->_check_file_name_path(true,$path);
 	}
 	/*转换自定义图片名的路径*/
 	public function convert_img_name_path($path,$url){
-	    if(!empty($path)){
-    		$md5=md5($url);
-    		static $tags=array('[年]','[月]','[日]','[时]','[分]','[秒]','[前两位]','[后两位]');
-    		$nowTime=time();
-    		$tagsRe=array(
-    		    date('Y',$nowTime),
-    		    date('m',$nowTime),
-    		    date('d',$nowTime),
-    		    date('H',$nowTime),
-    		    date('i',$nowTime),
-    		    date('s',$nowTime),
-    			substr($md5,0,2),
-    			substr($md5,-2,2),
-    		);
-    		$path=str_replace($tags, $tagsRe, $path);
-    		$path=preg_replace('/[\s\r\n\~\`\!\@\#\$\%\^\&\*\(\)\+\=\{\}\[\]\|\\\\:\;\"\'\<\>\,\?]+/', '_', $path);
-    		$path=preg_replace('/\_{2,}/', '_', $path);
-    		$path=preg_replace('/\/{2,}/', '/', $path);
-    		$path=trim($path,'_');
-    		$path=trim($path,'/');
-	    }
-		if(empty($path)){
-		    $path='temp';
-		}
-		return $path;
+	    return $this->_convert_file_name_path(true,$path,$url);
 	}
 	/*检查自定义图片名的名称设置*/
 	public function check_img_name_name($name){
-	    static $check_list=array(); 
-	    $nameMd5=md5($name);
-	    if(!isset($check_list[$nameMd5])){
-	        $result=return_result('',false);
-	        if(!empty($name)){
-	            if(!preg_match('/^(\w+|\-|(\[(年|月|日|时|分|秒|前两位|后两位|任务名|任务ID|图片网址MD5码|图片原名)\])|(\[字段\:[^\/\[\]]+?\]))+$/u',$name)){
-	                $result['msg']='图片名称自定义名称只能输入字母、数字、下划线 或 使用标签';
-	            }else{
-	               $result['success']=true;
-	            }
-	        }
-	        $check_list[$nameMd5]=$result;
-	    }else{
-	        $result=$check_list[$nameMd5];
-	    }
-	    
-	    return $result;
+	    return $this->_check_file_name_name(true,$name);
 	}
 	/*转换自定义图片名的名称*/
 	public function convert_img_name_name($name,$url){
-        $md5=md5($url);
-        if(!empty($name)){
-            $urlname='';
-            if(preg_match('/([^\/]+?)(\.[a-zA-Z][\w\-]+){0,1}([\?\#]|$)/', $url,$urlname)){
-                
-                $urlname=$urlname[1];
-                if(mb_strlen($urlname,'utf-8')>100){
-                    
-                    $urlname=mb_substr($urlname,0,100,'utf-8');
-                }
-            }else{
-                $urlname='';
-            }
-            
-            if(empty($urlname)){
-                
-                $urlname=$md5;
-            }
-            
-            static $tags=array('[年]','[月]','[日]','[时]','[分]','[秒]','[前两位]','[后两位]','[图片网址MD5码]','[图片原名]');
-            $nowTime=time();
-            $tagsRe=array(
-                date('Y',$nowTime),
-                date('m',$nowTime),
-                date('d',$nowTime),
-                date('H',$nowTime),
-                date('i',$nowTime),
-                date('s',$nowTime),
-                substr($md5,0,2),
-                substr($md5,-2,2),
-                $md5,
-                $urlname
-            );
-            $name=str_replace($tags, $tagsRe, $name);
-            $name=preg_replace('/[\/\s\r\n\~\`\!\@\#\$\%\^\&\*\(\)\+\=\{\}\[\]\|\\\\:\;\"\'\<\>\,\?]+/', '_', $name);
-            $name=preg_replace('/\_{2,}/', '_', $name);
-            $name=trim($name,'_');
-        }
-        if(empty($name)){
-            $name=$md5;
-        }
-        return $name;
+        return $this->_convert_file_name_name(true,$name,$url);
     }
     
 	/*从采集设置中提取出图片本地化设置*/
@@ -222,6 +89,70 @@ class Config extends \skycaiji\common\model\Config {
 			}
 		}
 		return $config;
+	}
+	
+	/*检查文件路径*/
+	public function check_file_path($filePath){
+	    return $this->_check_file_path(false,$filePath);
+	}
+	/*检查文件网址*/
+	public function check_file_url($fileUrl){
+	    return $this->_check_file_url(false,$fileUrl);
+	}
+	/*检查自定义文件名的路径设置*/
+	public function check_file_name_path($path){
+	    return $this->_check_file_name_path(false,$path);
+	}
+	/*转换自定义文件名的路径*/
+	public function convert_file_name_path($path,$url){
+	    return $this->_convert_file_name_path(false,$path,$url);
+	}
+	/*检查自定义文件名的名称设置*/
+	public function check_file_name_name($name){
+	    return $this->_check_file_name_name(false,$name);
+	}
+	/*转换自定义文件名的名称*/
+	public function convert_file_name_name($name,$url){
+	    return $this->_convert_file_name_name(false,$name,$url);
+	}
+	
+	/*上传图片水印logo*/
+	public function check_img_watermark_logo($formName,$fileName=''){
+	    $result=return_result('',false,array('file_prop'=>'','file_data'));
+	    $imgWmLogo=$_FILES[$formName];
+	    if(!empty($imgWmLogo)&&!empty($imgWmLogo['tmp_name'])){
+	        if(preg_match('/^image\/(jpg|jpeg|gif|png)$/i',$imgWmLogo['type'],$mprop)){
+	            $mprop=strtolower($mprop[1]);
+	            $imgWmLogo=file_get_contents($imgWmLogo['tmp_name']);
+	            if(empty($imgWmLogo)){
+	                $result['msg']='请上传有效的水印logo';
+	            }else{
+	                $result['success']=true;
+	                $result['file_prop']=$mprop;
+	                $result['file_data']=$imgWmLogo;
+	            }
+	        }else{
+	            $result['msg']='仅支持上传 jpg、jpeg、gif、png 格式的水印logo';
+	        }
+	    }else{
+	        $result['success']=true;
+	    }
+	    return $result;
+	}
+	public function upload_img_watermark_logo($formName,$fileName=''){
+	    $result=$this->check_img_watermark_logo($formName,$fileName);
+	    if($result['success']){
+	        if($result['file_data']){
+	            
+	            $fileName=$fileName?$fileName:'logo';
+	            $result['file_name']='/data/images/watermark/'.$fileName.'.'.$result['file_prop'];
+	            write_dir_file(config('root_path').$result['file_name'], $result['file_data']);
+	        }
+	        
+	    }else{
+	        $result['msg']=$result['msg']?:'上传水印logo失败';
+	    }
+	    return $result;
 	}
 	
 	/*检测出php可执行文件路径*/
@@ -360,6 +291,220 @@ class Config extends \skycaiji\common\model\Config {
 	        $seconds='';
 	    }
 	    return $seconds;
+	}
+	
+	
+	public static function process_suffix($suffix,$returnArr=false){
+        static $list=array();
+        $key=md5($suffix);
+        $data=array();
+        if(!isset($list[$key])){
+            if($suffix){
+                
+                if(preg_match_all('/\b[a-zA-Z]\w*\b/i',$suffix,$msuffix)){
+                    $data=array_unique($msuffix[0]);
+                    $data=array_values($data);
+                    $data=array_map('strtolower', $data);
+                }
+            }
+            $list[$key]=$data;
+        }
+        $data=$list[$key];
+        return $returnArr?$data:implode(',',$data);
+	}
+	
+	
+	public static function process_tag_attr($tagAttr,$returnArr=false){
+        static $list=array();
+        $key=md5($tagAttr);
+        $data=array();
+        if(!isset($list[$key])){
+            if($tagAttr){
+                
+                if(preg_match_all('/\b([a-zA-Z]\w*)\:([a-zA-Z]\w*)\b/i',$tagAttr,$mtag)){
+                    
+                    $data=array(0=>array(),1=>array(),2=>array());
+                    for($i=0;$i<count($mtag[0]);$i++){
+                        $mtag[0][$i]=strtolower($mtag[0][$i]);
+                        if(!in_array($mtag[0][$i], $data[0])){
+                            $data[0][]=$mtag[0][$i];
+                            $data[1][]=strtolower($mtag[1][$i]);
+                            $data[2][]=strtolower($mtag[2][$i]);
+                        }
+                    }
+                }
+            }
+            $list[$key]=$data;
+        }
+        $data=$list[$key];
+        return $returnArr?$data:implode(',',is_array($data[0])?$data[0]:array());
+	}
+	
+	
+	
+	private function _check_file_path($isImg,$filePath){
+	    $title=$isImg?'图片':'文件';
+	    $result=return_result('',false);
+	    if(!empty($filePath)){
+	        
+	        if(!preg_match('/(^\w+\:)|(^[\/\\\])/i', $filePath)){
+	            $result['msg']=$title.'目录必须为绝对路径！';
+	        }else{
+	            if(!is_dir($filePath)){
+	                $result['msg']=$title.'目录不存在！'.(self::check_basedir_limited($filePath)?lang('error_open_basedir'):'');
+	            }else{
+	                $filePath=realpath($filePath);
+	                $root_path=rtrim(realpath(config('root_path')),'\\\/');
+	                if(preg_match('/^'.addslashes($root_path).'\b/i',$filePath)){
+	                    
+	                    if(!preg_match('/^'.addslashes($root_path).'[\/\\\]data[\/\\\].+/i', $filePath)){
+	                        $result['msg']=$title.'保存到本程序中，目录必须在data文件夹里';
+	                    }else{
+	                        $result['success']=true;
+	                    }
+	                }else{
+	                    $result['success']=true;
+	                }
+	            }
+	        }
+	    }
+	    return $result;
+	}
+	
+	private function _check_file_url($isImg,$fileUrl){
+	    $title=$isImg?'图片':'文件';
+	    $result=return_result('',false);
+	    if(!empty($fileUrl)){
+	        if(!preg_match('/^\w+\:\/\//i',$fileUrl)){
+	            $result['msg']=$title.'链接地址必须以http://或者https://开头';
+	        }else{
+	            $result['success']=true;
+	        }
+	    }
+	    return $result;
+	}
+	
+	private function _check_file_name_path($isImg,$path){
+	    $title=$isImg?'图片':'文件';
+	    static $check_list=array(); 
+	    $pathMd5=md5($path);
+	    if(!isset($check_list[$pathMd5])){
+	        $result=return_result('',false);
+	        if(!empty($path)){
+	            if(!preg_match('/^(\w+|\-|\/|(\[(年|月|日|时|分|秒|前两位|后两位|任务名|任务ID)\])|(\[字段\:[^\/\[\]]+?\]))+$/u',$path)){
+	                $result['msg']=$title.'名称自定义路径只能输入字母、数字、下划线、/ 或 使用标签';
+	            }else{
+	                if(preg_match('/^\/+$/', $path)){
+	                    $result['msg']=$title.'名称自定义路径不能只由/组成';
+	                }else{
+	                    $result['success']=true;
+	                }
+	            }
+	        }
+	        $check_list[$pathMd5]=$result;
+	    }else{
+	        $result=$check_list[$pathMd5];
+	    }
+	    return $result;
+	}
+	
+	private function _convert_file_name_path($isImg,$path,$url){
+	    if(!empty($path)){
+	        $md5=md5($url);
+	        static $tags=array('[年]','[月]','[日]','[时]','[分]','[秒]','[前两位]','[后两位]');
+	        $nowTime=time();
+	        $tagsRe=array(
+	            date('Y',$nowTime),
+	            date('m',$nowTime),
+	            date('d',$nowTime),
+	            date('H',$nowTime),
+	            date('i',$nowTime),
+	            date('s',$nowTime),
+	            substr($md5,0,2),
+	            substr($md5,-2,2),
+	        );
+	        $path=str_replace($tags, $tagsRe, $path);
+	        $path=preg_replace('/[\s\r\n\~\`\!\@\#\$\%\^\&\*\(\)\+\=\{\}\[\]\|\\\\:\;\"\'\<\>\,\?]+/', '_', $path);
+	        $path=preg_replace('/\_{2,}/', '_', $path);
+	        $path=preg_replace('/\/{2,}/', '/', $path);
+	        $path=trim($path,'_');
+	        $path=trim($path,'/');
+	    }
+	    if(empty($path)){
+	        $path='temp';
+	    }
+	    return $path;
+	}
+	
+	private function _check_file_name_name($isImg,$name){
+	    $title=$isImg?'图片':'文件';
+	    static $check_list=array(); 
+	    $nameMd5=md5($name);
+	    if(!isset($check_list[$nameMd5])){
+	        $result=return_result('',false);
+	        if(!empty($name)){
+	            $pattern='/^(\w+|\-|(\[(年|月|日|时|分|秒|前两位|后两位|任务名|任务ID|'.$title.'网址MD5码|'.$title.'原名)\])|(\[字段\:[^\/\[\]]+?\]))+$/u';
+	            if(!preg_match($pattern,$name)){
+	                $result['msg']=$title.'名称自定义名称只能输入字母、数字、下划线 或 使用标签';
+	            }else{
+	                $result['success']=true;
+	            }
+	        }
+	        $check_list[$nameMd5]=$result;
+	    }else{
+	        $result=$check_list[$nameMd5];
+	    }
+	    return $result;
+	}
+	
+	private function _convert_file_name_name($isImg,$name,$url){
+	    $title=$isImg?'图片':'文件';
+	    $md5=md5($url);
+	    if(!empty($name)){
+	        $urlname='';
+	        if(preg_match('/([^\/]+?)(\.[a-zA-Z][\w\-]+){0,1}([\?\#]|$)/', $url,$urlname)){
+	            
+	            $urlname=$urlname[1];
+	            if(mb_strlen($urlname,'utf-8')>100){
+	                
+	                $urlname=mb_substr($urlname,0,100,'utf-8');
+	            }
+	        }else{
+	            $urlname='';
+	        }
+	        
+	        if(empty($urlname)){
+	            
+	            $urlname=$md5;
+	        }
+	        
+	        static $sameTags=array('[年]','[月]','[日]','[时]','[分]','[秒]','[前两位]','[后两位]');
+	        $tags=$sameTags;
+	        $tags[]='['.$title.'网址MD5码]';
+	        $tags[]='['.$title.'原名]';
+	        
+	        $nowTime=time();
+	        $tagsRe=array(
+	            date('Y',$nowTime),
+	            date('m',$nowTime),
+	            date('d',$nowTime),
+	            date('H',$nowTime),
+	            date('i',$nowTime),
+	            date('s',$nowTime),
+	            substr($md5,0,2),
+	            substr($md5,-2,2),
+	            $md5,
+	            $urlname
+	        );
+	        $name=str_replace($tags, $tagsRe, $name);
+	        $name=preg_replace('/[\/\s\r\n\~\`\!\@\#\$\%\^\&\*\(\)\+\=\{\}\[\]\|\\\\:\;\"\'\<\>\,\?]+/', '_', $name);
+	        $name=preg_replace('/\_{2,}/', '_', $name);
+	        $name=trim($name,'_');
+	    }
+	    if(empty($name)){
+	        $name=$md5;
+	    }
+	    return $name;
 	}
 }
 ?>

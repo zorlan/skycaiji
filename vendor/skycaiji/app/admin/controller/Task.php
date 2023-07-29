@@ -272,6 +272,7 @@ class Task extends CollectController {
         }
         $isAdd=true;
         if(!empty($taskData)){
+            $taskData['config']=$mtask->compatible_config($taskData['config']);
             $isAdd=false;
         }
         if(request()->isPost()){
@@ -333,13 +334,7 @@ class Task extends CollectController {
                         }
                     }
                     
-                    /*导入规则*/
-                    $ruleId=input('rule_id');
-                    if(!empty($taskData)&&!empty($ruleId)){
-                        $this->_import_rule($taskData, $ruleId);
-                    }
-                    
-                    model('TaskTimer')->addTimer($tid,$taskTimerData);
+                    $this->_save_common($taskData, $taskTimerData);
                     
                     $this->success(lang('op_success'),input('referer','','trim')?input('referer','','trim'):('task/save?id='.$tid));
                 }else{
@@ -357,13 +352,8 @@ class Task extends CollectController {
                 
                 if($mtask->strict(false)->where(array('id'=>intval($taskData['id'])))->update($newData)>=0){
                     $taskData=$mtask->getById($taskData['id']);
-                    /*导入规则*/
-                    $ruleId=input('rule_id');
-                    if(!empty($taskData)&&!empty($ruleId)){
-                        $this->_import_rule($taskData, $ruleId);
-                    }
                     
-                    model('TaskTimer')->addTimer($taskData['id'],$taskTimerData);
+                    $this->_save_common($taskData, $taskTimerData);
                     
                     $this->success(lang('op_success'),'task/save?id='.$taskData['id']);
                 }else{
@@ -380,10 +370,6 @@ class Task extends CollectController {
                     breadcrumb(array(array('url'=>url('task/list'),'title'=>lang('task_list')),array('url'=>url('task/save'),'title'=>lang('task_add'))))
                 );
             }else{
-                $taskData=$taskData->getData();
-                $taskData=is_array($taskData)?$taskData:array();
-                $taskData['config']=unserialize($taskData['config']?:'');
-                $taskData['config']=is_array($taskData['config'])?$taskData['config']:array();
                 if(input('?show_config')){
                     
                     $taskData['_show_config']=1;
@@ -391,7 +377,7 @@ class Task extends CollectController {
                 
                 $this->set_html_tags(
                     '任务:'.$taskData['name'],
-                    lang('task_edit').'：'.$taskData['name'],
+                    lang('task_edit').'：'.$taskData['name'].'（id:'.$taskData['id'].'）',
                     breadcrumb(array(array('url'=>url('task/list'),'title'=>lang('task_list')),array('url'=>url('task/save?id='.$taskData['id']),'title'=>$taskData['name'])))
                 );
                 
@@ -412,10 +398,14 @@ class Task extends CollectController {
                 $taskData['_task_timer']=$timerData;
                 $timerInfo=$mtimer->timer_info($timerData);
                 $timerInfo=$timerInfo?('<br><b>定时：</b>'.$timerInfo):'';
+                
                 $this->assign('taskData',$taskData);
                 $this->assign('timerInfo',$timerInfo);
                 $this->assign('fieldList',$fieldList);
             }
+            
+            $proxyGroupId=g_sc_c('proxy','group_id');
+            $proxyGroupId=intval($proxyGroupId);
             
             $imgFuncParam=g_sc_c('download_img','img_func_param');
             if($imgFuncParam){
@@ -425,26 +415,53 @@ class Task extends CollectController {
             }else{
                 $imgFuncParam='';
             }
-            $proxyGroupId=g_sc_c('proxy','group_id');
-            $proxyGroupId=intval($proxyGroupId);
+            
+            $fileFuncParam=g_sc_c('download_file','file_func_param');
+            if($fileFuncParam){
+                $fileFuncParam=str_replace("\r", '\r', $fileFuncParam);
+                $fileFuncParam=str_replace("\n", '\n', $fileFuncParam);
+                $fileFuncParam=htmlspecialchars($fileFuncParam,ENT_QUOTES);
+            }else{
+                $fileFuncParam='';
+            }
+            
             $gConfig=array(
                 'num'=>intval(g_sc_c('caiji','num')),
-                'interval'=>intval(g_sc_c('caiji','interval')),
-                'interval_html'=>intval(g_sc_c('caiji','interval_html')),
+                'num_interval'=>intval(g_sc_c('caiji','interval')),
+                'num_interval_html'=>intval(g_sc_c('caiji','interval_html')),
                 'same_url'=>g_sc_c('caiji','same_url')>0?'允许':'过滤',
                 'same_title'=>g_sc_c('caiji','same_title')>0?'允许':'过滤',
                 'real_time'=>g_sc_c('caiji','real_time')>0?'是':'否',
+                'translate'=>g_sc_c('translate','open')>0?'1':'',
                 'proxy'=>g_sc_c('proxy','open')>0?'1':'',
                 'proxy_group_id'=>$proxyGroupId<=0?'全部':model('ProxyGroup')->getNameById($proxyGroupId),
+                
                 'download_img'=>g_sc_c('download_img','download_img')>0?'1':'',
                 'img_path'=>g_sc_c('download_img','img_path')?g_sc_c('download_img','img_path'):(config('root_path').DS.'data'.DS.'images'),
                 'img_url'=>g_sc_c('download_img','img_url')?g_sc_c('download_img','img_url'):(config('root_website').'/data/images'),
                 'img_name'=>g_sc_c('download_img','img_name'),
                 'name_custom_path'=>g_sc_c('download_img','name_custom_path')?g_sc_c('download_img','name_custom_path'):'无',
                 'name_custom_name'=>lang('down_img_name_custom_name_'.g_sc_c('download_img','name_custom_name')),
-                'interval_img'=>intval(g_sc_c('download_img','interval_img')),
+                'num_interval_img'=>intval(g_sc_c('download_img','interval_img')),
+                
+                'img_watermark'=>g_sc_c('download_img','img_watermark')>0?'1':'',
+                'img_wm_logo'=>g_sc_c('download_img','img_wm_logo'),
+                'img_wm_right'=>g_sc_c('download_img','img_wm_right')?g_sc_c('download_img','img_wm_right'):'0',
+                'img_wm_bottom'=>g_sc_c('download_img','img_wm_bottom')?g_sc_c('download_img','img_wm_bottom'):'0',
+                'img_wm_opacity'=>g_sc_c('download_img','img_wm_opacity')?g_sc_c('download_img','img_wm_opacity'):'不透明',
+                
                 'img_func'=>g_sc_c('download_img','img_func'),
-                'img_func_param'=>$imgFuncParam
+                'img_func_param'=>$imgFuncParam,
+                
+                'download_file'=>g_sc_c('download_file','download_file')>0?'1':'',
+                'file_path'=>g_sc_c('download_file','file_path')?g_sc_c('download_file','file_path'):(config('root_path').DS.'data'.DS.'files'),
+                'file_url'=>g_sc_c('download_file','file_url')?g_sc_c('download_file','file_url'):(config('root_website').'/data/files'),
+                'file_name'=>g_sc_c('download_file','file_name'),
+                'file_custom_path'=>g_sc_c('download_file','file_custom_path')?g_sc_c('download_file','file_custom_path'):'无',
+                'file_custom_name'=>lang('down_file_name_custom_name_'.g_sc_c('download_file','file_custom_name')),
+                'file_interval'=>intval(g_sc_c('download_file','file_interval')),
+                'file_func'=>g_sc_c('download_file','file_func'),
+                'file_func_param'=>$fileFuncParam,
             );
             $this->assign('gConfig',$gConfig);
             $this->assign('tgSelect',$tgSelect);
@@ -469,18 +486,32 @@ class Task extends CollectController {
             $this->error();
         }
     }
-   
+    
+    private function _save_common($taskData,$taskTimerData){
+        
+        $ruleId=input('rule_id');
+        if(!empty($taskData)&&!empty($ruleId)){
+            $this->_import_rule($taskData, $ruleId);
+        }
+        
+        model('TaskTimer')->addTimer($taskData['id'],$taskTimerData);
+        
+        
+        $upResult=model('Config')->upload_img_watermark_logo('img_wm_logo_upload','task'.$taskData['id']);
+        if($upResult['success']&&$upResult['file_name']){
+            $taskData['config']['img_wm_logo']=$upResult['file_name'];
+            model('Task')->strict(false)->where(array('id'=>intval($taskData['id'])))->update(array('config'=>serialize($taskData['config'])));
+        }
+    }
     
     private function _save_config($config=array()){
-    	$config=is_array($config)?$config:array();
-    	$config['num']=intval($config['num']);
-    	$config['interval']=intval($config['interval']);
-    	$config['interval_html']=intval($config['interval_html']);
+        
+        $config=is_array($config)?$config:array();
+        $config['num']=empty($config['num'])?'':$config['num'];
     	$config['img_path']=trim($config['img_path']);
     	$config['img_url']=trim($config['img_url']);
-    	$config['interval_img']=intval($config['interval_img']);
     	$config['proxy_group_id']=trim($config['proxy_group_id']);
-
+    	
     	$mconfig=model('Config');
     	
     	if(!empty($config['img_path'])){
@@ -501,12 +532,15 @@ class Task extends CollectController {
     	$checkNamePath=$mconfig->check_img_name_path($config['name_custom_path']);
     	if($config['img_name']=='custom'){
     	    
-    	    if(empty($config['name_custom_path'])&&is_empty(g_sc_c('download_img','name_custom_path'))){
-    	        
-    	        $this->error('请输入图片名称自定义路径');
-    	    }
-    	    if(!$checkNamePath['success']){
-    	        $this->error($checkNamePath['msg']);
+    	    if(empty($config['name_custom_path'])){
+    	        if(is_empty(g_sc_c('download_img','name_custom_path'))){
+    	            
+    	            $this->error('请输入图片名称自定义路径');
+    	        }
+    	    }else{
+    	        if(!$checkNamePath['success']){
+    	            $this->error($checkNamePath['msg']);
+    	        }
     	    }
     	}else{
     	    
@@ -525,6 +559,67 @@ class Task extends CollectController {
     	    
     	    if(!$checkNameName['success']){
     	        $config['name_custom_name']='';
+    	    }
+    	}
+    	
+    	
+    	$checkWmLogo=$mconfig->check_img_watermark_logo('img_wm_logo_upload');
+    	if(!$checkWmLogo['success']){
+    	    $this->error($checkWmLogo['msg']);
+    	}
+    	if(!is_empty($config['img_wm_opacity'],true)){
+    	    
+    	    $config['img_wm_opacity']=min(100,max(0,$config['img_wm_opacity']));
+    	}
+    	
+    	$config['file_path']=trim($config['file_path']);
+    	$config['file_url']=trim($config['file_url']);
+    	
+    	if(!empty($config['file_path'])){
+    	    
+    	    $checkFilePath=$mconfig->check_file_path($config['file_path']);
+    	    if(!$checkFilePath['success']){
+    	        $this->error($checkFilePath['msg']);
+    	    }
+    	}
+    	if(!empty($config['file_url'])){
+    	    
+    	    $checkFileUrl=$mconfig->check_file_url($config['file_url']);
+    	    if(!$checkFileUrl['success']){
+    	        $this->error($checkFileUrl['msg']);
+    	    }
+    	}
+    	
+    	$checkNamePath=$mconfig->check_file_name_path($config['file_custom_path']);
+    	if($config['file_name']=='custom'){
+    	    
+    	    if(empty($config['file_custom_path'])){
+    	        if(is_empty(g_sc_c('download_file','file_custom_path'))){
+    	            
+    	            $this->error('请输入文件名称自定义路径');
+    	        }
+    	    }else{
+    	        if(!$checkNamePath['success']){
+    	            $this->error($checkNamePath['msg']);
+    	        }
+    	    }
+    	}else{
+    	    
+    	    if(!$checkNamePath['success']){
+    	        $config['file_custom_path']='';
+    	    }
+    	}
+    	
+    	$checkNameName=$mconfig->check_file_name_name($config['file_custom_name']);
+    	if($config['file_name']=='custom'){
+    	    
+    	    if(!empty($config['file_custom_name'])&&!$checkNameName['success']){
+    	        $this->error($checkNameName['msg']);
+    	    }
+    	}else{
+    	    
+    	    if(!$checkNameName['success']){
+    	        $config['file_custom_name']='';
     	    }
     	}
     	
@@ -553,7 +648,7 @@ class Task extends CollectController {
     			
     		    $result=controller('admin/Mystore')->_upload_addon(true,'rule_file',false,true);
     		    if(!$result['success']){
-    		        $this->error($result['msg'],'');
+    		        $this->error($result['msg'],'task/save?id='.$taskData['id']);
     		    }else{
     		        $ruleData=$result['ruleData'];
     		    }

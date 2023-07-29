@@ -41,3 +41,27 @@ function trim_input_array($arrName){
     $data=\util\Funcs::array_array_map('trim', $data);
     return $data;
 }
+
+
+function trim_input_process($formName,$data=null){
+    if(!empty($formName)){
+        $data=input($formName,array(),null);
+    }
+    init_array($data);
+    static $passModules=array('substr','insert','replace');
+    foreach ($data as $k=>$v){
+        init_array($v);
+        if(isset($v['title'])){
+            $v['title']=trim($v['title']);
+        }
+        if(isset($v['module'])){
+            $v['module']=trim($v['module']);
+        }
+        if(!in_array($v['module'], $passModules)){
+            
+            $v=\util\Funcs::array_array_map('trim',$v);
+        }
+        $data[$k]=$v;
+    }
+    return $data;
+}

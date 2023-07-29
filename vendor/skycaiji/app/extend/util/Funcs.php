@@ -457,6 +457,15 @@ class Funcs{
 	    }
 	    return $data;
 	}
+	
+	public static function get_url_suffix($url){
+	    if(preg_match('/\.([a-zA-Z][\w\-]+)([\?\#]|$)/',$url,$suffix)){
+	        $suffix=strtolower($suffix[1]);
+	    }else{
+	        $suffix='';
+	    }
+	    return $suffix;
+	}
 }
 
 ?>

@@ -120,6 +120,8 @@ class ChromeSocket{
     }
     
     public function websocket($url='',$headers=array(),$options=array()){
+        $this->startTime=time();
+        
         $headers=is_array($headers)?$headers:array();
         $headers=array_change_key_case($headers,CASE_LOWER);
         
@@ -208,6 +210,7 @@ class ChromeSocket{
                                 foreach ($htmlInfo['resp_header'] as $k=>$v){
                                     if('location'==strtolower($v['name'])){
                                         $locUrl=$v['value'];
+                                        $htmlInfo['code']=200;
                                         break;
                                     }
                                 }

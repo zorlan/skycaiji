@@ -1058,7 +1058,7 @@ EOF;
             '插件编辑器',
             $setTitle,
             $setNav
-            );
+        );
         
         $this->assign('config',array('type'=>$type,'module'=>$module,'app'=>$app));
         $this->assign('type',$type);
@@ -1116,11 +1116,56 @@ EOF;
 	        if(empty($filename)){
 	            $this->error('插件文件错误');
 	        }
-	        file_put_contents($filename, $appcode);
+	        write_dir_file($filename, $appcode);
 	        $uri=sprintf('develop/editor?type=%s&module=%s&app=%s',$type,$module,$app);
 	        $this->success('操作成功',$uri);
 	    }else{
 	        $this->error('提交错误');
+	    }
+	}
+	public function plugin_skycaijiAction(){
+	    $op=input('op');
+	    $scjPlugin = new \ReflectionClass('\\plugin\\skycaiji');
+	    $scjMethods=$scjPlugin->getMethods(\ReflectionMethod::IS_PUBLIC);
+	    if(empty($op)){
+	        
+            $scjMethods1=array();
+            foreach ($scjMethods as $scjMethod){
+                $methodName=$scjMethod->name;
+                if(empty($methodName)||strpos($methodName,'__')===0){
+                    
+                    continue;
+                }
+                $methodCmt=$scjMethod->getDocComment();
+                if($methodCmt){
+                    $methodCmt=preg_replace('/^[\/\*\s]+/m', '', $methodCmt);
+                    $methodCmt=trim($methodCmt);
+                    $methodCmt=htmlspecialchars($methodCmt,ENT_QUOTES);
+                    $methodCmt=preg_replace('/[\r\n]+/', '<br>', $methodCmt);
+                }
+                $scjMethods1[$methodName]=$methodCmt;
+            }
+            $scjMethods=$scjMethods1;
+	        $this->success('','',$scjMethods);
+	    }elseif($op=='method'){
+	        $method=input('method','');
+	        $code=file(config('plugin_path').'/skycaiji.php');
+	        $methodCmt='';
+	        $methodCode='';
+	        foreach ($scjMethods as $scjMethod){
+	            if($scjMethod->name==$method){
+	                $methodCmt=$scjMethod->getDocComment();
+	                $methodStart=$scjMethod->getStartLine();
+	                $methodEnd=$scjMethod->getEndLine();
+	                $methodCode=array_slice($code, $methodStart-1, $methodEnd-$methodStart+1);
+	                $methodCode=is_array($methodCode)?implode('',$methodCode):'';
+	                break;
+	            }
+	        }
+	        
+	        $this->assign('methodCmt',$methodCmt);
+	        $this->assign('methodCode',$methodCode);
+	        return $this->fetch('plugin_skycaiji_method');
 	    }
 	}
 }

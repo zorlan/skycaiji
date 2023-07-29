@@ -378,6 +378,7 @@ class CpatternEvent extends CpatternColl{
         return $fieldVal;
     }
     public function process_f_replace($fieldVal,$params){
+        
         return preg_replace('/'.$params['replace_from'].'/ui',$params['replace_to'], $fieldVal);
     }
     public function process_f_tool($fieldVal,$params){
@@ -391,11 +392,107 @@ class CpatternEvent extends CpatternColl{
             
             $fieldVal=trim($fieldVal);
         }
-        if(in_array('is_img', $params['tool_list'])){
+        if(in_array('url_not_complete', $params['tool_list'])){
             
-            if(!is_empty(g_sc_c('download_img','download_img'))){
+            $this->field_url_complete=false;
+        }
+        return $fieldVal;
+    }
+    public function process_f_download($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName=''){
+        if($params['download_op']=='is_img'){
+            
+            if(!is_empty(g_sc_c('download_img','download_img'))&&!empty($fieldVal)){
                 
-                $fieldVal=preg_replace('/(?<![\'\"])(\bhttp[s]{0,1}\:\/\/[^\s\'\"\<\>]+)(?![\'\"])/i','{[img]}'."$1".'{[/img]}',$fieldVal);
+                $valImgs=array();
+                if(preg_match_all('/(?<![\'\"])(\bhttp[s]{0,1}\:\/\/[^\s\'\"\<\>]+)(?![\'\"])/i',$fieldVal,$murls)){
+                    $valImgs=$murls[1];
+                }
+                if(!empty($valImgs)){
+                    $fieldImgs=array();
+                    if(empty($this->first_loop_field)){
+                        
+                        $fieldImgs=$this->field_val_list[$fieldName]['imgs'][$curUrlMd5];
+                    }else{
+                        $fieldImgs=$this->field_val_list[$fieldName]['imgs'][$curUrlMd5][$loopIndex];
+                    }
+                    init_array($fieldImgs);
+                    $fieldImgs=array_merge($fieldImgs,$valImgs);
+                    $fieldImgs=array_unique($fieldImgs);
+                    $fieldImgs=array_values($fieldImgs);
+                    if(empty($this->first_loop_field)){
+                        $this->field_val_list[$fieldName]['imgs'][$curUrlMd5]=$fieldImgs;
+                    }else{
+                        $this->field_val_list[$fieldName]['imgs'][$curUrlMd5][$loopIndex]=$fieldImgs;
+                    }
+                }
+            }
+        }elseif($params['download_op']=='no_img'){
+            
+            $this->field_down_img=false;
+            
+            if(empty($this->first_loop_field)){
+                $this->field_val_list[$fieldName]['imgs'][$curUrlMd5]=array();
+            }else{
+                $this->field_val_list[$fieldName]['imgs'][$curUrlMd5][$loopIndex]=array();
+            }
+        }elseif($params['download_op']=='is_file'||$params['download_op']=='file'){
+            
+            if(!is_empty(g_sc_c('download_file','download_file'))&&!empty($fieldVal)){
+                
+                $valFiles=array();
+                if($params['download_op']=='is_file'){
+                    
+                    if(preg_match_all('/(?<![\'\"])(\bhttp[s]{0,1}\:\/\/[^\s\'\"\<\>]+)(?![\'\"])/i',$fieldVal,$murls)){
+                        $valFiles=$murls[1];
+                    }
+                }else{
+                    
+                    $tags=\skycaiji\admin\model\Config::process_tag_attr($params['download_file_tag'],true);
+                    if(is_array($tags)&&!empty($tags[0])){
+                        
+                        for($i=0;$i<count($tags[0]);$i++){
+                            $reg='/<'.$tags[1][$i].'\b[^<>]*\b'.$tags[2][$i].'\s*=\s*[\'\"](http[s]{0,1}\:[^\'\"]+?)[\'\"]/i';
+                            if(preg_match_all($reg,$fieldVal,$fileUrls)){
+                                $fileUrls=is_array($fileUrls[1])?$fileUrls[1]:array();
+                                if(!empty($params['download_file_must'])){
+                                    
+                                    foreach ($fileUrls as $k=>$v){
+                                        if(!preg_match('/'.$params['download_file_must'].'/ui', $v)){
+                                            unset($fileUrls[$k]);
+                                        }
+                                    }
+                                }
+                                if(!empty($params['download_file_ban'])){
+                                    
+                                    foreach ($fileUrls as $k=>$v){
+                                        if(preg_match('/'.$params['download_file_ban'].'/ui', $v)){
+                                            unset($fileUrls[$k]);
+                                        }
+                                    }
+                                }
+                                $valFiles=array_merge($valFiles,$fileUrls);
+                            }
+                        }
+                    }
+                }
+                if(!empty($valFiles)){
+                    $fieldFiles=array();
+                    if(empty($this->first_loop_field)){
+                        
+                        $fieldFiles=$this->field_val_list[$fieldName]['files'][$curUrlMd5];
+                    }else{
+                        $fieldFiles=$this->field_val_list[$fieldName]['files'][$curUrlMd5][$loopIndex];
+                    }
+                    init_array($fieldFiles);
+                    $fieldFiles=array_merge($fieldFiles,$valFiles);
+                    $fieldFiles=array_unique($fieldFiles);
+                    $fieldFiles=array_values($fieldFiles);
+                    if(empty($this->first_loop_field)){
+                        $this->field_val_list[$fieldName]['files'][$curUrlMd5]=$fieldFiles;
+                    }else{
+                        $this->field_val_list[$fieldName]['files'][$curUrlMd5][$loopIndex]=$fieldFiles;
+                    }
+                }
             }
         }
         return $fieldVal;
@@ -839,7 +936,32 @@ class CpatternEvent extends CpatternColl{
                 if(!empty($htmlInfo['ok'])){
                     
                     $retryCur=0;
-                    $fieldVal=$this->rule_module_json_data(array('json'=>$params['api_json'],'json_arr'=>$params['api_json_arr'],'json_arr_implode'=>$params['api_json_implode']),$htmlInfo['html']);
+                   
+                    if(empty($params['api_rule_module'])){
+                        
+                        $fieldVal=$this->rule_module_json_data(array(
+                            'json' => $params['api_json'],
+                            'json_arr' => $params['api_json_arr'],
+                            'json_arr_implode' => $params['api_json_arr_implode']
+                        ),$htmlInfo['html']);
+                    }elseif('xpath'==$params['api_rule_module']){
+                        
+                        $fieldVal=$this->rule_module_xpath_data(array(
+                            'xpath' => $params['api_xpath'],
+                            'xpath_attr' => $params['api_xpath_attr'],
+                            'xpath_multi' => $params['api_xpath_multi'],
+                            'xpath_multi_str' => $params['api_xpath_multi_str'],
+                        ),$htmlInfo['html']);
+                    }elseif('rule'==$params['api_rule_module']){
+                        
+                        $fieldVal=$this->rule_module_rule_data_get(array(
+                            'rule' => $params['api_rule'],
+                            'rule_merge' => $params['api_rule_merge'],
+                            'rule_multi' => $params['api_rule_multi'],
+                            'rule_multi_str' => $params['api_rule_multi_str'],
+                            'rule_flags'=>'iu',
+                        ),$htmlInfo['html'],array(),true);
+                    }
                 }else{
                     $this->retry_first_echo($retryCur,'数据处理»调用接口失败',$url,$htmlInfo);
                     
@@ -858,7 +980,7 @@ class CpatternEvent extends CpatternColl{
         if(empty($process)){
             return $fieldVal;
         }
-        static $conds=array('filter','if','func','api');
+        static $conds=array('filter','if','func','api','download');
         foreach ($process as $params){
             
             if(empty($this->first_loop_field)){
@@ -988,6 +1110,7 @@ class CpatternEvent extends CpatternColl{
             return $url;
         }
     }
+    
     
     private function _get_insert_fields($paramsStr,$curUrlMd5,$loopIndex){
         $fieldRule='/\[\x{5b57}\x{6bb5}\:(.+?)\]/u';

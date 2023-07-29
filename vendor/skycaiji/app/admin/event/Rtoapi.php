@@ -128,6 +128,8 @@ class Rtoapi extends Release{
                     $headerVals[$v]=$this->config['toapi']['header_val'][$k];
                 }
             }
+            $apiConfig['response']=$this->config['toapi']['response'];
+            
         }
         return $this->_export($collFieldsList,$options,$apiUrl,$apiConfig,$paramVals,$headerVals);
     }
@@ -155,12 +157,15 @@ class Rtoapi extends Release{
             }else{
                 $apiUrl=$this->url_list[$apiUrlMd5];
             }
+            
             $apiResponse=is_array($apiConfig['response'])?$apiConfig['response']:array();
             
-            $apiResponse['id']=$apiResponse['id']?:'id';
-            $apiResponse['target']=$apiResponse['target']?:'target';
-            $apiResponse['desc']=$apiResponse['desc']?:'desc';
-            $apiResponse['error']=$apiResponse['error']?:'error';
+            if(empty($apiResponse['module'])){
+                $apiResponse['id']=$apiResponse['id']?:'id';
+                $apiResponse['target']=$apiResponse['target']?:'target';
+                $apiResponse['desc']=$apiResponse['desc']?:'desc';
+                $apiResponse['error']=$apiResponse['error']?:'error';
+            }
             
             $apiCharset=$apiConfig['charset'];
             if(empty($apiCharset)){
@@ -175,12 +180,16 @@ class Rtoapi extends Release{
             
             $retryWait=intval($this->config['toapi']['wait']);
             $retryMax=intval($this->config['toapi']['retry']);
+            static $cpatternBase=null;
+            if(!isset($cpatternBase)){
+                $cpatternBase=controller('CpatternBase','event');
+            }
             foreach ($collFieldsList as $collFieldsKey=>$collFields){
                 
                 $contTitle=$collFields['title'];
                 $contUrl=$collFields['url'];
                 $collFields=$collFields['fields'];
-                $this->init_download_img($this->task,$collFields);
+                $this->init_download_config($this->task,$collFields);
                 
                 $postData=$this->_replace_fields($paramVals,$collFields);
                 $url=$this->_replace_fields($apiUrl,$collFields);
@@ -203,18 +212,48 @@ class Rtoapi extends Release{
                     init_array($htmlInfo);
                     $html=$htmlInfo['html']?:'';
                     $this->collect_sleep($this->config['toapi']['interval'],true);
-                    $json=json_decode($html,true);
                     $returnData=array('id'=>'','target'=>'','desc'=>'','error'=>'');
-                    if(!empty($apiResponse['id'])&&is_array($json)&&isset($json[$apiResponse['id']])){
+                    
+                    if(empty($apiResponse['module'])){
                         
+                        $json=json_decode($html,true);
                         foreach ($returnData as $k=>$v){
-                            
                             if(isset($apiResponse[$k])){
-                                $returnData[$k]=$json[$apiResponse[$k]]?$json[$apiResponse[$k]]:'';
-                            }else{
-                                $returnData[$k]='';
+                                $returnData[$k]=$cpatternBase->rule_module_json_data(array(
+                                    'json' => $apiResponse[$k],
+                                    'json_arr' =>  '',
+                                    'json_arr_implode' =>  '',
+                                ), $json);
                             }
                         }
+                    }elseif($apiResponse['module']=='xpath'){
+                        
+                        foreach ($returnData as $k=>$v){
+                            if(isset($apiResponse[$k])){
+                                $returnData[$k]=$cpatternBase->rule_module_xpath_data(array(
+                                    'xpath' => $apiResponse[$k],
+                                    'xpath_attr' => 'innerHtml',
+                                    'xpath_multi' => '',
+                                    'xpath_multi_str' => '',
+                                ), $html);
+                            }
+                        }
+                    }elseif($apiResponse['module']=='rule'){
+                        
+                        foreach ($returnData as $k=>$v){
+                            if(isset($apiResponse[$k])){
+                                $returnData[$k]=$cpatternBase->rule_module_rule_data_get(array(
+                                    'rule' => $apiResponse[$k],
+                                    'rule_merge' => '',
+                                    'rule_multi' => '',
+                                    'rule_multi_str' => '',
+                                    'rule_flags'=>'iu',
+                                ), $html,array(),true);
+                            }
+                        }
+                    }
+                    if(!is_empty($apiResponse['id'],true)&&$html&&!is_empty($returnData['id'],true)){
+                        
                         if($returnData['id']>0){
                             $addedNum++;
                             if($returnData['id']>1&&empty($returnData['target'])){
@@ -224,23 +263,23 @@ class Rtoapi extends Release{
                         }
                     }else{
                         
-                        $this->retry_first_echo($retryCur,'发布设置»调用接口失败',null,$htmlInfo);
+                        $this->retry_first_echo($retryCur,'发布接口调用失败',null,$htmlInfo);
                         
                         $this->collect_sleep($retryWait);
                         
-                        if($this->retry_do_func($retryCur,$retryMax,'接口无效')){
+                        if($this->retry_do_func($retryCur,$retryMax,'发布接口无效')){
                             $doWhile=true;
                         }
                         
                         $returnData['id']=0;
-                        $returnData['error']='发布接口无响应状态';
+                        $returnData['error']='未获取到响应状态';
                     }
                 }while($doWhile);
                 
                 $this->record_collected($contUrl,$returnData,$this->release,$contTitle);
                 
                 if($testToapi){
-                    $this->echo_msg('<p>发布接口响应数据：</p><textarea name="data" style="width:100%;margin:5px 0;" rows="5">'.htmlspecialchars($html).'</textarea>','black');
+                    $this->echo_msg('<p>发布接口响应内容：</p><textarea name="data" style="width:100%;margin:5px 0;" rows="5">'.htmlspecialchars($html).'</textarea>','black');
                 }
                 
                 

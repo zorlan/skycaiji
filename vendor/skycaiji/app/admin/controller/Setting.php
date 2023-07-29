@@ -193,18 +193,15 @@ class Setting extends BaseController {
             $config['img_func']=input('img_func','');
             $config['img_func_param']=input('img_func_param','');
             
+            $config['img_watermark']=input('img_watermark/d',0);
+            $config['img_wm_logo']=input('img_wm_logo','');
+            $config['img_wm_right']=input('img_wm_right/d',0);
+            $config['img_wm_bottom']=input('img_wm_bottom/d',0);
+            $config['img_wm_opacity']=input('img_wm_opacity/d',0);
+            $config['img_wm_opacity']=min(100,max(0,$config['img_wm_opacity']));
             
-            if(!empty($config['more_suffix'])){
-                if(preg_match_all('/\b[a-zA-Z]\w+\b/i', $config['more_suffix'],$msuffix)){
-                    
-                    $msuffix=$msuffix[0];
-                    $msuffix=implode(',', $msuffix);
-                    $config['more_suffix']=strtolower($msuffix);
-                }else{
-                    $config['more_suffix']='';
-                }
-            }
             
+            $config['more_suffix']=\skycaiji\admin\model\Config::process_suffix($config['more_suffix']);
             
             
             if(!empty($config['img_path'])){
@@ -257,6 +254,14 @@ class Setting extends BaseController {
                 $this->error('请输入系统编码自定义内容');
             }
             
+            
+            $upResult=$mconfig->upload_img_watermark_logo('img_wm_logo_upload');
+            if(!$upResult['success']){
+                $this->error($upResult['msg']);
+            }elseif($upResult['file_name']){
+                $config['img_wm_logo']=$upResult['file_name'];
+            }
+            
             $mconfig->setConfig('download_img',$config);
             
             $this->success(lang('op_success'),'setting/download_img');
@@ -265,7 +270,7 @@ class Setting extends BaseController {
                 '图片本地化设置',
                 '图片本地化设置',
                 breadcrumb(array(array('url'=>url('setting/caiji'),'title'=>lang('setting_caiji')),array('url'=>url('setting/download_img'),'title'=>'图片本地化')))
-                );
+            );
             $imgConfig=$mconfig->getConfig('download_img','data');
             init_array($imgConfig);
             if(empty($imgConfig)){
@@ -295,10 +300,122 @@ class Setting extends BaseController {
                 }
             }
             
+            $imgWmError='';
+            $LocSystem=new \skycaiji\install\event\LocSystem();
+            $LocSystem=$LocSystem->environmentPhp();
+            if(empty($LocSystem['gd']['loaded'])){
+                
+                $imgWmError='php未启用gd模块';
+            }
+            
+            $this->assign('imgWmError',$imgWmError);
             $this->assign('imgConfig',$imgConfig);
             return $this->fetch('download_img');
         }
     }
+    /*文件本地化设置*/
+    public function download_fileAction(){
+        $mconfig=model('Config');
+        if(request()->isPost()){
+            $config=array();
+            
+            $config['download_file']=input('download_file/d',0);
+            $config['file_interval']=input('file_interval/d',0);
+            
+            $config['file_timeout']=input('file_timeout/d',0);
+            $config['retry']=input('retry/d',0);
+            $config['wait']=input('wait/d',0);
+            $config['file_path']=trim(input('file_path',''));
+            $config['file_url']=input('file_url','','trim');
+            $config['file_name']=input('file_name','');
+            $config['name_custom_path']=input('name_custom_path','');
+            $config['name_custom_name']=input('name_custom_name','');
+            $config['charset']=input('charset','');
+            $config['charset_custom']=input('charset_custom','');
+            $config['file_max']=input('file_max/d',0);
+            
+            $config['file_func']=input('file_func','');
+            $config['file_func_param']=input('file_func_param','');
+            
+            
+            
+            if(!empty($config['file_path'])){
+                
+                $checkFilePath=$mconfig->check_file_path($config['file_path']);
+                if(!$checkFilePath['success']){
+                    $this->error($checkFilePath['msg']);
+                }
+            }
+            
+            if(!empty($config['file_url'])){
+                
+                $checkFileUrl=$mconfig->check_file_url($config['file_url']);
+                if(!$checkFileUrl['success']){
+                    $this->error($checkFileUrl['msg']);
+                }
+            }
+            
+            
+            $checkNamePath=$mconfig->check_file_name_path($config['name_custom_path']);
+            if($config['file_name']=='custom'){
+                
+                if(empty($config['name_custom_path'])){
+                    $this->error('请输入文件名称自定义路径');
+                }
+                if(!$checkNamePath['success']){
+                    $this->error($checkNamePath['msg']);
+                }
+            }else{
+                
+                if(!$checkNamePath['success']){
+                    $config['name_custom_path']='';
+                }
+            }
+            
+            $checkNameName=$mconfig->check_file_name_name($config['name_custom_name']);
+            if($config['file_name']=='custom'){
+                
+                if(!empty($config['name_custom_name'])&&!$checkNameName['success']){
+                    $this->error($checkNameName['msg']);
+                }
+            }else{
+                
+                if(!$checkNameName['success']){
+                    $config['name_custom_name']='';
+                }
+            }
+            
+            if($config['charset']=='custom'&&empty($config['charset_custom'])){
+                $this->error('请输入系统编码自定义内容');
+            }
+            
+            $mconfig->setConfig('download_file',$config);
+            
+            $this->success(lang('op_success'),'setting/download_file');
+        }else{
+            $this->set_html_tags(
+                '文件本地化设置',
+                '文件本地化设置',
+                breadcrumb(array(array('url'=>url('setting/caiji'),'title'=>lang('setting_caiji')),array('url'=>url('setting/download_file'),'title'=>'文件本地化')))
+            );
+            $fileConfig=$mconfig->getConfig('download_file','data');
+            init_array($fileConfig);
+            
+            if(empty($fileConfig)){
+                
+                $fileConfig['file_timeout']=0;
+                $fileConfig['file_max']=0;
+                $fileConfig['file_interval']=0;
+                $fileConfig['wait']=0;
+                $fileConfig['retry']=0;
+            }
+            
+            $this->assign('fileConfig',$fileConfig);
+            return $this->fetch('download_file');
+        }
+    }
+    
+    
     /*代理设置*/
     public function proxyAction(){
         $mconfig=model('Config');

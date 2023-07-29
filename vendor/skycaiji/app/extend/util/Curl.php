@@ -43,7 +43,11 @@ class Curl{
 	 * @param string $postData
 	 * @return \util\Curl
 	 */
-	public static function request($url,$headers=array(),$options=array(),$postData=null){
+	public static function request($url,$rHeaders=array(),$rOptions=array(),$rPostData=null,$curRedirs=0){
+	    $headers=$rHeaders;
+	    $options=$rOptions;
+	    $postData=$rPostData;
+	    
 		$instance=self::init();
 		
 		$isPost=false;
@@ -71,6 +75,7 @@ class Curl{
 		curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
 		curl_setopt ( $ch, CURLOPT_FOLLOWLOCATION, 1 );
 		curl_setopt ( $ch, CURLOPT_HEADER, 1 );
+		curl_setopt ( $ch, CURLOPT_AUTOREFERER, 1 );
 		if($options['nobody']){
 			
 			curl_setopt($ch, CURLOPT_NOBODY, true);
@@ -78,6 +83,11 @@ class Curl{
 		if($options['useragent']){
 			
 			curl_setopt($ch, CURLOPT_USERAGENT, $options['useragent']);
+		}
+		$options['max_redirs']=intval($options['max_redirs']);
+		if($options['max_redirs']){
+		    
+		    curl_setopt($ch, CURLOPT_MAXREDIRS, $options['max_redirs']);
 		}
 		
 		curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, FALSE );
@@ -185,7 +195,26 @@ class Curl{
 		        $instance->info=array();
 		    }
 		}
-		curl_close ( $ch );
+		
+		if(!$instance->ok&&$instance->code>=300&&$instance->code<400){
+		    
+		    $info=empty($instance->info)?curl_getinfo($ch):$instance->info;
+		    if(is_array($info)&&$info){
+		        $rurl=$info['redirect_url']?:'';
+		        if($rurl&&$rurl!=$url){
+		            
+		            $maxRedirs=max(3,$options['max_redirs']);
+		            if($curRedirs<$maxRedirs){
+		                
+		                $curRedirs++;
+		                curl_close($ch);
+		                return self::request($rurl,$rHeaders,$rOptions,$rPostData,$curRedirs);
+		            }
+		        }
+		    }
+		}
+		
+		curl_close($ch);
 		return $instance;
 	}
 

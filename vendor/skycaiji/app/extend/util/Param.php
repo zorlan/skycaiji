@@ -100,14 +100,19 @@ class Param{
 	    }
 	}
 	
-	public static function key_gsc_use_cookie($isImg=false){
-	    return 'collector_use_cookie'.($isImg?'_img':'');
+	public static function key_gsc_use_cookie($type=''){
+	    $key='collector_use_cookie';
+	    if($type){
+	        $type=strtolower($type);
+	        $key.='_'.$type;
+	    }
+	    return $key;
 	}
-	public static function set_gsc_use_cookie($isImg,$val){
-	    set_g_sc(self::key_gsc_use_cookie($isImg),$val);
+	public static function set_gsc_use_cookie($type,$val){
+	    set_g_sc(self::key_gsc_use_cookie($type),$val);
 	}
-	public static function get_gsc_use_cookie($isImg=false,$convert2str=false){
-	    $data=g_sc(self::key_gsc_use_cookie($isImg));
+	public static function get_gsc_use_cookie($type='',$convert2str=false){
+	    $data=g_sc(self::key_gsc_use_cookie($type));
 	    init_array($data);
 	    if($convert2str){
 	        

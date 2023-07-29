@@ -111,7 +111,7 @@ class Rdb extends Release{
             $contTitle=$collFields['title'];
             $contUrl=$collFields['url'];
             $collFields=$collFields['fields'];
-            $this->init_download_img($this->task,$collFields);
+            $this->init_download_config($this->task,$collFields);
             
             $dbTables=$this->config['db_tables'];
             $errorMsg=false;

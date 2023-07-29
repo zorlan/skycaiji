@@ -18,6 +18,7 @@ class CpatternBase extends CollectBase{
     public function init($config){}
     public function collect($num=10){}
     
+    
     /*正则规则匹配数据*/
     public function rule_module_rule_data($configParams,$html,$parentMatches=array(),$whole=false,$returnMatch=false){
         $val=null;
@@ -125,6 +126,22 @@ class CpatternBase extends CollectBase{
             return $val;
         }
     }
+    public function rule_module_rule_data_get($configParams,$html,$parentMatches=array(),$whole=false,$returnMatch=false){
+        
+        init_array($configParams);
+        $rule=$this->convert_sign_match($configParams['rule']);
+        $rule=$this->correct_reg_pattern($rule);
+        
+        $ruleMerge=$this->set_merge_default($rule, $configParams['rule_merge']);
+        if(empty($ruleMerge)){
+            
+            $ruleMerge=cp_sign('match');
+        }
+        $configParams['rule']=$rule;
+        $configParams['rule_merge']=$ruleMerge;
+        
+        return $this->rule_module_rule_data($configParams,$html,$parentMatches,$whole,$returnMatch);
+    }
     /*拼接替换标签*/
     public function merge_match_signs($matches,$merge){
         if(!is_array($matches)){
@@ -160,6 +177,7 @@ class CpatternBase extends CollectBase{
     public function rule_module_xpath_data($configParams,$html){
         $vals='';
         if(!empty($configParams['xpath'])){
+            $html=$this->filter_html_tags($html,array('script'));
             $dom=new \DOMDocument;
             $libxml_previous_state = libxml_use_internal_errors(true);
             @$dom->loadHTML('<meta http-equiv="Content-Type" content="text/html;charset=utf-8">'.$html);
@@ -297,7 +315,7 @@ class CpatternBase extends CollectBase{
                         }else{
                             if($key!='*'){
                                 
-                                $val=$val[$key];
+                                $val=is_array($val)?$val[$key]:'';
                             }
                         }
                         $prevKey=$key;
@@ -456,8 +474,12 @@ class CpatternBase extends CollectBase{
     }
     /*修正规则中的正则表达式*/
     public function correct_reg_pattern($str){
-        $str=preg_replace('/\\\*([\'\/])/', "\\\\$1",$str);
-        $str=$this->convert_sign_wildcard($str);
+        if(isset($str)){
+            $str=preg_replace('/\\\*([\'\/])/', "\\\\$1",$str);
+            $str=$this->convert_sign_wildcard($str);
+        }else{
+            $str='';
+        }
         return $str;
     }
     /*转换(*)通配符*/
@@ -543,7 +565,7 @@ class CpatternBase extends CollectBase{
     /*保存数据处理时过滤配置参数*/
     public function set_process($processList){
         if(is_array($processList)){
-            $processList=\util\Funcs::array_array_map('trim',$processList);
+            $processList=trim_input_process(null,$processList);
             foreach ($processList as $k=>$v){
                 init_array($v);
                 $v['module']=strtolower($v['module']);
@@ -573,6 +595,8 @@ class CpatternBase extends CollectBase{
                 }elseif('if'==$v['module']){
                     init_array($v['if_addon']);
                     \util\Funcs::filter_key_val_list5($v['if_cond'],$v['if_logic'],$v['if_val'],$v['if_addon']['func'],$v['if_addon']['turn']);
+                }elseif('download'==$v['module']){
+                    $v['download_file_tag']=\skycaiji\admin\model\Config::process_tag_attr($v['download_file_tag']);
                 }
                 $processList[$k]=$v;
             }

@@ -636,5 +636,29 @@ class Tools{
         }
         return $url;
     }
+    /**
+     * 采集输出信息
+     * @param mixed $strArgs
+     * @param string $color
+     */
+    public static function collect_output($strArgs,$color='red',$exit=true){
+        static $class=null;
+        if(!isset($class)){
+            $class=controller('admin/CollectController');
+        }
+        if($exit){
+            $class->echo_msg_exit($strArgs,$color);
+        }else{
+            $class->echo_msg($strArgs,$color);
+        }
+    }
+    
+    public static function cp_rule_module_name($name,$namePre,$nameKey){
+        if($name=='data-process'){
+            return 'data-process="'.$namePre.$nameKey.'"';
+        }else{
+            return 'name="'.$name.'['.$namePre.$nameKey.']"';
+        }
+    }
 }
 ?>

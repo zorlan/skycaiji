@@ -57,7 +57,8 @@ div.in-line-mg{display:inline;margin-right:5px;}
 .wrapper-not-enable .tab-content{background:#f1f1f1;opacity:0.7;}
 .wrapper-not-enable .panel-collapse{background:#f1f1f1;opacity:0.7;}
 
-.box-not-enable{background:#f1f1f1;opacity:0.7;}
+.box-enable-wrapper{margin-top:15px;display:block;padding:5px 0 5px 15px;border-left:3px solid #eee;border-radius:3px;}
+.box-not-enable .box-enable-wrapper{display:none;}
 
 #confirm_right .cr-msg p:last-child{margin-bottom:0;}
 
@@ -220,10 +221,10 @@ table.table thead .sorting_desc:after {
 	border-bottom:0;
 }
 /*请求头信息*/
-.c-p-request-headers table,.c-p-request-headers-img table{margin-bottom:0}
-.c-p-request-headers .delete-request-header,.c-p-request-headers-img .delete-request-header-img{margin-top:8px;}
-.c-p-request-headers td:first-child,.c-p-request-headers-img td:first-child{width:200px;}
-.c-p-request-headers td:last-child,.c-p-request-headers-img td:last-child{width:50px;text-align:center;}
+.c-p-request-headers table,.c-p-request-headers-img table,.c-p-request-headers-file table{margin-bottom:0}
+.c-p-request-headers .delete-request-header,.c-p-request-headers-img .delete-request-header-img,.c-p-request-headers-file .delete-request-header-file{margin-top:8px;}
+.c-p-request-headers td:first-child,.c-p-request-headers-img td:first-child,.c-p-request-headers-file td:first-child{width:200px;}
+.c-p-request-headers td:last-child,.c-p-request-headers-img td:last-child,.c-p-request-headers-file td:last-child{width:50px;text-align:center;}
 /*内容标签*/
 .c-p-url-content-signs{
 	width:auto;
@@ -327,6 +328,7 @@ table.table thead .sorting_desc:after {
 .p-m-api-table table,.p-m-api-header-table table{margin-bottom:0;}
 .p-m-api-table td:first-child,.p-m-api-header-table td:first-child{width:200px;}
 .p-m-api-table td:last-child,.p-m-api-header-table td:last-child{width:50px;text-align:center;}
+.p-m-api-rule-module{display:none;}
 
 .p-m-html-tags{}
 .p-m-html-tags a{font-size:12px;font-weight:normal;cursor:pointer;margin-right:5px;}
@@ -335,6 +337,8 @@ table.table thead .sorting_desc:after {
 .p-m-if-val-func a.input-group-addon{border-left:0;}
 .p-m-if-val-func .input-group-btn>select{border-left:0;width:auto;padding:0;padding-left:5px;text-align:center;}
 .p-m-if-op{width:70px;padding:15px 0 0 8px!important;font-size:11px;}
+
+.p-m-download-op{display:none;margin-top:15px;}
 /*发布设置*/
 .rele-db-error{margin-top:10px;color:red;font-weight:bold;}
 .db-table-bind-params{padding:0;margin-bottom:0;border:0;}
@@ -358,6 +362,8 @@ table.table thead .sorting_desc:after {
 .toapi-param-table table,.toapi-header-table table{margin-bottom:0;}
 .toapi-param-table td:first-child,.toapi-header-table td:first-child{width:200px;}
 .toapi-param-table td:last-child,.toapi-header-table td:last-child{width:50px;text-align:center;}
+
+#toapi_resp_module_help .help-block{display:none;margin:0;}
 /*步骤条*/
 .steps-bar{width:100%;overflow:hidden;color:#999;}
 .steps-bar a{color:#999;}
@@ -481,6 +487,7 @@ table.table thead .sorting_desc:after {
 /*开发*/
 .deve-editor-left{padding-right:0px;}
 .deve-editor-right{padding-left:1px;}
+.deve-editor-apps-nav{margin-bottom:0;}
 
 .deve-editor-apps{padding-left:5px;list-style:none;}
 .deve-editor-apps li{padding:2px 0;width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}

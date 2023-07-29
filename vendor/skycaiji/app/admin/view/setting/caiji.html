@@ -55,9 +55,10 @@
 		        </select>
 			   	<p class="help-block run-backstage">将在PHP后台开启一个持续进程用来运行采集，会占用一些服务器资源</p>
 			    <p class="help-block run-visit" style="display:none;">
-			    	需在您的网站底部模板中加入一条html代码：<br/>
+			    	需在您的网站前端页面中加入一条html代码：<br/>
 			    	<em><b>&lt;script src="{:url('admin/index/caiji',null,false,true)}" async&gt;&lt;/script&gt;</b></em>
-					<br/>添加后，用户访问页面时即可触发采集，该方法不会额外消耗服务器资源
+					<br/>添加后，用户访问页面时即可触发采集，您也可以触发指定任务：
+					<br/><em><b>&lt;script src="{:url('admin/index/caiji?task_ids=',null,false,true)}任务id多个逗号分隔" async&gt;&lt;/script&gt;</b></em>
 				</p>
 		    </div>
 		</div>
