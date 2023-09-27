@@ -32,7 +32,9 @@ class Tools{
     
     public static function set_url_compatible(){
         \think\Url::root(config('root_url').'/index.php?s=');
-        define('URL_IS_COMPATIBLE', true);
+        if(!defined('URL_IS_COMPATIBLE')){
+            define('URL_IS_COMPATIBLE', true);
+        }
     }
     
     public static function load_data_config(){
@@ -191,25 +193,45 @@ class Tools{
         return $vars;
     }
     
-    public static function cli_command_exec($paramStr){
-        
-        if(config('cli_cache_config')){
-            $cacheConfig=\skycaiji\admin\model\CacheModel::getInstance()->getCache('cli_cache_config','data');
-            $cliConfig=array();
-            foreach (config('cli_cache_config') as $key){
-                $cliConfig[$key]=config($key);
-            }
-            if(serialize($cacheConfig)!=serialize($cliConfig)){
-                
-                \skycaiji\admin\model\CacheModel::getInstance()->setCache('cli_cache_config',$cliConfig);
-            }
-        }
-        
-        $commandStr=g_sc_c('caiji','server_php');
-        if(empty($commandStr)){
+    public static function cli_cache_config($set=false){
+        if($set){
             
-            $commandStr=\skycaiji\admin\model\Config::detect_php_exe();
+            if(config('cli_cache_config')){
+                $cacheConfig=\skycaiji\admin\model\CacheModel::getInstance()->getCache('cli_cache_config','data');
+                $cliConfig=array();
+                foreach (config('cli_cache_config') as $key){
+                    $cliConfig[$key]=config($key);
+                }
+                if(serialize($cacheConfig)!=serialize($cliConfig)){
+                    
+                    \skycaiji\admin\model\CacheModel::getInstance()->setCache('cli_cache_config',$cliConfig);
+                }
+            }
+        }else{
+            
+            $cacheConfig=\skycaiji\admin\model\CacheModel::getInstance()->getCache('cli_cache_config','data');
+            if(is_array($cacheConfig)){
+                \think\Config::set($cacheConfig);
+            }
         }
+    }
+    
+    public static function cli_command_exec($paramStr){
+        self::cli_cache_config(true);
+        
+        $commandStr='';
+        if(preg_match('/^\s*collect\b/i', $paramStr)){
+            
+            $commandStr=g_sc_c('caiji','server_php');
+            if(empty($commandStr)){
+                
+                $commandStr=\skycaiji\admin\model\Config::detect_php_exe();
+            }
+        }elseif(preg_match('/^\s*swoole\b/i', $paramStr)){
+            
+            $commandStr=g_sc_c('caiji','swoole_php');
+        }
+        
         if(!empty($commandStr)){
             $commandStr=\skycaiji\admin\model\Config::cli_safe_filename($commandStr);
             
@@ -219,11 +241,10 @@ class Tools{
             
             $commandStr.=' '.config('root_path').DIRECTORY_SEPARATOR.'skycaiji '.$paramStr;
             
-            \util\Funcs::close_session();
-            
             
             self::proc_open_exec($commandStr);
         }
+        
         
         exit();
     }
@@ -659,6 +680,65 @@ class Tools{
         }else{
             return 'name="'.$name.'['.$namePre.$nameKey.']"';
         }
+    }
+    
+    
+    public static function load_websocket(){
+        
+        static $loaded;
+        if(!isset($loaded)){
+            $loaded=true;
+            
+            \think\Loader::addNamespace('WebSocket',realpath(config('app_path').'/extend/websocket'));
+        }
+    }
+    
+    
+    public static function close_session(){
+        if(session_status()===PHP_SESSION_ACTIVE){
+            
+            \think\Session::boot();
+            \think\Session::pause();
+        }
+    }
+    
+    
+    public static function echo_url_msg_id($url,$clearId=false){
+        static $reg='/\#(post_|render_|post_render_){1,}\w{32}$/i';
+        if($clearId){
+            
+            $url=preg_replace($reg, '', $url);
+            return $url;
+        }else{
+            
+            $id='';
+            if(preg_match($reg,$url,$mid)){
+                $id=$mid[0];
+            }
+            return $id;
+        }
+    }
+    
+    public static function echo_url_msg_link($url,$returnArray=false){
+        $data=null;
+        if(strpos($url,'#')!==false){
+            $urlId=\util\Tools::echo_url_msg_id($url);
+            if($urlId){
+                $urlInfo=\util\Param::get_echo_url_msg($urlId);
+                if(!empty($urlInfo)){
+                    $urlInfo=json_encode($urlInfo);
+                    $data=array(
+                        ' <a href="javascript:;" onclick="window.parent.window.collectorEchoMsg.echo_url_msg(%s);">[查看信息]</a>',
+                        $urlInfo
+                    );
+                    if(!$returnArray){
+                        
+                        $data=vsprintf($data[0],htmlspecialchars($data[1],ENT_QUOTES));
+                    }
+                }
+            }
+        }
+        return $data;
     }
 }
 ?>

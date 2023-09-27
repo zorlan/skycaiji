@@ -19,8 +19,8 @@ class Rcms extends Release{
 	 * @param unknown $config
 	 */
 	public function setConfig($config){
-	    $config['cms']=input('cms/a',array());
-	    $config['cms_app']=input('cms_app/a',array());
+	    $config['cms']=\util\UnmaxPost::val('cms/a',array());
+	    $config['cms_app']=\util\UnmaxPost::val('cms_app/a',array());
 		if(empty($config['cms']['path'])){
 			$this->error('cms路径不能为空');
 		}

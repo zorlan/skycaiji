@@ -407,24 +407,6 @@ class Task extends CollectController {
             $proxyGroupId=g_sc_c('proxy','group_id');
             $proxyGroupId=intval($proxyGroupId);
             
-            $imgFuncParam=g_sc_c('download_img','img_func_param');
-            if($imgFuncParam){
-                $imgFuncParam=str_replace("\r", '\r', $imgFuncParam);
-                $imgFuncParam=str_replace("\n", '\n', $imgFuncParam);
-                $imgFuncParam=htmlspecialchars($imgFuncParam,ENT_QUOTES);
-            }else{
-                $imgFuncParam='';
-            }
-            
-            $fileFuncParam=g_sc_c('download_file','file_func_param');
-            if($fileFuncParam){
-                $fileFuncParam=str_replace("\r", '\r', $fileFuncParam);
-                $fileFuncParam=str_replace("\n", '\n', $fileFuncParam);
-                $fileFuncParam=htmlspecialchars($fileFuncParam,ENT_QUOTES);
-            }else{
-                $fileFuncParam='';
-            }
-            
             $gConfig=array(
                 'num'=>intval(g_sc_c('caiji','num')),
                 'num_interval'=>intval(g_sc_c('caiji','interval')),
@@ -449,9 +431,7 @@ class Task extends CollectController {
                 'img_wm_right'=>g_sc_c('download_img','img_wm_right')?g_sc_c('download_img','img_wm_right'):'0',
                 'img_wm_bottom'=>g_sc_c('download_img','img_wm_bottom')?g_sc_c('download_img','img_wm_bottom'):'0',
                 'img_wm_opacity'=>g_sc_c('download_img','img_wm_opacity')?g_sc_c('download_img','img_wm_opacity'):'不透明',
-                
-                'img_func'=>g_sc_c('download_img','img_func'),
-                'img_func_param'=>$imgFuncParam,
+                'img_funcs'=>g_sc_c('download_img','img_funcs'),
                 
                 'download_file'=>g_sc_c('download_file','download_file')>0?'1':'',
                 'file_path'=>g_sc_c('download_file','file_path')?g_sc_c('download_file','file_path'):(config('root_path').DS.'data'.DS.'files'),
@@ -460,9 +440,12 @@ class Task extends CollectController {
                 'file_custom_path'=>g_sc_c('download_file','file_custom_path')?g_sc_c('download_file','file_custom_path'):'无',
                 'file_custom_name'=>lang('down_file_name_custom_name_'.g_sc_c('download_file','file_custom_name')),
                 'file_interval'=>intval(g_sc_c('download_file','file_interval')),
-                'file_func'=>g_sc_c('download_file','file_func'),
-                'file_func_param'=>$fileFuncParam,
+                'file_funcs'=>g_sc_c('download_file','file_funcs'),
             );
+            init_array($gConfig['img_funcs']);
+            init_array($gConfig['file_funcs']);
+            
+            
             $this->assign('gConfig',$gConfig);
             $this->assign('tgSelect',$tgSelect);
             $this->assign('proxyGroups',model('ProxyGroup')->getAll());
@@ -622,6 +605,11 @@ class Task extends CollectController {
     	        $config['file_custom_name']='';
     	    }
     	}
+    	
+    	init_array($config['img_funcs']);
+    	$config['img_funcs']=array_values($config['img_funcs']);
+    	init_array($config['file_funcs']);
+    	$config['file_funcs']=array_values($config['file_funcs']);
     	
     	return $config;
     }

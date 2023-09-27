@@ -18,7 +18,7 @@ class Rtoapi extends Release{
      * @param unknown $config
      */
     public function setConfig($config){
-        $toapi=input('toapi/a',array(),'trim');
+        $toapi=\util\UnmaxPost::val('toapi/a',array(),'trim');
         if($toapi['module']=='app'){
             if(empty($toapi['app_url'])){
                 $this->error('请输入接口地址');
@@ -193,6 +193,7 @@ class Rtoapi extends Release{
                 
                 $postData=$this->_replace_fields($paramVals,$collFields);
                 $url=$this->_replace_fields($apiUrl,$collFields);
+                $url=\util\Funcs::url_auto_encode($url, $apiCharset);
                 
                 if($apiConfig['type']=='post'){
                     

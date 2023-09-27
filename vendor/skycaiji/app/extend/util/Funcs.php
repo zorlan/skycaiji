@@ -303,17 +303,6 @@ class Funcs{
 	}
 	
 	
-	public static function close_session(){
-	    static $closed=null;
-	    if(!isset($closed)){
-	        $closed=true;
-	        if(session_status()!==PHP_SESSION_ACTIVE){
-	            session_start();
-	        }
-	        session_write_close();
-	    }
-	}
-	
 	public static function url_params_charset($url,$params,$charset=null){
 	    
 	    if($params&&is_array($params)){
@@ -465,6 +454,22 @@ class Funcs{
 	        $suffix='';
 	    }
 	    return $suffix;
+	}
+	
+	public static function url_auto_encode($url,$charset){
+	    if($url){
+	        $url=preg_replace_callback('/[^\x21-\x7E]+/',function($mstr)use($charset){
+	            
+	            $mstr=$mstr[0];
+	            if(!empty($charset)){
+	                
+	                $mstr=self::convert_charset($mstr,'utf-8',$charset);
+	            }
+	            $mstr=rawurlencode($mstr);
+	            return $mstr;
+	        },$url);
+	    }
+	    return $url;
 	}
 }
 

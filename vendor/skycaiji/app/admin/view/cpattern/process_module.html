@@ -338,8 +338,12 @@
 	<div class="c-p-process-module" module="batch">
 		<div class="form-group">
 			<label>批量替换</label>
-			<textarea data-process="batch:batch_list" rows="3" class="form-control"></textarea>
+			<textarea data-process="batch:batch_list" rows="5" class="form-control"></textarea>
 			<p class="help-block">一行一对替换词，用“=”分隔，例如：aa=bb，即将“aa”替换成“bb”</p>
+		</div>
+		<div class="form-group">
+			<label>替换词分隔符</label>
+			<input type="text" data-process="batch:batch_sign" class="form-control" placeholder="默认=" />
 		</div>
 	</div>
 	<div class="c-p-process-module" module="substr">
@@ -375,7 +379,7 @@
 			<textarea data-process="func:func_param" rows="2" class="form-control" data-placeholder="默认传入当前字段"></textarea>
 			<div class="help-block">
 				一行一个值, 可输入任何内容或<select class="p-m-func-field"><option value="">插入字段</option></select>
-				请按函数传参, 否则运行出错！<a href="javascript:;" onclick="tipsPluginFunc('process')">扩展函数</a>
+				请按函数传参, 否则运行出错！<a href="javascript:;" onclick="pluginFuncOp.tips('process')">扩展函数</a>
 			</div>
 		</div>
 		</section>
@@ -384,7 +388,15 @@
 		<section>
 		<div class="form-group">
 			<label>接口地址</label>
-			<input type="text" data-process="api:api_url" class="form-control" />
+			<div class="input-group">
+				<input type="text" data-process="api:api_url" class="form-control" />
+				<div class="input-group-addon" style="padding:0;">
+            		<div class="form-control-slt p-m-api-url-field">
+            			<select class="form-control">
+               			</select>
+            		</div>
+      			</div>
+			</div>
 			<p class="help-block">以/开头自动补全为{:config('root_website')}/</p>
 		</div>
 		<div class="form-group">

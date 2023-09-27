@@ -342,6 +342,15 @@ class Index extends CollectController{
 	    if($mconfig->server_is_cli(true,$caijiConfig['server'])){
 	        
 	        \util\Tools::cli_command_exec('collect auto_backstage');
+	    }elseif($mconfig->server_is_swoole(true,$caijiConfig['server'])){
+	        $ss=new \util\SwooleSocket($caijiConfig['swoole_host'],$caijiConfig['swoole_port']);
+	        $ssError=$ss->websocketError();
+	        if($ssError){
+	            $this->error($ssError);
+	        }else{
+	            
+	            $ss->send('auto_backstage');
+	        }
 	    }else{
 	        
 	        $curlCname='caiji_auto_curltime_'.$key;
@@ -519,6 +528,17 @@ class Index extends CollectController{
 	            }
 	            \util\Tools::cli_command_exec('collect collect_process'.$urlParams);
 	            exit();
+	        }elseif(model('admin/Config')->server_is_swoole()){
+	            $ss=new \util\SwooleSocket(g_sc_c('caiji','swoole_host'),g_sc_c('caiji','swoole_port'));
+	            $ssError=$ss->websocketError();
+	            if($ssError){
+	                $this->echo_msg_exit($ssError);
+	            }else{
+	                
+	                $urlParams=input('param.','','trim');
+	                $ss->send('collect_process',array('url_params'=>$urlParams));
+	            }
+	            exit();
 	        }
 	    }
 	    
@@ -596,7 +616,7 @@ class Index extends CollectController{
 	}
 	
 	private function _collect_check_key(){
-	    if(is_empty(session('user_login'))){
+	    if(is_empty(g_sc('user_login'))){
 	        
 	        if(!\util\Param::exist_cache_key(input('key'))){
 	            
@@ -622,9 +642,23 @@ class Index extends CollectController{
 	        $timeout=intval($params[2]);
 	        $timeout=max($timeout,15);
 	        set_time_limit($timeout);
-	        \util\Funcs::close_session();
 	        $info=\util\Tools::proc_open_exec($params[0],$params[1],$params[2],$params[3],$params[4]);
 	    }
 	    return json($info);
+	}
+	
+	public function swoole_serverAction(){
+	    $key=input('key');
+	    $ssKey=\util\Param::get_swoole_server_key();
+	    if(empty($key)||$key!=$ssKey){
+	        
+	        $this->error('密钥错误');
+	    }
+	    if(model('Config')->server_is_swoole_php()){
+	        $ss=new \util\SwooleSocket(g_sc_c('caiji','swoole_host'),g_sc_c('caiji','swoole_port'));
+	        \util\Tools::cli_command_exec($ss->cmdStr());
+	    }else{
+	        $this->error('未开启swoole快捷启动');
+	    }
 	}
 }

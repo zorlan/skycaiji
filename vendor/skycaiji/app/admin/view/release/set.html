@@ -255,7 +255,17 @@
 						<div class="form-group">
 							<label>接口地址</label>
 							<input type="text" name="toapi[url]" class="form-control" />
-							<p class="help-block">以/开头自动补全为{:config('root_website')}/</p>
+							<div class="help-block">
+								以/开头自动补全为{:config('root_website')}/
+								<select id="toapi_url_field" style="color:#333;margin-left:5px;border:0;width:80px;cursor:pointer;">
+									<option value="">插入字段</option>
+									{if !empty($collFields)}
+									{foreach $collFields as $v}
+									<option value="[采集字段:{$v}]">采集字段：{$v}</option>
+									{/foreach}
+									{/if}
+								</select>
+							</div>
 						</div>
 						<div class="form-group">
 							<label>网页编码</label>
@@ -406,24 +416,24 @@
 						            <tbody>
 						            	<tr>
 						            		<td>id（编号）</td>
-						            		<td><input type="text" name="toapi[response][id]" class="form-control" data-placeholder="记录入库的自增id或入库状态" autocomplete="off" /></td>
+						            		<td><input type="text" name="toapi[response][id]" class="form-control" data-placeholder="记录入库的自增id或入库状态" placeholder="记录入库的自增id或入库状态，默认：id" autocomplete="off" /></td>
 						            	</tr>
 						            	<tr>
 						            		<td>target（位置）</td>
-						            		<td><input type="text" name="toapi[response][target]" class="form-control" data-placeholder="记录入库的数据位置（发布的网址等）" autocomplete="off" /></td>
+						            		<td><input type="text" name="toapi[response][target]" class="form-control" data-placeholder="记录入库的数据位置（发布的网址等）" placeholder="记录入库的数据位置（发布的网址等），默认：target" autocomplete="off" /></td>
 						            	</tr>
 						            	<tr>
 						            		<td>desc（描述）</td>
-						            		<td><input type="text" name="toapi[response][desc]" class="form-control" data-placeholder="记录入库的数据位置附加信息" autocomplete="off" /></td>
+						            		<td><input type="text" name="toapi[response][desc]" class="form-control" data-placeholder="记录入库的数据位置附加信息" placeholder="记录入库的数据位置附加信息，默认：desc" autocomplete="off" /></td>
 						            	</tr>
 						            	<tr>
 						            		<td>error（错误）</td>
-						            		<td><input type="text" name="toapi[response][error]" class="form-control" data-placeholder="记录入库失败的错误信息" autocomplete="off" /></td>
+						            		<td><input type="text" name="toapi[response][error]" class="form-control" data-placeholder="记录入库失败的错误信息" placeholder="记录入库失败的错误信息，默认：error" autocomplete="off" /></td>
 						            	</tr>
 						            	<tr>
 						            		<td></td>
 						            		<td id="toapi_resp_module_help">
-										        <p class="help-block" data-module="">直接输入键名，子节点用：a.b.c</p>
+										        <p class="help-block" data-module="" style="display:block;">直接输入键名，子节点用：a.b.c</p>
 										        <p class="help-block" data-module="xpath">使用xpath规则</p>
 										        <p class="help-block" data-module="rule">
 										        	使用正则表达式

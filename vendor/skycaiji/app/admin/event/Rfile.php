@@ -17,7 +17,7 @@ class Rfile extends Release {
 	 * @param unknown $config
 	 */
 	public function setConfig($config){
-	    $file=input('file/a',array());
+	    $file=\util\UnmaxPost::val('file/a',array());
 		$file['path']=trim($file['path'],'\/\\');
 		$file['hide_fields']=is_array($file['hide_fields'])?$file['hide_fields']:array();
 		if(empty($file['path'])){

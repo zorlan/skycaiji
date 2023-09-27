@@ -55,6 +55,16 @@ class Param{
 	    return \skycaiji\admin\model\CacheModel::getInstance()->getCache('collect_auto_backstage_key', 'data');
 	}
 	
+	public static function set_swoole_server_key(){
+	    $key=\util\Funcs::uniqid('collect_swoole_server_key');
+	    \skycaiji\admin\model\CacheModel::getInstance()->setCache('collect_swoole_server_key', $key);
+	    return $key;
+	}
+	
+	public static function get_swoole_server_key(){
+	    return \skycaiji\admin\model\CacheModel::getInstance()->getCache('collect_swoole_server_key', 'data');
+	}
+	
 	public static function set_proc_open_exec_key(){
 	    $key=\util\Funcs::uniqid('proc_open_exec_key');
 	    \skycaiji\admin\model\CacheModel::getInstance()->setCache('proc_open_exec_key', $key);
@@ -122,6 +132,21 @@ class Param{
             }
 	        $cookie=implode(';', $cookie);
 	        $data=$cookie;
+	    }
+	    return $data;
+	}
+	
+	public static function set_echo_url_msg($key,$data){
+	    set_g_sc(['echo_url_msg_data',$key], $data);
+	}
+	public static function get_echo_url_msg($key){
+	    $data=null;
+	    if(empty($key)){
+	        
+	        $data=g_sc('echo_url_msg_data');
+	    }else{
+	        $data=g_sc('echo_url_msg_data',$key);
+	        self::set_echo_url_msg($key, null);
 	    }
 	    return $data;
 	}

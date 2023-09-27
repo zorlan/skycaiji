@@ -37,24 +37,13 @@
 					<input type="number" class="form-control" name="{$_tpl_vars['name']}[pagination][max]" value="10">
 					<p class="help-block">填0表示不限制会自动循环抓取到最后一页，为防止出现无限循环的情况，最好设置一个数值以便采集到相应数量的分页后跳出循环抓取</p>
 				</div>
-				<div class="form-group">
-					<label class="control-label">使用“请求{$_tpl_vars['title']}网址”</label>
-					<div class="input-group">
-						<label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[pagination][use_url_web]" value="" checked="checked"> 默认：<span class="def-config-url-web-open">否</span></label>
-						<label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[pagination][use_url_web]" value="y"> 是</label>
-						<label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[pagination][use_url_web]" value="n"> 否</label>
-					</div>
-					<p class="help-block">抓取{$_tpl_vars['title']}分页时发送请求，默认使用{$_tpl_vars['title']}»请求{$_tpl_vars['title']}网址的配置（受开启状态影响）</p>
-				</div>
-				<div class="form-group">
-					<label class="control-label">使用“执行页面渲染”</label>
-					<div class="input-group">
-						<label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[pagination][use_renderer]" value="" checked="checked"> 默认：<span class="def-config-page-render">否</span><span class="def-config-renderer-open" style="display:none;">否</span></label>
-						<label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[pagination][use_renderer]" value="y"> 是</label>
-						<label class="radio-inline"><input type="radio" name="{$_tpl_vars['name']}[pagination][use_renderer]" value="n"> 否</label>
-					</div>
-					<p class="help-block">抓取{$_tpl_vars['title']}分页时执行页面渲染，默认使用{$_tpl_vars['title']}»执行页面渲染的配置（受开启状态影响）</p>
-				</div>
+				{if $_tpl_page_type=='source_url'}
+					{include file="cpattern:set_page_url" _page_type="source_url" _is_pagination="1" /}
+				{elseif $_tpl_page_type=='level_url' /}
+					{include file="cpattern:set_page_url" _page_type="level_url" _is_pagination="1" /}
+				{elseif $_tpl_page_type=='url' /}
+					{include file="cpattern:set_page_url" _page_type="url" _is_pagination="1" /}
+				{/if}
 			</div>
 		</div>
 	</div>

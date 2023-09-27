@@ -40,6 +40,31 @@ class CollectBase extends \skycaiji\admin\controller\CollectController {
 		}
 	}
 	
+	public function echo_url_msg($strArgs,$url,$opened='',$color='black'){
+	    init_array($strArgs);
+	    if($opened){
+	        
+	        $strArgs[0].='：%s';
+	        $strArgs[]=$opened.$url;
+	    }else{
+	        
+	        $strArgs[0].='：<a href="%s" target="_blank">%s</a>';
+	        $strArgs[]=$url;
+	        $strArgs[]=$url;
+	    }
+	    
+	    if(!\util\Param::is_task_close_echo()){
+	        
+	        $urlMsgLink=\util\Tools::echo_url_msg_link($url,true);
+	        if($urlMsgLink&&is_array($urlMsgLink)){
+	            $strArgs[0].=$urlMsgLink[0];
+	            $strArgs[]=$urlMsgLink[1];
+	        }
+	    }
+	    
+	    $this->echo_msg($strArgs,$color);
+	}
+	
 	/*判断采集器正在执行中*/
 	public function is_collecting(){
 	    return \util\Param::is_collector_collecting();

@@ -93,9 +93,8 @@ class Cpattern extends CpatternEvent{
                 $config['field_process'][$k]=$this->set_process($config['field_process'][$k]);
             }
         }
-        $config['common_process']=trim_input_process('process/a');
+        $config['common_process']=\util\UnmaxPost::val('process/a',array(),null);
         $config['common_process']=$this->set_process($config['common_process']);
-        
         
         if(is_array($config['level_urls'])){
             
@@ -496,21 +495,36 @@ class Cpattern extends CpatternEvent{
         if(!empty($config['new_front_urls'])){
             foreach ($config['new_front_urls'] as $k=>$v){
                 
-                $signs[$this->page_source_merge('front_url',$k)]=array(''=>$this->parent_page_signs('front_url', $k, ''));
+                $signs[$this->page_source_merge('front_url',$k)]=array(
+                    ''=>$this->parent_page_signs('front_url', $k, ''),
+                    'pn:'=>$this->parent_page_signs('front_url', $k, 'pn:')
+                );
             }
         }
-        $signs['source_url']=array(''=>$this->parent_page_signs('source_url', '', ''));
+        $signs['source_url']=array(
+            ''=>$this->parent_page_signs('source_url', '', ''),
+            'pn:'=>$this->parent_page_signs('source_url', '', 'pn:')
+        );
         if(!empty($config['new_level_urls'])){
             foreach ($config['new_level_urls'] as $k=>$v){
                 
-                $signs[$this->page_source_merge('level_url',$k)]=array(''=>$this->parent_page_signs('level_url', $k, ''));
+                $signs[$this->page_source_merge('level_url',$k)]=array(
+                    ''=>$this->parent_page_signs('level_url', $k, ''),
+                    'pn:'=>$this->parent_page_signs('level_url', $k, 'pn:')
+                );
             }
         }
-        $signs['url']=array(''=>$this->parent_page_signs('url', '', ''));
+        $signs['url']=array(
+            ''=>$this->parent_page_signs('url', '', ''),
+            'pn:'=>$this->parent_page_signs('url', '', 'pn:')
+        );
         if(!empty($config['new_relation_urls'])){
             foreach ($config['new_relation_urls'] as $k=>$v){
                 
-                $signs[$this->page_source_merge('relation_url',$k)]=array(''=>$this->parent_page_signs('relation_url', $k, ''));
+                $signs[$this->page_source_merge('relation_url',$k)]=array(
+                    ''=>$this->parent_page_signs('relation_url', $k, ''),
+                    'pn:'=>$this->parent_page_signs('relation_url', $k, 'pn:')
+                );
             }
         }
         $this->config_params['signs']=$signs;
@@ -649,6 +663,7 @@ class Cpattern extends CpatternEvent{
 		    $source_urls=$this->page_convert_url_signs('source_url', '', false, $source_urls, array(), false);
 		}
 		$pageOpened=$this->page_opened_tips('source_url');
+		$pnOpened=$this->page_opened_tips('source_url','',true);
 		foreach ($source_urls as $key_source_url=>$source_url){
 		    $this->cur_source_url=$source_url;
 		    if(array_key_exists($source_url,$this->used_source_urls)){
@@ -682,7 +697,8 @@ class Cpattern extends CpatternEvent{
 		                }
 		            }
 		            $this->used_pagination_urls['source_url'][$pageCurMd5]=1;
-		            $this->echo_msg($pageOpened?array('采集起始页%s：%s',$pagePnStr,$pageOpened.$pageCurUrl):array('采集起始页%s：<a href="%s" target="_blank">%s</a>',$pagePnStr,$pageCurUrl,$pageCurUrl),$pageIsPn?'black':'green');
+		            
+		            $this->echo_url_msg(array('采集起始页%s',$pagePnStr),$pageCurUrl,$pageIsPn?$pnOpened:$pageOpened,$pageIsPn?'black':'green');
 		            if(!empty($this->config['level_urls'])){
 		                
 		                
@@ -753,7 +769,7 @@ class Cpattern extends CpatternEvent{
 	            }
 	            if($frontUrl){
 	                $pageOpened=$this->page_opened_tips('front_url',$fuv['name']);
-	                $this->echo_msg($pageOpened?array('采集前置页“%s”：%s',$fuv['name'],$pageOpened.$frontUrl):array('采集前置页“%s”：<a href="%s" target="_blank">%s</a>',$fuv['name'],$frontUrl,$frontUrl),'black');
+	                $this->echo_url_msg(array('采集前置页“%s”',$fuv['name']),$frontUrl,$pageOpened);
 	                $htmlInfo=$this->get_page_html($frontUrl,'front_url',$fuv['name'],false,true);
 	                if($fuv['use_cookie']||$fuv['use_cookie_img']||$fuv['use_cookie_file']){
 	                    
@@ -905,9 +921,21 @@ class Cpattern extends CpatternEvent{
 	
 	/*获取分页链接*/
 	public function getPaginationUrls($pageType,$pageName,$isPagination,$fromUrl,$html,$isTest=false){
+	    if(!isset($this->pn_area_matches[$pageType])){
+	        $this->pn_area_matches[$pageType]=array();
+	    }
+	    if(!isset($this->pn_area_matches[$pageType][$pageName])){
+	        $this->pn_area_matches[$pageType][$pageName]=array();
+	    }
+	    if(!isset($this->pn_url_matches[$pageType])){
+	        $this->pn_url_matches[$pageType]=array();
+	    }
+	    if(!isset($this->pn_url_matches[$pageType][$pageName])){
+	        $this->pn_url_matches[$pageType][$pageName]=array();
+	    }
 	    $pn_urls=array();
 	    $pnConfig=$this->get_page_config($pageType,$pageName,'pagination');
-	    if($pnConfig&&is_array($pnConfig)&&$pnConfig['open']){
+	    if($this->pagination_is_open(null,null,$pnConfig)){
 	        
 	        if(empty($html)){
 	            $html=$this->get_page_html($fromUrl, $pageType, $pageName, $isPagination);
@@ -921,24 +949,9 @@ class Cpattern extends CpatternEvent{
 	            }
 	            if($allowColl){
 	                $url_info=$this->match_url_info($fromUrl,$html);
-	                
-	                $pn_area='';
-	                if(!empty($pnConfig['reg_area'])){
-	                    
-	                    if(empty($pnConfig['reg_area_module'])){
-	                        
-	                        $pn_area=$this->get_rule_module_rule_data(array('rule'=>$pnConfig['reg_area'],'rule_merge'=>$pnConfig['reg_area_merge']), $html,null,true);
-	                    }elseif('json'==$pnConfig['reg_area_module']){
-	                        
-	                        $pn_area=$this->rule_module_json_data(array('json'=>$pnConfig['reg_area'],'json_arr'=>'jsonencode'),$html);
-	                    }elseif('xpath'==$pnConfig['reg_area_module']){
-	                        
-	                        $pn_area=$this->rule_module_xpath_data(array('xpath'=>$pnConfig['reg_area'],'xpath_attr'=>'outerHtml'),$html);
-	                    }
-	                }else{
-	                    
-	                    $pn_area=$html;
-	                }
+	                $areaMatch=$this->rule_match_area($pageType, $pageName, true, $html, true);
+	                $pn_area=$areaMatch['area'];
+	                $this->pn_area_matches[$pageType][$pageName]=$areaMatch['matches'];
 	                if(!empty($pn_area)){
 	                    
 	                    
@@ -951,7 +964,9 @@ class Cpattern extends CpatternEvent{
 	                        },$pn_area);
 	                    }
 	                    
-	                    $m_pn_urls=$this->rule_match_urls($pageType,$pageName,true,$pn_area);
+	                    $urlsMatches=$this->rule_match_urls($pageType,$pageName,true,$pn_area,false,true);
+	                    
+	                    $m_pn_urls=$urlsMatches['urls'];
 	                    
 	                    
 	                    foreach ($m_pn_urls as $purl){
@@ -967,6 +982,8 @@ class Cpattern extends CpatternEvent{
 	                        $pn_urls=array_unique($pn_urls);
 	                        $pn_urls=array_values($pn_urls);
 	                        
+	                        
+	                        $this->pn_url_matches[$pageType][$pageName]=$urlsMatches['matches'];
 	                    }else{
 	                        if($isTest){
 	                            return $this->echo_error('未获取到分页链接，请检查分页链接规则');
@@ -1018,7 +1035,12 @@ class Cpattern extends CpatternEvent{
     	            }
     	        }
     	    }
+    	    
+    	    if(!empty($nextPnUrl)){
+    	        $this->cur_pagination_urls[$pageSource]=$nextPnUrl;
+    	    }
 	    }
+	    
 	    return $nextPnUrl;
 	}
 	
@@ -1083,7 +1105,8 @@ class Cpattern extends CpatternEvent{
 			    
 			    $pageOpened=$this->page_opened_tips($pageType,$pageName);
 		        $cur_url=$field_source_url;
-		        $this->echo_msg($pageOpened?array('%s：%s',$source_echo_msg,$pageOpened.$field_source_url):array('%s：<a href="%s" target="_blank">%s</a>',$source_echo_msg,$field_source_url,$field_source_url),'black');
+		        
+		        $this->echo_url_msg(array('%s',$source_echo_msg),$field_source_url,$pageOpened);
 		        $htmlInfo=$this->get_page_html($field_source_url, $pageType, $pageName,false,true);
 		        $html=$htmlInfo['html'];
 			}
@@ -1335,7 +1358,7 @@ class Cpattern extends CpatternEvent{
 			
 		    $this->collect_sleep(g_sc_c('caiji','interval_html'),true,true);
 		    $pageOpened=$this->page_opened_tips('url','',true);
-		    $this->echo_msg($pageOpened?array('——采集分页：%s',$pageOpened.$page_url):array('——采集分页：<a href="%s" target="_blank">%s</a>',$page_url,$page_url),'black');
+		    $this->echo_url_msg(array('——采集分页'),$page_url,$pageOpened);
 			$htmlInfo=$this->get_page_html($page_url,'url','',true,true);
 			if(empty($htmlInfo['html'])){
 			    return $this->echo_error('未获取到分页源代码');
@@ -1881,8 +1904,8 @@ class Cpattern extends CpatternEvent{
 				        }
 				    }
 				    $this->used_pagination_urls[$levelSource][$pageCurMd5]=1;
-				    $pageOpened=$this->page_opened_tips('level_url',$levelConfig['name']);
-				    $this->echo_msg($pageOpened?array('%s分析第%s级%s：%s',$next_level_str,$level,$pagePnStr,$pageOpened.$pageCurUrl):array('%s分析第%s级%s：<a href="%s" target="_blank">%s</a>',$next_level_str,$level,$pagePnStr,$pageCurUrl,$pageCurUrl),'black');
+				    $pageOpened=$this->page_opened_tips('level_url',$levelConfig['name'],$pageIsPn);
+				    $this->echo_url_msg(array('%s分析第%s级%s',$next_level_str,$level,$pagePnStr),$pageCurUrl,$pageOpened);
 				    if($level_data['nextLevel']>0){
 				        
 				        $return_msg=$this->_collect_level($pageCurUrl,$level_data['nextLevel']);
@@ -2003,7 +2026,7 @@ class Cpattern extends CpatternEvent{
 						continue;
 					}
 					$mcacheCont->setCache($md5_cont_url, 1);
-					$this->echo_msg($pageOpened?array('%s采集内容页：%s',$echo_str,$pageOpened.$cont_url):array('%s采集内容页：<a href="%s" target="_blank">%s</a>',$echo_str,$cont_url,$cont_url),'black');
+					$this->echo_url_msg(array('%s采集内容页',$echo_str),$cont_url,$pageOpened);
 					$field_vals_list=$this->getFields($cont_url);
 	
 					$is_loop=empty($this->first_loop_field)?false:true;

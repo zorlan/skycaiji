@@ -20,8 +20,73 @@ class Config extends \skycaiji\common\model\Config {
 		    $cacheConfig=array();
 		}
 		$configList=$cacheConfig['list'];
-		return is_array($configList)?$configList:array();
+		if(!empty($configList)){
+		    
+		    init_array($configList);
+		    $configList['download_img']=$this->compatible_func_config($configList['download_img'], false);
+		    $configList['download_file']=$this->compatible_func_config($configList['download_file'], true);
+		}
+		return $configList;
 	}
+	
+	
+	public function compatible_func_config($config,$isFileConfig,$isTaskConfig=false){
+	    
+	    if($config&&is_array($config)){
+    	    $funcName=$isFileConfig?'file_func':'img_func';
+    	    if(isset($config[$funcName])){
+    	        
+    	        $funcsName=$isFileConfig?'file_funcs':'img_funcs';
+    	        if(!$isTaskConfig){
+    	            if($config[$funcName]){
+    	                
+    	                $config[$funcsName]=array(
+    	                    array(
+    	                        'func'=>$config[$funcName],
+    	                        'func_param'=>$config[$funcName.'_param']
+    	                    )
+    	                );
+    	            }
+    	        }else{
+    	            
+    	            $taskFunc='';
+    	            $taskFuncParam=$config[$funcName.'_param'];
+    	            if(empty($config[$funcName])){
+    	                
+    	                $funcs=g_sc_c($isFileConfig?'download_file':'download_img',$funcsName);
+    	                if($funcs&&is_array($funcs)){
+    	                    $funcs=array_values($funcs);
+    	                    if($funcs[0]&&is_array($funcs[0])){
+    	                        
+    	                        $taskFunc=$funcs[0]['func'];
+    	                        $taskFuncParam=empty($taskFuncParam)?$funcs[0]['func_param']:$taskFuncParam;
+    	                    }
+    	                }
+    	            }else if($config[$funcName]=='n'){
+    	                
+    	                $config[$funcsName.'_open']='n';
+    	            }else{
+    	                $taskFunc=$config[$funcName];
+    	            }
+    	            if($taskFunc){
+    	                
+    	                $config[$funcsName.'_open']='y';
+    	                $config[$funcsName]=array(
+    	                    array(
+    	                        'func'=>$taskFunc,
+    	                        'func_param'=>$taskFuncParam
+    	                    )
+    	                );
+    	            }
+    	        }
+    	        
+    	        unset($config[$funcName]);
+    	        unset($config[$funcName.'_param']);
+    	    }
+	    }
+	    return $config;
+	}
+	
 	
 	
 	public function server_is_cli($isInput=false,$val=null){
@@ -36,6 +101,34 @@ class Config extends \skycaiji\common\model\Config {
 	    $value=$value=='cli'?true:false;
 	    return $value;
 	}
+	
+	
+	public function server_is_swoole($isInput=false,$val=null){
+	    $value='';
+	    if(empty($isInput)){
+	        
+	        $value=g_sc_c('caiji','server');
+	    }else{
+	        
+	        $value=$val;
+	    }
+	    $value=$value=='swoole'?true:false;
+	    return $value;
+	}
+	
+	public function server_is_swoole_php($isInput=false,$server=null,$swoolePhp=null){
+	    if(empty($isInput)){
+	        
+	        $server=g_sc_c('caiji','server');
+	        $swoolePhp=g_sc_c('caiji','swoole_php');
+	    }
+	    if($server=='swoole'&&!empty($swoolePhp)){
+	        return true;
+	    }else{
+	        return false;
+	    }
+	}
+	
 	
 	
 	public function page_render_is_chrome($isInput=false,$val=null){
@@ -197,6 +290,60 @@ class Config extends \skycaiji\common\model\Config {
 		return $php_filename;
 	}
 	
+	public function php_is_valid($phpFile,$getModules=false){
+	    $result=return_result('',false,array('v'=>'','ver'=>'','m'=>'','swoole'=>''));
+	    if(!function_exists('proc_open')){
+	        $result['msg']='需开启proc_open函数';
+	    }else{
+	        $phpResult=$this->exec_php_version($phpFile);
+	        if($phpResult===false){
+	            $result['msg']='未检测到PHP可执行文件，请手动输入';
+	        }elseif(is_array($phpResult)){
+	            $result=array_merge($result,$phpResult);
+	        }
+	        if(empty($phpResult)||(!$phpResult['success']&&$phpResult['msg'])){
+	            
+	            $result['success']=false;
+	            $result['msg']=$phpResult['msg']?:'php无效';
+	        }
+	        if($result['success']){
+	            $result['v']=$result['msg'];
+	            if($result['v']){
+	                
+	                if(preg_match('/\bPHP\s+(?P<ver>\d+(\.\d+){1,})/i',$result['v'],$mphpv)){
+	                    $result['ver']=$mphpv['ver'];
+	                }
+	            }
+	        }
+	        if($getModules){
+	            
+	            if($result['success']){
+	                $phpResult=$this->exec_php_m($phpFile);
+	                if($phpResult===false){
+	                    $result['msg']='未检测到PHP可执行文件，请手动输入';
+	                }elseif(is_array($phpResult)){
+	                    $result=array_merge($result,$phpResult);
+	                }
+	                if(empty($phpResult)||(!$phpResult['success']&&$phpResult['msg'])){
+	                    
+	                    $result['success']=false;
+	                    $result['msg']=$phpResult['msg']?:'php无效';
+	                }
+	                if($result['success']){
+	                    $result['m']=$result['msg'];
+	                    if($result['m']){
+	                        if(preg_match('/\bswoole\b/i', $result['m'])){
+	                            
+	                            $result['swoole']=true;
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	    }
+	    return $result;
+	}
+	
 	public function exec_php_version($phpFile){
 	    $result=false;
 	    if(empty($phpFile)){
@@ -218,7 +365,7 @@ class Config extends \skycaiji\common\model\Config {
                     $result['msg']=$info['error'];
                 }elseif($info['output']){
                     $result['success']=true;
-                    $result['msg']=('测试成功，PHP信息：'.$info['output']);
+                    $result['msg']=$info['output'];
                 }else{
                     $result['success']=true;
                 }
@@ -228,6 +375,40 @@ class Config extends \skycaiji\common\model\Config {
 	    }
 	    return $result;
 	}
+	
+	
+	public function exec_php_m($phpFile){
+	    $result=false;
+	    if(empty($phpFile)){
+	        
+	        $phpFile=self::detect_php_exe();
+	    }
+	    if(!empty($phpFile)){
+	        $result=return_result('',false);
+	        $phpFile=self::cli_safe_filename($phpFile);
+	        $phpFile.=' -m';
+	        $info=\util\Tools::proc_open_exec_curl($phpFile,'all',10,true);
+	        $info=is_array($info)?$info:array();
+	        $info['output']=trim($info['output']);
+	        $info['error']=trim($info['error']);
+	        
+	        if(is_array($info['status'])&&$info['status']['running']){
+	            
+	            if($info['error']){
+	                $result['msg']=$info['error'];
+	            }elseif($info['output']){
+	                $result['success']=true;
+	                $result['msg']=$info['output'];
+	            }else{
+	                $result['success']=true;
+	            }
+	        }elseif($info['error']){
+	            $result['msg']=$info['error'];
+	        }
+	    }
+	    return $result;
+	}
+	
 	
 	public static function cli_safe_filename($filename){
 	    if(!empty($filename)){

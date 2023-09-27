@@ -110,7 +110,10 @@
 		        </tr>
 		        <tr>
 		          <th>PHP版本</th>
-		          <td>{$serverData['php']} <a href="{:url('setting/caiji')}" id="php_cli_version" style="display:none;margin-left:10px;">CLI命令行版本：<span></span></a></td>
+		          <td>{$serverData['php']}
+					<a href="{:url('setting/caiji')}" id="cli_php_version" style="display:none;margin-left:10px;">CLI命令行版本：<span></span></a>
+					<a href="{:url('setting/caiji')}" id="swoole_php_version" style="display:none;margin-left:10px;">swoole php版本：<span></span></a>
+		          </td>
 		        </tr>
 		        <tr>
 		          <th>上传限制</th>
@@ -125,7 +128,7 @@
 {if !empty($openBasedir)}
 <div class="alert alert-warning alert-dismissible" id="box_open_basedir">
 	<button type="button" class="close">×</button>
-	您的网站开启了目录访问限制(open_basedir)，受保护的站点目录：{$openBasedir}，这会影响到站点目录外的文件读写和CMS程序的访问。如果您未更改图片保存目录(站点目录外)并且cms程序都在站点目录内则可忽略该问题！
+	您的网站开启了目录访问限制（open_basedir）导致 {$openBasedir} 目录外的文件无法读写。如果图片保存目录、文件保存目录、cms程序（发布）都在目录内则可忽略该问题！
 </div>
 {/if}
 {if !empty($systemWarning)}

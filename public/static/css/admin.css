@@ -6,9 +6,33 @@
 .info-box-content .info-box-number{font-weight:normal;line-height:25px;}
 .info-box-content .info-box-number .tips{margin-left:5px;font-size:14px;display:inline;}
 .help-block{color:#aaa;}
+/*取消动画*/
+.content-wrapper,
+	.main-footer,
+	.main-header .navbar,
+	.main-header .logo,
+	.main-sidebar,
+	.sidebar-menu li>a>.fa-angle-left,
+	.sidebar-menu li>a>.pull-right-container>.fa-angle-left,
+	.control-sidebar-bg,
+	.control-sidebar,
+	.small-box .icon,
+	.direct-chat-messages,
+	.direct-chat-contacts,
+	.fc-color-picker>li .fa,
+	#add-new-event {
+	-webkit-transition:none!important;
+	-moz-transition:none!important;
+	-o-transition:none!important;
+	transition:none!important;
+}
 /*全局*/
+.modal-body .form-group:last-child{margin-bottom:0;}
+.modal-body .form-group .help-block:last-child{margin-bottom:0;}
+
 .panel .form-group:last-child{margin-bottom:0;}
 .panel .form-group .help-block:last-child{margin-bottom:0;}
+.panel .panel:last-child{margin-bottom:5px;}
 
 .label-custom-opened{font-weight:normal;background-color:#dedede;color:#555;}
 
@@ -72,7 +96,7 @@ div.in-line-mg{display:inline;margin-right:5px;}
 
 .echo-msg-clear{width:100%;overflow:hidden;clear:both;}
 .echo-msg-lt{float:left;}
-.echo-msg-lurl{float:left;margin-right:3px;height:16px;max-width:70%;overflow:hidden;text-overflow:ellipsis;word-wrap:break-word;word-break:break-all;}
+.echo-msg-lurl{float:left;margin-right:3px;height:17px;max-width:70%;overflow:hidden;text-overflow:ellipsis;word-wrap:break-word;word-break:break-all;}
 
 /*皮肤*/
 .skin-blue-light .treeview-skins,.skin-black-light .treeview-skins,.skin-red-light .treeview-skins,.skin-yellow-light .treeview-skins,.skin-purple-light .treeview-skins,.skin-green-light .treeview-skins{

@@ -13,7 +13,6 @@
 		$_tpl_name.='[pagination]';
 		$_tpl_title='分页';
 		$_tpl_url_required=true;
-		$_tpl_match_global=false;
 	}
 {/php}
 
@@ -41,7 +40,7 @@
 					    		<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[area]\']',{zimu:{$_tpl_match_global?1:0}})">{:cp_sign('match')}</a></div>
 								<div>
 									<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[area]\']',{group:1,zimu:{$_tpl_match_global?1:0}})">捕获组</a></div>
-									<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tips({$_tpl_match_global?1:''})"></a></div>
+									<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tips({$_tpl_match_global?1:''},{$_tpl_is_pagination?1:''})"></a></div>
 								</div>
 							</li>
 							<li data-module="xpath">xpath语法</li>
@@ -57,7 +56,7 @@
 			</div>
 			<div class="form-group">
 		    	<label class="control-label">拼接成最终区域</label>
-		    	<div class="input-group c-p-url-page-signs" data-page-type="{$_tpl_page_type}" data-input-name="{$_tpl_name}[area_merge]">
+		    	<div class="input-group c-p-url-page-signs" data-page-type="{$_tpl_page_type}" data-input-name="{$_tpl_name}[area_merge]"{$_tpl_is_pagination?' data-is-pagination="1"':''}>
 		    		<textarea name="{$_tpl_name}[area_merge]" data-merge-type="area" placeholder="默认拼接区域规则中所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn_area}" class="form-control" rows="2"></textarea>
 		    		{if $_tpl_match_global}
 		    		<div class="input-group-addon">
@@ -102,7 +101,7 @@
 			    				<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[url_rule]\']',{zimu:{$_tpl_match_global?1:0}})">{:cp_sign('match')}</a></div>
 			    				<div>
 			    					<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[url_rule]\']',{group:1,zimu:{$_tpl_match_global?1:0}})">捕获组</a></div>
-			    					<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tips({$_tpl_match_global?1:''})"></a></div>
+			    					<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tips({$_tpl_match_global?1:''},{$_tpl_is_pagination?1:''})"></a></div>
 								</div>
 			    			</li>
 					      	<li data-module="xpath">xpath语法</li>
@@ -118,7 +117,7 @@
 			</div>
 			<div class="form-group">
 		    	<label class="control-label">拼接成最终网址</label>
-		    	<div class="input-group c-p-url-page-signs" data-page-type="{$_tpl_page_type}" data-input-name="{$_tpl_name}[url_merge]">
+		    	<div class="input-group c-p-url-page-signs" data-page-type="{$_tpl_page_type}" data-input-name="{$_tpl_name}[url_merge]"{$_tpl_is_pagination?' data-is-pagination="1"':''}>
 		      		<input type="text" class="form-control" name="{$_tpl_name}[url_merge]" data-merge-type="url" placeholder="默认拼接网址规则中所有{:cp_sign('match')}标签，{$Think.lang.tips_matchn_url}" autocomplete="off" />
 		    		{if $_tpl_match_global}
 		    		<div class="input-group-addon">

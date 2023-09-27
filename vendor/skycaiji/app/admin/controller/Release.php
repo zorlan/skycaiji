@@ -18,6 +18,14 @@ class Release extends CollectController{
 	public function setAction(){
 		$taskId=input('task_id/d',0);
 		$releaseId=input('release_id/d',0);
+		
+		if(request()->isPost()){
+		    
+		    \util\UnmaxPost::init_post_data('_post_data_');
+		    $taskId=\util\UnmaxPost::val('task_id/d',0);
+		    $releaseId=\util\UnmaxPost::val('release_id/d',0);
+		}
+		
 		$mtask=model('Task');
 		$mrele=model('Release');
 		$taskData=$mtask->getById($taskId);
@@ -34,7 +42,7 @@ class Release extends CollectController{
 				$newData['config']=$importRele['config'];
 			}else{
 				
-				$newData['module']=input('module','','strtolower');
+			    $newData['module']=\util\UnmaxPost::val('module','','strtolower');
 				if(empty($newData['module'])){
 					$this->error(lang('rele_error_null_module'));
 				}

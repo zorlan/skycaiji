@@ -169,7 +169,6 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
                 set_time_limit(0);
             }
         }
-        \util\Funcs::close_session();
         if(empty($nowTime)){
             $nowTime=time();
         }

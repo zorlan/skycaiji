@@ -37,6 +37,8 @@ class Init{
 			$s_userlogin=session('user_login');
 		}
 		$s_userlogin=is_array($s_userlogin)?$s_userlogin:array();
+		set_g_sc('user_login', $s_userlogin);
+		
 		$s_userid=intval($s_userlogin['uid']);
 		
 		$isAdmin=null;
@@ -148,6 +150,8 @@ class Init{
 			session('usertoken',$usertoken);
 		}
 		set_g_sc('usertoken',$usertoken);
+		
+		\util\Tools::close_session();
 	}
 }
 

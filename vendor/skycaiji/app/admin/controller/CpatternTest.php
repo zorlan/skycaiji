@@ -35,7 +35,6 @@ class CpatternTest extends BaseController {
     /*测试*/
     private function _test_init($clearCache=true,$skipCollect=false){
         set_time_limit(600);
-        \util\Funcs::close_session();
         $coll_id=input('coll_id/d',0);
         $collData=model('Collector')->where(array('id'=>$coll_id))->find();
         if(empty($collData)){
@@ -87,6 +86,8 @@ class CpatternTest extends BaseController {
                         'page_area_matches'=>$this->eCpattern->page_area_matches,
                         'page_url_matches'=>$this->eCpattern->page_url_matches,
                         'page_content_matches'=>$this->eCpattern->page_content_matches,
+                        'pn_area_matches'=>$this->eCpattern->pn_area_matches,
+                        'pn_url_matches'=>$this->eCpattern->pn_url_matches,
                         'cur_front_urls'=>$this->eCpattern->cur_front_urls,
                         $keyUseCookie=>\util\Param::get_gsc_use_cookie(),
                         $keyUseCookieImg=>\util\Param::get_gsc_use_cookie('img'),
@@ -105,6 +106,13 @@ class CpatternTest extends BaseController {
                     }
                     if(is_array($cacheFrontData['page_content_matches'])){
                         $this->eCpattern->page_content_matches=$cacheFrontData['page_content_matches'];
+                    }
+                    
+                    if(is_array($cacheFrontData['pn_area_matches'])){
+                        $this->eCpattern->pn_area_matches=$cacheFrontData['pn_area_matches'];
+                    }
+                    if(is_array($cacheFrontData['pn_url_matches'])){
+                        $this->eCpattern->pn_url_matches=$cacheFrontData['pn_url_matches'];
                     }
                     
                     if(is_array($cacheFrontData['cur_front_urls'])){
@@ -264,6 +272,12 @@ class CpatternTest extends BaseController {
             if(is_array($cacheParentData['page_content_matches'])){
                 $this->eCpattern->page_content_matches=$cacheParentData['page_content_matches'];
             }
+            if(is_array($cacheParentData['pn_area_matches'])){
+                $this->eCpattern->pn_area_matches=$cacheParentData['pn_area_matches'];
+            }
+            if(is_array($cacheParentData['pn_url_matches'])){
+                $this->eCpattern->pn_url_matches=$cacheParentData['pn_url_matches'];
+            }
             
             if(is_array($cacheParentData['cur_level_urls'])){
                 $curLevelUrls=$cacheParentData['cur_level_urls'];
@@ -295,13 +309,28 @@ class CpatternTest extends BaseController {
             'page_area_matches'=>$this->eCpattern->page_area_matches,
             'page_url_matches'=>$this->eCpattern->page_url_matches,
             'page_content_matches'=>$this->eCpattern->page_content_matches,
-            'cur_level_urls'=>$this->eCpattern->cur_level_urls,
+            'pn_area_matches'=>$this->eCpattern->pn_area_matches,
+            'pn_url_matches'=>$this->eCpattern->pn_url_matches,
+            'cur_level_urls'=>$this->eCpattern->cur_level_urls
         );
         cache($cacheKeyPre.$curLevel,$cachePageData,1200);
+        
+        $urls=$levelData['urls'];
+        init_array($urls);
+        
+        
+        $urlMsgLinks=array();
+        foreach ($urls as $k=>$v){
+            $k=\util\Tools::echo_url_msg_link($v);
+            if($k){
+                $urlMsgLinks[$v]=$k;
+            }
+        }
         
         $this->success('', null, array(
             'sourceUrl'=>$source_url,
             'urls' => $levelData['urls'],
+            'urlMsgLinks' => $urlMsgLinks,
             'urlOpened'=>$this->_page_opened_tips('url'),
             'levelName' => $levelData['levelName'],
             'level' => $curLevel,
@@ -1035,6 +1064,10 @@ class CpatternTest extends BaseController {
                 $this->success('以下是所有页面的内容标签',null,$data);
             }else{
                 
+                if(input('?signs_cur_all')&&$pageType=='url'){
+                    $this->eCpattern->get_page_html($test_url, $pageType, $pageName);
+                }
+                
                 $data=array();
                 
                 $signs=$this->eCpattern->parent_page_signs($pageType,$pageName);
@@ -1082,14 +1115,21 @@ class CpatternTest extends BaseController {
             
             if(empty($pageType)){
                 $this->error('请选择页面类型');
-            }elseif(!in_array($pageType,array('source_url','level_url','url'))){
+            }elseif(!$this->eCpattern->page_has_pagination($pageType)){
                 $this->error('该页面类型不支持分页');
             }
             
             $pnType=input('pagination_type');
             $pnUrls=null;
+            $pnUrlMsgLinks=array();
             if(empty($pnType)){
                 $pnUrls=$this->eCpattern->getPaginationUrls($pageType,$pageName,false,$test_url,'',true);
+                foreach ($pnUrls as $k=>$v){
+                    $k=\util\Tools::echo_url_msg_link($v);
+                    if($k){
+                        $pnUrlMsgLinks[$v]=$k;
+                    }
+                }
             }elseif($pnType=='next'){
                 
                 $pnUrls=$this->eCpattern->getPaginationUrls($pageType,$pageName,false,$test_url,'',true);
@@ -1117,6 +1157,17 @@ class CpatternTest extends BaseController {
                             $doWhile=false;
                         }
                     }while($doWhile);
+                    
+                    foreach ($pnUrls as $k=>$v){
+                        $msgLinkCur=\util\Tools::echo_url_msg_link($v['cur']);
+                        if($msgLinkCur){
+                            $pnUrlMsgLinks[$v['cur']]=$msgLinkCur;
+                        }
+                        $msgLinkNext=\util\Tools::echo_url_msg_link($v['next']);
+                        if($msgLinkNext){
+                            $pnUrlMsgLinks[$v['next']]=$msgLinkNext;
+                        }
+                    }
                 }
             }
             
@@ -1124,7 +1175,7 @@ class CpatternTest extends BaseController {
                 $this->error('没有抓取到分页链接');
             }else{
                 $pnUrls=is_array($pnUrls)?$pnUrls:array();
-                $this->success('',null,array('pagination_type'=>$pnType,'urls'=>$pnUrls));
+                $this->success('',null,array('pagination_type'=>$pnType,'urls'=>$pnUrls,'pn_links'=>$pnUrlMsgLinks));
             }
         }elseif('get_relation_urls'==$testName){
             

@@ -1,0 +1,28 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/collector.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<style type="text/css">
+.add-url-web-form,.add-url-web-header,.add-url-renderer,.help-block{display:none;}
+.c-p-url-web-form tr td:last-child,.c-p-url-web-header tr td:last-child{display:none;}
+.td-renderer-op{display:none;}
+.c-p-url-page-signs{display:block;}
+.c-p-url-page-signs>.input-group-addon{display:none;}
+</style>
+<div id="win_test_match">
+	<form id="win_form_cache" style="display:none;">
+	</form>
+	<form id="win_form_test" method="post">
+		{include file="cpattern:set_page_url" _page_type="test" _is_pagination="" /}
+		{include file="cpattern:set_tpl" /}
+	</form>
+</div>
+<script type="text/javascript">
+'use strict';//严格模式
+(function(){
+	var testCp=new CollectorPattern();
+	testCp.init_echo_url_msg({$data['url_web']|json_encode},{$data['renderer']|json_encode});
+})();
+</script>
+{/block}

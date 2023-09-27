@@ -12,6 +12,7 @@
 namespace skycaiji\admin\controller;
 
 use skycaiji\admin\model\CacheModel;
+use util\Funcs;
 
 class Setting extends BaseController {
     /*站点设置*/
@@ -101,6 +102,9 @@ class Setting extends BaseController {
             $config['run']=input('run');
             $config['server']=input('server');
             $config['server_php']=input('server_php');
+            $config['swoole_host']=input('swoole_host');
+            $config['swoole_port']=input('swoole_port');
+            $config['swoole_php']=input('swoole_php');
             $config['process_num']=input('process_num/d',0);
             $config['num']=input('num/d',0);
             $config['interval']=input('interval/d',0);
@@ -116,16 +120,29 @@ class Setting extends BaseController {
             
             unset($config['download_img']);
             
-            if($mconfig->server_is_cli(true,$config['server'])){
+            if($mconfig->server_is_cli(true,$config['server'])||$mconfig->server_is_swoole(true,$config['server'])){
                 
                 $this->ajax_check_userpwd();
                 
                 if(!function_exists('proc_open')){
-                    $this->error('抱歉cli命令行模式需开启proc_open函数');
+                    if($mconfig->server_is_cli(true,$config['server'])){
+                        $this->error('cli命令行模式需开启proc_open函数');
+                    }elseif($mconfig->server_is_swoole_php(true,$config['server'],$config['swoole_php'])){
+                        $this->error('swoole快捷启动需开启proc_open函数');
+                    }
+                }
+            }
+            
+            if(in_array($config['swoole_port'], array(80,8080,443))){
+                if($mconfig->server_is_swoole(true,$config['server'])){
+                    $this->error('swoole端口号不能设置为'.$config['swoole_port']);
+                }else{
+                    $config['swoole_port']='';
                 }
             }
             
             $mconfig->setConfig('caiji',$config);
+            
             
             $this->_run_auto_backstage();
             
@@ -151,21 +168,56 @@ class Setting extends BaseController {
         return $this->fetch();
     }
     
+    public function caiji_checkAction(){
+        $data=array('server'=>g_sc_c('caiji','server'),'error'=>'');
+        $mconfig=model('Config');
+        if($mconfig->server_is_cli()){
+            $phpResult=$mconfig->php_is_valid(g_sc_c('caiji','server_php'));
+            if(empty($phpResult['success'])){
+                $data['error']='PHP可执行文件错误'.($phpResult['msg']?('：'.$phpResult['msg']):'');
+            }
+        }elseif($mconfig->server_is_swoole()){
+            $ss=new \util\SwooleSocket(g_sc_c('caiji','swoole_host'),g_sc_c('caiji','swoole_port'));
+            $error=$ss->websocketError();
+            if($error){
+                $data['error']=$error;
+            }
+            $phpResult=$ss->checkPhp(g_sc_c('caiji','server'),g_sc_c('caiji','swoole_php'),true,true);
+            if(!$phpResult['success']){
+                if($data['error']){
+                    $data['error'].='<br>';
+                }
+                $data['error'].=$phpResult['msg'];
+            }
+        }
+        $this->success('','',$data);
+    }
+    
     public function _run_auto_backstage(){
         $mconfig=model('Config');
+        
+        $config=$mconfig->getConfig('page_render','data');
+        $this->_chrome_start($config,false,true);
+        
         $config=$mconfig->getConfig('caiji','data');
         init_array($config);
-        if($config['auto']){
+        if($mconfig->server_is_swoole(true,$config['server'])){
             
-            if($config['run']=='backstage'){
+            $ss=new \util\SwooleSocket($config['swoole_host'],$config['swoole_port']);
+            $ss->startWs($config['server'], $config['swoole_php'],true);
+            if($ss->websocketError()){
                 
-                $bskey=\util\Param::set_auto_backstage_key();
-                @get_html(url('admin/index/auto_backstage?key='.$bskey,null,false,true),null,array('timeout'=>3));
+                $ss->startWs($config['server'], $config['swoole_php'],true);
             }
         }
         
-        $config=$mconfig->getConfig('page_render','data');
-        $this->_chrome_start($config);
+        if($config['auto']){
+            if($config['run']=='backstage'){
+                
+                $bskey=\util\Param::set_auto_backstage_key();
+                @get_html(url('admin/index/auto_backstage?key='.$bskey,null,false,true),null,array('timeout'=>2));
+            }
+        }
     }
     /*图片本地化设置*/
     public function download_imgAction(){
@@ -190,8 +242,7 @@ class Setting extends BaseController {
             $config['charset_custom']=input('charset_custom','');
             $config['img_max']=input('img_max/d',0);
             
-            $config['img_func']=input('img_func','');
-            $config['img_func_param']=input('img_func_param','');
+            $config['img_funcs']=input('img_funcs/a',array());
             
             $config['img_watermark']=input('img_watermark/d',0);
             $config['img_wm_logo']=input('img_wm_logo','');
@@ -262,6 +313,10 @@ class Setting extends BaseController {
                 $config['img_wm_logo']=$upResult['file_name'];
             }
             
+            if(is_array($config['img_funcs'])){
+                $config['img_funcs']=array_values($config['img_funcs']);
+            }
+            
             $mconfig->setConfig('download_img',$config);
             
             $this->success(lang('op_success'),'setting/download_img');
@@ -300,6 +355,9 @@ class Setting extends BaseController {
                 }
             }
             
+            $imgConfig=$mconfig->compatible_func_config($imgConfig,false);
+            
+            
             $imgWmError='';
             $LocSystem=new \skycaiji\install\event\LocSystem();
             $LocSystem=$LocSystem->environmentPhp();
@@ -333,9 +391,7 @@ class Setting extends BaseController {
             $config['charset']=input('charset','');
             $config['charset_custom']=input('charset_custom','');
             $config['file_max']=input('file_max/d',0);
-            
-            $config['file_func']=input('file_func','');
-            $config['file_func_param']=input('file_func_param','');
+            $config['file_funcs']=input('file_funcs/a',array());
             
             
             
@@ -388,6 +444,9 @@ class Setting extends BaseController {
             if($config['charset']=='custom'&&empty($config['charset_custom'])){
                 $this->error('请输入系统编码自定义内容');
             }
+            if(is_array($config['file_funcs'])){
+                $config['file_funcs']=array_values($config['file_funcs']);
+            }
             
             $mconfig->setConfig('download_file',$config);
             
@@ -409,6 +468,8 @@ class Setting extends BaseController {
                 $fileConfig['wait']=0;
                 $fileConfig['retry']=0;
             }
+            
+            $fileConfig=$mconfig->compatible_func_config($fileConfig,true);
             
             $this->assign('fileConfig',$fileConfig);
             return $this->fetch('download_file');
@@ -695,30 +756,47 @@ class Setting extends BaseController {
             return $this->fetch();
         }
     }
-    /*测试php*/
+    
     public function test_phpAction(){
         if(request()->isPost()){
             $this->ajax_check_userpwd();
-            
-            if(!function_exists('proc_open')){
-                $this->error('需开启proc_open函数');
+            $phpFile=input('php','','trim');
+            $phpResult=model('Config')->php_is_valid($phpFile);
+            if($phpResult['success']){
+                $this->success($phpResult['msg']?$phpResult['msg']:'测试成功');
             }else{
-                $phpFile=input('php','','trim');
-                
-                $phpvInfo=model('Config')->exec_php_version($phpFile);
-                if($phpvInfo===false){
-                    $this->error('未检测到PHP可执行文件，请手动输入');
-                }else{
-                    if($phpvInfo['success']){
-                        $this->success($phpvInfo['msg']?$phpvInfo['msg']:'测试成功');
-                    }else{
-                        $this->error($phpvInfo['msg']?$phpvInfo['msg']:'测试失败');
-                    }
-                }
+                $this->error($phpResult['msg']?$phpResult['msg']:'测试失败');
             }
         }
         $this->error('测试失败');
     }
+    
+    public function test_swoole_phpAction(){
+        if(request()->isPost()){
+            $this->ajax_check_userpwd();
+            $mconfig=model('Config');
+            $phpFile=input('php','','trim');
+            
+            $ss=new \util\SwooleSocket(g_sc_c('caiji','swoole_host'),g_sc_c('caiji','swoole_port'));
+            $phpResult=$ss->checkPhp('swoole',$phpFile,false,true);
+            if(!$phpResult['success']){
+                $this->error($phpResult['msg']?:'测试失败');
+            }else{
+                $this->success($phpResult['v']?:'测试成功');
+            }
+        }
+        $this->error('测试失败');
+    }
+    
+    public function restart_swooleAction(){
+        if(request()->isPost()){
+            $this->ajax_check_userpwd();
+            $this->_run_auto_backstage();
+            $this->success('操作完成','setting/caiji');
+        }
+        $this->error('重启失败');
+    }
+    
     
     public function chrome_testAction(){
         if(request()->isPost()){
@@ -765,9 +843,10 @@ class Setting extends BaseController {
         $this->success('重启完成','setting/page_render');
     }
     
-    private function _chrome_start($config,$restart=false){
+    private function _chrome_start($config,$restart=false,$noError=false){
         init_array($config);
         $chromeSocket=$this->_chrome_socket($config);
+        $error='';
         if($chromeSocket){
             try {
                 if($restart){
@@ -781,8 +860,11 @@ class Setting extends BaseController {
                     }
                 }
             }catch (\Exception $ex){
-                $this->error($ex->getMessage());
+                $error=$ex->getMessage();
             }
+        }
+        if($error&&!$noError){
+            $this->error($error);
         }
     }
     

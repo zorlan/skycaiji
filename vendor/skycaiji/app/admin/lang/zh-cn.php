@@ -213,7 +213,13 @@ return array(
     'page_url'=>'内容页',
     'page_relation_url'=>'关联页',
     
-    
+    'render_wait_end'=>'等待页面完全渲染',
+    'render_wait_time'=>'等待时间（秒）',
+    'render_scroll_half'=>'滚动到中间',
+    'render_scroll_end'=>'滚动到底部',
+    'render_scroll_top'=>'滚动到指定位置',
+    'render_val'=>'赋值',
+    'render_click'=>'点击',
     
 	'rele_set'=>'发布设置',
 	'rele_error_detect_null'=>'没有检测到本地CMS程序，您可以手动绑定数据',
@@ -345,7 +351,7 @@ return array(
     'tips_matchn_area'=>'示例：[内容123] [内容abc]',
 	'tips_match_url'=>'示例：&lt;a href=&quot;http://demo.com/[内容123]/[内容abc]&quot;&gt;(*)&lt;/a&gt;',
 	'tips_matchn_url'=>'示例：http://www.demo.com/[内容123]-[内容abc].html',
-		
+    
 	'release_upgrade'=>'插件版本过低，请升级插件 <a href="https://www.skycaiji.com/manual/doc/release_upgrade" target="_blank">升级教程</a>',
 );
 ?>

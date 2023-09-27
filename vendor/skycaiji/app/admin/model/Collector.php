@@ -79,7 +79,47 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	    if(is_array($config['common_process'])){
 	        $config['common_process']=$this->_compatible_processes($config['common_process']);
 	    }
+	    
+	    
+	    
+	    foreach (array('front_urls','level_urls','relation_urls') as $pagesKey){
+	        if(is_array($config[$pagesKey])){
+	            foreach ($config[$pagesKey] as $k=>$v){
+	                if(is_array($v)&&is_array($v['content_signs'])){
+	                    $v['content_signs']=$this->_compatible_content_signs($v['content_signs']);
+	                    $config[$pagesKey][$k]=$v;
+	                }
+	            }
+	        }
+	    }
+	    if(is_array($config['source_config'])&&is_array($config['source_config']['content_signs'])){
+	        $config['source_config']['content_signs']=$this->_compatible_content_signs($config['source_config']['content_signs']);
+	    }
+	    if(is_array($config['content_signs'])){
+	        $config['content_signs']=$this->_compatible_content_signs($config['content_signs']);
+	    }
+	    
 	    return $config;
+	}
+	
+	private function _compatible_content_signs($contentSigns){
+	    if(is_array($contentSigns)){
+	        foreach ($contentSigns as $k=>$v){
+	            if(isset($v['func'])){
+	                if($v['func']){
+	                    $v['funcs']=array();
+	                    $v['funcs'][]=array(
+	                        'func'=>$v['func'],
+	                        'func_param'=>$v['func_param']
+	                    );
+	                }
+	                unset($v['func']);
+	                unset($v['func_param']);
+	                $contentSigns[$k]=$v;
+	            }
+	        }
+	    }
+	    return $contentSigns;
 	}
 	
 	private function _compatible_processes($processes){
@@ -367,7 +407,6 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	/*采集运行进程*/
 	public static function collect_run_processes($collectorKey,$collectNum=null,$collectAuto=null,$backstageRun=false,$urlParams=null){
 	    ignore_user_abort(true);
-	    \util\Funcs::close_session();
 	    if(empty($collectorKey)){
 	        return;
 	    }

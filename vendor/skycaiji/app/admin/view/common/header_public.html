@@ -47,4 +47,4 @@
   <script src="__PUBLIC__/static/js/admin.js?{$Think.config.html_v}"></script>
   <link href="__PUBLIC__/static/css/admin.css?{$Think.config.html_v}" rel="stylesheet" type="text/css">
   <script type="text/javascript" src="__PUBLIC__/static/js/langs/{$Think.config.DEFAULT_LANG}.js?{$Think.config.html_v}"></script>
-  <script type="text/javascript">var site_config={root:"__ROOT__",pub:"__PUBLIC__",usertoken:"{:g_sc('usertoken')}",clientinfo:"{:g_sc('clientinfo')}"};</script>
+  <script type="text/javascript">var site_config={root:"__ROOT__",pub:"__PUBLIC__",usertoken:"{:g_sc('usertoken')}",clientinfo:"{:g_sc('clientinfo')}",admincp:{:json_encode(g_sc_c('admincp'))}};</script>

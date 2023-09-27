@@ -111,7 +111,7 @@ class ReleaseApp extends \skycaiji\common\model\BaseModel{
 		$fileName=$this->oldFileName($appName,$model);
 		$appName=$appName.$model;
 		if(file_exists($fileName)){
-			Loader::addNamespace('Release',realpath(APP_PATH.'Release'));
+		    Loader::addNamespace('Release',realpath(config('app_path').'/Release'));
 			Loader::import($appName,config('app_path').'/Release/'.$model.'/','.class.php');
 			$oldClass='\\Release\\'.$model.'\\'.$appName;
 			$oldClass=new $oldClass();

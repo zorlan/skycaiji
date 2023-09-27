@@ -143,50 +143,21 @@
     </div>
 </div>
 <div class="panel panel-default">
-	<div class="panel-heading">
-    	<h4 class="panel-title"><a data-toggle="collapse" href="#panel_img_func" aria-expanded="false" class="collapsed">使用函数</a></h4>
+   	<div class="panel-body">
+        <div class="form-group">
+			<label>使用函数</label>
+			<a href="javascript:;" class="glyphicon glyphicon-plus" id="add_img_func" title="添加"></a>
+	        <div class="panel-group ui-sortable" id="img_funcs" style="margin-bottom:0;">
+	        </div>
+	        <p class="help-block">图片下载后使用函数</p>
+        </div>
    	</div>
-    <div class="panel-collapse collapse" id="panel_img_func">
-    	<div class="panel-body" style="padding-top:5px;">
-    		<p class="help-block">图片下载后使用函数</p>
-	        <div class="form-group">
-	        	<label>函数名</label>
-		       	<div class="input-group">
-			   		<select name="img_func" class="form-control">
-			   			<option value="">不使用</option>
-			       	</select>
-			       	<div class="input-group-addon"><a href="javascript:;" onclick="tipsPluginFunc('downloadImg')">扩展函数</a></div>
-	        	</div>
-			</div>
-			<div class="form-group">
-				<label>传入参数</label>
-				<textarea name="img_func_param" rows="2" class="form-control" data-placeholder="默认传入[图片:文件名]"></textarea>
-				<div class="help-block">
-					一行一个值，可输入任何内容或
-					<div class="dropup dropup-img-params" style="display:inline;">
-						<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							调用图片参数
-							<span class="caret"></span>
-						</a>
-						<ul class="dropdown-menu">
-							<li><a href="javascript:;" data-val="[图片:文件名]">[图片:文件名]（包含路径和名称）</a></li>
-							<li><a href="javascript:;" data-val="[图片:路径]">[图片:路径]（保存的目录）</a></li>
-							<li><a href="javascript:;" data-val="[图片:名称]">[图片:名称]（保存的名称）</a></li>
-							<li><a href="javascript:;" data-val="[图片:链接]">[图片:链接]（保存后的链接）</a></li>
-							<li><a href="javascript:;" data-val="[图片:网址]">[图片:网址]（图片源网址）</a></li>
-						</ul>
-					</div>
-					&nbsp;请按函数传参，否则运行出错！
-				</div>
-			</div>
-    	</div>
-    </div>
 </div>
 <div class="form-group">
 	<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
 </div>
 </form>
-
+{include file="setting:download_img_func" func_tpl_id="img_tpl_func" func_list_id="img_funcs" /}
 <script type="text/javascript">
 settingClass.down_img_init({$imgConfig|json_encode});
 </script>

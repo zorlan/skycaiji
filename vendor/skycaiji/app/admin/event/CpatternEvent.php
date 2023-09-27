@@ -571,9 +571,21 @@ class CpatternEvent extends CpatternColl{
             $listMd5=md5($params['batch_list']);
             if(!isset($batch_list[$listMd5])){
                 
-                if(preg_match_all('/([^\r\n]+?)\=([^\r\n]+)/', $params['batch_list'],$mlist)){
-                    $batch_re=$mlist[1];
-                    $batch_to=$mlist[2];
+                if(preg_match_all('/[^\r\n]+/', $params['batch_list'],$mlist)){
+                    unset($params['batch_list']);
+                    $mlist=$mlist[0];
+                    $sign=empty($params['batch_sign'])?'=':$params['batch_sign'];
+                    $batch_re=array();
+                    $batch_to=array();
+                    foreach ($mlist as $k=>$v){
+                        $v=explode($sign,$v,2);
+                        if(is_array($v)&&count($v)==2&&!empty($v[0])&&!empty($v[1])){
+                            
+                            $batch_re[]=$v[0];
+                            $batch_to[]=$v[1];
+                        }
+                        unset($mlist[$k]);
+                    }
                     $batch_list[$listMd5]=array($batch_re,$batch_to);
                 }
             }else{
@@ -856,7 +868,6 @@ class CpatternEvent extends CpatternColl{
             if(preg_match('/^\w+\:\/\//', $url)){
                 
                 
-                
                 $charset=$params['api_charset'];
                 if($charset=='custom'){
                     $charset=$params['api_charset_custom'];
@@ -873,6 +884,10 @@ class CpatternEvent extends CpatternColl{
                 if($encode){
                     $curlopts[CURLOPT_ENCODING]=$encode;
                 }
+                
+                
+                $url=$this->_replace_insert_fields($url, $curUrlMd5, $loopIndex);
+                $url=\util\Funcs::url_auto_encode($url, $charset);
                 
                 
                 $postData=array();

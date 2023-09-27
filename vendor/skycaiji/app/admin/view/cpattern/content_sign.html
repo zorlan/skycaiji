@@ -27,40 +27,46 @@
 		</div>
 	</div>
 	
-	<div class="panel panel-default">
+	<div class="form-group">
+   		<label>使用函数</label>
+   		<a href="javascript:;" class="glyphicon glyphicon-plus" id="c_p_content_sign_add_func" title="添加"></a>
+   		<div class="panel-group ui-sortable" id="c_p_content_sign_funcs" style="margin-bottom:0;">
+   		</div>
+	</div>
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+<div id="c_p_content_sign_tpl_func" style="display:none;">
+	<div class="panel panel-default" data-func-box="1">
 		<div class="panel-heading">
-	    	<h4 class="panel-title"><a data-toggle="collapse" href="#panel_content_sign_func" aria-expanded="false" class="collapsed">使用函数</a></h4>
+	    	<div class="panel-title" style="font-size:14px;overflow:hidden;line-height:20px;">
+	    		<a data-toggle="collapse" data-func-a="1" href="#" data-parent="#c_p_content_sign_funcs" aria-expanded="false" class="collapsed">使用函数</a>
+		    	<div style="float:right;font-size:12px;">
+		    		<a href="javascript:;" data-func-move="1" class="glyphicon icon-drag-move" title="移动"></a>
+		    		<a href="javascript:;" data-func-remove="1" class="glyphicon glyphicon-remove" title="删除"></a>
+		    	</div>
+	    	</div>
 	   	</div>
-	    <div class="panel-collapse collapse" id="panel_content_sign_func">
+	    <div class="panel-collapse collapse" data-func-panel="1">
 	    	<div class="panel-body">
 		        <div class="form-group">
 		        	<label>函数名</label>
-			   		<select name="content_sign[func]" class="form-control">
+			   		<select class="form-control" data-func-func="1">
 			   			<option value="">不使用</option>
 			       	</select>
 				</div>
-				<div class="form-group c-p-url-page-signs" data-page-type="{$page_type}" data-input-name="content_sign[func_param]">
+				<div class="form-group">
 					<label>传入参数</label>
-					<textarea name="content_sign[func_param]"  rows="2" class="form-control" data-placeholder="默认传入当前内容标签的值" placeholder="默认传入当前内容标签的值"></textarea>
+					<textarea rows="3" data-func-func-param="1" class="form-control" data-placeholder="默认传入当前内容标签的值" placeholder="默认传入当前内容标签的值"></textarea>
 					<div class="help-block">
-					<div class="dropdown">
-						一行一个值，可输入任何内容，用 <a href="javascript:;" class="c-p-content-sign-add-cur" onclick="">###</a>
-						<div style="display:inline;">
-							表示当前内容标签的值
-							<div class="dropdown-menu dropdown-menu-right"></div>
-						</div>
-						，请按函数传参，否则运行出错！<a href="javascript:;" onclick="tipsPluginFunc('contentSign')">扩展函数</a>
-					</div>
+						一行一个值，可输入任何内容，用 <a href="javascript:;" data-func-insert="###">###</a> 表示当前内容标签的值，请按函数传参，否则运行出错！<a href="javascript:;" onclick="pluginFuncOp.tips('contentSign')">扩展函数</a>
 					</div>
 				</div>
 	    	</div>
 	    </div>
 	</div>
-	
-	<div class="form-group form-group-sm">
- 		<button type="submit" class="btn btn-primary btn-block">确定</button>
- 	</div>
-</form>
+</div>
 <script type="text/javascript">
 c_pattern.cpContentSign.init({:empty($content_sign)?'null':json_encode($content_sign)},'{$page_type}',{$page_config|json_encode});
 </script>

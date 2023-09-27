@@ -105,50 +105,21 @@
     </div>
 </div>
 <div class="panel panel-default">
-	<div class="panel-heading">
-    	<h4 class="panel-title"><a data-toggle="collapse" href="#panel_file_func" aria-expanded="false" class="collapsed">使用函数</a></h4>
+   	<div class="panel-body">
+        <div class="form-group">
+			<label>使用函数</label>
+			<a href="javascript:;" class="glyphicon glyphicon-plus" id="add_file_func" title="添加"></a>
+	        <div class="panel-group ui-sortable" id="file_funcs" style="margin-bottom:0;">
+	        </div>
+	        <p class="help-block">文件下载后使用函数</p>
+        </div>
    	</div>
-    <div class="panel-collapse collapse" id="panel_file_func">
-    	<div class="panel-body" style="padding-top:5px;">
-    		<p class="help-block">文件下载后使用函数</p>
-	        <div class="form-group">
-	        	<label>函数名</label>
-	        	<div class="input-group">
-			   		<select name="file_func" class="form-control">
-			   			<option value="">不使用</option>
-			       	</select>
-			       	<div class="input-group-addon"><a href="javascript:;" onclick="tipsPluginFunc('downloadFile')">扩展函数</a></div>
-	        	</div>
-			</div>
-			<div class="form-group">
-				<label>传入参数</label>
-				<textarea name="file_func_param" rows="2" class="form-control" data-placeholder="默认传入[文件:文件名]"></textarea>
-				<div class="help-block">
-					一行一个值，可输入任何内容或
-					<div class="dropup dropup-file-params" style="display:inline;">
-						<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							调用文件参数
-							<span class="caret"></span>
-						</a>
-						<ul class="dropdown-menu">
-							<li><a href="javascript:;" data-val="[文件:文件名]">[文件:文件名]（包含路径和名称）</a></li>
-							<li><a href="javascript:;" data-val="[文件:路径]">[文件:路径]（保存的目录）</a></li>
-							<li><a href="javascript:;" data-val="[文件:名称]">[文件:名称]（保存的名称）</a></li>
-							<li><a href="javascript:;" data-val="[文件:链接]">[文件:链接]（保存后的链接）</a></li>
-							<li><a href="javascript:;" data-val="[文件:网址]">[文件:网址]（文件源网址）</a></li>
-						</ul>
-					</div>
-					&nbsp;请按函数传参，否则运行出错！
-				</div>
-			</div>
-    	</div>
-    </div>
 </div>
 <div class="form-group">
 	<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
 </div>
 </form>
-
+{include file="setting:download_file_func" func_tpl_id="file_tpl_func" func_list_id="file_funcs" /}
 <script type="text/javascript">
 settingClass.down_file_init({$fileConfig|json_encode});
 </script>

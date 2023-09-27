@@ -29,43 +29,15 @@ class Collect extends Command{
     
     protected function execute(Input $input, Output $output){
         
-        $cacheConfig=CacheModel::getInstance()->getCache('cli_cache_config','data');
-        if(is_array($cacheConfig)){
-            \think\Config::set($cacheConfig);
-        }
+        \util\Tools::cli_cache_config();
         
         \util\Tools::set_url_compatible();
         
         $op=$input->getArgument('op');
         
-        static $loginOps=array();
-        
-        if(in_array($op, $loginOps)){
-            
-            if ($input->hasOption('cli_user')){
-                
-                $cliUser=$input->getOption('cli_user');
-                $cliUser=base64_decode($cliUser);
-                $cliUser=explode('_', $cliUser);
-                if(!empty($cliUser[0])){
-                    
-                    $muser=new \skycaiji\admin\model\User();
-                    $user=$muser->getByUid($cliUser[0]);
-                    if(!empty($user)){
-                        
-                        if($cliUser[1]==$muser->generate_key($user)){
-                            $muser->setLoginSession($user);
-                        }
-                    }
-                }
-            }
-            $sUserlogin=session('user_login');
-            if(empty($sUserlogin)){
-                $this->error_msg('抱歉，必须传入账号信息！');
-            }
-        }
-        
         $rootUrl=\think\Config::get('root_website').'/index.php?s=';
+        
+        \util\Tools::close_session();
         
         
         if('auto_backstage'==$op){

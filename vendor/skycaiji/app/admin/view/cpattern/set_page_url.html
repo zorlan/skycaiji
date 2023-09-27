@@ -1,0 +1,202 @@
+{assign name="_tpl_page_type" value="[_page_type]" /}
+{assign name="_tpl_is_pagination" value="[_is_pagination]" /}
+{php}
+	$_tpl_vars=\util\Tools::cp_page_tpl_vars($_tpl_page_type);
+	
+	$_tpl_id=$_tpl_vars['id'];
+	$_tpl_name=$_tpl_vars['name'];
+	$_tpl_title_page=$_tpl_vars['title'];
+	$_tpl_title=$_tpl_vars['title'];
+	if($_tpl_is_pagination){
+		$_tpl_id.='_pagination';
+		$_tpl_name.='[pagination]';
+		$_tpl_title='分页';
+	}
+{/php}
+{if $_tpl_is_pagination}
+<div class="form-group">
+	<label class="control-label">使用“{$_tpl_title_page}»请求{$_tpl_title_page}网址”</label>
+	<div class="input-group">
+		<label class="radio-inline"><input type="radio" name="{$_tpl_name}[use_url_web]" value="" checked="checked"> 默认：<span class="def-config-url-web-open">否</span></label>
+		<label class="radio-inline"><input type="radio" name="{$_tpl_name}[use_url_web]" value="y"> 是</label>
+		<label class="radio-inline"><input type="radio" name="{$_tpl_name}[use_url_web]" value="n"> 否</label>
+	</div>
+	<p class="help-block">抓取{$_tpl_title_page}分页时发送请求，默认使用“{$_tpl_title_page}»请求{$_tpl_title_page}网址”的配置（受开启状态影响）会被“自定义请求{$_tpl_title}网址”中的选项修改</p>
+</div>
+{/if}
+<div class="panel panel-default" id="panel_{$_tpl_id}_web">
+	<div class="panel-heading">
+	    <h4 class="panel-title">
+	        <a data-toggle="collapse" href="#{$_tpl_id}_web" aria-expanded="false" class="collapsed">{$_tpl_is_pagination?'自定义':''}请求{$_tpl_title}网址</a>
+	    </h4>
+	</div>
+	<div id="{$_tpl_id}_web" class="panel-collapse collapse" aria-expanded="false">
+		<div class="panel-body">
+			<div class="form-group" style="margin-bottom:0;">
+		    	<label class="control-label">自定义请求网址</label>
+		    	<div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="{$_tpl_name}[url_web][open]" value="1">是</label>
+					<label class="radio-inline"><input type="radio" name="{$_tpl_name}[url_web][open]" value="0" checked="checked">否</label>
+		        </div>
+		        <p class="help-block">抓取{$_tpl_title}网址时使用自定义设置</p>
+		    </div>
+			<div id="{$_tpl_id}_web_open" style="display:none;margin-top:15px;">	  
+				<div class="form-group">
+					<label class="control-label">网页编码</label>
+					<div class="input-group input-select-custom">
+						<div class="input-group-btn">
+							<select name="{$_tpl_name}[url_web][charset]" class="form-control">		
+								<option value="" class="def-config-charset"></option>
+								<option value="auto">自动检测</option>
+								<option value="utf-8">utf-8</option>
+								<option value="gbk">gbk</option>
+								<option value="gb2312">gb2312</option>
+								<option value="custom">自定义</option>
+							</select>
+						</div>
+						<input type="text" class="form-control" name="{$_tpl_name}[url_web][charset_custom]">
+					</div>
+					<p class="help-block">默认使用采集器设置»网页编码中的配置</p>
+				</div>
+				<div class="form-group">
+					<label class="control-label">内容解压缩</label>
+					<div class="input-group input-select-custom">
+						<div class="input-group-btn">
+							<select name="{$_tpl_name}[url_web][encode]" class="form-control">		
+								<option value="" class="def-config-encode"></option>
+								<option value="n">系统默认</option>
+								<option value="gzip">gzip</option>
+								<option value="br">br</option>
+								<option value="compress">compress</option>
+								<option value="deflate">deflate</option>
+								<option value="identity">identity</option>
+								<option value="custom">自定义</option>
+							</select>
+						</div>
+						<input type="text" class="form-control" name="{$_tpl_name}[url_web][encode_custom]">
+					</div>
+					<p class="help-block">默认使用采集器设置»内容解压缩中的配置</p>
+				</div>
+				<div class="form-group">
+					<label>请求方式</label>
+					<select name="{$_tpl_name}[url_web][form_method]" class="form-control">
+						<option value="">GET</option>
+						<option value="post">POST</option>
+					</select>
+				</div>
+				<div class="form-group c-p-url-web-content-type" style="display:none;">
+					<label>POST数据类型 <a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="tipsCurlPost()"></a></label>
+					<select name="{$_tpl_name}[url_web][content_type]" class="form-control">
+						<option value="">默认表单数据：application/x-www-form-urlencoded</option>
+						<option value="application/json">JSON数组：application/json</option>
+						<option value="multipart/form-data">表单上传：multipart/form-data</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label class="control-label">发送数据 <a href="javascript:;" class="glyphicon glyphicon-plus add-url-web-form" title="添加"></a></label>
+	            	<div class="table-responsive c-p-url-web-form">
+	            	<table class="table table-bordered table-hover">
+	                   <thead>
+	                       <tr>
+	                           <td>名称</td>
+	                           <td>值</td>
+	                           <td>删除</td>
+	                       </tr>
+	                   </thead>
+	                   <tbody>
+	                   </tbody>
+					</table>
+					</div>
+					{if $_tpl_is_pagination}
+					<p class="help-block">添加新的或者覆盖已有的数据</p>
+					{/if}
+				</div>
+				<div class="form-group">
+					<label>使用全局请求头</label>
+       				<div class="input-group">
+       					<label class="radio-inline"><input type="radio" name="{$_tpl_name}[url_web][header_global]" value="" checked="checked"> 默认：<span class="def-config-request-headers-open">否</span></label>
+       					<label class="radio-inline"><input type="radio" name="{$_tpl_name}[url_web][header_global]" value="y"> 是</label>
+       					<label class="radio-inline"><input type="radio" name="{$_tpl_name}[url_web][header_global]" value="n"> 否</label>
+       				</div>
+       				<p class="help-block">默认使用采集器设置»请求头信息»抓取页面中的配置（受全局开启状态影响）</p>
+				</div>
+				<div class="form-group">
+					<label class="control-label">请求头信息 <a href="javascript:;" class="glyphicon glyphicon-plus add-url-web-header" title="添加"></a></label>
+	            	<div class="table-responsive c-p-url-web-header">
+	            	<table class="table table-bordered table-hover">
+	                   <thead>
+	                       <tr>
+	                           <td>名称</td>
+	                           <td>值</td>
+	                           <td>删除</td>
+	                       </tr>
+	                   </thead>
+	                   <tbody>
+	                   </tbody>
+					</table>
+					</div>
+					<p class="help-block">添加新的或者覆盖已有的请求头信息</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{if $_tpl_is_pagination}
+<div class="form-group">
+	<label class="control-label">使用“{$_tpl_title_page}»执行页面渲染”</label>
+	<div class="input-group">
+		<label class="radio-inline"><input type="radio" name="{$_tpl_name}[use_renderer]" value="" checked="checked"> 默认：<span class="def-config-page-render">否</span><span class="def-config-renderer-open" style="display:none;">否</span></label>
+		<label class="radio-inline"><input type="radio" name="{$_tpl_name}[use_renderer]" value="y"> 是</label>
+		<label class="radio-inline"><input type="radio" name="{$_tpl_name}[use_renderer]" value="n"> 否</label>
+	</div>
+	<p class="help-block">抓取{$_tpl_title_page}分页时执行页面渲染，默认使用“{$_tpl_title_page}»执行页面渲染”的配置（受开启状态影响）会被“自定义执行页面渲染”中的选项修改</p>
+</div>
+{/if}
+<div class="panel panel-default" id="panel_{$_tpl_id}_renderer">
+	<div class="panel-heading">
+	    <h4 class="panel-title">
+	        <a data-toggle="collapse" href="#{$_tpl_id}_renderer" aria-expanded="false" class="collapsed">{$_tpl_is_pagination?'自定义':''}执行页面渲染</a>
+	    </h4>
+	</div>
+	<div id="{$_tpl_id}_renderer" class="panel-collapse collapse" aria-expanded="false">
+		<div class="panel-body">
+			{if $_tpl_is_pagination}
+     		<div class="form-group" style="margin-bottom:0;">
+      			<label class="control-label">自定义页面渲染</label>
+      			<div class="input-group">
+      				<label class="radio-inline"><input type="radio" name="{$_tpl_name}[renderer][open_pn]" value="1"> 是</label>
+      				<label class="radio-inline"><input type="radio" name="{$_tpl_name}[renderer][open_pn]" value="" checked="checked"> 否</label>
+      			</div>
+      		</div>
+			<div id="{$_tpl_id}_renderer_open_pn" style="display:none;margin-top:15px;">
+      		{/if}
+     		<div class="form-group">
+      			<label class="control-label">开启页面渲染</label>
+      			<div class="input-group">
+      				<label class="radio-inline"><input type="radio" name="{$_tpl_name}[renderer][open]" value="" checked="checked"> 默认：<span class="def-config-page-render">否</span></label>
+      				<label class="radio-inline"><input type="radio" name="{$_tpl_name}[renderer][open]" value="y"> 是</label>
+      				<label class="radio-inline"><input type="radio" name="{$_tpl_name}[renderer][open]" value="n"> 否</label>
+      			</div>
+      			<p class="help-block">默认：采集器设置»页面渲染的状态</p>
+      		</div>
+      		<div class="form-group">
+				<label class="control-label">
+	    			页面渲染动作
+	     			<a href="javascript:;" class="glyphicon glyphicon-plus add-url-renderer" title="添加"></a>
+	     		</label>
+	     		<div class="table-responsive c-p-url-renderer-list">
+	     		<table class="table table-hover">
+                	<tbody>
+                	</tbody>
+				</table>
+				</div>
+				{if $_tpl_is_pagination}
+				<p class="help-block">新增或追加渲染动作</p>
+				{/if}
+      		</div>
+      		{if $_tpl_is_pagination}
+      		</div>
+      		{/if}
+		</div>
+	</div>
+</div>

@@ -218,6 +218,8 @@ class Cpattern extends BaseController {
     		    $field=array();
     		}
     		$field['time_format']=$field['time_format']?$field['time_format']:'[年]/[月]/[日] [时]:[分]';
+    		$field['num_start']=isset($field['num_start'])?intval($field['num_start']):1;
+    		$field['num_end']=isset($field['num_end'])?intval($field['num_end']):100;
     		
     		
     		$sortField=array();
@@ -546,6 +548,9 @@ class Cpattern extends BaseController {
                 case 'xpath':if(empty($contentSign['xpath']))$this->error('xpath规则不能为空！');break;
                 case 'json':if(empty($contentSign['json']))$this->error('json提取规则不能为空！');break;
             }
+            if(is_array($contentSign['funcs'])){
+                $contentSign['funcs']=array_values($contentSign['funcs']);
+            }
             $this->success('',null,array('content_sign'=>$contentSign,'objid'=>$objid));
         }else{
             $objid=input('objid');
@@ -643,14 +648,7 @@ class Cpattern extends BaseController {
             $pageConfig=input('page_config/a',array(),'trim');
             $mergeType=input('merge_type','');
             $sourceIsUrl=input('source_is_url/d',0);
-
-            $mergeCsIdentity='';
-            if(strpos($mergeType,'content_sign:')===0){
-                
-                $mergeCsIdentity=str_replace('content_sign:', '', $mergeType);
-                $mergeCsIdentity=cp_sign('match',$mergeCsIdentity);
-            }
-            
+            $isPagination=input('is_pagination/d',0);
             $pageType=input('page_type','','trim');
             
             if($sourceIsUrl){
@@ -662,6 +660,26 @@ class Cpattern extends BaseController {
                 if($pageType=='source_url'){
                     $pageType='url';
                 }
+            }
+            
+            $pnSigns=null;
+            if($isPagination){
+                if($pageType=='source_url'){
+                    $pnSigns=array('name'=>'当前起始页 - 分页','signs'=>array('area'=>$this->_get_rule_signs($sourceConfig['pagination']['area']),'url'=>$mergeType=='area'?'':$this->_get_rule_signs($sourceConfig['pagination']['url_rule'])),'cur'=>true);
+                }elseif($pageType=='level_url'){
+                    $pnSigns=array('name'=>'当前多级页 - 分页','signs'=>array('area'=>$this->_get_rule_signs($pageConfig['pagination']['area']),'url'=>$mergeType=='area'?'':$this->_get_rule_signs($pageConfig['pagination']['url_rule'])),'cur'=>true);
+                }elseif($pageType=='url'){
+                    $pnSigns=array('name'=>'当前内容页 - 分页','signs'=>array('area'=>$this->_get_rule_signs($urlConfig['pagination']['area']),'url'=>$mergeType=='area'?'':$this->_get_rule_signs($urlConfig['pagination']['url_rule'])),'cur'=>true);
+                }
+                
+                $mergeType='content_sign';
+            }
+
+            $mergeCsIdentity='';
+            if(strpos($mergeType,'content_sign:')===0){
+                
+                $mergeCsIdentity=str_replace('content_sign:', '', $mergeType);
+                $mergeCsIdentity=cp_sign('match',$mergeCsIdentity);
             }
             
             $eCpattern=controller('admin/Cpattern','event');
@@ -797,6 +815,12 @@ class Cpattern extends BaseController {
             $levelSigns=array_reverse($levelSigns,true);
             
             $allSigns=array();
+            
+            
+            if($isPagination&&$pnSigns){
+                
+                $allSigns[]=$pnSigns;
+            }
             
             foreach ($relationSigns as $k=>$v){
                 if($k=='_cur_'){

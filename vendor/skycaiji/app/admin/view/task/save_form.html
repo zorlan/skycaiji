@@ -55,6 +55,9 @@
         	<option value="1">循环采集（采集完后间隔一段时间再次运行）</option>
         	<option value="2">定时采集（指定时间运行采集）</option>
         </select>
+        {if is_empty(g_sc_c('caiji','auto'))}
+        <p class="help-block" id="config_task_auto_tips" style="display:none;">需要全局<a href="{:url('setting/caiji')}" target="_blank">开启自动采集</a>该功能才会生效</p>
+        {/if}
     </div>
     <div class="form-group" id="config_task_timer" style="display:none;">
     	<input type="hidden" name="task_timer[month]" value="" />
@@ -369,38 +372,21 @@
 			        	</div>
 				    </div>
 				</div>
-		        <div class="form-group">
-		        	<label>使用函数</label>
-		        	<div class="input-group">
-				   		<select name="config[img_func]" class="form-control" data-global="{$gConfig['img_func']}">
-				   			<option value="">全局设置：{$gConfig['img_func']?$gConfig['img_func']:'不使用'}</option>
-				   			<option value="n">不使用</option>
-				       	</select>
-				       	<div class="input-group-addon"><a href="javascript:;" onclick="tipsPluginFunc('downloadImg')">扩展函数</a></div>
-		        	</div>
-				</div>
-				<div id="config_img_func" style="display:none;">
-					<div class="form-group">
-						<label>传入参数</label>
-						<textarea name="config[img_func_param]" rows="2" class="form-control" data-placeholder="{$gConfig['img_func_param']?('全局设置：'.$gConfig['img_func_param']):'默认传入[图片:文件名]'}"></textarea>
-						<div class="help-block">
-							一行一个值，可输入任何内容或
-							<div class="dropup dropup-img-params" style="display:inline;">
-								<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									调用图片参数
-									<span class="caret"></span>
-								</a>
-								<ul class="dropdown-menu">
-									<li><a href="javascript:;" data-val="[图片:文件名]">[图片:文件名]（包含路径和名称）</a></li>
-									<li><a href="javascript:;" data-val="[图片:路径]">[图片:路径]（保存的目录）</a></li>
-									<li><a href="javascript:;" data-val="[图片:名称]">[图片:名称]（保存的名称）</a></li>
-									<li><a href="javascript:;" data-val="[图片:链接]">[图片:链接]（下载后的链接）</a></li>
-									<li><a href="javascript:;" data-val="[图片:网址]">[图片:网址]（图片源网址）</a></li>
-								</ul>
-							</div>
-							&nbsp;请按函数传参，否则运行出错！
-						</div>
+				<div class="form-group">
+					<label>使用函数</label>
+					<div class="input-group">
+						<label class="radio-inline"><input type="radio" name="config[img_funcs_open]" value="" checked="checked">
+							全局设置：{$gConfig['img_funcs']?('存在'.count($gConfig['img_funcs']).'个函数'):'无函数'}
+						</label>
+						<label class="radio-inline"><input type="radio" name="config[img_funcs_open]" value="y">自定义</label>
+						<label class="radio-inline"><input type="radio" name="config[img_funcs_open]" value="n">不使用</label>
 					</div>
+				</div>
+				<div class="form-group" id="config_img_funcs_open">
+					<label>添加函数</label>
+					<a href="javascript:;" class="glyphicon glyphicon-plus" id="add_config_img_func" title="添加"></a>
+			        <div class="panel-group ui-sortable" id="config_img_funcs" style="margin-bottom:0;">
+			        </div>
 				</div>
 			</div>
     	</div>
@@ -517,35 +503,18 @@
 				<div class="form-group">
 					<label>使用函数</label>
 					<div class="input-group">
-						<select name="config[file_func]" class="form-control" data-global="{$gConfig['file_func']}">
-							<option value="">全局设置：{$gConfig['file_func']?$gConfig['file_func']:'不使用'}</option>
-							<option value="n">不使用</option>
-						</select>
-				       	<div class="input-group-addon"><a href="javascript:;" onclick="tipsPluginFunc('downloadFile')">扩展函数</a></div>
-		        	</div>
-				</div>
-				<div id="config_file_func" style="display:none;">
-					<div class="form-group">
-						<label>传入参数</label>
-						<textarea name="config[file_func_param]" rows="2" class="form-control" data-placeholder="{$gConfig['file_func_param']?('全局设置：'.$gConfig['file_func_param']):'默认传入[文件:文件名]'}"></textarea>
-						<div class="help-block">
-							一行一个值，可输入任何内容或
-							<div class="dropup dropup-file-params" style="display:inline;">
-								<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									调用文件参数
-									<span class="caret"></span>
-								</a>
-								<ul class="dropdown-menu">
-									<li><a href="javascript:;" data-val="[文件:文件名]">[文件:文件名]（包含路径和名称）</a></li>
-									<li><a href="javascript:;" data-val="[文件:路径]">[文件:路径]（保存的目录）</a></li>
-									<li><a href="javascript:;" data-val="[文件:名称]">[文件:名称]（保存的名称）</a></li>
-									<li><a href="javascript:;" data-val="[文件:链接]">[文件:链接]（下载后的链接）</a></li>
-									<li><a href="javascript:;" data-val="[文件:网址]">[文件:网址]（文件源网址）</a></li>
-								</ul>
-							</div>
-							&nbsp;请按函数传参，否则运行出错！
-						</div>
+						<label class="radio-inline"><input type="radio" name="config[file_funcs_open]" value="" checked="checked">
+							全局设置：{$gConfig['file_funcs']?('存在'.count($gConfig['file_funcs']).'个函数'):'无函数'}
+						</label>
+						<label class="radio-inline"><input type="radio" name="config[file_funcs_open]" value="y">自定义</label>
+						<label class="radio-inline"><input type="radio" name="config[file_funcs_open]" value="n">不使用</label>
 					</div>
+				</div>
+				<div class="form-group" id="config_file_funcs_open">
+					<label>添加函数</label>
+					<a href="javascript:;" class="glyphicon glyphicon-plus" id="add_config_file_func" title="添加"></a>
+			        <div class="panel-group ui-sortable" id="config_file_funcs" style="margin-bottom:0;">
+			        </div>
 				</div>
 			</div>
 		</div>
@@ -555,6 +524,10 @@
 	<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
 </div>
 </form>
+
+{include file="setting:download_img_func" func_tpl_id="config_img_tpl_func" func_list_id="config_img_funcs" /}
+{include file="setting:download_file_func" func_tpl_id="config_file_tpl_func" func_list_id="config_file_funcs" /}
+
 {php}$nTaskData=is_array($taskData)?json_encode($taskData):'null';$nFieldList=is_array($fieldList)?json_encode($fieldList):'null';{/php}
 <script src="__PUBLIC__/static/js/admin/task.js?{$Think.config.html_v}"></script>
 <script type="text/javascript">

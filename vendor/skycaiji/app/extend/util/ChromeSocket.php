@@ -52,6 +52,10 @@ class ChromeSocket{
     
     public static function defaultPort($port){
         $port=intval($port);
+        if(in_array($port,array(80,8080,443))){
+            
+            $port=0;
+        }
         $port=$port>0?$port:9222;
         return $port;
     }
@@ -73,8 +77,6 @@ class ChromeSocket{
         $return=array('error'=>'','info'=>'');
         if(empty($port)){
             $return['error']='请设置端口';
-        }elseif($port==80){
-            $return['error']='不能设置为80端口';
         }elseif(!empty($options['user_data_dir'])&&!is_dir($options['user_data_dir'])){
             
             $return['error']='用户配置目录不存在！';
@@ -84,36 +86,33 @@ class ChromeSocket{
             }
         }else{
             $hasProcOpen=function_exists('proc_open')?true:false;
-            if($isTest&&!$hasProcOpen){
+            
+            
+            $command=$filename;
+            if(empty($command)){
                 
-                $return['error']='需开启proc_open函数';
+                $command='chrome';
             }else{
                 
-                $command=$filename;
-                if(empty($command)){
-                    
-                    $command='chrome';
-                }else{
-                    
-                    $command=\skycaiji\admin\model\Config::cli_safe_filename($command);
-                }
-                $command.=' --headless --proxy-server';
-                if(!empty($options['user_data_dir'])){
-                    
-                    $command=sprintf('%s --user-data-dir=%s',$command,$options['user_data_dir']);
-                }
-                if($isTest){
-                    
-                    $command=sprintf('%s',$command);
-                }else{
-                    $command=sprintf('%s --remote-debugging-port=%s',$command,$port);
-                }
-                if(!$hasProcOpen){
-                    $return['error']='请开启proc_open函数或者手动执行命令：'.$command;
-                }else{
-                    
-                    $return['info']=\util\Tools::proc_open_exec_curl($command,$isTest?'all':true,10,$isTest?true:false);
-                }
+                $command=\skycaiji\admin\model\Config::cli_safe_filename($command);
+            }
+            $command.=' --headless --proxy-server';
+            if(!empty($options['user_data_dir'])){
+                
+                $command=sprintf('%s --user-data-dir=%s',$command,$options['user_data_dir']);
+            }
+            
+            if($isTest&&$hasProcOpen){
+                
+                $command=sprintf('%s',$command);
+            }else{
+                $command=sprintf('%s --remote-debugging-port=%s',$command,$port);
+            }
+            if(!$hasProcOpen){
+                $return['error']='页面渲染需开启proc_open或在服务器中执行命令：'.$command;
+            }else{
+                
+                $return['info']=\util\Tools::proc_open_exec_curl($command,$isTest?'all':true,10,$isTest?true:false);
             }
         }
         return $return;
@@ -135,7 +134,7 @@ class ChromeSocket{
             
             $url=sprintf('ws://%s/devtools/page/%s',$this->address,$this->tabId);
         }
-        $this->loadWebsocket();
+        \util\Tools::load_websocket();
         $this->socket=new \WebSocket\Client($url,$options);
         $this->socket->setTimeout(3);
     }
@@ -670,16 +669,6 @@ class ChromeSocket{
             
             $this->websocket($verData['webSocketDebuggerUrl']);
             $this->send('Browser.close');
-        }
-    }
-    
-    private function loadWebsocket(){
-        
-        static $loaded;
-        if(!isset($loaded)){
-            $loaded=true;
-            
-            \think\Loader::addNamespace('WebSocket',realpath(APP_PATH.'extend/websocket'));
         }
     }
 }

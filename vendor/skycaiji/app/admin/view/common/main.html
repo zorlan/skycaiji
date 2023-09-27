@@ -2,7 +2,6 @@
 {block name="cssjs"}{/block}
 </head>
 <body class="skin-blue" data-spy="scroll" data-target="#scrollspy">
-<script type="text/javascript">admincpInit();</script>
 <div class="wrapper">
 <header class="main-header">
   	<a href="{:url('admin/backstage/index')}" class="logo">
@@ -41,7 +40,7 @@
 {php}$curSubm=array(strtolower(request()->action())=>' menu-open cur-menu');{/php}
 <aside class="main-sidebar">
 <section class="sidebar">
-<ul class="sidebar-menu" data-widget="tree">
+<ul class="sidebar-menu">
 	<li class="treeview{$curMenu['setting']}">
 		<a href="#">
 			<i class="fa fa-cog"></i> <span>{$Think.lang.setting}</span>
@@ -172,6 +171,7 @@
 				<ul class="treeview-menu treeview-skins" style="display:none;">
 					<li>
 						<div class="checkbox"><label><input id="chk_sidebar_mini" type="checkbox"> {$Think.lang.admincp_sidebar_mini}</label></div>
+						<div class="checkbox"><label><input id="chk_sidebar_narrow" type="checkbox"> 窄屏显示</label></div>
 					</li>
 					<li>
 						<div id="sidebar_skins"></div>
@@ -183,6 +183,7 @@
 </ul>
 </section>
 </aside>
+<script type="text/javascript">admincpOp.init();</script>
 <div class="content-wrapper">
 	<section class="content-header">
 	<h1>{:g_sc('html_tag_name')}</h1>

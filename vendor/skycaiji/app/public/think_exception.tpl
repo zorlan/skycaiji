@@ -440,7 +440,7 @@
     <?php } ?>
 
     <div class="copyright">
-        <span><a href="https://www.skycaiji.com" style="color:#333;text-decoration:none;">蓝天采集器</a>使用框架tp5.0</span>
+        <span><a href="https://www.skycaiji.com" target="_blank" style="color:#333;text-decoration:none;">蓝天采集器</a></span>
     </div>
     <?php if(\think\App::$debug) { ?>
     <script>

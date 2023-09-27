@@ -17,7 +17,7 @@ class Rapi extends Release{
 	 * @param unknown $config
 	 */
 	public function setConfig($config){
-	    $api=input('api/a',array());
+	    $api=\util\UnmaxPost::val('api/a',array());
 		$api['url']=trim($api['url'],'\/\\');
 		$api['cache_time']=intval($api['cache_time']);
 		$api['hide_fields']=is_array($api['hide_fields'])?$api['hide_fields']:array();

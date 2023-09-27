@@ -1,0 +1,49 @@
+<div id="[func_tpl_id]" style="display:none;">
+	<div class="panel panel-default" data-func-box="1">
+		<div class="panel-heading">
+			<div class="panel-title"
+				style="font-size: 14px; overflow: hidden; line-height: 20px;">
+				<a data-toggle="collapse" data-func-a="1" href="#"
+					data-parent="#[func_list_id]" aria-expanded="false" class="collapsed">使用函数</a>
+				<div style="float: right; font-size: 12px;">
+					<a href="javascript:;" data-func-move="1"
+						class="glyphicon icon-drag-move ui-sortable-handle" title="移动"></a>
+					<a href="javascript:;" data-func-remove="1"
+						class="glyphicon glyphicon-remove" title="删除"></a>
+				</div>
+			</div>
+		</div>
+		<div class="panel-collapse collapse" data-func-panel="1">
+			<div class="panel-body">
+				<div class="form-group">
+					<label>函数名</label> <select class="form-control" data-func-func="1">
+						<option value="">不使用</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>传入参数</label>
+					<textarea rows="3" data-func-func-param="1" class="form-control"
+						data-placeholder="默认传入[图片:文件名]"></textarea>
+					<div class="help-block">
+						一行一个值，可输入任何内容或
+						<div class="dropup" style="display: inline;">
+							<a class="dropdown-toggle" type="button" data-toggle="dropdown"
+								aria-haspopup="true" aria-expanded="false"> 调用图片参数 <span
+								class="caret"></span>
+							</a>
+							<ul class="dropdown-menu">
+								<li><a href="javascript:;" data-func-insert="[图片:文件名]">[图片:文件名]（包含路径和名称）</a></li>
+								<li><a href="javascript:;" data-func-insert="[图片:路径]">[图片:路径]（保存的目录）</a></li>
+								<li><a href="javascript:;" data-func-insert="[图片:名称]">[图片:名称]（保存的名称）</a></li>
+								<li><a href="javascript:;" data-func-insert="[图片:链接]">[图片:链接]（保存后的链接）</a></li>
+								<li><a href="javascript:;" data-func-insert="[图片:网址]">[图片:网址]（图片源网址）</a></li>
+							</ul>
+						</div>
+						&nbsp;请按函数传参，否则运行出错！<a href="javascript:;"
+							onclick="pluginFuncOp.tips('downloadImg')">扩展函数</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -65,7 +65,7 @@ class Config extends BaseModel {
     }
     /*缓存所有配置*/
     public function cacheConfigList(){
-        static $arrKeys=array('caiji','download_img','download_file','page_render','proxy','translate','site','email');
+        static $arrKeys=array('admincp','caiji','download_img','download_file','page_render','proxy','translate','site','email');
         
         $keyConfig='cache_config_all';
         $configDbList=$this->column('*');

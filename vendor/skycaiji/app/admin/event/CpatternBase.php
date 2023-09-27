@@ -605,28 +605,13 @@ class CpatternBase extends CollectBase{
         init_array($processList);
         return $processList;
     }
-    
+
     /*保存页面配置时处理数据*/
     public function page_set_config($pageType,$pageConfig){
         if(!is_array($pageConfig)){
             $pageConfig=array();
         }
-        
-        
-        $urlWebConfig=$pageConfig['url_web'];
-        if(!is_array($urlWebConfig)){
-            $urlWebConfig=array();
-        }
-        $urlWebConfig['open']=intval($urlWebConfig['open']);
-        $urlWebConfig['form_method']=empty($urlWebConfig['form_method'])?'':strtolower($urlWebConfig['form_method']);
-        $urlWebConfig['content_type']=empty($urlWebConfig['content_type'])?'':strtolower($urlWebConfig['content_type']);
-        $urlWebConfig['header_global']=empty($urlWebConfig['header_global'])?'':strtolower($urlWebConfig['header_global']);
-        
-        \util\Funcs::filter_key_val_list($urlWebConfig['form_names'], $urlWebConfig['form_vals']);
-        \util\Funcs::filter_key_val_list($urlWebConfig['header_names'], $urlWebConfig['header_vals']);
-        
-        $pageConfig['url_web']=$urlWebConfig;
-        
+        $pageConfig['url_web']=$this->_page_set_config_url_web($pageConfig['url_web']);
         
         if(!is_array($pageConfig['content_signs'])){
             $pageConfig['content_signs']=array();
@@ -644,7 +629,7 @@ class CpatternBase extends CollectBase{
         $pageConfig['content_signs']=array_values($contentSigns);
     
         
-        if($pageType=='source_url'||$pageType=='level_url'||$pageType=='url'){
+        if($this->page_has_pagination($pageType)){
             $pnConfig=is_array($pageConfig['pagination'])?$pageConfig['pagination']:array();
             if($pageType=='url'){
                 
@@ -659,11 +644,27 @@ class CpatternBase extends CollectBase{
             }
             $pnConfig['open']=intval($pnConfig['open']);
             $pnConfig['max']=intval($pnConfig['max']);
+            
+            $pnConfig['url_web']=$this->_page_set_config_url_web($pnConfig['url_web']);
+            $pnConfig['renderer']=$this->_page_set_config_renderer($pnConfig['renderer']);
+            
             $pageConfig['pagination']=$pnConfig;
         }
+        $pageConfig['renderer']=$this->_page_set_config_renderer($pageConfig['renderer']);
+        return $pageConfig;
+    }
+    private function _page_set_config_url_web($urlWebConfig){
+        init_array($urlWebConfig);
+        $urlWebConfig['open']=intval($urlWebConfig['open']);
+        $urlWebConfig['form_method']=empty($urlWebConfig['form_method'])?'':strtolower($urlWebConfig['form_method']);
+        $urlWebConfig['content_type']=empty($urlWebConfig['content_type'])?'':strtolower($urlWebConfig['content_type']);
+        $urlWebConfig['header_global']=empty($urlWebConfig['header_global'])?'':strtolower($urlWebConfig['header_global']);
         
-        
-        $renderer=$pageConfig['renderer'];
+        \util\Funcs::filter_key_val_list($urlWebConfig['form_names'], $urlWebConfig['form_vals']);
+        \util\Funcs::filter_key_val_list($urlWebConfig['header_names'], $urlWebConfig['header_vals']);
+        return $urlWebConfig;
+    }
+    private function _page_set_config_renderer($renderer){
         init_array($renderer);
         \util\Funcs::filter_key_val_list3($renderer['types'], $renderer['elements'], $renderer['contents']);
         foreach ($renderer['types'] as $k=>$v){
@@ -676,9 +677,7 @@ class CpatternBase extends CollectBase{
                 $renderer['contents'][$k]='';
             }
         }
-        $pageConfig['renderer']=$renderer;
-        
-        return $pageConfig;
+        return $renderer;
     }
     
     
@@ -880,6 +879,15 @@ class CpatternBase extends CollectBase{
             return false;
         }
     }
+    
+    public function page_has_pagination($pageType){
+        static $types=array('source_url','level_url','url');
+        if(in_array($pageType,$types)){
+            return true;
+        }else{
+            return false;
+        }
+    }
     /*转换成数据源*/
     public function page_source_merge($pageType,$pageName){
         $pageSource=$pageType;
@@ -1023,20 +1031,6 @@ class CpatternBase extends CollectBase{
             $this->echo_error(htmlspecialchars($return['msg'].$errorTips));
         }
         return $return['data'];
-    }
-    
-    public function page_url_web_opened($urlWebConfig,$paginationConfig=null){
-        $opened=false;
-        if($paginationConfig&&is_array($paginationConfig)&&$paginationConfig['use_url_web']){
-            
-            $opened=$paginationConfig['use_url_web']=='y'?true:false;
-        }else{
-            
-            if($urlWebConfig&&is_array($urlWebConfig)&&!empty($urlWebConfig['open'])){
-                $opened=true;
-            }
-        }
-        return $opened;
     }
 }
 ?>

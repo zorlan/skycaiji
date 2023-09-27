@@ -30,7 +30,7 @@ class Backstage extends BaseController{
 			$dbVersion=db()->query('SELECT VERSION() as v;');
 			$serverData['db'].=' '.($dbVersion[0]?$dbVersion[0]['v']:'');
 		}
-		
+		$mconfig=model('Config');
 		$runInfo['auto_status']='良好';
 		/*设置采集状态*/
 		if(g_sc_c('caiji','auto')){
@@ -56,7 +56,15 @@ class Backstage extends BaseController{
 				        $runInfo['auto_status']='停止运行';
 				        $serverData['caiji'].='<p class="help-block">自动采集已停止 <a href="javascript:;" id="a_run_auto_backstage">点击激活</a></p>';
 				    }else{
-				        $runInfo['auto_status']='<span style="font-size:16px;">'.(model('Config')->server_is_cli()?'cli':'web').'后台运行</span>';
+				        $runInfo['auto_status']='<span style="font-size:16px;">';
+				        if($mconfig->server_is_cli()){
+				            $runInfo['auto_status'].='cli';
+				        }elseif($mconfig->server_is_swoole()){
+				            $runInfo['auto_status'].='swoole';
+				        }else{
+				            $runInfo['auto_status'].='web';
+				        }
+				        $runInfo['auto_status'].='后台运行</span>';
 				        $runInfo['auto_status1']='<small>'.date('m-d H:i:s',$collectBackstageTime).'</small>';
 				    }
 				}elseif(g_sc_c('caiji','run')=='visit'){
@@ -75,7 +83,7 @@ class Backstage extends BaseController{
 		}
 		
 		$upgradeDb=false;
-		if(version_compare(model('Config')->getVersion(),SKYCAIJI_VERSION,'<')){
+		if(version_compare($mconfig->getVersion(),SKYCAIJI_VERSION,'<')){
 			
 			$upgradeDb=true;
 		}
@@ -97,7 +105,7 @@ class Backstage extends BaseController{
 			}
 		}
 		
-		if(model('Config')->server_is_cli()||g_sc_c('page_render','tool')){
+		if($mconfig->server_is_cli()){
 		    
 		    $procFuncs=array('proc_open','proc_get_status','proc_terminate','proc_close');
 		    foreach ($procFuncs as $procFunc){
@@ -166,11 +174,12 @@ class Backstage extends BaseController{
 	
 	
 	public function checkUpAction(){
-	    \util\Funcs::close_session();
 	    
 	    $info=array(
 	        'pageRenderInvalid'=>false,
 	        'phpInvalid'=>false,
+	        'swooleInvalid'=>false,
+	        'swoolePhpInvalid'=>false,
 	        'repairTables'=>'',
 	    );
 	    
@@ -188,16 +197,36 @@ class Backstage extends BaseController{
 	        
 	        if($mconfig->server_is_cli()){
 	            
-	            $phpvInfo=$mconfig->exec_php_version(g_sc_c('caiji','server_php'));
-	            if(empty($phpvInfo)||(!$phpvInfo['success']&&$phpvInfo['msg'])){
-	                
+	            $phpResult=$mconfig->php_is_valid(g_sc_c('caiji','server_php'));
+	            if(empty($phpResult['success'])){
 	                $info['phpInvalid']=true;
 	            }
-	            if($phpvInfo['msg']){
+	            if($phpResult['ver']){
 	                
-	                if(preg_match('/\bPHP\s+(?P<ver>\d+(\.\d+){1,})/i', $phpvInfo['msg'],$mphpv)){
-	                    $mphpv=$mphpv['ver'];
-	                    $info['phpCliVersion']=$mphpv;
+	                $info['cliPhpVersion']=$phpResult['ver'];
+	            }
+	        }elseif($mconfig->server_is_swoole()){
+	            
+	            $ss=new \util\SwooleSocket(g_sc_c('caiji','swoole_host'),g_sc_c('caiji','swoole_port'));
+	            if($ss->websocketError()){
+	                $info['swooleInvalid']=true;
+	            }else{
+	                
+	                $ssData=$ss->sendReceive('php_ver');
+	                if($ssData['php_ver']){
+	                    $info['swoolePhpVersion']=$ssData['php_ver'];
+	                }
+	            }
+	            
+	            if(empty($info['swoolePhpVersion'])&&$mconfig->server_is_swoole_php()){
+	                
+	                $phpResult=$mconfig->php_is_valid(g_sc_c('caiji','swoole_php'));
+	                if(empty($phpResult['success'])){
+	                    $info['swoolePhpInvalid']=true;
+	                }
+	                if($phpResult['ver']){
+	                    
+	                    $info['swoolePhpVersion']=$phpResult['ver'];
 	                }
 	            }
 	        }
@@ -206,6 +235,7 @@ class Backstage extends BaseController{
 	            
 	            if($mconfig->page_render_is_chrome()){
 	                
+	                $pageRender=g_sc_c('page_render');
 	                init_array($pageRender['chrome']);
 	                $chromeSoket=new \util\ChromeSocket($pageRender['chrome']['host'],$pageRender['chrome']['port'],$pageRender['timeout'],$pageRender['chrome']['filename'],$pageRender['chrome']);
 	                $info['pageRenderInvalid']=$chromeSoket->hostIsOpen()?false:true;
@@ -282,7 +312,6 @@ class Backstage extends BaseController{
 	
 	/*检测更新*/
 	public function newVersionAction(){
-	    \util\Funcs::close_session();
 	    $version=\util\Tools::curl_skycaiji('/client/info/version?v='.SKYCAIJI_VERSION);
 	    $version=json_decode($version,true);
 	    $version=is_array($version)?$version:array();
@@ -313,7 +342,6 @@ class Backstage extends BaseController{
 	
 	/*获取推送消息*/
 	public function adminIndexAction(){
-	    \util\Funcs::close_session();
 		$refresh=input('refresh');
 		$data=cache('backstage_admin_index');
 		$data=is_array($data)?$data:array();
@@ -540,5 +568,31 @@ class Backstage extends BaseController{
 			}
 		}
 		print_r ( $repeatList );
+	}
+	
+	public function admincpAction(){
+	    if($this->request->isPost()){
+	        $op=input('op');
+	        $val=input('val');
+	        $mconfig=model('Config');
+	        $config=$mconfig->getConfig('admincp','data');
+	        init_array($config);
+	        if($op=='mini'||$op=='narrow'){
+	            $config[$op]=intval($val);
+	        }elseif($op=='skin'){
+	            if(preg_match('/^[\w\-\_]+$/', $val)){
+	                $config[$op]=$val;
+	            }
+	        }
+	        
+	        $allowConfig=array('skin'=>'','mini'=>'','narrow'=>'');
+	        foreach ($allowConfig as $k=>$v){
+	            $allowConfig[$k]=isset($config[$k])?$config[$k]:'';
+	        }
+	        $mconfig->setConfig('admincp',$allowConfig);
+	        $this->success();
+	    }else{
+	        $this->error();
+	    }
 	}
 }

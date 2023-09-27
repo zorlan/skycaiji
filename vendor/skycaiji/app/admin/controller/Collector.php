@@ -17,9 +17,13 @@ class Collector extends BaseController {
     public function indexAction(){
         return $this->fetch();
     }
-    
     public function setAction(){
-    	$taskId=input('task_id/d',0);
+        $taskId=input('task_id/d',0);
+        if(request()->isPost()){
+            
+            \util\UnmaxPost::init_post_data('_post_data_');
+            $taskId=\util\UnmaxPost::val('task_id/d',0);
+        }
     	$mtask=model('Task');
 	    $mcoll=model('Collector');
     	$taskData=$mtask->getById($taskId);
@@ -35,19 +39,19 @@ class Collector extends BaseController {
     	}
     	$collData=$mcoll->where(array('task_id'=>$taskData['id'],'module'=>$taskData['module']))->find();
     	if(request()->isPost()){
-    	    $effective=input('effective');
-    	    $effectiveEdit=input('effective_edit');
+    	    $effective=\util\UnmaxPost::val('effective');
+    	    $effectiveEdit=\util\UnmaxPost::val('effective_edit');
     		if(empty($effective)){
     			
     			$this->error(lang('coll_error_empty_effective'));
     		}
-    		$name=trim(input('name'));
-    		$module=trim(input('module'));
+    		$name=trim(\util\UnmaxPost::val('name'));
+    		$module=trim(\util\UnmaxPost::val('module'));
     		$module=strtolower($module);
     		if(!in_array($module,config('allow_coll_modules'))){
     			$this->error(lang('coll_error_invalid_module'));
     		}
-    		$config=input('post.config/a',array(),'trim');
+    		$config=\util\UnmaxPost::val('config/a',array(),'trim');
     		$config=\util\Funcs::array_array_map('trim',$config);
     		
     		$acoll=controller('admin/C'.$module,'event');
@@ -68,8 +72,11 @@ class Collector extends BaseController {
     			$mcoll->edit_by_id($collId,$newColl);
     		}
     		if($collId>0){
-    			$tab_link=trim(input('tab_link'),'#');
-    			$this->success(lang('op_success'),'collector/set?task_id='.$taskId.($tab_link?'&tab_link='.$tab_link:'').(input('?easymode')?'&easymode=1':''));
+    		    $tabLink=trim(\util\UnmaxPost::val('tab_link'),'#');
+    		    $tabLink=$tabLink?('&tab_link='.$tabLink):'';
+    		    $isEasymode=\util\UnmaxPost::val('easymode');
+    		    $isEasymode=$isEasymode?'&easymode=1':'';
+    		    $this->success(lang('op_success'),'collector/set?task_id='.$taskId.$tabLink.$isEasymode);
     		}else{
     			$this->error(lang('op_failed'));
     		}
@@ -85,7 +92,7 @@ class Collector extends BaseController {
     		}
     		
     		$htmlTagName=lang('coll_set').lang('separator').lang('task_module_'.$taskData['module']);
-	    	if(input('?easymode')){
+	    	if(input('easymode')){
 	    	    $htmlTagName.=' <small><a href="'.url('collector/set?task_id='.$taskId).'" onclick="if(window.top){window.top.location.href=$(this).attr(\'href\');return false;}" title="切换普通模式">普通模式</a></small>';
 	    	}else{
 	    	    $htmlTagName.=' <small><a href="'.url('cpattern/easymode?task_id='.$taskId).'" title="切换简单模式">简单模式</a></small>';
@@ -475,6 +482,35 @@ class Collector extends BaseController {
             }
             $this->success('','');
         }
+    }
+    
+    public function echo_url_msgAction(){
+        $data=input('data','','trim');
+        $data=json_decode($data,true);
+        init_array($data['post']);
+        init_array($data['renderer']);
+        
+        
+        $urlWeb=array();
+        if(!empty($data['post'])){
+            $urlWeb['open']=1;
+            $urlWeb['form_names']=array_keys($data['post']);
+            $urlWeb['form_vals']=array_values($data['post']);
+        }
+        
+        
+        $renderer=$data['renderer'];
+        if(!empty($renderer)){
+            $renderer['open']='y';
+        }
+        $data=array(
+            'url_web'=>$urlWeb,
+            'renderer'=>$renderer
+        );
+        
+        $this->set_html_tags('查看网址信息','查看网址信息');
+        $this->assign('data',$data);
+        return $this->fetch();
     }
     
     public function plugin_funcAction(){

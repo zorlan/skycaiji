@@ -10,5 +10,5 @@
  */
 
 return [
-	'skycaiji\admin\command\Collect'	
+    'skycaiji\admin\command\Collect'
 ];

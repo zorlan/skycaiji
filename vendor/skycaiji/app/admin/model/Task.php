@@ -77,13 +77,21 @@ class Task extends \skycaiji\common\model\BaseModel{
 		}
 		
 		
-		if(empty($config['img_func'])){
+		init_array($config['img_funcs']);
+		$imgFuncs=array();
+		if(empty($config['img_funcs_open'])){
 		    
-		    set_g_sc(['c','download_img','img_func'],$original_config['download_img']['img_func']);
+		    $imgFuncs=$original_config['download_img']['img_funcs'];
+		    init_array($imgFuncs);
+		    if(!empty($config['img_funcs'])){
+		        $imgFuncs=array_merge($imgFuncs,$config['img_funcs']);
+		    }
 		}else{
 		    
-		    set_g_sc(['c','download_img','img_func'],$config['img_func']=='n'?'':$config['img_func']);
+		    $imgFuncs=$config['img_funcs_open']=='n'?array():$config['img_funcs'];
 		}
+		set_g_sc(['c','download_img','img_funcs'],$imgFuncs);
+		
 		
 		
 		if(empty($config['download_file'])){
@@ -93,13 +101,22 @@ class Task extends \skycaiji\common\model\BaseModel{
 		    set_g_sc(['c','download_file','download_file'],$config['download_file']=='n'?0:1);
 		}
 		
-		if(empty($config['file_func'])){
+		
+		init_array($config['file_funcs']);
+		$fileFuncs=array();
+		if(empty($config['file_funcs_open'])){
 		    
-		    set_g_sc(['c','download_file','file_func'],$original_config['download_file']['file_func']);
+		    $fileFuncs=$original_config['download_file']['file_funcs'];
+		    init_array($fileFuncs);
+		    if(!empty($config['file_funcs'])){
+		        $fileFuncs=array_merge($fileFuncs,$config['file_funcs']);
+		    }
 		}else{
 		    
-		    set_g_sc(['c','download_file','file_func'],$config['file_func']=='n'?'':$config['file_func']);
+		    $fileFuncs=$config['file_funcs_open']=='n'?array():$config['file_funcs'];
 		}
+		set_g_sc(['c','download_file','file_funcs'],$fileFuncs);
+		
 		
 		
 		if(empty($config['translate'])){
@@ -183,6 +200,8 @@ class Task extends \skycaiji\common\model\BaseModel{
                     }
                 }
             }
+            $config=model('Config')->compatible_func_config($config,false,true);
+            $config=model('Config')->compatible_func_config($config,true,true);
         }
         return $config;
     }

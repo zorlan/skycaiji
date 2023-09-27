@@ -424,26 +424,31 @@ class ReleaseBase extends CollectBase{
 			                            }
 			                            
 			                            
-			                            $funcName=g_sc_c('download_img','img_func');
-			                            if(!empty($funcName)){
-			                                
+			                            $imgFuncs=g_sc_c('download_img','img_funcs');
+			                            if(!empty($imgFuncs)&&is_array($imgFuncs)){
 			                                $paramVals=array(
 			                                    '[图片:文件名]'=>$filename,
 			                                    '[图片:路径]'=>$img_path,
 			                                    '[图片:名称]'=>$imgname,
-			                                    '[图片:链接]'=>$imgurl,
 			                                    '[图片:网址]'=>$url
 			                                );
-			                                $return=model('FuncApp')->execute_func('downloadImg',$funcName,$filename,g_sc_c('download_img','img_func_param'),$paramVals);
-			                                if($return['success']){
-			                                    
-			                                    if($return['data']&&preg_match('/^\w+\:\/\//',$return['data'])){
+			                                $mfuncApp=model('FuncApp');
+			                                foreach ($imgFuncs as $imgFunc){
+			                                    $paramVals['[图片:链接]']=$this->cache_img_list[$key];
+			                                    if($imgFunc&&is_array($imgFunc)&&$imgFunc['func']){
 			                                        
-			                                        $this->cache_img_list[$key]=$return['data'];
+			                                        $return=$mfuncApp->execute_func('downloadImg',$imgFunc['func'],$filename,$imgFunc['func_param'],$paramVals);
+			                                        if($return['success']){
+			                                            
+			                                            if($return['data']&&preg_match('/^\w+\:\/\//',$return['data'])){
+			                                                
+			                                                $this->cache_img_list[$key]=$return['data'];
+			                                            }
+			                                        }elseif($return['msg']){
+			                                            
+			                                            $this->echo_msg(array('%s',$return['msg']));
+			                                        }
 			                                    }
-			                                }elseif($return['msg']){
-			                                    
-			                                    $this->echo_msg(array('%s',$return['msg']));
 			                                }
 			                            }
 			                        }
@@ -653,26 +658,31 @@ class ReleaseBase extends CollectBase{
                                 if(write_dir_file($filefull,$fileCodeInfo['html'])){
                                     $this->cache_file_list[$key]=$fileurl;
                                     
-                                    $funcName=g_sc_c('download_file','file_func');
-                                    if(!empty($funcName)){
-                                        
+                                    $fileFuncs=g_sc_c('download_file','file_funcs');
+                                    if(!empty($fileFuncs)&&is_array($fileFuncs)){
                                         $paramVals=array(
                                             '[文件:文件名]'=>$filefull,
                                             '[文件:路径]'=>$file_path,
                                             '[文件:名称]'=>$filename,
-                                            '[文件:链接]'=>$fileurl,
                                             '[文件:网址]'=>$url
                                         );
-                                        $return=model('FuncApp')->execute_func('downloadFile',$funcName,$filefull,g_sc_c('download_file','file_func_param'),$paramVals);
-                                        if($return['success']){
-                                            
-                                            if($return['data']&&preg_match('/^\w+\:\/\//',$return['data'])){
+                                        $mfuncApp=model('FuncApp');
+                                        foreach ($fileFuncs as $fileFunc){
+                                            $paramVals['[文件:链接]']=$this->cache_file_list[$key];
+                                            if($fileFunc&&is_array($fileFunc)&&$fileFunc['func']){
                                                 
-                                                $this->cache_file_list[$key]=$return['data'];
+                                                $return=$mfuncApp->execute_func('downloadFile',$fileFunc['func'],$filefull,$fileFunc['func_param'],$paramVals);
+                                                if($return['success']){
+                                                    
+                                                    if($return['data']&&preg_match('/^\w+\:\/\//',$return['data'])){
+                                                        
+                                                        $this->cache_file_list[$key]=$return['data'];
+                                                    }
+                                                }elseif($return['msg']){
+                                                    
+                                                    $this->echo_msg(array('%s',$return['msg']));
+                                                }
                                             }
-                                        }elseif($return['msg']){
-                                            
-                                            $this->echo_msg(array('%s',$return['msg']));
                                         }
                                     }
                                 }

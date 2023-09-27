@@ -18,7 +18,7 @@ class Rdiy extends Release{
 	 * @param unknown $config
 	 */
 	public function setConfig($config){
-	    $diy=input('diy/a',array(),'trim');
+	    $diy=\util\UnmaxPost::val('diy/a',array(),'trim');
 		if(!in_array($diy['type'],array('app','code'))){
 			$this->error('类型错误');
 		}

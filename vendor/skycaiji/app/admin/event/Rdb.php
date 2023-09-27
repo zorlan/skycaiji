@@ -18,7 +18,7 @@ class Rdb extends Release{
      * @param unknown $config
      */
     public function setConfig($config){
-        $db=input('db/a',array(),'trim');
+        $db=\util\UnmaxPost::val('db/a',array(),'trim');
         foreach ($db as $k=>$v){
             if(empty($v)&&'pwd'!=$k){
                 
@@ -26,7 +26,8 @@ class Rdb extends Release{
             }
         }
         $config['db']=$db;
-        $dbTables=trim_input_array('db_tables');
+        $dbTables=\util\UnmaxPost::val('db_tables/a',array(),'trim');
+        $dbTables=\util\Funcs::array_array_map('trim', $dbTables);
         $dbTables=model('Release')->config_db_tables($dbTables);
         $config['db_tables']=$dbTables;
         return $config;

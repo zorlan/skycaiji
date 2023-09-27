@@ -136,12 +136,15 @@ class User extends \skycaiji\common\model\User{
 	        
 	        session('user_login',null);
 	        session('is_admin',null);
+	        set_g_sc('user_login',null);
 	    }else{
 	        
-	        session('user_login',array(
+	        $userLogin=array(
 	            'uid'=>$userData['uid'],
 	            'key'=>$this->generate_key($userData)
-	        ));
+	        );
+	        session('user_login',$userLogin);
+	        set_g_sc('user_login',$userLogin);
 	        
 	        $mUg=model('admin/Usergroup');
 	        $isAdmin=null;
