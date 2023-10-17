@@ -1,0 +1,59 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/tool_json_tree.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="box box-default">
+	<div class="box-body">
+		<div class="form-group">
+			<div class="input-group">
+				<textarea id="txt_data" rows="2" class="form-control" placeholder="输入json字符串、html代码或者网址（以http://或https://开头）">{$data?htmlspecialchars($data):''}</textarea>
+				<a href="javascript:;" class="input-group-addon" id="btn_preview">确定</a>
+			</div>
+		</div>
+		<div id="tool_preview"></div>
+	</div>
+</div>
+<script type="text/javascript">
+'use strict';//严格模式
+(function(){
+	$(document).ready(function(){
+		$('#btn_preview').bind('click',function(){
+			window.tool_json_tree.treeId='#tool_preview';
+			var data=$('#txt_data').val();
+			$('#tool_preview').html('<div class="loading"></div>');
+			ajaxOpen({
+				type: 'POST',
+				dataType: 'json',
+				url: ulink('tool/preview'),
+				data: {data:data},
+				success: function (data) {
+					data=data.data;
+					if(data.json){
+						window.tool_json_tree.load(data.json);
+					}else{
+						var ifr=document.createElement('iframe');
+						ifr=$(ifr);
+						ifr.css({width:'100%',height:'100%',border:'1px solid #ccc'});
+						ifr.bind('load',function(){
+							if(ifr.contents().find('body').html().length<=0){
+								//火狐浏览器需要重新赋值，否则显示空白
+							    ifr.contents().find('body').html(data.html);
+							}
+						});
+						ifr.contents().find('body').html(data.html);
+						$('#tool_preview').html(ifr);
+						var ifrHeight=$(window).height()-ifr.offset().top-30;
+						ifr.css('height',ifrHeight+'px');
+					}
+				}
+			});
+		});
+		if($('#txt_data').val()){
+			//有数据自动提交
+			$('#btn_preview').trigger('click');
+		}
+	});
+})();
+</script>
+{/block}

@@ -1543,7 +1543,15 @@ class Cpattern extends CpatternEvent{
 		}
 		$htmlInfo=$this->get_page_html($cont_url, 'url', '', false, true);
 		if(empty($htmlInfo['html'])){
-		    return $this->echo_error('未获取到源代码');
+		    $errorMsg='';
+		    if(is_array($htmlInfo['error'])){
+		        $errorMsg=$htmlInfo['error']['msg'];
+		    }
+		    if($htmlInfo['header']){
+		        $errorMsg.=($errorMsg?', ':'').$htmlInfo['header'];
+		    }
+		    $errorMsg=($errorMsg?'：':'').$errorMsg;
+		    return $this->echo_error('未抓取到源码'.$errorMsg);
 		}
 		
 		foreach($this->config['new_field_list'] as $field_config){
@@ -2098,14 +2106,34 @@ class Cpattern extends CpatternEvent{
 								if(!empty($this->config['field_title'])){
 									
 									$collected_data['title']=$field_vals[$this->config['field_title']]['value'];
-								}
-								if(!empty($collected_data['title'])){
-									
-								    if($mcollected->collGetNumByTitle($collected_data['title'])>0){
-										
-										$collected_error='标题重复：'.mb_substr($collected_data['title'],0,300,'utf-8');
+									if(!empty($collected_data['title'])){
+									    
+									    if($mcollected->collGetNumByTitle($collected_data['title'])>0){
+									        
+									        $collected_error='标题重复：'.mb_substr($collected_data['title'],0,300,'utf-8');
+									    }
 									}
 								}
+							}
+							if(empty($collected_error)){
+							    if(!empty($this->config['field_content'])){
+							        
+							        $collected_data['content']=array();
+							        foreach($this->config['field_content'] as $fcField){
+							            $collected_data['content'][$fcField]=$field_vals[$fcField]['value'];
+							        }
+							        if(!empty($collected_data['content'])){
+							            
+							            ksort($collected_data['content']);
+							            $collected_data['content']=implode("\r\n", $collected_data['content']);
+							            if($mcollected->collGetNumByContent($collected_data['content'])>0){
+							                
+							                $collected_error='内容重复';
+							            }
+							        }else{
+							            $collected_data['content']='';
+							        }
+							    }
 							}
 							if(empty($collected_error)){
 								

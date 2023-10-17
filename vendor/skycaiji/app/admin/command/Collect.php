@@ -40,7 +40,14 @@ class Collect extends Command{
         \util\Tools::close_session();
         
         
-        if('auto_backstage'==$op){
+        if('cli'==$op){
+            
+            $curUrl=$rootUrl.'/admin/index/cli&key='.\util\Param::set_url_cache_key('cli').$this->get_url_params_str($input);
+            \think\Request::create($curUrl);
+            
+            define('BIND_MODULE', "admin/index/cli");
+            \think\App::run()->send();
+        }elseif('auto_backstage'==$op){
             
             set_time_limit(0);
             $curKey=\util\Param::get_auto_backstage_key();
@@ -72,20 +79,7 @@ class Collect extends Command{
                 sleep(15);
             }while(1==1);
         }elseif('collect_process'==$op){
-            $urlParams='';
-            if ($input->hasOption('url_params')){
-                $urlParams=$input->getOption('url_params');
-                if($urlParams){
-                    $urlParams=json_decode(base64_decode($urlParams),true);
-                }
-                if(!empty($urlParams)&&is_array($urlParams)){
-                    $urlParams='&'.http_build_query($urlParams);
-                }else{
-                    $urlParams='';
-                }
-            }
-            
-            $curUrl=$rootUrl.'/admin/index/collect_process'.$urlParams;
+            $curUrl=$rootUrl.'/admin/index/collect_process'.$this->get_url_params_str($input);
             \think\Request::create($curUrl);
             
             define('BIND_MODULE', "admin/index/collect_process");
@@ -95,5 +89,21 @@ class Collect extends Command{
     
     protected function error_msg($msg){
         exit($msg);
+    }
+    
+    protected function get_url_params_str($input){
+        $urlParams='';
+        if ($input->hasOption('url_params')){
+            $urlParams=$input->getOption('url_params');
+            if($urlParams){
+                $urlParams=json_decode(base64_decode($urlParams),true);
+            }
+            if(!empty($urlParams)&&is_array($urlParams)){
+                $urlParams='&'.http_build_query($urlParams);
+            }else{
+                $urlParams='';
+            }
+        }
+        return $urlParams;
     }
 }

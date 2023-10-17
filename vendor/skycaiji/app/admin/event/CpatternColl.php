@@ -1871,6 +1871,12 @@ class CpatternColl extends CpatternBase{
             }
         }else{
             $options['curlopts']=$otherConfig['curlopts'];
+            if(isset($otherConfig['return_head'])){
+                $options['return_head']=$otherConfig['return_head'];
+            }
+            if(isset($otherConfig['return_info'])){
+                $options['return_info']=$otherConfig['return_info'];
+            }
             init_array($options['curlopts']);
             
             $options['max_redirs']=g_sc_c('caiji','max_redirs');
@@ -1894,7 +1900,12 @@ class CpatternColl extends CpatternBase{
                 }
             }
             
-            $this->collect_sleep(g_sc_c('caiji','wait'));
+            $caijiWait=g_sc_c('caiji','wait');
+            if($caijiWait){
+                $this->collect_sleep($caijiWait);
+            }else{
+                $this->collect_stopped($this->collector['task_id'],10);
+            }
             
             if($this->retry_do_func($retryCur,$retryMax,'网址无效')){
                 return $this->get_html($retryParams[0],$retryParams[1],$retryParams[2],$retryParams[3],$retryParams[4],$retryParams[5]);

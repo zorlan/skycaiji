@@ -105,6 +105,10 @@ class Setting extends BaseController {
             $config['swoole_host']=input('swoole_host');
             $config['swoole_port']=input('swoole_port');
             $config['swoole_php']=input('swoole_php');
+            $config['api']=input('api/d',0);
+            $config['api_type']=input('api_type');
+            $config['api_key']=input('api_key');
+            $config['api_interval']=input('api_interval/d',0);
             $config['process_num']=input('process_num/d',0);
             $config['num']=input('num/d',0);
             $config['interval']=input('interval/d',0);
@@ -112,6 +116,7 @@ class Setting extends BaseController {
             $config['interval_html']=input('interval_html/d',0);
             $config['same_url']=input('same_url/d',0);
             $config['same_title']=input('same_title/d',0);
+            $config['same_content']=input('same_content/d',0);
             $config['real_time']=input('real_time/d',0);
             $config['retry']=input('retry/d',0);
             $config['wait']=input('wait/d',0);
@@ -152,7 +157,7 @@ class Setting extends BaseController {
                 lang('setting_caiji'),
                 lang('setting_caiji'),
                 breadcrumb(array(array('url'=>url('setting/caiji'),'title'=>lang('setting_caiji'))))
-                );
+            );
             $caijiConfig=$mconfig->getConfig('caiji','data');
             init_array($caijiConfig);
             if($caijiConfig['html_interval']>0){
@@ -162,8 +167,36 @@ class Setting extends BaseController {
             
             $phpExeFile=\skycaiji\admin\model\Config::detect_php_exe();
             
+            
+            $apiUrl=null;
+            $apiParams=null;
+            if($caijiConfig['api']){
+                
+                $apiUrl=array('s'=>'api_caiji');
+                if($caijiConfig['api_type']=='safe'){
+                    $apiUrl['sign']='签名';
+                    $apiUrl['ts']='时间戳';
+                    $apiParams[]='签名：md5(密钥+时间戳)';
+                    $apiParams[]='时间戳：注意是11位数字不是年月日时间';
+                }else{
+                    if($caijiConfig['api_key']){
+                        $apiUrl['key']=md5($caijiConfig['api_key']);
+                    }
+                }
+                $apiUrl['tids']='任务id';
+                $apiParams[]='任务id：可在任务中查看，多个id用逗号分隔';
+                $apiParams=implode('<br>',$apiParams);
+                foreach ($apiUrl as $k=>$v){
+                    $apiUrl[$k]=$k.'='.$v;
+                }
+                $apiUrl=implode('&', $apiUrl);
+                $apiUrl=config('root_website').'/?'.$apiUrl;
+            }
+            
             $this->assign('caijiConfig',$caijiConfig);
             $this->assign('phpExeFile',$phpExeFile);
+            $this->assign('apiUrl',$apiUrl);
+            $this->assign('apiParams',$apiParams);
         }
         return $this->fetch();
     }
@@ -763,7 +796,7 @@ class Setting extends BaseController {
             $phpFile=input('php','','trim');
             $phpResult=model('Config')->php_is_valid($phpFile);
             if($phpResult['success']){
-                $this->success($phpResult['msg']?$phpResult['msg']:'测试成功');
+                $this->success($phpResult['msg_ver'].($phpResult['msg_ver']?' ':'').'测试成功，请保存配置以便生效');
             }else{
                 $this->error($phpResult['msg']?$phpResult['msg']:'测试失败');
             }
@@ -782,7 +815,7 @@ class Setting extends BaseController {
             if(!$phpResult['success']){
                 $this->error($phpResult['msg']?:'测试失败');
             }else{
-                $this->success($phpResult['v']?:'测试成功');
+                $this->success($phpResult['msg'].($phpResult['msg']?' ':'').'测试成功，请保存配置以便生效');
             }
         }
         $this->error('测试失败');

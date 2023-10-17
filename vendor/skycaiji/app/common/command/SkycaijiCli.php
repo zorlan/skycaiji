@@ -76,9 +76,16 @@ class SkycaijiCli{
         $ws->on('Message',function($ws,$frame){
             $this->swooleSocket->wsOnMsg($ws,$frame);
         });
+        $ws->on('Request',function($request,$response) {
+            global $ws;
+            $this->swooleSocket->wsOnRequest($request,$response,$ws);
+        });
         $ws->on('Close',function($ws,$fd){
             $this->swooleSocket->wsOnClose($ws,$fd);
         });
+        
+        echo "ok\r\n";
+        
         $ws->start();
     }
     

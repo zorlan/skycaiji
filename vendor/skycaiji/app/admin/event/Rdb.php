@@ -110,6 +110,7 @@ class Rdb extends Release{
             $updateTables=array();
             
             $contTitle=$collFields['title'];
+            $contContent=$collFields['content'];
             $contUrl=$collFields['url'];
             $collFields=$collFields['fields'];
             $this->init_download_config($this->task,$collFields);
@@ -284,7 +285,7 @@ class Rdb extends Release{
                     $returnData['error']='没有成功的新增或更新操作';
                 }
             }
-            $this->record_collected($contUrl,$returnData,$this->release,$contTitle);
+            $this->record_collected($contUrl,$returnData,$this->release,array('title'=>$contTitle,'content'=>$contContent));
             
             unset($collFieldsList[$collFieldsKey]['fields']);
         }

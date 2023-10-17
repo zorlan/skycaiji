@@ -90,8 +90,8 @@ class Rapi extends Release{
 	        
 	        json($collFieldsList)->send();
 	    }else{
-	        $html='<form id="win_form_json" method="post" target="_blank" action="'.url('tool/json_tree_data').'">'.html_usertoken()
-	           .'<p>生成API返回的数据 <a href="javascript:;" onclick="document.getElementById(\'win_form_json\').submit();">解析</a></p>'
+	        $html='<form id="win_form_preview" method="post" target="_blank" action="'.url('tool/preview_data').'">'.html_usertoken()
+	           .'<p>生成API返回的数据 <a href="javascript:;" onclick="document.getElementById(\'win_form_preview\').submit();">预览</a></p>'
 	           .'<textarea name="data" style="width:100%;margin:5px 0;" rows="20">'.htmlspecialchars(json_encode($collFieldsList)).'</textarea></form>';
 	        $this->echo_msg($html,'black');
 	        $this->echo_msg_end();

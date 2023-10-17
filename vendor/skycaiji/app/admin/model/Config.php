@@ -290,120 +290,37 @@ class Config extends \skycaiji\common\model\Config {
 		return $php_filename;
 	}
 	
-	public function php_is_valid($phpFile,$getModules=false){
-	    $result=return_result('',false,array('v'=>'','ver'=>'','m'=>'','swoole'=>''));
+	public function php_is_valid($phpFile){
+	    $result=return_result('',false,array('msg_ver'=>'','ver'=>'','swoole'=>''));
 	    if(!function_exists('proc_open')){
 	        $result['msg']='需开启proc_open函数';
 	    }else{
-	        $phpResult=$this->exec_php_version($phpFile);
-	        if($phpResult===false){
+	        if(empty($phpFile)){
+	            
+	            $phpFile=self::detect_php_exe();
+	        }
+	        if(empty($phpFile)){
 	            $result['msg']='未检测到PHP可执行文件，请手动输入';
-	        }elseif(is_array($phpResult)){
-	            $result=array_merge($result,$phpResult);
-	        }
-	        if(empty($phpResult)||(!$phpResult['success']&&$phpResult['msg'])){
-	            
-	            $result['success']=false;
-	            $result['msg']=$phpResult['msg']?:'php无效';
-	        }
-	        if($result['success']){
-	            $result['v']=$result['msg'];
-	            if($result['v']){
+	        }else{
+	            $info=\util\Tools::cli_command_exec('collect cli --url_params '.base64_encode(json_encode(array('op'=>'php'))),$phpFile,array('showInfo'=>'all','closeProc'=>true));
+	            init_array($info);
+	            $output=trim($info['output']);
+	            $info['error']=trim($info['error']);
+	            $info['output']=array();
+	            if($output&&preg_match('/\{[\s\S]+\}/i',$output,$mjson)){
 	                
-	                if(preg_match('/\bPHP\s+(?P<ver>\d+(\.\d+){1,})/i',$result['v'],$mphpv)){
-	                    $result['ver']=$mphpv['ver'];
-	                }
+	                $info['output']=json_decode($mjson[0],true);
 	            }
-	        }
-	        if($getModules){
-	            
-	            if($result['success']){
-	                $phpResult=$this->exec_php_m($phpFile);
-	                if($phpResult===false){
-	                    $result['msg']='未检测到PHP可执行文件，请手动输入';
-	                }elseif(is_array($phpResult)){
-	                    $result=array_merge($result,$phpResult);
-	                }
-	                if(empty($phpResult)||(!$phpResult['success']&&$phpResult['msg'])){
-	                    
-	                    $result['success']=false;
-	                    $result['msg']=$phpResult['msg']?:'php无效';
-	                }
-	                if($result['success']){
-	                    $result['m']=$result['msg'];
-	                    if($result['m']){
-	                        if(preg_match('/\bswoole\b/i', $result['m'])){
-	                            
-	                            $result['swoole']=true;
-	                        }
-	                    }
-	                }
-	            }
-	        }
-	    }
-	    return $result;
-	}
-	
-	public function exec_php_version($phpFile){
-	    $result=false;
-	    if(empty($phpFile)){
-	        
-	        $phpFile=self::detect_php_exe();
-	    }
-	    if(!empty($phpFile)){
-	        $result=return_result('',false);
-	        $phpFile=self::cli_safe_filename($phpFile);
-            $phpFile.=' -v';
-            $info=\util\Tools::proc_open_exec_curl($phpFile,'all',10,true);
-            $info=is_array($info)?$info:array();
-            $info['output']=trim($info['output']);
-            $info['error']=trim($info['error']);
-            
-            if(is_array($info['status'])&&$info['status']['running']){
-                
-                if($info['error']){
-                    $result['msg']=$info['error'];
-                }elseif($info['output']){
-                    $result['success']=true;
-                    $result['msg']=$info['output'];
-                }else{
-                    $result['success']=true;
-                }
-            }elseif($info['error']){
-                $result['msg']=$info['error'];
-            }
-	    }
-	    return $result;
-	}
-	
-	
-	public function exec_php_m($phpFile){
-	    $result=false;
-	    if(empty($phpFile)){
-	        
-	        $phpFile=self::detect_php_exe();
-	    }
-	    if(!empty($phpFile)){
-	        $result=return_result('',false);
-	        $phpFile=self::cli_safe_filename($phpFile);
-	        $phpFile.=' -m';
-	        $info=\util\Tools::proc_open_exec_curl($phpFile,'all',10,true);
-	        $info=is_array($info)?$info:array();
-	        $info['output']=trim($info['output']);
-	        $info['error']=trim($info['error']);
-	        
-	        if(is_array($info['status'])&&$info['status']['running']){
-	            
-	            if($info['error']){
-	                $result['msg']=$info['error'];
-	            }elseif($info['output']){
-	                $result['success']=true;
-	                $result['msg']=$info['output'];
+	            init_array($info['output']);
+	            if(empty($info['output'])){
+	                
+	                $result['msg']=$info['error']?$info['error']:($output?$output:'php无效');
 	            }else{
 	                $result['success']=true;
+	                $result['ver']=$info['output']['ver'];
+	                $result['swoole']=$info['output']['swoole'];
+	                $result['msg_ver']='php v'.$result['ver'];
 	            }
-	        }elseif($info['error']){
-	            $result['msg']=$info['error'];
 	        }
 	    }
 	    return $result;

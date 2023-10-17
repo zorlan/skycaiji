@@ -13,13 +13,23 @@ namespace skycaiji\admin\event;
 use skycaiji\admin\model\CacheModel;
 class ReleaseBase extends CollectBase{
 	/*已采集记录*/
-	public function record_collected($url,$returnData,$release,$title=null,$echo=true){
+	public function record_collected($url,$returnData,$release,$insertData=null,$echo=true){
 		if($returnData['id']>0){
 			
+			$title='';
+			$content='';
+		    if(is_array($insertData)){
+		        $title=$insertData['title'];
+		        $content=$insertData['content'];
+		    }else{
+		        
+		        $title=$insertData;
+		    }
 			model('Collected')->insert(array(
 				'url' => $url,
 				'urlMd5' => md5 ( $url ),
-				'titleMd5'=>empty($title)?'':md5($title),
+			    'titleMd5'=>empty($title)?'':md5($title),
+			    'contentMd5'=>empty($content)?'':md5($content),
 				'target' => $returnData['target'],
 				'desc' => $returnData['desc']?$returnData['desc']:'',
 				'error'=>'',
@@ -52,6 +62,7 @@ class ReleaseBase extends CollectBase{
 						'url' => $url,
 						'urlMd5' => md5 ( $url ),
 						'titleMd5'=>'',
+						'contentMd5'=>'',
 						'target' => '',
 						'desc'=>'',
 						'error' => $returnData['error'],

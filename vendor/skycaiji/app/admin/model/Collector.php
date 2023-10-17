@@ -194,10 +194,17 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	    }
 	}
 	
-	public static function echo_msg_end_js($isTimeout=false){
+	public static function echo_msg_end_js($isTimeout=false,$errorMsg=null){
 	    $vars='"'.self::url_collector_process().'"';
 	    if($isTimeout){
-	        $vars.=',1';
+	        
+	        $webServer=\util\Funcs::web_server_name();
+	        $webServer=$webServer?:'web';
+	        $errorMsg='运行中断了，请修改'.$webServer.'服务器的超时时间或将采集运行模式设置为<a href="'.url('admin/setting/caiji').'" target="_blank">cli命令行</a>';
+	    }
+	    if($errorMsg){
+	        $errorMsg=url_b64encode($errorMsg);
+	        $vars.=',"'.$errorMsg.'"';
 	    }
 	    return '<script type="text/javascript" data-echo-msg-is-end="1">window.parent.window.collectorEchoMsg.end('.$vars.');</script>';
 	}
@@ -330,7 +337,7 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	    return $lockList;
 	}
 	/*触发运行自动采集*/
-	public static function collect_run_auto($rootUrl='',$taskIds=null){
+	public static function collect_run_auto($rootUrl='',$taskIds=null,$noAuto=false){
 	    try{
 	        
 	        $url='';
@@ -339,7 +346,7 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	        }else{
 	            $url=url('admin/index/auto_collect',null,false,true);
 	        }
-	        $url.=(strpos($url, '?')===false?'?':'&').'backstage_run=1&key='.\util\Param::set_cache_key('auto_collect');
+	        $url.=(strpos($url, '?')===false?'?':'&').'backstage_run=1'.($noAuto?'&no_auto=1':'').'&key='.\util\Param::set_cache_key('auto_collect');
 	        if($taskIds&&is_array($taskIds)){
 	            
 	            $taskIds=implode(',', $taskIds);
@@ -440,7 +447,7 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	            }
 	            $allParams=http_build_query($allParams);
 	            $url=url('admin/index/collect_process?'.$allParams,null,false,true);
-	            $chList[$pkey]=get_html($url,null,array('return_curl'=>1,'timeout'=>3));
+	            $chList[$pkey]=get_html($url,null,array('return_curl'=>1,'timeout'=>10));
 	            curl_multi_add_handle($mh, $chList[$pkey]);
 	        }
 	        

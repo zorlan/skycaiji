@@ -84,6 +84,36 @@ class UpgradeDb extends BaseController{
 			}
 		}
 	}
+	/*添加字段*/
+	protected function table_add_columns($table,$columns){
+	    if($table&&is_array($columns)&&$columns){
+	        $db_prefix=config('database.prefix');
+	        $dbColumns=db()->query("SHOW COLUMNS FROM `{$db_prefix}{$table}`");
+	        foreach($columns as $cname=>$cset){
+	            if($cname&&$cset){
+	                if(!$this->check_exists_field($cname,$dbColumns)){
+	                    
+	                    db()->execute("alter table `{$db_prefix}{$table}` add `{$cname}` {$cset}");
+	                }
+	            }
+	        }
+	    }
+	}
+	/*添加索引*/
+	protected function table_add_indexes($table,$indexes){
+	    if($table&&is_array($indexes)&&$indexes){
+	        $db_prefix=config('database.prefix');
+	        $dbIndexes=db()->query("SHOW INDEX FROM `{$db_prefix}{$table}`");
+	        foreach($indexes as $iname=>$iset){
+	            if($iname&&$iset){
+	                if(!$this->check_exists_index($iname,$dbIndexes)){
+	                    
+	                    db()->execute("ALTER TABLE `{$db_prefix}{$table}` ADD INDEX {$iname} ({$iset})");
+	                }
+	            }
+	        }
+	    }
+	}
 	
 	public function execute_upgrade(){
 		$mconfig=model('common/Config');
@@ -397,6 +427,10 @@ EOF;
 	    if(file_exists($lockFileOld1)||file_exists($lockFileOld2)){
 	        write_dir_file(config('root_path').'/data/install.lock', '1');
 	    }
+	}
+	public function upgrade_db_to_2_6_1(){
+	    $this->table_add_columns('collected', array('contentMd5'=>"varchar(32) NOT NULL DEFAULT ''"));
+	    $this->table_add_indexes('collected', array('ix_contentmd5'=>"`contentMd5`"));
 	}
 }
 ?>

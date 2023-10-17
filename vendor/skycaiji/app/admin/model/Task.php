@@ -61,6 +61,13 @@ class Task extends \skycaiji\common\model\BaseModel{
 		    set_g_sc(['c','caiji','same_title'],$config['same_title']=='n'?0:1);
 		}
 		
+		if(empty($config['same_content'])){
+		    
+		    set_g_sc(['c','caiji','same_content'],$original_config['caiji']['same_content']);
+		}else{
+		    set_g_sc(['c','caiji','same_content'],$config['same_content']=='n'?0:1);
+		}
+		
 		if(empty($config['real_time'])){
 		    
 		    set_g_sc(['c','caiji','real_time'],$original_config['caiji']['real_time']);

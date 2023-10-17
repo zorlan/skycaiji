@@ -426,6 +426,22 @@ class Collector extends BaseController {
                     
                     
                     $list[$line]=\skycaiji\admin\model\Collector::echo_msg_end_js();
+                }else{
+                    
+                    $startTime=input('start',0,'intval');
+                    $endTime=input('end',0,'intval');
+                    if(abs($endTime-$startTime)>10*1000){
+                        
+                        $mconfig=model('Config');
+                        if($mconfig->server_is_cli()){
+                            
+                            $phpResult=$mconfig->php_is_valid(g_sc_c('caiji','server_php'));
+                            if(empty($phpResult['success'])){
+                                
+                                $list[$line+1]=\skycaiji\admin\model\Collector::echo_msg_end_js(false,'php错误：'.$phpResult['msg'].' <a href="'.url('admin/setting/caiji').'" target="_blank">php设置</a>');
+                            }
+                        }
+                    }
                 }
                 
                 $list=array_filter($list);

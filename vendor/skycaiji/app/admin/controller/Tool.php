@@ -463,34 +463,40 @@ class Tool extends BaseController {
 			return $this->fetch();
 		}
 	}
-	public function json_treeAction(){
+	
+	public function previewAction(){
 	    if(request()->isPost()){
 	        $data=input('data','','trim');
-			$json='';
-			if(preg_match('/^\w+\:\/\//', $data)){
-				
-			    $data=get_html($data);
-			}
-			if(!empty($data)){
-			    $json=\util\Funcs::convert_html2json($data,true);
-			}
-			
-			$this->success('','',array('json'=>$json));
-		}else{
-		    return $this->_json_tree_view();
-		}
+	        $preview=array('json'=>'','html'=>'');
+	        if(preg_match('/^\w+\:\/\//', $data)){
+	            
+	            $data=get_html($data);
+	        }
+	        if(!empty($data)){
+	            $json=\util\Funcs::convert_html2json($data,true);
+	            if(!empty($json)){
+	                $preview['json']=$json;
+	            }else{
+	                $preview['html']=\util\Funcs::html_clear_js($data);
+	            }
+	        }
+	        $this->success('','',$preview);
+	    }else{
+	        return $this->_preview();
+	    }
 	}
-	public function json_tree_dataAction(){
+	public function preview_dataAction(){
 	    $data=input('data','','trim');
 	    $this->assign('data',$data);
-	    return $this->_json_tree_view();
+	    return $this->_preview();
 	}
-	private function _json_tree_view(){
+	
+	private function _preview(){
 	    $this->set_html_tags(
-	        'JSON解析',
-	        'JSON解析',
-	        breadcrumb(array(array('url'=>url('tool/json_tree'),'title'=>'JSON解析')))
+	        '解析预览',
+	        '解析预览',
+	        breadcrumb(array(array('url'=>url('tool/preview'),'title'=>'解析预览')))
 	    );
-	    return $this->fetch('json_tree');
+	    return $this->fetch('preview');
 	}
 }

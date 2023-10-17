@@ -810,11 +810,7 @@ class CpatternTest extends BaseController {
             
             if(empty($jsonHtml)){
                 
-                $html=preg_replace('/<script[^<>]*?>[\s\S]*?<\/script>/i', '', $html);
-                $html=preg_replace('/\bon[a-z]+\s*\=\s*[\'\"]/', "$0return;", $html);
-                $html=preg_replace('/<meta[^<>]*charset[^<>]*?>/i', '', $html);
-                $html=preg_replace('/<meta[^<>]*http-equiv\s*=\s*[\'\"]{0,1}refresh\b[\'\"]{0,1}[^<>]*?>/i', '', $html);
-                
+                $html=\util\Funcs::html_clear_js($html);
                 
                 $configUnset=array();
                 $configSetted=array();
@@ -1195,13 +1191,21 @@ class CpatternTest extends BaseController {
                 $this->error('请选择页面类型');
             }
             
-            $html=$this->eCpattern->get_page_html($test_url, $pageType, $pageName);
+            $htmlInfo=$this->eCpattern->get_page_html($test_url, $pageType, $pageName, false, true);
             
-            if(empty($html)){
-                exit('没有抓取到源码');
+            if(empty($htmlInfo['html'])){
+                $errorMsg='';
+                if(is_array($htmlInfo['error'])){
+                    $errorMsg=$htmlInfo['error']['msg'];
+                }
+                if($htmlInfo['header']){
+                    $errorMsg.=($errorMsg?', ':'').$htmlInfo['header'];
+                }
+                $errorMsg=($errorMsg?'：':'').$errorMsg;
+                exit('未抓取到源码'.$errorMsg);
             }else{
                 
-                exit($html);
+                exit($htmlInfo['html']);
             }
         }elseif('get_browser'==$testName){
             

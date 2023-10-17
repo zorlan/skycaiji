@@ -151,7 +151,9 @@
 		    <div class="form-group">
 		        <label>{$Think.lang.set_caiji_num}</label>
 		        <input type="number" name="config[num]" class="form-control" placeholder="全局设置：{$gConfig['num']}" />
-		        <p class="help-block">该任务每次采集的数据量，不能超过采集设置中的“{$Think.lang.set_caiji_num}”，留空使用全局设置</p>
+		        <p class="help-block">该任务每次采集的数据量，不能超过采集设置中的“{$Think.lang.set_caiji_num}”，留空使用全局设置
+		        {if $numGtG}<br/>注意：当前数量超过全局设置的数量，实际最大采集数量为：{$gConfig['num']}{/if}
+		        </p>
 		    </div>
 		    <div class="form-group">
 		        <label>{$Think.lang.set_caiji_interval}（分钟）</label>
@@ -181,6 +183,16 @@
 					</label>
 			        <label class="radio-inline"><input type="radio" name="config[same_title]" value="y">允许</label>
 					<label class="radio-inline"><input type="radio" name="config[same_title]" value="n">过滤</label>
+		        </div>
+		    </div>
+		    <div class="form-group">
+		        <label>不同任务采集相同内容</label>
+		        <div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="config[same_content]" value="" checked="checked">
+						全局设置：{$gConfig['same_content']}
+					</label>
+			        <label class="radio-inline"><input type="radio" name="config[same_content]" value="y">允许</label>
+					<label class="radio-inline"><input type="radio" name="config[same_content]" value="n">过滤</label>
 		        </div>
 		    </div>
 		    <div class="form-group">

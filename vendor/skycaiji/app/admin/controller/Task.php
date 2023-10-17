@@ -413,6 +413,7 @@ class Task extends CollectController {
                 'num_interval_html'=>intval(g_sc_c('caiji','interval_html')),
                 'same_url'=>g_sc_c('caiji','same_url')>0?'允许':'过滤',
                 'same_title'=>g_sc_c('caiji','same_title')>0?'允许':'过滤',
+                'same_content'=>g_sc_c('caiji','same_content')>0?'允许':'过滤',
                 'real_time'=>g_sc_c('caiji','real_time')>0?'是':'否',
                 'translate'=>g_sc_c('translate','open')>0?'1':'',
                 'proxy'=>g_sc_c('proxy','open')>0?'1':'',
@@ -445,9 +446,15 @@ class Task extends CollectController {
             init_array($gConfig['img_funcs']);
             init_array($gConfig['file_funcs']);
             
+            $numGtG=false;
+            if($gConfig['num']>0&&$taskData&&$taskData['config']&&$taskData['config']['num']>$gConfig['num']){
+                $numGtG=true;
+            }
             
             $this->assign('gConfig',$gConfig);
             $this->assign('tgSelect',$tgSelect);
+            $this->assign('numGtG',$numGtG);
+            
             $this->assign('proxyGroups',model('ProxyGroup')->getAll());
             if(request()->isAjax()){
                 return view('save_ajax');

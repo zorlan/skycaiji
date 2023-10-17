@@ -45,35 +45,28 @@ class Param{
 	    return self::defined('TASK_API_RESPONSE_JSON');
 	}
 	
-	public static function set_auto_backstage_key(){
-	    $key=\util\Funcs::uniqid('collect_auto_backstage_key');
-	    \skycaiji\admin\model\CacheModel::getInstance()->setCache('collect_auto_backstage_key', $key);
+	
+	public static function get_url_cache_key($name){
+	    $name='url_key_'.$name;
+	    return \skycaiji\admin\model\CacheModel::getInstance()->getCache($name, 'data');
+	}
+	
+	public static function set_url_cache_key($name){
+	    $name='url_key_'.$name;
+	    $key=\util\Funcs::uniqid($name);
+	    \skycaiji\admin\model\CacheModel::getInstance()->setCache($name, $key);
 	    return $key;
+	}
+	
+	
+	public static function set_auto_backstage_key(){
+	    return self::set_url_cache_key('auto_backstage');
 	}
 	
 	public static function get_auto_backstage_key(){
-	    return \skycaiji\admin\model\CacheModel::getInstance()->getCache('collect_auto_backstage_key', 'data');
+	    return self::get_url_cache_key('auto_backstage');
 	}
 	
-	public static function set_swoole_server_key(){
-	    $key=\util\Funcs::uniqid('collect_swoole_server_key');
-	    \skycaiji\admin\model\CacheModel::getInstance()->setCache('collect_swoole_server_key', $key);
-	    return $key;
-	}
-	
-	public static function get_swoole_server_key(){
-	    return \skycaiji\admin\model\CacheModel::getInstance()->getCache('collect_swoole_server_key', 'data');
-	}
-	
-	public static function set_proc_open_exec_key(){
-	    $key=\util\Funcs::uniqid('proc_open_exec_key');
-	    \skycaiji\admin\model\CacheModel::getInstance()->setCache('proc_open_exec_key', $key);
-	    return $key;
-	}
-	
-	public static function get_proc_open_exec_key(){
-	    return \skycaiji\admin\model\CacheModel::getInstance()->getCache('proc_open_exec_key', 'data');
-	}
 	
 	public static function set_cache_key($prefix=null){
 	    $key=\util\Funcs::uniqid($prefix);

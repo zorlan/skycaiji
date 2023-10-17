@@ -30,6 +30,80 @@ class Api extends CollectController{
 		header('Content-type:text/json');
 		$this->collect_tasks($taskId, null, true);
 	}
+	
+	/*api触发任务采集*/
+	public function caijiAction(){
+	    $result=return_result('');
+	    if(is_empty(g_sc_c('caiji','api'))){
+	        $result['msg']='不允许接口触发采集';
+	    }else{
+	        $taskIds=input('tids','');
+	        $taskIds=explode(',', $taskIds);
+	        init_array($taskIds);
+	        $taskIds=array_map('intval', $taskIds);
+	        $taskIds=array_unique($taskIds);
+	        $taskIds=array_filter($taskIds);
+	        $taskIds=array_values($taskIds);
+	        if(empty($taskIds)){
+	            $result['msg']='没有任务id';
+	        }else{
+	            $nowTime=time();
+	            $apiKey=g_sc_c('caiji','api_key');
+	            $isRight=false;
+	            if(g_sc_c('caiji','api_type')=='safe'){
+	                
+	                $ts=input('ts/d',0);
+	                if(md5($apiKey.$ts)==input('sign','')){
+	                    if(abs($ts-$nowTime)<=300){
+	                        $isRight=true;
+	                    }else{
+	                        $result['msg']='签名过期';
+	                    }
+	                }else{
+	                    $result['msg']='签名错误';
+	                }
+	            }else{
+	                
+	                if($apiKey){
+	                    
+	                    if(md5($apiKey)==input('key','')){
+	                        $isRight=true;
+	                    }else{
+	                        $result['msg']='密钥错误';
+	                    }
+	                }else{
+	                    
+	                    $isRight=true;
+	                }
+	            }
+	            if($isRight){
+	                $cacheKey='api_caiji_visit_time'.($taskIds?('_'.$taskIds):'');
+	                $cacheKey=md5($cacheKey);
+	                
+	                $mcache=\skycaiji\admin\model\CacheModel::getInstance();
+	                $visitTime=$mcache->getCache($cacheKey,'data');
+	                $visitTime=intval($visitTime);
+	                $apiInterval=g_sc_c('caiji','api_interval');
+	                $apiInterval=intval($apiInterval);
+	                $apiInterval=$apiInterval>0?$apiInterval:15;
+	                $apiInterval=$apiInterval-abs($nowTime-$visitTime);
+	                
+	                if($visitTime&&$apiInterval>0){
+	                    
+	                    $result['msg']='采集已经触发，'.$apiInterval.'秒后才能再次访问';
+	                }else{
+	                    $mcache->setCache($cacheKey,$nowTime);
+	                    $rootUrl=\think\Config::get('root_website').'/index.php?s=';
+	                    \skycaiji\admin\model\Collector::collect_run_auto($rootUrl,$taskIds,true);
+	                    $result['msg']='成功触发采集';
+	                    $result['success']=true;
+	                }
+	            }
+	        }
+	    }
+	    return json($result);
+	}
+	
 	/*客户端信息*/
 	public function clientinfoAction(){
 	    return json(clientinfo());

@@ -89,13 +89,7 @@ class Release extends CollectController{
 			$this->assign('config',$releData['config']);
 			$this->assign('releData',$releData);
 			
-			$apiRootUrl=config('root_website');
-
-			if(stripos(\think\Request::instance()->root()?:'','/index.php?s=')!==false){
-				$apiRootUrl.='/index.php?s=';
-			}elseif(stripos(\think\Request::instance()->root()?:'','/index.php')!==false){
-				$apiRootUrl.='/index.php';
-			}
+			$apiRootUrl=config('root_website').'/?s=';
 
 			$releBase=new \skycaiji\admin\event\ReleaseBase();
 			$collFields=$releBase->get_coll_fields($taskData['id'],$taskData['module']);

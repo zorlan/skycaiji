@@ -64,9 +64,11 @@ class SwooleSocket{
         return $process1==$process2?false:true;
     }
     
-    public function websocketError(){
+    public function websocketError($php=null){
         $error='';
-        $msg='请使用“swoole快捷启动”或在服务器命令行中执行：<b>php '.htmlspecialchars(config('root_path').DIRECTORY_SEPARATOR).'skycaiji '.htmlspecialchars($this->cmdStr()).'</b>';
+        $php=$php?:g_sc_c('caiji','swoole_php');
+        $php=$php?:'php';
+        $msg='请使用“swoole快捷启动”或在服务器命令行中执行：<b>'.$php.' '.htmlspecialchars(config('root_path').DIRECTORY_SEPARATOR).'skycaiji '.htmlspecialchars($this->cmdStr()).'</b>';
         try{
             $this->websocket();
             
@@ -78,7 +80,7 @@ class SwooleSocket{
             $exMsg=$ex->getMessage();
             $encode=mb_detect_encoding($exMsg, array('ASCII','UTF-8','GB2312','GBK','BIG5'));
             $exMsg=\util\Funcs::convert_charset($exMsg,$encode,'utf-8');
-            $error='swoole错误：'.$exMsg.' '.$msg;
+            $error='swoole错误：'.$exMsg.'<br>'.$msg;
         }
         
         return $error;
@@ -172,8 +174,8 @@ class SwooleSocket{
             
             if(model('Config')->server_is_swoole_php(true,$server,$swoolePhp)){
                 
-                $sskey=\util\Param::set_swoole_server_key();
-                @get_html(url('admin/index/swoole_server?key='.$sskey,null,false,true),null,array('timeout'=>2));
+                $sskey=\util\Param::set_url_cache_key('swoole_server');
+                @get_html(url('admin/index/swoole_server?key='.$sskey,null,false,true),null,array('timeout'=>3));
             }
         }else{
             
@@ -184,7 +186,7 @@ class SwooleSocket{
         }
     }
     
-    public function checkPhp($server,$swoolePhp,$allowPhpEmpty=false,$checkPhpM=false){
+    public function checkPhp($server,$swoolePhp,$allowPhpEmpty=false,$checkSwoole=false){
         $return=return_result('');
         $mconfig=model('Config');
         if(empty($swoolePhp)){
@@ -201,20 +203,20 @@ class SwooleSocket{
                 if(!function_exists('proc_open')){
                     $return['msg']='需开启proc_open函数';
                 }else{
-                    $phpResult=$mconfig->php_is_valid($swoolePhp,$checkPhpM);
+                    $phpResult=$mconfig->php_is_valid($swoolePhp);
                     if(empty($phpResult['success'])){
                         $return['msg']=$phpResult['msg'];
                     }else{
-                        if($checkPhpM){
+                        if($checkSwoole){
                             if(empty($phpResult['swoole'])){
                                 $return['msg']='php未安装swoole模块';
                             }else{
                                 $return['success']=true;
-                                $return['v']=$phpResult['v'];
+                                $return['msg']=$phpResult['msg_ver'];
                             }
                         }else{
                             $return['success']=true;
-                            $return['v']=$phpResult['v'];
+                            $return['msg']=$phpResult['msg_ver'];
                         }
                     }
                 }
@@ -259,6 +261,15 @@ class SwooleSocket{
         return $status;
     }
     
+    public function doRequest($method,$params=array()){
+        init_array($postData);
+        $postData = array(
+            'method' => $method,
+            'params'=> $params
+        );
+        $postData=base64_encode(json_encode($postData));
+        $html=get_html('http://'.$this->getHostPort().'?_swoole_request_data='.rawurlencode($postData),null,array('timeout'=>10),'utf-8');
+    }
     
     public function wsIsChange(){
         
@@ -278,6 +289,12 @@ class SwooleSocket{
         return false;
     }
     
+    public function wsShutdown($ws){
+        $ws->shutdown();
+        $this->killProcess(getmypid(),SIGTERM,10);
+        exit();
+    }
+    
     protected $wsTimer;
     
     public function wsOnOpen($ws,$request){
@@ -287,7 +304,7 @@ class SwooleSocket{
             $this->wsTimer=\Swoole\Timer::tick(60000,function()use($ws){
                 if($this->wsIsChange()){
                     
-                    $ws->shutdown();
+                    $this->wsShutdown($ws);
                 }
             });
         }
@@ -300,23 +317,32 @@ class SwooleSocket{
         if($data){
             $data=json_decode($data,true);
         }
+        $data=$this->commonWsOn($data,$ws);
+        $data=json_encode($data);
+        $ws->push($frame->fd, $data);
+    }
+    public function wsOnRequest($request,$response,$ws){
+        $data=$request->get['_swoole_request_data'];
+        $data=json_decode(base64_decode($data),true);
+        $data=$this->commonWsOn($data,$ws,true);
+        $response->end();
+        exit();
+    }
+    protected function commonWsOn($data,$ws,$isRequest=false){
         init_array($data);
-        
         if($this->wsIsChange()){
             
-            $ws->shutdown();
+            $this->wsShutdown($ws);
             $data['shutdown']=1;
         }else{
-            $method='ws_m_'.$data['method'];
+            $method='ws_'.($isRequest?'r':'m').'_'.$data['method'];
             if($method&&method_exists($this,$method)){
                 $data['ws']=1;
                 init_array($data['params']);
                 $data=$this->$method($data,$ws);
             }
         }
-        
-        $data=json_encode($data);
-        $ws->push($frame->fd, $data);
+        return $data;
     }
     
     protected function ws_m_is_open($data,$ws){
@@ -329,14 +355,14 @@ class SwooleSocket{
         $caijiConfig=$mconfig->getConfig('caiji','data');
         if($this->processNumChanged(CUR_SWOOLE_PROCESS, $caijiConfig['process_num'])){
             
-            $ws->shutdown();
+            $this->wsShutdown($ws);
         }else{
-            $ws>reboot();
+            $ws->reboot();
         }
         return $data;
     }
     protected function ws_m_shutdown($data,$ws){
-        $ws->shutdown();
+        $this->wsShutdown($ws);
         $data['shutdown']=1;
         return $data;
     }
@@ -362,8 +388,9 @@ class SwooleSocket{
         define('BIND_MODULE', "admin/index/collect_process");
         \think\App::run()->send();
         
-        $data['collect_process']='end';
-        return $data;
+        
+        
+        exit();
     }
     protected function ws_m_auto_backstage($data,$ws){
         $rootUrl=\think\Config::get('root_website').'/index.php?s=';
@@ -400,8 +427,9 @@ class SwooleSocket{
             sleep(15);
         }while(1==1);
         
-        $data['auto_backstage']='end';
-        return $data;
+        
+        
+        exit();
     }
 }
 

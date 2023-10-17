@@ -479,29 +479,38 @@ class Index extends CollectController{
 	    if(!$this->_collect_check_key()){
 	        $this->error('密钥错误');
 	    }
-	    
-	    if(is_empty(g_sc_c('caiji','auto'))){
-	        $this->error('请先开启自动采集');
+	    $noAuto=input('no_auto');
+	    if(empty($noAuto)){
+	        
+	        if(is_empty(g_sc_c('caiji','auto'))){
+	            $this->error('请先开启自动采集');
+	        }
 	    }
 	    
-	    $this->collect_create_or_run(function(){
-	        $cond=array();
-	        $taskIds=input('task_ids','');
-	        if($taskIds){
-	            
-	            $taskIds=explode(',', $taskIds);
-	            init_array($taskIds);
-	            $taskIds=array_map('intval',$taskIds);
-	            $cond['id']=array('in',$taskIds);
-	        }
+	    $cond=array();
+	    $taskIds=input('task_ids','');
+	    if($taskIds){
+	        
+	        $taskIds=explode(',', $taskIds);
+	        init_array($taskIds);
+	        $taskIds=array_map('intval',$taskIds);
+	        $cond['id']=array('in',$taskIds);
+	    }
+	    
+	    if(empty($noAuto)){
+	        
 	        $cond['auto']=array('>',0);
 	        $cond['module']='pattern';
-	        $taskIds=model('Task')->where($cond)->order('caijitime asc')->column('id');
-	        if(empty($taskIds)){
-	            $this->echo_msg_exit('没有可自动采集的任务 <a href="'.url('admin/task/list').'" target="_blank">设置</a>');
-	        }
-	        return $taskIds;
-	    },null,true,\skycaiji\admin\model\Collector::url_backstage_run());
+	    }
+	    
+	    $this->collect_create_or_run(function()use($cond,$noAuto){
+            $taskIds=model('Task')->where($cond)->order('caijitime asc')->column('id');
+            if(empty($taskIds)){
+                $this->echo_msg_exit('没有可'.($noAuto?'自动':'').'采集的任务 <a href="'.url('admin/task/list').'" target="_blank">设置</a>');
+            }
+            return $taskIds;
+        },null,true,\skycaiji\admin\model\Collector::url_backstage_run());
+	   
 	}
 	
 	public function collect_processAction(){
@@ -629,12 +638,12 @@ class Index extends CollectController{
 	
 	public function proc_open_execAction(){
 	    $key=input('key');
-	    if(empty($key)||$key!=\util\Param::get_proc_open_exec_key()){
+	    if(empty($key)||$key!=\util\Param::get_url_cache_key('proc_open_exec')){
 	        $this->error('密钥错误');
 	    }
 	    $params=cache('proc_open_exec_params');
 	    
-	    \util\Param::set_proc_open_exec_key();
+	    \util\Param::set_url_cache_key('proc_open_exec');
 	    cache('proc_open_exec_params',null);
 	    
 	    $info=array();
@@ -649,8 +658,7 @@ class Index extends CollectController{
 	
 	public function swoole_serverAction(){
 	    $key=input('key');
-	    $ssKey=\util\Param::get_swoole_server_key();
-	    if(empty($key)||$key!=$ssKey){
+	    if(empty($key)||$key!=\util\Param::get_url_cache_key('swoole_server')){
 	        
 	        $this->error('密钥错误');
 	    }
@@ -659,6 +667,24 @@ class Index extends CollectController{
 	        \util\Tools::cli_command_exec($ss->cmdStr());
 	    }else{
 	        $this->error('未开启swoole快捷启动');
+	    }
+	}
+	
+	
+	public function cliAction(){
+	    if(IS_CLI){
+	        $key=input('key');
+	        if(empty($key)||$key!=\util\Param::get_url_cache_key('cli')){
+	            
+	            $this->error('密钥错误');
+	        }
+	        $op=input('op');
+	        if($op=='php'){
+	            
+	            return json(['ver'=>PHP_VERSION,'swoole'=>extension_loaded('swoole')]);
+	        }
+	    }else{
+	        $this->error('不是cli模式');
 	    }
 	}
 }

@@ -38,10 +38,12 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
                     }catch (\Exception $ex){}
                     
                     $cssJs='<!DOCTYPE html><style type="text/css">'
-                        .'body{padding:0;margin:10px;font-size:13px;color:#000;line-height:16px;}p{padding:0;margin:0;}a{color:#aaa;}'
+                        .'body{padding:0;margin:10px;font-size:13px;color:#000;line-height:16px;}p{padding:0;margin:0;}'
+                        .'a{color:#aaa;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'
                         .'.echo-msg-clear{width:100%;overflow:hidden;clear:both;}'
                         .'.echo-msg-lt{float:left;}'
-                        .'.echo-msg-lurl{float:left;margin-right:3px;height:16px;max-width:70%;overflow:hidden;text-overflow:ellipsis;word-wrap:break-word;word-break:break-all;}'
+                        .'.echo-msg-lurl{float:left;margin-right:3px;height:16px;max-width:70%;}'
+                        .'@media(max-width:767px){.echo-msg-lurl{max-width:100%;}}'
                         .'</style>';
                     $this->_echo_msg_write($cssJs, $logFilename);
                 }

@@ -41,12 +41,25 @@ class Collected extends \skycaiji\common\model\BaseModel{
 		if(empty($title)){
 			return 0;
 		}
-		$cond=array('titleMd5'=>md5($title));
+		$title=md5($title);
+		$cond=array('titleMd5'=>$title);
 		if(g_sc_c('caiji','same_title')){
 		    
 		    $cond=$this->_coll_cond_set_tid($cond);
 		}
 		return $this->where($cond)->count();
+	}
+	public function collGetNumByContent($content){
+	    if(empty($content)){
+	        return 0;
+	    }
+	    $content=md5($content);
+	    $cond=array('contentMd5'=>$content);
+	    if(g_sc_c('caiji','same_content')){
+	        
+	        $cond=$this->_coll_cond_set_tid($cond);
+	    }
+	    return $this->where($cond)->count();
 	}
 	public function collGetUrlByUrl($urls){
 		if(!is_array($urls)){
@@ -92,11 +105,13 @@ CREATE TABLE `{$tname}` (
   `error` varchar(1000) NOT NULL DEFAULT '',
   `addtime` int(11) NOT NULL DEFAULT '0',
   `titleMd5` varchar(32) NOT NULL DEFAULT '',
+  `contentMd5` varchar(32) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `ix_urlmd5` (`urlMd5`),
   KEY `ix_taskid` (`task_id`),
   KEY `ix_addtime` (`addtime`),
-  KEY `ix_titlemd5` (`titleMd5`)
+  KEY `ix_titlemd5` (`titleMd5`),
+  KEY `ix_contentmd5` (`contentMd5`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8
 EOT;
 			db()->execute($table);

@@ -187,6 +187,7 @@ class Rtoapi extends Release{
             foreach ($collFieldsList as $collFieldsKey=>$collFields){
                 
                 $contTitle=$collFields['title'];
+                $contContent=$collFields['content'];
                 $contUrl=$collFields['url'];
                 $collFields=$collFields['fields'];
                 $this->init_download_config($this->task,$collFields);
@@ -277,10 +278,13 @@ class Rtoapi extends Release{
                     }
                 }while($doWhile);
                 
-                $this->record_collected($contUrl,$returnData,$this->release,$contTitle);
+                $this->record_collected($contUrl,$returnData,$this->release,array('title'=>$contTitle,'content'=>$contContent));
                 
                 if($testToapi){
-                    $this->echo_msg('<p>发布接口响应内容：</p><textarea name="data" style="width:100%;margin:5px 0;" rows="5">'.htmlspecialchars($html).'</textarea>','black');
+                    $html='<form id="win_form_preview" method="post" target="_blank" action="'.url('tool/preview_data').'">'.html_usertoken()
+                        .'<p>发布接口响应内容：<a href="javascript:;" onclick="document.getElementById(\'win_form_preview\').submit();">解析</a></p>'
+                        .'<textarea name="data" style="width:100%;margin:5px 0;" rows="20">'.htmlspecialchars($html).'</textarea></form>';
+                    $this->echo_msg($html,'black');
                 }
                 
                 

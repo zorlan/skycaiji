@@ -91,7 +91,7 @@ class Rfile extends Release {
     				foreach ($collFields['fields'] as $k=>$v){
     					$phpExcel->getActiveSheet()->setCellValue(chr(65+$k).$curRow,$this->get_field_val($v));
     				}
-    				$this->record_collected($collFields['url'], array('id'=>1,'target'=>$filename,'desc'=>'行：'.$curRow), $this->release,$collFields['title']);
+    				$this->record_collected($collFields['url'], array('id'=>1,'target'=>$filename,'desc'=>'行：'.$curRow), $this->release,array('title'=>$collFields['title'],'content'=>$collFields['content']));
     				
     				unset($collFieldsList[$collFieldsKey]['fields']);
     			}
@@ -137,7 +137,7 @@ class Rfile extends Release {
     				if(write_dir_file($filename,$fieldVals."\r\n",FILE_APPEND)){
     					
     					$txtLine++;
-    					$this->record_collected($collFields['url'], array('id'=>1,'target'=>$filename,'desc'=>'行：'.$txtLine), $this->release,$collFields['title']);
+    					$this->record_collected($collFields['url'], array('id'=>1,'target'=>$filename,'desc'=>'行：'.$txtLine), $this->release,array('title'=>$collFields['title'],'content'=>$collFields['content']));
     				}
     				
     				unset($collFieldsList[$collFieldsKey]['fields']);

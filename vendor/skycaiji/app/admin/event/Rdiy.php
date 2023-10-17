@@ -113,7 +113,7 @@ class Rdiy extends Release{
 					$returnData['error']='数据插入失败';
 				}
 			}
-			$this->record_collected($contUrl,$returnData,$this->release,$collFields['title']);
+			$this->record_collected($contUrl,$returnData,$this->release,array('title'=>$collFields['title'],'content'=>$collFields['content']));
 
 			
 			unset($collFieldsList[$collFieldsKey]['fields']);

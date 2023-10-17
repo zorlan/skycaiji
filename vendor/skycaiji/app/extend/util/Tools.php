@@ -216,13 +216,13 @@ class Tools{
         }
     }
     
-    public static function cli_command_exec($paramStr){
+    public static function cli_command_exec($paramStr,$phpFile=null,$curlParams=null){
         self::cli_cache_config(true);
         
         $commandStr='';
         if(preg_match('/^\s*collect\b/i', $paramStr)){
             
-            $commandStr=g_sc_c('caiji','server_php');
+            $commandStr=$phpFile?$phpFile:g_sc_c('caiji','server_php');
             if(empty($commandStr)){
                 
                 $commandStr=\skycaiji\admin\model\Config::detect_php_exe();
@@ -241,18 +241,30 @@ class Tools{
             
             $commandStr.=' '.config('root_path').DIRECTORY_SEPARATOR.'skycaiji '.$paramStr;
             
-            
-            self::proc_open_exec($commandStr);
+            if(empty($curlParams)){
+                
+                self::proc_open_exec($commandStr);
+            }else{
+                
+                init_array($curlParams);
+                return self::proc_open_exec_curl($commandStr,$curlParams['showInfo'],$curlParams['timeout'],$curlParams['closeProc'],$curlParams['killProc']);
+            }
         }
         
-        
-        exit();
+        if(empty($curlParams)){
+            
+            exit();
+        }
     }
     
     public static function proc_open_exec_curl($commandStr,$showInfo=false,$timeout=10,$closeProc=false,$killProc=false){
+        $timeout=intval($timeout);
+        if($timeout<=0){
+            $timeout=10;
+        }
         $params=array($commandStr,$showInfo,$timeout,$closeProc,$killProc);
         cache('proc_open_exec_params',$params);
-        $json=get_html(url('admin/index/proc_open_exec?key='.\util\Param::set_proc_open_exec_key(),null,false,true),null,array('timeout'=>3));
+        $json=get_html(url('admin/index/proc_open_exec?key='.\util\Param::set_url_cache_key('proc_open_exec'),null,false,true),null,array('timeout'=>3));
         if($json){
             $json=json_decode($json,true);
         }

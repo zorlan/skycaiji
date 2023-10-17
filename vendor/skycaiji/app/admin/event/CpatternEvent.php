@@ -396,6 +396,40 @@ class CpatternEvent extends CpatternColl{
             
             $this->field_url_complete=false;
         }
+        if(in_array('vedio_url', $params['tool_list'])){
+            
+            $urls=array();
+            if(preg_match_all('/<(object|embed|source)\b[^<>]+>/i',$fieldVal,$murls)){
+                foreach ($murls[0] as $k=>$v){
+                    if(preg_match('/\b'.($murls[1][$k]=='object'?'data':'src').'\s*=[\'\"]([^\r\n]+?)[\'\"]/i',$v,$murl)){
+                        $urls[]=$murl[1];
+                    }
+                }
+                $urls=array_unique($urls);
+                $urls=array_filter($urls);
+                $urls=array_values($urls);
+            }
+            $fieldVal=implode("\r\n",$urls);
+        }
+        if(in_array('url_real', $params['tool_list'])){
+            
+            $headers=$this->config_params['headers']['page'];
+            init_array($headers);
+            $useCookie=\util\Param::get_gsc_use_cookie('',true);
+            if(!empty($useCookie)){
+                
+                unset($headers['cookie']);
+                $headers['cookie']=$useCookie;
+            }
+            $fieldVal=preg_replace_callback('/\bhttp[s]{0,1}\:\/\/[^\'\"\s]+/i',function($murl)use($headers){
+                $murl=$murl[0];
+                $urlInfo=$this->get_html($murl,false,$headers,null,array('return_head'=>1,'return_info'=>1,'curlopts'=>array(CURLOPT_CONNECTTIMEOUT=>5)),true);
+                if(is_array($urlInfo)&&is_array($urlInfo['info'])&&$urlInfo['info']['url']){
+                    $murl=$urlInfo['info']['url'];
+                }
+                return $murl;
+            },$fieldVal);
+        }
         return $fieldVal;
     }
     public function process_f_download($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName=''){

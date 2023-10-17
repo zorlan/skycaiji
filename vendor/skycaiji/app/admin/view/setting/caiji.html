@@ -69,20 +69,47 @@
 		        	<label class="radio-inline"><input type="radio" name="auto" value="0" checked="checked">{$Think.lang.no}</label>
 		        </div>
 		        <p class="help-block">此设置为总控制开关，如设置“否”则任务中的自动采集设置不生效</p>
+			    <div class="form-group" id="set_caiji_run" style="display:none;">
+			        <label>{$Think.lang.set_caiji_run}</label>
+			        <select name="run" class="form-control">
+			        	<option value="backstage">后台运行（默认）</option>
+			        	<option value="visit">访问触发（推荐）</option>
+			        </select>
+				   	<p class="help-block run-backstage">将在PHP后台开启一个持续进程用来运行采集，会占用一些服务器资源</p>
+				    <p class="help-block run-visit" style="display:none;">
+				    	需在您的网站前端页面中加入一条html代码，添加后用户访问页面时即可触发采集<br/>
+				    	<em><b>&lt;script src="{:htmlspecialchars(url('admin/index/caiji',null,false,true))}" async&gt;&lt;/script&gt;</b></em>
+					</p>
+			    </div>
 		    </div>
-		    <div class="form-group" id="set_caiji_run" style="display:none;">
-		        <label>{$Think.lang.set_caiji_run}</label>
-		        <select name="run" class="form-control">
-		        	<option value="backstage">后台运行（默认）</option>
-		        	<option value="visit">访问触发（推荐）</option>
-		        </select>
-			   	<p class="help-block run-backstage">将在PHP后台开启一个持续进程用来运行采集，会占用一些服务器资源</p>
-			    <p class="help-block run-visit" style="display:none;">
-			    	需在您的网站前端页面中加入一条html代码：<br/>
-			    	<em><b>&lt;script src="{:htmlspecialchars(url('admin/index/caiji',null,false,true))}" async&gt;&lt;/script&gt;</b></em>
-					<br/>添加后，用户访问页面时即可触发采集，您也可以触发指定任务：
-					<br/><em><b>&lt;script src="{:htmlspecialchars(url('admin/index/caiji?task_ids=',null,false,true))}任务id多个逗号分隔" async&gt;&lt;/script&gt;</b></em>
-				</p>
+			<div class="form-group">
+		        <label>允许接口触发</label>
+		        <div class="input-group">
+		        	<label class="radio-inline"><input type="radio" name="api" value="1">{$Think.lang.yes}</label>
+		        	<label class="radio-inline"><input type="radio" name="api" value="0" checked="checked">{$Think.lang.no}</label>
+		        </div>
+		        <p class="help-block">开启后可以通过访问接口方式触发采集指定任务，和“自动采集”不冲突可同时运行</p>
+			    <div class="form-group" id="set_caiji_api" style="display:none;">
+			    	<div class="input-group">
+			       		<span class="input-group-addon">接口类型</span>
+			    		<select name="api_type" class="form-control">
+				        	<option value="">便捷（密钥明文传输有泄露风险）</option>
+				        	<option value="safe">安全（需要签名处理）</option>
+				        </select>
+			    		<span class="input-group-addon brl_0 brr_0">密钥</span>
+			    		<input type="text" name="api_key" class="form-control" placeholder="填写密钥防止接口被盗用" />
+			    		<span class="input-group-addon brl_0 brr_0">间隔</span>
+			    		<input type="number" name="api_interval" class="form-control" placeholder="访问接口最小间隔，默认15秒" />
+			    	</div>
+			    	{if !empty($apiUrl)}
+					<p class="help-block">
+						通过访问接口网址即可触发采集指定任务：<em><b>{:htmlspecialchars($apiUrl)}</b></em>
+						{if !empty($apiParams)}
+						<br>{$apiParams}
+						{/if}
+					</p>
+			    	{/if}
+			    </div>
 		    </div>
 		</div>
 	</div>
@@ -139,7 +166,15 @@
 			        <label class="radio-inline"><input type="radio" name="same_title" value="1">允许</label>
 					<label class="radio-inline"><input type="radio" name="same_title" value="0" checked="checked">过滤</label>
 		        </div>
-		        <p class="help-block">如启用了“任务»采集器设置»获取内容»标题排重”，默认所有任务采集同一标题网址只能发布一次，选择“允许”则每个任务中都可再次采集</p>
+		        <p class="help-block">如启用了“任务»采集器设置»获取内容»标题排重”，默认所有任务采集同一标题的网址只能发布一次，选择“允许”则每个任务中都可再次采集</p>
+		    </div>
+		    <div class="form-group">
+		        <label>不同任务采集相同内容</label>
+		        <div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="same_content" value="1">允许</label>
+					<label class="radio-inline"><input type="radio" name="same_content" value="0" checked="checked">过滤</label>
+		        </div>
+		        <p class="help-block">如启用了“任务»采集器设置»获取内容»内容排重”，默认所有任务采集相同内容的网址只能发布一次，选择“允许”则每个任务中都可再次采集</p>
 		    </div>
 		    <div class="form-group">
 		        <label>实时发布数据</label>
@@ -153,10 +188,7 @@
 	</div>
 </div>
 <div class="panel panel-default">
-	<div class="panel-heading">
-    	<h4 class="panel-title"><a data-toggle="collapse" href="#panel_others" aria-expanded="false" class="collapsed">更多设置</a></h4>
-   	</div>
-    <div class="panel-collapse collapse" id="panel_others">
+    <div class="panel-collapse collapse in">
     	<div class="panel-body">
 		    <div class="form-group">
 		        <label>网址解析IP类型</label>
