@@ -3,48 +3,90 @@
 <script src="__PUBLIC__/static/js/admin/setting.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
+<form id="form_set" method="post" role="form" action="{:url('admin/setting/email')}">
 <div class="box box-default">
 	<div class="box-body">
-		<form id="form_set" method="post" ajax-submit="true" role="form" action="{:url('admin/setting/email')}">
 		{:html_usertoken()}	
-			<input type="hidden" name="is_test" value="" />
-		   	<div class="form-group">
-		        <label>{$Think.lang.set_email_sender}</label>
-				<input type="text" name="sender" class="form-control" value="{$emailConfig['sender']}">
-		    </div>
-		   	<div class="form-group">
-		        <label>{$Think.lang.set_email_email}</label>
-				<input type="text" name="email" class="form-control" value="{$emailConfig['email']}">
-		    </div>
-		   	<div class="form-group">
-		        <label>{$Think.lang.set_email_pwd}</label>
-				<input type="password" name="pwd" class="form-control" autocomplete="off" value="{$emailConfig['pwd']}">
-		    </div>
-		   	<div class="form-group">
-		        <label>{$Think.lang.set_email_smtp}</label>
-				<input type="text" name="smtp" class="form-control" value="{$emailConfig['smtp']}">
-		    </div>
-		   	<div class="form-group">
-		        <label>{$Think.lang.set_email_port}</label>
-				<input type="text" name="port" class="form-control" value="{$emailConfig['port']}">
-				<p class="help-block">{$Think.lang.set_email_port_tips}</p>
-		    </div>
-		   	<div class="form-group">
-		        <label>{$Think.lang.set_email_type}</label>
-		        <div class="radio">
-		        	<label><input type="radio" name="type" value="tls">tls</label>
-		        	<label><input type="radio" name="type" value="ssl">ssl</label>
-		        </div>
-		    </div>
-		   	<div class="form-group">
-		   		<button type="button" id="btn_test" class="btn btn-default">{$Think.lang.test}</button>
-		   	</div>
-		   	<div class="form-group">
-				<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
-			</div>
-		</form>
+		<input type="hidden" name="is_test" value="" />
+	   	<div class="form-group">
+	        <label>{$Think.lang.set_email_sender}</label>
+			<input type="text" name="sender" class="form-control" value="{$emailConfig['sender']}">
+	    </div>
+	   	<div class="form-group">
+	        <label>{$Think.lang.set_email_email}</label>
+			<input type="text" name="email" class="form-control" value="{$emailConfig['email']}">
+	    </div>
+	   	<div class="form-group">
+	        <label>{$Think.lang.set_email_pwd}</label>
+			<input type="password" name="pwd" class="form-control" autocomplete="off" value="{$emailConfig['pwd']}">
+	    </div>
+	   	<div class="form-group">
+	        <label>{$Think.lang.set_email_smtp}</label>
+			<input type="text" name="smtp" class="form-control" value="{$emailConfig['smtp']}">
+	    </div>
+	   	<div class="form-group">
+	        <label>{$Think.lang.set_email_port}</label>
+			<input type="text" name="port" class="form-control" value="{$emailConfig['port']}">
+			<p class="help-block">{$Think.lang.set_email_port_tips}</p>
+	    </div>
+	   	<div class="form-group">
+	        <label>{$Think.lang.set_email_type}</label>
+	        <div class="input-group">
+	        	<label class="radio-inline"><input type="radio" name="type" value="tls">tls</label>
+	        	<label class="radio-inline"><input type="radio" name="type" value="ssl">ssl</label>
+	        </div>
+	    </div>
+	   	<div class="form-group" style="margin-bottom:5px;">
+	   		<button type="button" id="btn_test" class="btn btn-default btn-block">{$Think.lang.test}</button>
+	   	</div>
 	</div>
 </div>
+<div class="panel panel-default">
+    <div class="panel-collapse collapse in">
+		<div class="panel-body">
+		   	<div class="form-group" style="margin-bottom:0;">
+		        <label>采集提醒设置</label>
+		        <div class="input-group">
+		        	<label class="radio-inline"><input type="radio" name="caiji[open]" value="1">是</label>
+		        	<label class="radio-inline"><input type="radio" name="caiji[open]" value="0">否</label>
+		        </div>
+		    </div>
+		    <div id="caiji_open" style="display:none;margin-top:15px;">
+			   	<div class="form-group">
+			        <label>仅限自动采集</label>
+			        <div class="input-group">
+			        	<label class="radio-inline"><input type="radio" name="caiji[is_auto]" value="1">是</label>
+			        	<label class="radio-inline"><input type="radio" name="caiji[is_auto]" value="0">否</label>
+			        </div>
+					<p class="help-block">只有在自动采集任务时才发送提醒</p>
+			    </div>
+			   	<div class="form-group">
+			        <label>任务失败次数</label>
+					<input type="number" name="caiji[failed_num]" class="form-control" value="">
+					<p class="help-block">任务失败多少次发送提醒，每次提醒后都会重新计算失败次数，留空或0表示不提醒</p>
+			    </div>
+			   	<div class="form-group">
+			        <label>失败提醒间隔（分钟）</label>
+					<input type="number" name="caiji[failed_interval]" class="form-control" value="">
+					<p class="help-block">每隔多少分钟提醒一次，留空或0表示没有间隔</p>
+			    </div>
+			   	<div class="form-group">
+			        <label>发送报表间隔（分钟）</label>
+					<input type="number" name="caiji[report_interval]" class="form-control" value="">
+					<p class="help-block">每隔多少分钟发送一次采集汇总报表，留空或0表示不发送</p>
+			    </div>
+			   	<div class="form-group">
+			        <label>收件邮箱</label>
+					<input type="text" name="caiji[email]" class="form-control" value="" placeholder="默认使用{$Think.lang.set_email_email}接收邮件">
+			    </div>
+		    </div>
+		</div>
+	</div>
+</div>
+<div class="form-group">
+	<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+</div>
+</form>
 <script type="text/javascript">
 settingClass.email_init({$emailConfig|json_encode});
 </script>

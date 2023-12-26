@@ -27,7 +27,7 @@
 	transition:none!important;
 }
 /*全局*/
-.modal-body .form-group:last-child{margin-bottom:0;}
+.modal-body .form-group:last-child>button[type="submit"]{margin-bottom:-15px;}
 .modal-body .form-group .help-block:last-child{margin-bottom:0;}
 
 .panel .form-group:last-child{margin-bottom:0;}
@@ -36,8 +36,13 @@
 
 .label-custom-opened{font-weight:normal;background-color:#dedede;color:#555;}
 
+.plugin-func-refresh{font-size:12px;}
+
 .brl_0{border-left:0;}
 .brr_0{border-right:0;}
+
+.pdb_0{padding-bottom:0;}
+
 .h-title{
     color: #666;
     font-weight: bold;
@@ -312,6 +317,23 @@ table.table thead .sorting_desc:after {
 
 .form-inline label{font-weight:normal;}
 
+.c-p-field-list td .field-process{vertical-align:middle;}
+.c-p-field-list td .glyphicon.icon-drag-move{font-size:12px;vertical-align:middle;}
+.c-p-field-list td .glyphicon.field-clone{font-size:12px;top:0.3px;vertical-align:middle;}
+.c-p-field-list td .glyphicon.field-del{font-size:12px;top:1.1px;vertical-align:middle;}
+
+#coll_tab_content td .glyphicon.icon-drag-move{font-size:12px;vertical-align:middle;}
+#coll_tab_content td .glyphicon.clone{font-size:12px;top:0.3px;vertical-align:middle;}
+#coll_tab_content td .glyphicon.delete{font-size:12px;top:1.1px;vertical-align:middle;}
+
+.c-p-process-accordion .panel-heading .glyphicon.c-p-process-title{font-size:11px;vertical-align:middle;}
+.c-p-process-accordion .panel-heading .glyphicon.icon-drag-move{font-size:12px;vertical-align:middle;}
+.c-p-process-accordion .panel-heading .glyphicon.c-p-process-clone{font-size:12px;top:0.3px;vertical-align:middle;}
+.c-p-process-accordion .panel-heading .glyphicon.c-p-process-del{font-size:12px;top:1.1px;vertical-align:middle;}
+.c-p-process-accordion .panel-heading .panel-title-title{float:left;}
+.c-p-process-accordion .panel-heading .panel-title-title input{display:none;border-radius:2px;border:1px solid #ccc;line-height:14px;font-size:12px;margin-left:5px;padding:1px 1px 1px 2px;}
+.c-p-process-accordion .panel-heading .panel-title-ops{float:right;line-height:19px;}
+
 
 #task_list_folder .taskgroup-opened .icon-folder-pre:before{content:"\2212"}
 #task_list_folder .taskgroup-opened .icon-folder:before{content:"\e118"}
@@ -339,12 +361,10 @@ table.table thead .sorting_desc:after {
 .iga-rt1 .op li{display:none;}
 
 .nav-save-rule{float:right!important;}
-.nav-save-rule .dropdown-menu li a{padding-top:5px;padding-bottom:5px;}
 /*数据处理*/
 .form-control-slt{width:30px!important;text-align:center;}
 .form-control-slt select.form-control{min-width:20px!important;width:20px!important;height:30px!important;float:none!important;border:0!important;padding:0!important;margin:0!important;text-indent:-20px!important;}
 
-.c-p-process-accordion .panel-heading .glyphicon{font-size:12px;}
 .p-m-func-field{display:inline;width:80px;border:0;cursor:pointer;margin:0;padding:0;height:auto;color:#555;}
 
 .p-m-api-val-field,.p-m-api-header-field{display:none;margin-left:-1px;padding:0;}
@@ -359,8 +379,9 @@ table.table thead .sorting_desc:after {
 .p-m-html-tags a span{margin-right:2px;color:#999;}
 .p-m-if-val-func{position:relative;}
 .p-m-if-val-func a.input-group-addon{border-left:0;}
-.p-m-if-val-func .input-group-btn>select{border-left:0;width:auto;padding:0;padding-left:5px;text-align:center;}
+.p-m-if-val-func .input-group-btn>select{margin-left:-1px;width:auto;padding:0;padding-left:5px;text-align:center;}
 .p-m-if-op{width:70px;padding:15px 0 0 8px!important;font-size:11px;}
+.p-m-if-add{font-size:12px;}
 
 .p-m-download-op{display:none;margin-top:15px;}
 /*发布设置*/
@@ -388,6 +409,18 @@ table.table thead .sorting_desc:after {
 .toapi-param-table td:last-child,.toapi-header-table td:last-child{width:50px;text-align:center;}
 
 #toapi_resp_module_help .help-block{display:none;margin:0;}
+
+.toapi-app-table table tr td{height:50px;vertical-align:middle!important;}
+.toapi-field-txt>.input-group-addon{padding:0;}
+.toapi-field-txt>.input-group-addon a.dropdown-toggle{border-color:#fff;padding:6px 12px;color:#666;}
+.toapi-field-txt>.input-group-addon a.dropdown-toggle:hover{color:#000;}
+.toapi-field-txt>.input-group-addon a.dropdown-toggle .caret{margin-top:-2px;}
+
+.toapi-field-slt select.form-control{min-width:120px!important;margin-right:-1px;min-height:34px;max-height:90px;}
+.toapi-field-slt textarea.form-control{height:90px;}
+.toapi-field-slt input.form-control,.toapi-field-slt textarea.form-control,.toapi-field-slt .input-group-addon{display:none!important;}
+
+.toapi-field-slt-txt input.form-control,.toapi-field-slt-txt textarea.form-control,.toapi-field-slt-txt .input-group-addon{display:table-cell!important;}
 /*步骤条*/
 .steps-bar{width:100%;overflow:hidden;color:#999;}
 .steps-bar a{color:#999;}
@@ -465,6 +498,8 @@ table.table thead .sorting_desc:after {
 }
 /**/
 #cms_bind em{color:red;}
+#cms_bind .box{margin-bottom:0;}
+#cms_bind .table{margin-bottom:0;}
 #toapi_app_params em{color:red;}
 
 /*my store*/
@@ -605,6 +640,11 @@ footer.footer-end{display:none;}
 	.db-table-bind-signs .dropdown-menu table{margin:0;}	
 }
 
+@media (min-width: 900px) {
+	.toapi-app-table .table tr td:FIRST-CHILD{width:200px;white-space:nowrap;padding-right:10px;}
+	#cms_bind .table tr td:FIRST-CHILD{width:200px;white-space:nowrap;padding-right:10px;}	
+}
+
 @media (min-width: 768px) {
 	.c-p-url-web-form,.c-p-url-web-header{overflow:inherit;} /*table-responsive设置overflow:inherit;可正常显示dropdown-menu*/
 }
@@ -649,7 +689,9 @@ footer.footer-end{display:none;}
 	.c-p-source-tab>li>a{padding:5px 7px;border:solid 1px #ddd;text-align:center;}
 	.c-p-source-tab>li.active>a{border-radius:3px;border-bottom-color:#ddd!important;background-color:#efefef!important;}
 	
+	.mobile-input-group{width:100%;}
 	.mobile-input-group>.input-group-addon{display:table-caption;width:100%;background:#fafafa;margin-bottom:5px;border-right:1px solid #ccc;}
+	.mobile-input-group1>.input-group-addon{display:block;}
 	/*自适应第一个td宽度*/
 	.c-p-request-headers td:first-child,.c-p-request-headers-img td:first-child{width:auto;}
 	.c-p-url-web-form td:first-child,.c-p-url-web-header td:first-child{width:auto;}

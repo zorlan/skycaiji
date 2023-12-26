@@ -1,0 +1,1 @@
+<?php echo strip_tags($message);?>

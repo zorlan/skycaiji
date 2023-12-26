@@ -40,7 +40,7 @@
 					    		<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[area]\']',{zimu:{$_tpl_match_global?1:0}})">{:cp_sign('match')}</a></div>
 								<div>
 									<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[area]\']',{group:1,zimu:{$_tpl_match_global?1:0}})">捕获组</a></div>
-									<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tips({$_tpl_match_global?1:''},{$_tpl_is_pagination?1:''})"></a></div>
+									<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tips({$_tpl_match_global?1:0},{$_tpl_is_pagination?1:0})"></a></div>
 								</div>
 							</li>
 							<li data-module="xpath">xpath语法</li>
@@ -101,7 +101,7 @@
 			    				<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_match_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[url_rule]\']',{zimu:{$_tpl_match_global?1:0}})">{:cp_sign('match')}</a></div>
 			    				<div>
 			    					<div style="display:inline;"><a href="javascript:;" title="{$Think.lang.tips_sign_group_global}" onclick="ruleInsertSign.match('[name=\'{$_tpl_name}[url_rule]\']',{group:1,zimu:{$_tpl_match_global?1:0}})">捕获组</a></div>
-			    					<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tips({$_tpl_match_global?1:''},{$_tpl_is_pagination?1:''})"></a></div>
+			    					<div style="display:inline;"><a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tips({$_tpl_match_global?1:0},{$_tpl_is_pagination?1:0})"></a></div>
 								</div>
 			    			</li>
 					      	<li data-module="xpath">xpath语法</li>

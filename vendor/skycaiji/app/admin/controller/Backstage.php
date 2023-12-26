@@ -471,7 +471,7 @@ class Backstage extends BaseController{
         		            if($collStatus=='none'){
         		                $taskStatus='已断开';
         		            }elseif($collStatus=='unlock'){
-        		                $taskStatus='运行中断';
+        		                $taskStatus='运行中断'.(g_sc_c('caiji','server')?'':(strtolower($_SERVER['SERVER_SOFTWARE']).'超时'));
         		            }
         		        }
         			}else{
@@ -509,7 +509,7 @@ class Backstage extends BaseController{
 	                        if($collStatus=='none'){
 	                            $taskStatus='已断开';
 	                        }elseif($collStatus=='unlock'){
-	                            $taskStatus='运行中断';
+	                            $taskStatus='运行中断'.(g_sc_c('caiji','server')?'':(strtolower($_SERVER['SERVER_SOFTWARE']).'超时'));
 	                        }
 	                    }
 	                }else{

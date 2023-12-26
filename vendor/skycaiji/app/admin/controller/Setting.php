@@ -260,6 +260,7 @@ class Setting extends BaseController {
             
             $config['download_img']=input('download_img/d',0);
             $config['data_image']=input('data_image/d',0);
+            $config['url_real']=input('url_real/d',0);
             $config['interval_img']=input('interval_img/d',0);
             
             $config['img_timeout']=input('img_timeout/d',0);
@@ -411,6 +412,7 @@ class Setting extends BaseController {
             $config=array();
             
             $config['download_file']=input('download_file/d',0);
+            $config['url_real']=input('url_real/d',0);
             $config['file_interval']=input('file_interval/d',0);
             
             $config['file_timeout']=input('file_timeout/d',0);
@@ -662,6 +664,21 @@ class Setting extends BaseController {
             $config['port']=input('port');
             $config['type']=input('type');
             
+            $config['caiji']=input('caiji/a',array());
+            foreach (array('open','is_auto','failed_num','failed_interval','report_interval') as $k){
+                $config['caiji'][$k]=intval($config['caiji'][$k]);
+            }
+            
+            
+            foreach (array('email','smtp','port') as $k){
+                if(empty($config[$k])){
+                    $this->error('请输入'.lang('set_email_'.$k));
+                }
+            }
+            if(!preg_match('/[\w\-]+\@[\w\-\.]+/i', $config['email'])){
+                $this->error(lang('set_email_email').'格式错误');
+            }
+            
             if($is_test){
                 
                 $return=\util\Tools::send_mail($config, $config['email'], $config['sender'],lang('set_email_test_subject'),lang('set_email_test_body'));
@@ -671,6 +688,9 @@ class Setting extends BaseController {
                     $this->error($return,'');
                 }
             }else{
+                if(!empty($config['caiji']['email'])&&!preg_match('/[\w\-]+\@[\w\-\.]+/i', $config['caiji']['email'])){
+                    $this->error('收件邮箱格式错误');
+                }
                 $mconfig->setConfig('email',$config);
                 $this->success(lang('op_success'),'setting/email');
             }
@@ -679,7 +699,7 @@ class Setting extends BaseController {
                 lang('setting_email'),
                 lang('setting_email'),
                 breadcrumb(array(array('url'=>url('setting/email'),'title'=>lang('setting_email'))))
-                );
+            );
             $emailConfig=$mconfig->getConfig('email','data');
             init_array($emailConfig);
             $this->assign('emailConfig',$emailConfig);
@@ -720,7 +740,10 @@ class Setting extends BaseController {
             
             $chromeSocket=$this->_chrome_socket($config);
             $toolIsOpen=$chromeSocket?$chromeSocket->hostIsOpen():false;
+            $serverIsLocal=$chromeSocket?$chromeSocket->serverIsLocal():false;
+            
             $this->assign('toolIsOpen',$toolIsOpen);
+            $this->assign('serverIsLocal',$serverIsLocal);
             
             return $this->fetch('page_render');
         }
@@ -757,6 +780,25 @@ class Setting extends BaseController {
                     if(in_array('data', $types)){
                         
                         \util\Tools::clear_runtime_dir($systemPaths);
+                    }
+                }
+                
+                if(in_array('all', $types)||in_array('table', $types)){
+                    
+                    $tables=config('database.prefix').'cache';
+                    $passTables=array($tables,$tables.'_backstage_task',$tables.'_collecting');
+                    $tables=db()->query("show tables like '{$tables}%';");
+                    if($tables&&is_array($tables)){
+                        foreach ($tables as $table){
+                            if($table&&is_array($table)){
+                                foreach ($table as $v){
+                                    if(!in_array($v, $passTables)){
+                                        
+                                        db()->table($v)->where('1=1')->delete();
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 
@@ -852,10 +894,8 @@ class Setting extends BaseController {
                     }
                     if($info['error']){
                         $this->error($info['error']);
-                    }elseif($info['output']){
-                        $this->success('测试成功：'.$info['output']);
                     }else{
-                        $this->success('测试成功');
+                        $this->success('测试成功，请保存配置以便生效'.($info['output']?('，'.$info['output']):''));
                     }
                 }elseif($info['error']){
                     $this->error($info['error']);

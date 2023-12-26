@@ -19,35 +19,40 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
             $echo=false;
         }
         if($echo){
-            $logFilename=\skycaiji\admin\model\Collector::echo_msg_filename();
-            if(!empty($logFilename)){
-                if(!isset(self::$echo_msg_head)){
-                    self::$echo_msg_head=true;
-                    
-                    if(file_exists($logFilename)){
+            if(!is_empty(g_sc('is_test_echo_msg'))){
+                
+                echo '<!--[echo_msg]-->'.$this->_echo_msg_str($strArgs,$color,$end_str,$div_style).'<!--[/echo_msg]-->';
+            }else{
+                $logFilename=\skycaiji\admin\model\Collector::echo_msg_filename();
+                if(!empty($logFilename)){
+                    if(!isset(self::$echo_msg_head)){
+                        self::$echo_msg_head=true;
                         
-                        unlink($logFilename);
-                    }
-                    if(!file_exists($logFilename)){
+                        if(file_exists($logFilename)){
+                            
+                            unlink($logFilename);
+                        }
+                        if(!file_exists($logFilename)){
+                            
+                            write_dir_file($logFilename,'');
+                        }
                         
-                        write_dir_file($logFilename,'');
+                        try {
+                            register_shutdown_function(array($this,'echo_msg_end'));
+                        }catch (\Exception $ex){}
+                        
+                        $cssJs='<!DOCTYPE html><style type="text/css">'
+                            .'body{padding:0;margin:10px;font-size:13px;color:#000;line-height:16px;}p{padding:0;margin:0;}'
+                            .'a{color:#aaa;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'
+                            .'.echo-msg-clear{width:100%;overflow:hidden;clear:both;}'
+                            .'.echo-msg-lt{float:left;}'
+                            .'.echo-msg-lurl{float:left;margin-right:3px;height:16px;max-width:70%;}'
+                            .'@media(max-width:767px){.echo-msg-lurl{max-width:100%;}}'
+                            .'</style>';
+                        $this->_echo_msg_write($cssJs, $logFilename);
                     }
-                    
-                    try {
-                        register_shutdown_function(array($this,'echo_msg_end'));
-                    }catch (\Exception $ex){}
-                    
-                    $cssJs='<!DOCTYPE html><style type="text/css">'
-                        .'body{padding:0;margin:10px;font-size:13px;color:#000;line-height:16px;}p{padding:0;margin:0;}'
-                        .'a{color:#aaa;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'
-                        .'.echo-msg-clear{width:100%;overflow:hidden;clear:both;}'
-                        .'.echo-msg-lt{float:left;}'
-                        .'.echo-msg-lurl{float:left;margin-right:3px;height:16px;max-width:70%;}'
-                        .'@media(max-width:767px){.echo-msg-lurl{max-width:100%;}}'
-                        .'</style>';
-                    $this->_echo_msg_write($cssJs, $logFilename);
+                    $this->_echo_msg_write($this->_echo_msg_str($strArgs,$color,$end_str,$div_style), $logFilename);
                 }
-                $this->_echo_msg_write($this->_echo_msg_str($strArgs,$color,$end_str,$div_style), $logFilename);
             }
         }
     }
@@ -197,7 +202,7 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
             
             return $this->_collect_echo_end($isBatch, $taskTips.lang('coll_error_empty_coll'));
         }
-        if(empty($releData)){
+        if(empty($releData)||empty($releData['module'])){
             
             return $this->_collect_echo_end($isBatch, $taskTips.lang('rele_error_empty_rele'));
         }
@@ -205,7 +210,6 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
         $releData=$releData->toArray();
         $mtask->loadConfig($taskData);
         $taskData['caijitime']=intval($taskData['caijitime']);
-        
         $acoll='\\skycaiji\\admin\\event\\C'.strtolower($collData['module']);
         $acoll=new $acoll();
         $acoll->init($collData);
@@ -240,7 +244,7 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
             if(g_sc_c('caiji','interval')>0){
                 $waitTime=(60*g_sc_c('caiji','interval'))-abs($curTime-$taskData['caijitime']);
                 if($waitTime>0){
-                    $msg=sprintf('%s再次采集需等待%s <a href="%s" target="_blank">设置运行间隔</a>',$taskTips,\skycaiji\admin\model\Config::wait_time_tips($waitTime),url('admin/task/save?show_config=1&id='.$taskData['id']));
+                    $msg=sprintf('%s再次采集需等待%s <a href="%s" target="_blank">设置采集运行间隔</a>',$taskTips,\skycaiji\admin\model\Config::wait_time_tips($waitTime),url('admin/task/set?show_config=1&id='.$taskData['id']));
                     return $this->_collect_echo_end($isBatch,$msg,$releIsApi);
                 }
             }
@@ -353,7 +357,11 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
                 
                 if(\util\Param::is_task_api_response()){
                     
-                    json(array('error'=>$msg))->send();
+                    if(!is_empty(g_sc('api_task_key_is_url'))){
+                        json(array('error'=>$msg))->send();
+                    }else{
+                        json(array('code'=>0,'msg'=>$msg,'data'=>[]))->send();
+                    }
                 }
             }else{
                 $this->echo_msg_exit($msg,'orange');

@@ -205,7 +205,7 @@ abstract class BaseCms extends \skycaiji\admin\event\ReleaseBase{
 			$tag=strtolower($paramVal['tag']);//html标签
 			$func=null;//函数
 			$options=array();//选项
-			if(preg_match('/^function\:(.*)$/i', $paramVal['option'],$func)){
+			if(is_string($paramVal['option'])&&preg_match('/^function\:(.*)$/i',$paramVal['option'],$func)){
 				//函数名
 				$func=trim($func[1]);
 			}elseif(!empty($paramVal['option'])){
@@ -226,7 +226,7 @@ abstract class BaseCms extends \skycaiji\admin\event\ReleaseBase{
 				}
 			}
 			if('select'==$tag){
-				$html.='<select name="_cms_app_param_" class="form-control"><option value="">不选择</option>';
+				$html.='<div class="input-group input-select-custom"><div class="input-group-btn"><select name="_cms_app_param_" class="form-control"><option value="">不选择</option>';
 				if(!empty($func)){
 					//调用函数
 					if(method_exists($this, $func)){
@@ -247,8 +247,8 @@ abstract class BaseCms extends \skycaiji\admin\event\ReleaseBase{
 						$html.="<option value=\"{$optionKey}\">{$optionVal}</option>";
 					}
 				}
-				$html.='<option value="custom:">自定义内容</option></select>'
-						.'<input class="form-control" style="display:none;" name="cms_app[custom]['.$paramKey.']" />';
+				$html.='<option value="custom:">自定义</option></select></div>'
+				    .'<input class="form-control" style="display:none;" name="cms_app[custom]['.$paramKey.']" /></div>';
 			}elseif(in_array($tag,array('input','text','number'))){
 				$html.='<input type="'.($tag=='input'?'text':$tag).'" name="_cms_app_param_" class="form-control" value="" />';
 			}elseif('radio'==$tag){

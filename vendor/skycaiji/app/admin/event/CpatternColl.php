@@ -1786,6 +1786,11 @@ class CpatternColl extends CpatternBase{
             $retryParams=array(0=>$url,1=>$postData,2=>$headers,3=>$charset,4=>$otherConfig,5=>$returnInfo);
         }
         
+        if(!\util\Funcs::is_right_url($url)){
+            $this->echo_error('网址缺少http(s)前缀：'.htmlspecialchars($url));
+            return null;
+        }
+        
         $pageOpened='';
         if(isset($postData)&&$postData!==false){
             
@@ -1860,7 +1865,7 @@ class CpatternColl extends CpatternBase{
                     $ex='页面渲染失败：'.$ex->getMessage().' 请检查<a href="'.url('setting/page_render').'" target="_blank">渲染设置</a>';
                     if(!is_empty(g_sc_c('proxy','open'))){
                         
-                        $ex.=' <a href="'.(is_empty(g_sc('c_original','proxy','open'))?url('admin/task/save&id='.$this->collector['task_id']):url('setting/proxy')).'" target="_blank">代理设置</a>';
+                        $ex.=' <a href="'.(is_empty(g_sc('c_original','proxy','open'))?url('admin/task/set?id='.$this->collector['task_id']):url('setting/proxy')).'" target="_blank">代理设置</a>';
                     }
                     $this->echo_error($ex);
                     return null;
@@ -1884,7 +1889,7 @@ class CpatternColl extends CpatternBase{
         }
         init_array($htmlInfo);
         $html=$htmlInfo['html'];
-        if(empty($html)||!$htmlInfo['ok']){
+        if((empty($html)&&empty($options['return_head']))||!$htmlInfo['ok']){
             
             if(!empty($proxyDbIp)){
                 $this->echo_msg(array('代理IP：%s',$proxyDbIp['ip']),'black',true,'','display:inline;margin-right:5px;');
@@ -1915,7 +1920,7 @@ class CpatternColl extends CpatternBase{
         }
         $retryCur=0;
         
-        if($this->config['url_complete']){
+        if($this->config['url_complete']&&$html){
             
             $url_info=$this->match_url_info($url,$html);
             

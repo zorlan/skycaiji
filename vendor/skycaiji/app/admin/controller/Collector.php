@@ -12,6 +12,7 @@
 namespace skycaiji\admin\controller;
 use skycaiji\admin\model\CacheModel;
 use skycaiji\admin\model\FuncApp;
+use util\Encrypt;
 
 class Collector extends BaseController {
     public function indexAction(){
@@ -100,7 +101,7 @@ class Collector extends BaseController {
 	    	$this->set_html_tags(
 	    	    '任务:'.$taskData['name'].'_'.lang('coll_set'),
 	    	    $htmlTagName,
-	    	    breadcrumb(array(array('url'=>url('task/save?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('collector/set?task_id='.$taskData['id']),'title'=>lang('coll_set'))))
+	    	    breadcrumb(array(array('url'=>url('task/set?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('collector/set?task_id='.$taskData['id']),'title'=>lang('coll_set'))))
 	    	);
 	    	
 	    	$this->assign('collData',$collData);
@@ -157,152 +158,144 @@ class Collector extends BaseController {
     }
     /*导出规则*/
     public function exportAction(){
-    	$coll_id=input('coll_id/d',0);
-    	
-    	$mcoll=model('Collector');
-    	$collData=$mcoll->where(array('id'=>$coll_id))->find();
-    	if(empty($collData)){
-    		$this->error(lang('coll_error_empty_coll'));
-    	}
-    	$config=unserialize($collData['config']?:'');
-    	if(empty($config)){
-    		$this->error('规则不存在');
-    	}
-    	$taskData=model('Task')->getById($collData['task_id']);
-    	$name=$collData['name']?$collData['name']:$taskData['name'];
-    	$module=strtolower($collData['module']);
-    	
-    	set_time_limit(600);
-    	$collector=array(
-    	    'name'=>$name,
-    	    'module'=>$module,
-    	    'config'=>serialize($config),
-    	);
-    	$exportName='规则_'.$name;
-    	$exportTxt='/*skycaiji-collector-start*/'.base64_encode(serialize($collector)).'/*skycaiji-collector-end*/';
-    	
-    	
-    	$funcList=array('contentSign'=>array(),'process'=>array(),'processIf'=>array());
-    	
-    	$contentSignFuncPages=array('front_urls','source_url','level_urls','url','relation_urls');
-    	foreach ($contentSignFuncPages as $page){
-    	    $pageConfigList=array();
-    	    if($page=='source_url'){
+        $taskId=input('task_id/d',0);
+        $mtask=model('Task');
+        $mcoll=model('Collector');
+        $taskData=$mtask->getById($taskId);
+        $collData=$mcoll->where(array('task_id'=>$taskData['id'],'module'=>$taskData['module']))->find();
+        if(empty($collData)){
+            $this->error(lang('coll_error_empty_coll'));
+        }
+        $config=unserialize($collData['config']?:'');
+        if(empty($config)){
+            $this->error('规则不存在');
+        }
+        
+        $funcList=array('contentSign'=>array(),'process'=>array(),'processIf'=>array());
+        
+        $contentSignFuncPages=array('front_urls','source_url','level_urls','url','relation_urls');
+        foreach ($contentSignFuncPages as $page){
+            $pageConfigList=array();
+            if($page=='source_url'){
+                
+                $pageConfigList=array(
+                    $config['source_config']
+                );
+            }elseif($page=='url'){
+                
+                $pageConfigList=array(
+                    $config
+                );
+            }else{
+                $pageConfigList=$config[$page];
+            }
+            if(is_array($pageConfigList)){
+                foreach ($pageConfigList as $pageConfig){
+                    if(is_array($pageConfig['content_signs'])){
+                        foreach ($pageConfig['content_signs'] as $v){
+                            if(is_array($v)&&$v['func']){
+                                $funcList['contentSign'][$v['func']]=$v['func'];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        $processList=is_array($config['field_process'])?$config['field_process']:array();
+        if(is_array($config['common_process'])){
+            
+            $processList[]=$config['common_process'];
+        }
+        if($processList){
+            foreach ($processList as $process){
+                if(is_array($process)){
+                    foreach ($process as $v){
+                        if(is_array($v)){
+                            if($v['module']=='func'){
+                                $funcList['process'][$v['func_name']]=$v['func_name'];
+                            }elseif($v['module']=='if'){
+                                if(is_array($v['if_addon'])&&is_array($v['if_addon']['func'])){
+                                    $funcList['processIf']=array_merge($funcList['processIf'],$v['if_addon']['func']);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        $hasPlugin=false;
+        foreach ($funcList as $funcModule=>$funcs){
+            if(is_array($funcs)){
+                foreach ($funcs as $k=>$v){
+                    if($v&&strpos($v,':')!==false){
+                        
+                        $hasPlugin=true;
+                        $v=explode(':', $v);
+                        $v=$v[0];
+                        $funcs[$k]=$v;
+                    }else{
+                        
+                        unset($funcs[$k]);
+                    }
+                }
+                $funcs=array_unique($funcs);
+                $funcs=array_values($funcs);
+                $funcList[$funcModule]=$funcs;
+            }
+        }
+        
+        if(request()->isPost()){
+            $pwd=input('pwd','','trim');
+            $module=strtolower($collData['module']);
+            $exportName=$collData['name']?$collData['name']:$taskData['name'];
+    	    $collector=array(
+    	        'name'=>$exportName,
+    	        'module'=>$module,
+    	        'config'=>serialize($config),
+    	    );
+    	    $exportTxt=base64_encode(serialize($collector));
+    	    if(!empty($pwd)){
     	        
-    	        $pageConfigList=array(
-    	            $config['source_config']
-    	        );
-    	    }elseif($page=='url'){
-    	        
-    	        $pageConfigList=array(
-    	            $config
-    	        );
-    	    }else{
-    	        $pageConfigList=$config[$page];
+    	        $edClass=new \util\EncryptDecrypt();
+    	        $exportTxt=$edClass->encrypt(array('data'=>$exportTxt,'pwd'=>$pwd));
+    	        $exportTxt=base64_encode(serialize($exportTxt));
     	    }
-    	    if(is_array($pageConfigList)){
-    	        foreach ($pageConfigList as $pageConfig){
-    	            if(is_array($pageConfig['content_signs'])){
-    	                foreach ($pageConfig['content_signs'] as $v){
-    	                    if(is_array($v)&&$v['func']){
-    	                        $funcList['contentSign'][$v['func']]=$v['func'];
-    	                    }
-    	                }
-    	            }
-    	        }
-    	    }
-    	}
-    	
-    	$processList=is_array($config['field_process'])?$config['field_process']:array();
-    	if(is_array($config['common_process'])){
     	    
-    	    $processList[]=$config['common_process'];
-    	}
-    	if($processList){
-    	    foreach ($processList as $process){
-    	        if(is_array($process)){
-    	            foreach ($process as $v){
-    	                if(is_array($v)){
-    	                    if($v['module']=='func'){
-    	                        $funcList['process'][$v['func_name']]=$v['func_name'];
-    	                    }elseif($v['module']=='if'){
-    	                        if(is_array($v['if_addon'])&&is_array($v['if_addon']['func'])){
-    	                            $funcList['processIf']=array_merge($funcList['processIf'],$v['if_addon']['func']);
-    	                        }
-    	                    }
-    	                }
-    	            }
-    	        }
-    	    }
-    	}
-    	
-    	$hasFunc=false;
-    	foreach ($funcList as $funcModule=>$funcs){
-    	    if(is_array($funcs)){
-    	        foreach ($funcs as $k=>$v){
-    	            if($v&&strpos($v,':')!==false){
-    	                
-    	                $hasFunc=true;
-    	                $v=explode(':', $v);
-    	                $v=$v[0];
-    	                $funcs[$k]=$v;
-    	            }else{
-    	                
-    	                unset($funcs[$k]);
-    	            }
-    	        }
-    	        $funcs=array_unique($funcs);
-    	        $funcs=array_values($funcs);
-    	        $funcList[$funcModule]=$funcs;
-    	    }
-    	}
-    	
-    	if($hasFunc){
+    	    $exportTxt='/*skycaiji-collector-start*/'.$exportTxt.'/*skycaiji-collector-end*/';
     	    
-    	    if(!input('?export_func')){
+    	    if($hasPlugin){
     	        
-    	        $tips='导出规则';
-    	        $this->set_html_tags($tips,$tips,breadcrumb(array($tips)));
-    	        $this->assign('coll_id',$coll_id);
-    	        return $this->fetch();
-    	    }else{
-    	        $export_func=input('export_func/d');
-    	        if($export_func&&is_array($funcList)){
+    	        $export_plugin=input('export_plugin/d');
+    	        if($export_plugin&&is_array($funcList)){
     	            
-    	            $exportName.='（含插件）';
+    	            $exportName.='.含插件';
     	            foreach ($funcList as $funcModule=>$funcs){
     	                if(is_array($funcs)){
     	                    foreach ($funcs as $func){
-    	                        $pluginData=controller('admin/Develop','controller')->get_plugin_data('func',$func);
+    	                        $pluginData=controller('admin/Develop','controller')->_export_plugin_data('func',$funcModule,$func,$pwd);
     	                        if(empty($pluginData['success'])){
-    	                            $tips=model('FuncApp')->get_func_module_val($funcModule,'name').'函数：'.$func.' » ';
-    	                            $this->error($tips.$pluginData['msg']);
+    	                            $this->error($pluginData['msg']);
     	                        }
-    	                        $pluginData=$pluginData['plugin'];
-    	                        $exportTxt.="\r\n".'/*skycaiji-plugin-start*/'.base64_encode(serialize($pluginData)).'/*skycaiji-plugin-end*/';
+    	                        $exportTxt.="\r\n".$pluginData['plugin_txt'];
     	                    }
     	                }
     	            }
     	        }
     	    }
-    	}
-    	
-    	ob_start();
-    	header("Expires: 0" );
-    	header("Pragma:public" );
-    	header("Cache-Control:must-revalidate,post-check=0,pre-check=0" );
-    	header("Cache-Control:public");
-    	header("Content-Type:application/octet-stream" );
-    	
-    	header("Content-transfer-encoding: binary");
-    	header("Accept-Length: " .mb_strlen($exportTxt));
-    	if (preg_match("/MSIE/i", $_SERVER["HTTP_USER_AGENT"])) {
-    	    header('Content-Disposition: attachment; filename="'.urlencode($exportName).'.scj"');
+    	    $exportName.=($pwd?'.加密':'').'.规则';
+    	    \util\Tools::browser_export_scj($exportName, $exportTxt);
     	}else{
-    	    header('Content-Disposition: attachment; filename="'.$exportName.'.scj"');
+    	    $this->set_html_tags(
+    	        '导出规则',
+    	        '导出规则至本地',
+    	        breadcrumb(array(array('url'=>url('task/set?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('collector/set?task_id='.$taskData['id']),'title'=>lang('coll_set'))))
+    	    );
+    	    $this->assign('task_id',$taskId);
+    	    $this->assign('hasPlugin',$hasPlugin);
+    	    return $this->fetch();
     	}
-    	echo $exportTxt;
-    	ob_end_flush();
     }
     
     

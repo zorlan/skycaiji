@@ -18,14 +18,10 @@ class Rapi extends Release{
 	 */
 	public function setConfig($config){
 	    $api=\util\UnmaxPost::val('api/a',array());
-		$api['url']=trim($api['url'],'\/\\');
 		$api['cache_time']=intval($api['cache_time']);
 		$api['hide_fields']=is_array($api['hide_fields'])?$api['hide_fields']:array();
-		if(empty($api['url'])){
-			$this->error('请输入api地址');
-		}
-		if(!preg_match('/^[a-zA-Z0-9\-\_]+$/i', $api['url'])){
-			$this->error('api地址只能由字母、数字、下划线组成');
+		if(empty($api['key'])){
+			$this->error('请输入API密钥');
 		}
 		$config['api']=$api;
 		return $config;
@@ -88,7 +84,11 @@ class Rapi extends Release{
 	public function json_exit($collFieldsList){
 	    if(\util\Param::is_task_api_response()){
 	        
-	        json($collFieldsList)->send();
+	        if(!is_empty(g_sc('api_task_key_is_url'))){
+	            json($collFieldsList)->send();
+	        }else{
+	            json(array('code'=>1,'msg'=>'','data'=>$collFieldsList))->send();
+	        }
 	    }else{
 	        $html='<form id="win_form_preview" method="post" target="_blank" action="'.url('tool/preview_data').'">'.html_usertoken()
 	           .'<p>生成API返回的数据 <a href="javascript:;" onclick="document.getElementById(\'win_form_preview\').submit();">预览</a></p>'

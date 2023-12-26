@@ -335,7 +335,7 @@ class Mystore extends BaseController {
 		
 		$mapp=model('App');
 		$mprov=model('Provider');
-		$dbApps=$mapp->order('uptime desc')->paginate(20);
+		$dbApps=$mapp->order('uptime desc')->paginate(20,false,paginate_auto_config());
 		$pagenav=$dbApps->render();
 		$dbApps=$dbApps->all();
 		$dbApps1=array();
@@ -669,8 +669,11 @@ class Mystore extends BaseController {
 	/*导入*/
 	public function uploadAction(){
 	    $type=input('type','');
-	    $typeIsRule=$type=='rule'?true:false;
-	    $typeName=$typeIsRule?'规则':'插件';
+	    $type=$type?:'plugin';
+	    $fromTask=input('from_task','');
+	    $types=array('rule'=>'规则','plugin'=>'插件','release'=>'发布设置');
+	    $typeIsPlugin=$type=='plugin'?true:false;
+	    $typeName=$types[$type];
 		if(request()->isPost()){
 			if(g_sc_c('site','verifycode')){
 				
@@ -680,16 +683,53 @@ class Mystore extends BaseController {
 					$this->error($check['msg']);
 				}
 			}
-			$result=$this->_upload_addon($typeIsRule,'upload_file',true,true);
+			
+			$result=$this->_upload_addon($type,$fromTask?false:true,true);
 			$url=$result['url']?$result['url']:'';
 			
 			$data=array();
-			if($result['show_plugins']){
+			if($result['show_ipt_pwd']){
+			    
+			    $data['js']='win_upload_ipt_pwd();';
+			}elseif($result['show_plugins']){
 			    
 			    $data['js']='win_upload_plugins('.json_encode($result['show_plugins']).');';
 			}elseif($result['show_replace']){
 			    
 			    $data['js']="confirmRight('插件已存在，是否覆盖？',win_upload_replace);";
+			}elseif($result['show_rule_data']){
+			    
+			    if($fromTask){
+			        
+			        $ruleData=$result['rule_data'];
+			        init_array($ruleData);
+			        if($ruleData){
+			            
+			            $name='文件';
+			            $name.=$ruleData['name']?(' » '.$ruleData['name']):'';
+			            $name=addslashes($name);
+			            $ruleData=base64_encode(serialize($ruleData));
+			            $ruleData=addslashes($ruleData);
+			            $data['js']=sprintf("taskOpClass.import_rule('%s','%s')",'file:'.$ruleData,$name);
+			        }else{
+			            $this->error('没有规则');
+			        }
+			    }
+			}elseif($result['show_release_data']){
+			    
+			    $releData=$result['release_data'];
+			    init_array($releData);
+			    if($releData){
+			        
+			        $name='文件';
+			        $name.=$releData['name']?(' » '.$releData['name']):'';
+			        $name=addslashes($name);
+			        $releData=base64_encode(serialize($releData));
+			        $releData=addslashes($releData);
+			        $data['js']=sprintf("releaseClass.import_rele('%s','%s')",'file:'.$releData,$name);
+			    }else{
+			        $this->error('没有发布设置');
+			    }
 			}
 			if($result['success']){
 			    $this->success($result['msg'],$url,$data);
@@ -698,165 +738,252 @@ class Mystore extends BaseController {
 			}
 		}else{
 		    $this->assign('type',$type);
-		    $this->assign('typeIsRule',$typeIsRule);
+		    $this->assign('typeIsPlugin',$typeIsPlugin);
 		    $this->assign('typeName',$typeName);
+		    $this->assign('fromTask',$fromTask);
 			return $this->fetch();
 		}
 	}
 	
-	private function _safe_unserialize($code){
-	    $code=base64_decode(trim($code));
-	    if(preg_match('/\bO\:\d+\:[\'\"][^\'\"]+?[\'\"]/',$code)){
-	        
-	        $this->error('错误的文件');
+	private function _safe_unserialize($code,$base64Decode=true){
+	    if($code){
+	        $code=trim($code);
+	        if($base64Decode){
+	            $code=base64_decode($code);
+	        }
+    	    if(preg_match('/\bO\:\d+\:[\'\"][^\'\"]+?[\'\"]/',$code)){
+    	        
+    	        throw new \Exception('错误的文件');
+    	    }
+    	    $code=unserialize($code);
 	    }
-	    $code=unserialize($code);
 	    return $code;
 	}
 	
-	public function _upload_addon($typeIsRule,$formFileName,$installRule,$installPlugin){
-	    $typeName=$typeIsRule?'规则':'插件';
-	    $file=$_FILES[$formFileName];
-        if(empty($file)||empty($file['tmp_name'])){
-            return return_result('请选择'.$typeName.'文件');
-        }
-        $fileTxt=file_get_contents($file['tmp_name']);
-        
-        
-        $pluginDataList=array();
-        if(preg_match_all('/\/\*skycaiji-plugin-start\*\/(?P<data>[\s\S]+?)\/\*skycaiji-plugin-end\*\//i',$fileTxt,$fileMatches)){
-            foreach ($fileMatches['data'] as $k=>$v){
-                $v=$v?:'';
-                $v=$this->_safe_unserialize($v);
-                if($v['type']&&$v['app']){
-                    $pluginDataList[$v['type'].':'.$v['app']]=$v;
-                }
-            }
-        }
-        $ruleData=null;
-        if($typeIsRule){
-            
-            if(preg_match('/\/\*skycaiji-collector-start\*\/(?P<data>[\s\S]+?)\/\*skycaiji-collector-end\*\//i',$fileTxt,$fileMatch)){
-                $ruleData=$this->_safe_unserialize($fileMatch['data']);
-            }
-            if(empty($ruleData)||!is_array($ruleData)){
-                return return_result('不是规则文件');
-            }
-        }else{
-            
-            if(empty($pluginDataList)||!is_array($pluginDataList)){
-                return return_result('不是插件文件');
-            }
-        }
-        $uploadedPlugin=false;
-        
-        if(!empty($pluginDataList)&&is_array($pluginDataList)){
-            if($typeIsRule||count($pluginDataList)>1){
-                
-                $uploadAddon=input('upload_addon/a',array());
-                $uploadAddon=is_array($uploadAddon)?$uploadAddon:array();
-                $uploadPlugins=is_array($uploadAddon['plugins'])?$uploadAddon['plugins']:array();
-                if(empty($uploadPlugins)){
-                    
-                    if(!$typeIsRule||!$uploadAddon['ignore_plugin']){
-                        
-                        $pluginList=array();
-                        foreach ($pluginDataList as $pluginData){
-                            $pluginTitle='';
-                            $mapp=null;
-                            if($pluginData['type']=='release'){
-                                $mapp=model('ReleaseApp');
-                                $pluginTitle='发布插件 » ';
-                            }elseif($pluginData['type']=='func'){
-                                $mapp=model('FuncApp');
-                                $pluginTitle='函数插件：'.$mapp->get_func_module_val($pluginData['module'],'name').' » ';
-                            }else{
-                                continue;
-                            }
-                            $pluginTitle.=$pluginData['name'].'('.$pluginData['app'].')';
-                            if($mapp->where('app',$pluginData['app'])->count()>0){
-                                $pluginTitle='[已有] '.$pluginTitle;
-                            }
-                            $pluginList[$pluginData['type'].':'.$pluginData['app']]=$pluginTitle;
-                        }
-                        return return_result('',false,array('show_plugins'=>$pluginList));
-                    }
-                }else{
-                    
-                    if($installPlugin){
-                        $pluginType='';
-                        foreach ($uploadPlugins as $plugin){
-                            $pluginData=$pluginDataList[$plugin];
-                            if(empty($pluginData)){
-                                continue;
-                            }
-                            $pluginTitle='';
-                            $pluginType=$pluginData['type'];
-                            if($pluginType=='release'){
-                                $pluginTitle='发布插件：';
-                            }elseif($pluginType=='func'){
-                                $pluginTitle='函数插件：';
-                            }else{
-                                continue;
-                            }
-                            $pluginTitle.=$pluginData['name'].'('.$pluginData['app'].')';
-                            $result=controller('admin/Store')->_install_plugin($pluginData);
-                            if(!$result['success']){
-                                return return_result($pluginTitle.' » '.($result['msg']?$result['msg']:'失败'));
-                            }
-                            $uploadedPlugin=true;
-                        }
-                        if(!$typeIsRule){
-                            return return_result('导入成功',true,array('url'=>'mystore/'.($pluginType.'App')));
-                        }
-                    }
-                }
-            }else{
-                
-                if($installPlugin){
-                    $pluginData=reset($pluginDataList);
-                    $mapp=null;
-                    if($pluginData['type']=='release'){
-                        $mapp=model('ReleaseApp');
-                    }elseif($pluginData['type']=='func'){
-                        $mapp=model('FuncApp');
-                    }else{
-                        return return_result('插件类型错误');
-                    }
-                    if(!input('replace')){
-                        
-                        if($mapp->where('app',$pluginData['app'])->count()>0){
-                            
-                            return return_result('',false,array('show_replace'=>1));
-                        }
-                    }
-                    
-                    $result=controller('admin/Store')->_install_plugin($pluginData);
-                    
-                    if($result['success']){
-                        return return_result('成功导入插件：'.$pluginData['app'],true,array('url'=>'mystore/'.$pluginData['type'].'App'));
-                    }else{
-                        return return_result($result['msg']);
-                    }
-                }
-            }
-        }
-        if($typeIsRule){
-            if($installRule){
-                
-                $ruleData['type']='collect';
-                $ruleData['config']=base64_encode($ruleData['config']);
-                $result=controller('admin/Store')->_install_rule($ruleData,0,true);
-                if($result['success']){
-                    return return_result('成功导入规则'.($uploadedPlugin?'及包含的插件':'').'：'.$ruleData['name'],true,array('url'=>'mystore/rule'));
-                }else{
-                    return return_result($result['msg']);
-                }
-            }else{
-                
-                return return_result('',true,array('ruleData'=>$ruleData));
-            }
-        }
+	private function _upload_decrypt($pwd,&$data){
+	    if(isset($data['encrypt_version'])){
+	        if(empty($pwd)){
+	            return return_result('请输入密码',false,array('show_ipt_pwd'=>1));
+	        }else{
+	            
+	            $edClass=new \util\EncryptDecrypt($data['encrypt_version'],$data['skycaiji_version']);
+	            $data=$edClass->decrypt(array('data'=>$data['data'],'pwd'=>$pwd));
+	            $data=$this->_safe_unserialize($data);
+	            if(empty($data)){
+	                return return_result('密码错误');
+	            }
+	        }
+	    }
+	    return null;
+	}
+	
+	private function _upload_addon($type,$installRule,$installPlugin){
+	    try{
+	        $types=array('rule'=>'规则','plugin'=>'插件','release'=>'发布设置');
+	        $typeName=$types[$type];
+	        $typeIsPlugin=$type=='plugin'?true:false;
+	        
+	        $uploadAddon=input('upload_addon/a',array());
+	        init_array($uploadAddon);
+	        
+	        $file=$_FILES['upload_file'];
+	        if(empty($file)||empty($file['tmp_name'])){
+	            return return_result('请选择'.$typeName.'文件');
+	        }
+	        
+	        $uploadPwd=$uploadAddon['pwd'];
+	        
+	        $fileTxt=file_get_contents($file['tmp_name']);
+	        
+	        
+	        $pluginDataList=array();
+	        if(preg_match_all('/\/\*skycaiji-plugin-start\*\/(?P<data>[\s\S]+?)\/\*skycaiji-plugin-end\*\//i',$fileTxt,$fileMatches)){
+	            foreach ($fileMatches['data'] as $k=>$v){
+	                $v=$v?:'';
+	                $v=$this->_safe_unserialize($v);
+	                if($v&&is_array($v)){
+	                    $returnResult=$this->_upload_decrypt($uploadPwd,$v);
+	                    if($returnResult){
+	                        return $returnResult;
+	                    }
+	                    if($v['type']&&$v['app']){
+	                        $pluginDataList[$v['type'].':'.$v['module'].':'.$v['app']]=$v;
+	                    }
+	                }
+	            }
+	        }
+	        
+	        $typeData=null;
+	        
+	        if($typeIsPlugin){
+	            
+	            if(empty($pluginDataList)||!is_array($pluginDataList)){
+	                return return_result('不是插件文件');
+	            }
+	        }else{
+	            if($type=='rule'){
+	                
+    	            if(preg_match('/\/\*skycaiji-collector-start\*\/(?P<data>[\s\S]+?)\/\*skycaiji-collector-end\*\//i',$fileTxt,$fileMatch)){
+    	                $typeData=$this->_safe_unserialize($fileMatch['data']);
+    	            }
+	            }elseif($type=='release'){
+	                
+	                if(preg_match('/\/\*skycaiji-release-start\*\/(?P<data>[\s\S]+?)\/\*skycaiji-release-end\*\//i',$fileTxt,$fileMatch)){
+	                    $typeData=$this->_safe_unserialize($fileMatch['data']);
+	                }
+	            }
+	            if($typeData&&is_array($typeData)){
+	                $returnResult=$this->_upload_decrypt($uploadPwd,$typeData);
+	                if($returnResult){
+	                    return $returnResult;
+	                }
+	            }
+	            if(empty($typeData)||!is_array($typeData)){
+	                return return_result('不是'.$typeName.'文件');
+	            }
+	            
+	            $typeData['config']=$this->_safe_unserialize($typeData['config'],false);
+	            $typeData['config']=serialize($typeData['config']);
+	        }
+	        $uploadedPlugin=false;
+	        
+	        if(!empty($pluginDataList)&&is_array($pluginDataList)){
+	            if(!$typeIsPlugin||count($pluginDataList)>1){
+	                
+	                $uploadPlugins=is_array($uploadAddon['plugins'])?$uploadAddon['plugins']:array();
+	                if(empty($uploadPlugins)){
+	                    
+	                    if($typeIsPlugin||!$uploadAddon['ignore_plugin']){
+	                        
+	                        $pluginList=array();
+	                        foreach ($pluginDataList as $pluginData){
+	                            $isReleDiy=false;
+	                            $pluginTitle='';
+	                            $mapp=null;
+	                            if($pluginData['type']=='release'){
+	                                $mapp=model('ReleaseApp');
+	                                $isReleDiy=$pluginData['module']=='diy'?true:false;
+	                                $pluginTitle.=lang('rele_m_name_'.$pluginData['module']).'发布插件 » ';
+	                            }elseif($pluginData['type']=='func'){
+	                                $mapp=model('FuncApp');
+	                                $pluginTitle='函数插件：'.$mapp->get_func_module_val($pluginData['module'],'name').' » ';
+	                            }else{
+	                                continue;
+	                            }
+	                            if($isReleDiy){
+	                                
+	                                $pluginTitle.=$pluginData['app'];
+	                                if($mapp->appFileExists($pluginData['app'],'diy')){
+	                                    $pluginTitle='[已有] '.$pluginTitle;
+	                                }
+	                            }else{
+	                                $pluginTitle.=$pluginData['name'].'('.$pluginData['app'].')';
+	                                if($mapp->where('app',$pluginData['app'])->count()>0){
+	                                    $pluginTitle='[已有] '.$pluginTitle;
+	                                }
+	                            }
+	                            $pluginList[$pluginData['type'].':'.$pluginData['module'].':'.$pluginData['app']]=$pluginTitle;
+	                        }
+	                        return return_result('',false,array('show_plugins'=>$pluginList));
+	                    }
+	                }else{
+	                    
+	                    if($installPlugin){
+	                        $pluginType='';
+	                        foreach ($uploadPlugins as $plugin){
+	                            $pluginData=$pluginDataList[$plugin];
+	                            if(empty($pluginData)){
+	                                continue;
+	                            }
+	                            $isReleDiy=false;
+	                            $pluginTitle='';
+	                            $pluginType=$pluginData['type'];
+	                            if($pluginType=='release'){
+	                                $pluginTitle.=lang('rele_m_name_'.$pluginData['module']).'发布插件：';
+	                                $isReleDiy=$pluginData['module']=='diy'?true:false;
+	                            }elseif($pluginType=='func'){
+	                                $pluginTitle='函数插件：';
+	                            }else{
+	                                continue;
+	                            }
+	                            if($isReleDiy){
+	                                
+	                                $pluginTitle.=$pluginData['app'];
+	                                $pluginData['code']=base64_decode($pluginData['code']);
+	                                $pluginFile=model('ReleaseApp')->appFileName($pluginData['app'],'diy');
+	                                if(!write_dir_file($pluginFile, $pluginData['code'])){
+	                                    return return_result($pluginTitle.' » 导入失败');
+	                                }
+	                            }else{
+	                                $pluginTitle.=$pluginData['name'].'('.$pluginData['app'].')';
+	                                $result=controller('admin/Store')->_install_plugin($pluginData);
+	                                if(!$result['success']){
+	                                    return return_result($pluginTitle.' » '.($result['msg']?$result['msg']:'失败'));
+	                                }
+	                            }
+	                            $uploadedPlugin=true;
+	                        }
+	                        if($typeIsPlugin){
+	                            return return_result('导入成功',true,array('url'=>'mystore/'.($pluginType.'App')));
+	                        }
+	                    }
+	                }
+	            }else{
+	                
+	                if($installPlugin){
+	                    $pluginData=reset($pluginDataList);
+	                    $mapp=null;
+	                    if($pluginData['type']=='release'){
+	                        $mapp=model('ReleaseApp');
+	                    }elseif($pluginData['type']=='func'){
+	                        $mapp=model('FuncApp');
+	                    }else{
+	                        return return_result('插件类型错误');
+	                    }
+	                    if(!input('replace')){
+	                        
+	                        if($mapp->where('app',$pluginData['app'])->count()>0){
+	                            
+	                            return return_result('',false,array('show_replace'=>1));
+	                        }
+	                    }
+	                    
+	                    $result=controller('admin/Store')->_install_plugin($pluginData);
+	                    
+	                    if($result['success']){
+	                        return return_result('成功导入插件：'.$pluginData['app'],true,array('url'=>'mystore/'.$pluginData['type'].'App'));
+	                    }else{
+	                        return return_result($result['msg']);
+	                    }
+	                }
+	            }
+	        }
+	        if(!$typeIsPlugin){
+	            
+	            if($type=='rule'){
+	                
+    	            if($installRule){
+    	                
+    	                $typeData['type']='collect';
+    	                $typeData['config']=base64_encode($typeData['config']);
+    	                $result=controller('admin/Store')->_install_rule($typeData,0,true);
+    	                if($result['success']){
+    	                    return return_result('成功导入规则'.($uploadedPlugin?'及包含的插件':'').'：'.$typeData['name'],true,array('url'=>'mystore/rule'));
+    	                }else{
+    	                    return return_result($result['msg']);
+    	                }
+    	            }else{
+    	                
+    	                return return_result('',true,array('show_rule_data'=>1,'rule_data'=>$typeData));
+    	            }
+	            }elseif($type=='release'){
+	                
+	                return return_result('',true,array('show_release_data'=>1,'release_data'=>$typeData));
+	            }
+	        }
+	    }catch (\Exception $ex){
+	        return return_result($ex->getMessage());
+	    }
 	}
 	
 	

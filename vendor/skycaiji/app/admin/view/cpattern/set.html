@@ -5,10 +5,7 @@
 	<li{$curTab['coll_pattern_field']}><a href="#coll_pattern_field" data-toggle="tab" aria-expanded="{$curTab['coll_pattern_field']?'true':'false'}">获取内容</a></li>
 	{if condition="!empty($collData)"}
 	<li class="dropdown nav-save-rule">
-	    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">另存为 <span class="caret"></span></a>
-	    <ul class="dropdown-menu dropdown-menu-right">
-	   		<li><a href="{:url('collector/export?coll_id='.$collData['id'])}" target="_blank">导出至本地</a></li>
-	    </ul>
+	    <a href="{:url('collector/export?task_id='.$collData['task_id'])}" target="_blank">另存为</a>
     </li>
 	{/if}
 </ul>
@@ -85,12 +82,13 @@
        				<p class="help-block">通常情况下网址中有锚点（#）和无锚点解析出的内容是相同的，为避免采集到重复内容可去除网址锚点</p>
 				</div>
 	     		<div class="form-group">
-					<label class="control-label">倒序采集</label>
+					<label class="control-label">网址采集顺序</label>
 					<div class="input-group">
-       					<label class="radio-inline"><input type="radio" name="config[url_reverse]" value="1"> 是</label>
-       					<label class="radio-inline"><input type="radio" name="config[url_reverse]" value="0" checked="checked"> 否</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_order]" value="shuffle"> 乱序</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_order]" value="reverse"> 倒序</label>
+       					<label class="radio-inline"><input type="radio" name="config[url_order]" value="" checked="checked"> 正常</label>
        				</div>
-       				<p class="help-block">以相反的顺序采集内容页网址</p>
+       				<p class="help-block">以哪种顺序采集内容页网址，默认按正常顺序采集</p>
 				</div>
 	     		<div class="form-group">
 					<label class="control-label">页面渲染</label>

@@ -12,7 +12,8 @@ if(data.code==1){if(data.msg){toastr.success(data.msg)}
 formObj.find('.verify-img').trigger('click')}else{if(data.msg){toastr.error(data.msg)}}
 var dataData=isNull(data.data)?{}:data.data;if(dataData.js){eval(dataData.js)}},error:function(data){formObj.find('button[type="submit"]').removeAttr('disabled');toastr.error(data)}};if(formObj.attr('enctype')&&formObj.attr('enctype').toLowerCase()=='multipart/form-data'){var formData=new FormData(formObj[0]);settings.data=formData;settings.contentType=!1;settings.processData=!1}else{settings.data=formObj.serialize()}
 return settings}
-function htmlspecialchars(str){str=str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');return str}
+function htmlspecialchars(str){if(str&&typeof(str)=='string'){str=str.replace(/\&/g,'&amp;').replace(/\</g,'&lt;').replace(/\>/g,'&gt;').replace(/\"/g,'&quot;').replace(/\'/g,'&#039;')}
+return str}
 function setCookie(c_name,value,expiredays){var exdate=new Date();exdate.setDate(exdate.getDate()+expiredays);document.cookie=c_name+"="+escape(value)+((expiredays==null)?"":";expires="+exdate.toGMTString())+';path='+(window.site_config?(window.site_config.root?window.site_config.root:'/'):'/')}
 function getCookie(c_name){if(document.cookie.length>0){var c_start=document.cookie.indexOf(c_name+"=");if(c_start!=-1){c_start=c_start+c_name.length+1;var c_end=document.cookie.indexOf(";",c_start);if(c_end==-1)c_end=document.cookie.length;return unescape(document.cookie.substring(c_start,c_end))}}
 return""}
@@ -38,7 +39,7 @@ var win_ajax_request=ajaxOpen(ajaxSet);$('#myModal').on('hidden.bs.modal',functi
 function windowIframe(title,url,options){if(!options){options={}}
 options.full_height=1;modal(title,'<div class="loading" style="margin:10px;"></div>',options);var ifrHtml='<iframe id="myModalIframe" '+(url?(' src="'+url+'"'):'')+' width="100%" height="100%" frameborder="0" scrolling="yes"></iframe>';$('#myModal iframe').remove();$('#myModal .modal-body').html(ifrHtml);$('#myModal iframe').bind('load',function(){$('#myModal').attr('data-iframe-loaded',1);execVarFuncs(options.ifr_loaded_func)});$('#myModal').on('hidden.bs.modal',function(e){$('#myModal iframe').remove();execVarFuncs(options.close_func)});execVarFuncs(options.loaded_func)}
 function execVarFuncs(funcs){if(!isNull(funcs)){if(typeof(funcs)=='function'){funcs()}else if(typeof(funcs)=='object'){for(var i in funcs){var func=funcs[i];if(typeof(func)=='function'){func()}}}}}
-function ajaxDataMsg(data){if(typeof data=='string'){data=eval('('+data+')')}
+function ajaxDataMsg(data){if(typeof data=='string'){data=JSON.parse(data)}
 if(data.code==1){toastr.success(data.msg)}else{toastr.error(data.msg)}
 if(data.url){window.setTimeout("window.location.href='"+data.url+"';",2000)}}
 function checkall(obj,chkName){var status=$(obj).is(":checked")?true:!1;$("input[name='"+chkName+"']:checkbox").prop('checked',status)}

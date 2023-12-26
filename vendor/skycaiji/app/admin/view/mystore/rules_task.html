@@ -6,10 +6,13 @@
 	{/foreach}
 	</ul>
 	{$pagenav}
-	<script type="text/javascript">
+
+<script type="text/javascript">
+'use strict';
+(function(){
 	$('#window_rules #rule_list li a').bind('click',function(){
 		var id=$(this).attr('data-id');
-		var name=$(this).attr('data-title');
+		var name='已下载 » '+$(this).attr('data-title');
 		taskOpClass.import_rule('rule:'+id,name);
 	});
 	$('#window_rules .pagination').addClass('pagination-sm');
@@ -17,7 +20,9 @@
 		windowModal('导入规则',$(this).attr('href'));
 		return false;
 	});
-	</script>
+})();
+</script>
+
 </div>
 {else /}
 	您没有规则，请进入<a href="{:url('mystore/store')}">云平台</a>下载

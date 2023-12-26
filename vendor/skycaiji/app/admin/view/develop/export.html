@@ -2,24 +2,18 @@
 {block name="cssjs"}
 {/block}
 {block name="content"}
-<form method="post" role="form" action="{:url('collector/export')}">
+<form method="post" role="form" action="{:url('develop/export')}">
 	<div class="box box-default">
 		<div class="box-body" style="padding-bottom:0;">
 			{:html_usertoken()}
-			<input type="hidden" name="task_id" value="{$task_id}" />
+			<input type="hidden" name="type" value="{$type}" />
+			<input type="hidden" name="app" value="{$app}" />
+			<input type="hidden" name="module" value="{$module}" />
 			<div class="form-group">
-		   		<label>设置密码</label>
+		   		<label class="control-label">设置密码</label>
 		   		<input type="text" class="form-control" name="pwd" placeholder="选填" autocomplete="off" />
 				<p class="help-block">{$Think.lang.tips_export_ipt_pwd}</p>
 			</div>
-			{if !empty($hasPlugin)}
-			<div class="form-group">
-		   		<label>导出插件</label>
-				<div class="input-group">
-					<label class="checkbox-inline"><input type="checkbox" name="export_plugin" value="1" /> 规则中包含插件，是否一同导出？</label>
-				</div>
-			</div>
-			{/if}
 		</div>
 	</div>
 	<button type="submit" class="btn btn-primary btn-block">确定导出</button>

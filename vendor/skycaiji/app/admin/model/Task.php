@@ -227,7 +227,113 @@ class Task extends \skycaiji\common\model\BaseModel{
 	}
 	
 	public function set_backstage_end($taskId){
-	    \skycaiji\admin\model\CacheModel::getInstance('backstage_task')->db()->strict(false)->where('cname',$taskId)->update(array('ctype'=>1,'data'=>time()));
+        \skycaiji\admin\model\CacheModel::getInstance('backstage_task')->db()->strict(false)->where('cname',$taskId)->update(array('ctype'=>1,'data'=>time()));
+        
+        $mconfig=model('Config');
+        $emailConfig=$mconfig->getConfig('email','data');
+        if(!empty($emailConfig)){
+            init_array($emailConfig);
+            $caijiConfig=$emailConfig['caiji'];
+            init_array($caijiConfig);
+            if(!empty($caijiConfig)&&$caijiConfig['open']){
+                
+                $toEmail=$caijiConfig['email']?:$emailConfig['email'];
+                if(empty($caijiConfig['is_auto'])||!is_empty(input('collect_auto'))){
+                    
+                    $mcacheEmail=\skycaiji\admin\model\CacheModel::getInstance('email');
+                    $mcollected=model('Collected');
+                    $mtask=model('Task');
+                    $timeNow=time();
+                    $todayTime=strtotime(date('Y-m-d',$timeNow));
+                    if($taskId>0&&!empty($caijiConfig['failed_num'])&&$caijiConfig['failed_num']>0){
+                        
+                        $failedInterval=intval($caijiConfig['failed_interval'])*60;
+                        $taskKey='failed_task_'.$taskId;
+                        $taskLastTime=$mcacheEmail->getCache($taskKey,'data');
+                        $taskLastTime=intval($taskLastTime);
+                        if($taskLastTime<=0){
+                            
+                            $taskLastTime=$todayTime;
+                        }
+                        if($taskLastTime>0&&(abs($timeNow-$taskLastTime)>$failedInterval)){
+                            
+                            
+                            $taskFailedNum=$mcollected->where(array('task_id'=>$taskId,'addtime'=>array('GT',$taskLastTime),'error'=>array('<>','')))->count();
+                            if($taskFailedNum>0&&$taskFailedNum>$caijiConfig['failed_num']){
+                                
+                                $mcacheEmail->setCache($taskKey,$timeNow);
+                                $taskName=$mtask->where('id',$taskId)->value('name');
+                                \util\Tools::send_mail(
+                                    $emailConfig, $toEmail, $emailConfig['sender'],
+                                    sprintf('任务%d在 %s 至 %s 失败了%d次',$taskId,date('m-d H:i:s',$taskLastTime),date('m-d H:i:s',$timeNow),$taskFailedNum),
+                                    sprintf('<a href="%s" target="_blank">查看任务"%s"失败详细</a>',url('admin/collected/list?status=2&task_id='.$taskId,'',false,true),$taskName)
+                                );
+                            }
+                        }
+                    }
+                    
+                    $reportInterval=intval($caijiConfig['report_interval'])*60;
+                    if($reportInterval>0){
+                        
+                        $reportKey='caiji_report_time';
+                        $reportLastTime=$mcacheEmail->getCache($reportKey,'data');
+                        $reportLastTime=intval($reportLastTime);
+                        if($reportLastTime<=0){
+                            
+                            $reportLastTime=$todayTime;
+                        }
+                        if($reportLastTime>0&&(abs($timeNow-$reportLastTime)>$reportInterval)){
+                            
+                            $mcacheEmail->setCache($reportKey,$timeNow);
+                            $report=array(
+                                'today_success'=>0,'today_error'=>0,'today_tasks'=>array(),
+                                'total_success'=>$mcollected->where("`target` <> ''")->count(),
+                                'total_error'=>$mcollected->where("`error` <> ''")->count(),
+                                'task_auto'=>$mtask->where('`auto`>0')->count(),
+                                'task_other'=>$mtask->where('`auto`=0')->count(),
+                                'caijitime'=>$mtask->where('`auto`>0')->max('caijitime'),
+                                'autotime'=>CacheModel::getInstance()->getCache('collect_backstage_time','data'),
+                            );
+                            $todaySuccess=$mcollected->field('task_id,count(task_id)')->where(array('addtime'=>array('GT',$todayTime),'target'=>array('<>','')))->group('task_id')->column('count(task_id)','task_id');
+                            $todayError=$mcollected->field('task_id,count(task_id)')->where(array('addtime'=>array('GT',$todayTime),'error'=>array('<>','')))->group('task_id')->column('count(task_id)','task_id');
+                            
+                            if($todaySuccess){
+                                $report['today_success']=array_sum($todaySuccess);
+                                foreach ($todaySuccess as $k=>$v){
+                                    init_array($report['today_tasks'][$k]);
+                                    $report['today_tasks'][$k]['success']=$v;
+                                }
+                            }
+                            if($todayError){
+                                $report['today_error']=array_sum($todayError);
+                                foreach ($todayError as $k=>$v){
+                                    init_array($report['today_tasks'][$k]);
+                                    $report['today_tasks'][$k]['error']=$v;
+                                }
+                            }
+                            if($report['today_tasks']){
+                                
+                                $taskNames=$mtask->where('id','in',array_keys($report['today_tasks']))->column('name','id');
+                                if($taskNames){
+                                    
+                                    foreach ($taskNames as $k=>$v){
+                                        $report['today_tasks'][$k]['name']=$v;
+                                    }
+                                }
+                                unset($taskNames);
+                            }
+                            $report=view('task/caiji_report_email',array('report'=>$report))->getContent();
+                            \util\Tools::send_mail(
+                                $emailConfig, $toEmail, $emailConfig['sender'],
+                                date('Y-m-d H:i:s',$timeNow).' 采集报表',
+                                $report
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        
 	}
 	
 	public function auto_is_timer($auto){

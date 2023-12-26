@@ -22,6 +22,14 @@
 	        	<input type="number" name="file_interval" class="form-control" />
 		   		<p class="help-block">可防止下载太快造成目标网站响应超时或宕机，留空或0表示不限制</p>        
 		    </div>
+		    <div class="form-group">
+		        <label>读取文件真实地址</label>
+		        <div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="url_real" value="1">是</label>
+					<label class="radio-inline"><input type="radio" name="url_real" value="0" checked="checked">否</label>
+		        </div>
+		        <p class="help-block">读取文件网址重定向后的真实地址</p>
+		    </div>
 	        <div class="form-group">
 	        	<label>文件保存目录（绝对路径）</label>
 	        	<input type="text" name="file_path" class="form-control" placeholder="默认：{:config('root_path')}{:DS}data{:DS}files" />

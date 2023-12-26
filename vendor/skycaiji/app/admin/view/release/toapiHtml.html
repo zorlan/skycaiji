@@ -1,0 +1,9 @@
+<form method="post" action="{:url('tool/preview_data')}" target="_blank">
+	{:html_usertoken()}
+	<div class="form-group">
+		<textarea name="data" class="form-control" rows="20">{$apiHtml|htmlspecialchars}</textarea>
+	</div>
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-default btn-block">解析</button>
+ 	</div>
+</form>

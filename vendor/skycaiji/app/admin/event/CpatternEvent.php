@@ -221,6 +221,19 @@ class CpatternEvent extends CpatternColl{
             case 'description':$val=\util\HtmlParse::getDescription($html);break;
             case 'url':$val=$cur_url;break;
             case 'header':$val=trim($htmlInfo['header']);break;
+            case 'cookie':
+                $cookie=\util\Funcs::get_cookies_from_header($htmlInfo['header'],true);
+                if(empty($cookie)){
+                    
+                    $cookie=\util\Param::get_gsc_use_cookie('',true);
+                    if(empty($cookie)){
+                        
+                        $headers=$this->config_params['headers']['page'];
+                        $cookie=is_array($headers)?$headers['cookie']:'';
+                    }
+                }
+                $val=$cookie;
+                break;
             case 'html':$val=$html;break;
         }
         return $val;
@@ -381,7 +394,7 @@ class CpatternEvent extends CpatternColl{
         
         return preg_replace('/'.$params['replace_from'].'/ui',$params['replace_to'], $fieldVal);
     }
-    public function process_f_tool($fieldVal,$params){
+    public function process_f_tool($fieldVal,$params,$fieldName=''){
         
         if(in_array('format', $params['tool_list'])){
             
@@ -396,23 +409,9 @@ class CpatternEvent extends CpatternColl{
             
             $this->field_url_complete=false;
         }
-        if(in_array('vedio_url', $params['tool_list'])){
-            
-            $urls=array();
-            if(preg_match_all('/<(object|embed|source)\b[^<>]+>/i',$fieldVal,$murls)){
-                foreach ($murls[0] as $k=>$v){
-                    if(preg_match('/\b'.($murls[1][$k]=='object'?'data':'src').'\s*=[\'\"]([^\r\n]+?)[\'\"]/i',$v,$murl)){
-                        $urls[]=$murl[1];
-                    }
-                }
-                $urls=array_unique($urls);
-                $urls=array_filter($urls);
-                $urls=array_values($urls);
-            }
-            $fieldVal=implode("\r\n",$urls);
-        }
-        if(in_array('url_real', $params['tool_list'])){
-            
+        
+        $headers=null;
+        if(in_array('vedio_url', $params['tool_list'])||in_array('url_real', $params['tool_list'])){
             $headers=$this->config_params['headers']['page'];
             init_array($headers);
             $useCookie=\util\Param::get_gsc_use_cookie('',true);
@@ -421,9 +420,37 @@ class CpatternEvent extends CpatternColl{
                 unset($headers['cookie']);
                 $headers['cookie']=$useCookie;
             }
-            $fieldVal=preg_replace_callback('/\bhttp[s]{0,1}\:\/\/[^\'\"\s]+/i',function($murl)use($headers){
+        }
+        
+        if(in_array('vedio_url', $params['tool_list'])){
+            
+            $urls=$this->_process_f_tool_vdourl($fieldVal);
+            if(empty($urls)){
+                
+                if(preg_match_all('/<[i]{0,1}frame\b[^<>]*\bsrc\s*=[\'\"\s]*([^\'\"\s]+)[\'\"\s]*/',$fieldVal,$mfurls)){
+                    $mfurls=\util\Tools::clear_src_urls($mfurls[1]);
+                    $this->echo_msg(array('正在数据处理：%s » 工具箱：提取音视频网址',$fieldName),'black');
+                    foreach ($mfurls as $furl){
+                        $fhtml=$this->get_html($furl,false,$headers);
+                        $fvurls=$this->_process_f_tool_vdourl($fhtml);
+                        if($fvurls){
+                            $urls=array_merge($urls,$fvurls);
+                        }
+                    }
+                }
+            }
+            $fieldVal=$urls?implode("\r\n",$urls):'';
+        }
+        if(in_array('url_real', $params['tool_list'])){
+            
+            $msgEchoed=false;
+            $fieldVal=preg_replace_callback('/\bhttp[s]{0,1}\:\/\/[^\'\"\s]+/i',function($murl)use($headers,$fieldName,&$msgEchoed){
+                if(!$msgEchoed){
+                    $msgEchoed=true;
+                    $this->echo_msg(array('正在数据处理：%s » 工具箱：网址真实地址',$fieldName),'black');
+                }
                 $murl=$murl[0];
-                $urlInfo=$this->get_html($murl,false,$headers,null,array('return_head'=>1,'return_info'=>1,'curlopts'=>array(CURLOPT_CONNECTTIMEOUT=>5)),true);
+                $urlInfo=$this->get_html($murl,false,$headers,null,array('return_head'=>1,'return_info'=>1),true);
                 if(is_array($urlInfo)&&is_array($urlInfo['info'])&&$urlInfo['info']['url']){
                     $murl=$urlInfo['info']['url'];
                 }
@@ -431,6 +458,22 @@ class CpatternEvent extends CpatternColl{
             },$fieldVal);
         }
         return $fieldVal;
+    }
+    
+    private function _process_f_tool_vdourl($str){
+        $urls=array();
+        if($str&&preg_match_all('/<(video|object|embed|source)\b[^<>]+>/i',$str,$murls)){
+            foreach ($murls[0] as $k=>$v){
+                $tag=strtolower($murls[1][$k]);
+                if(preg_match('/\b'.($tag=='object'?'data':'src').'\s*=[\'\"\s]*([^\'\"\s]+)[\'\"\s]*/i',$v,$murl)){
+                    $urls[]=\util\Tools::clear_src_urls($murl[1]);
+                }
+            }
+            $urls=array_unique($urls);
+            $urls=array_filter($urls);
+            $urls=array_values($urls);
+        }
+        return $urls;
     }
     public function process_f_download($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName=''){
         if($params['download_op']=='is_img'){
@@ -613,7 +656,7 @@ class CpatternEvent extends CpatternColl{
                     $batch_to=array();
                     foreach ($mlist as $k=>$v){
                         $v=explode($sign,$v,2);
-                        if(is_array($v)&&count($v)==2&&!empty($v[0])&&!empty($v[1])){
+                        if(is_array($v)&&count($v)==2&&!is_empty($v[0],true)){
                             
                             $batch_re[]=$v[0];
                             $batch_to[]=$v[1];
@@ -893,13 +936,11 @@ class CpatternEvent extends CpatternColl{
         $url=$params['api_url'];
         $htmlInfo=null;
         if(!empty($url)){
-            $isLoc=false;
-            if(!preg_match('/^\w+\:\/\//', $url)&&strpos($url, '/')===0){
+            if(strpos($url, '/')===0){
                 
-                $isLoc=true;
                 $url=config('root_website').$url;
             }
-            if(preg_match('/^\w+\:\/\//', $url)){
+            if(\util\Funcs::is_right_url($url)){
                 
                 
                 $charset=$params['api_charset'];
@@ -919,8 +960,7 @@ class CpatternEvent extends CpatternColl{
                     $curlopts[CURLOPT_ENCODING]=$encode;
                 }
                 
-                
-                $url=$this->_replace_insert_fields($url, $curUrlMd5, $loopIndex);
+                $url=$this->_replace_insert_fields($url,$fieldVal,$curUrlMd5,$loopIndex);
                 $url=\util\Funcs::url_auto_encode($url, $charset);
                 
                 
@@ -939,7 +979,7 @@ class CpatternEvent extends CpatternColl{
                             case 'field':$val=$fieldVal;break;
                             case 'timestamp':$val=time();break;
                             case 'time':$addon=$addon?$addon:'Y-m-d H:i:s';$val=date($addon,time());break;
-                            case 'custom':$val=$this->_replace_insert_fields($addon, $curUrlMd5, $loopIndex);break;
+                            case 'custom':$val=$this->_replace_insert_fields($addon,$fieldVal,$curUrlMd5,$loopIndex);break;
                         }
                         $postData[$v]=$val;
                     }
@@ -960,7 +1000,7 @@ class CpatternEvent extends CpatternColl{
                             case 'field':$val=$fieldVal;break;
                             case 'timestamp':$val=time();break;
                             case 'time':$addon=$addon?$addon:'Y-m-d H:i:s';$val=date($addon,time());break;
-                            case 'custom':$val=$this->_replace_insert_fields($addon, $curUrlMd5, $loopIndex);break;
+                            case 'custom':$val=$this->_replace_insert_fields($addon,$fieldVal,$curUrlMd5,$loopIndex);break;
                         }
                         $headers[$v]=$val;
                     }
@@ -979,8 +1019,8 @@ class CpatternEvent extends CpatternColl{
                     $url=\util\Funcs::url_params_charset($url,$postData,$charset);
                     $postData=null;
                 }
-                
-                $htmlInfo=get_html($url,$headers,array('curlopts'=>$curlopts),$charset,$postData,true);
+                $this->echo_msg(array('正在数据处理：%s » <a href="%s" target="_blank">调用接口</a>',$fieldName,$url),'black');
+                $htmlInfo=get_html($url,$headers,array('timeout'=>60,'curlopts'=>$curlopts),$charset,$postData,true);
                 $this->collect_sleep($params['api_interval'],true);
                 if(!empty($htmlInfo['ok'])){
                     
@@ -1030,6 +1070,7 @@ class CpatternEvent extends CpatternColl{
             return $fieldVal;
         }
         static $conds=array('filter','if','func','api','download');
+        static $fnConds=array('translate','tool');
         foreach ($process as $params){
             
             if(empty($this->first_loop_field)){
@@ -1048,7 +1089,7 @@ class CpatternEvent extends CpatternColl{
                 if(in_array($params['module'],$conds)){
                     
                     $fieldVal=$this->$funcName($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName);
-                }elseif($params['module']=='translate'){
+                }elseif(in_array($params['module'],$fnConds)){
                     $fieldVal=$this->$funcName($fieldVal,$params,$fieldName);
                 }else{
                     $fieldVal=$this->$funcName($fieldVal,$params);
@@ -1190,9 +1231,10 @@ class CpatternEvent extends CpatternColl{
         }
         return $fieldVals;
     }
-    private function _replace_insert_fields($paramsStr,$curUrlMd5,$loopIndex){
+    private function _replace_insert_fields($paramsStr,$defaultVal,$curUrlMd5,$loopIndex){
         $fieldRule='/\[\x{5b57}\x{6bb5}\:(.+?)\]/u';
-        return \util\Funcs::txt_replace_params(false, false, $paramsStr, '', $fieldRule, $this->_get_insert_fields($paramsStr, $curUrlMd5, $loopIndex));
+        $fieldVals=$this->_get_insert_fields($paramsStr, $curUrlMd5, $loopIndex);
+        return \util\Funcs::txt_replace_params(false, false, $paramsStr, $defaultVal, $fieldRule, $fieldVals);
     }
 }
 ?>

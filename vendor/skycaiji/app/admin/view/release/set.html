@@ -6,7 +6,7 @@
 <form id="form_rele" class="form-item" method="post" action="{:url('release/set')}">
 {:html_usertoken()}	
 	<input type="hidden" name="task_id" value="{$taskData['id']}" />
-	<input type="hidden" name="release_id" value="" />
+	<input type="hidden" name="release_import" value="" />
 	<div class="form-group">
 		<div class="input-group">
 			<label class="input-group-addon">{$Think.lang.rele_module}</label>
@@ -16,7 +16,19 @@
 			    <option value="{$rele_module}">{:lang('rele_module_'.$rele_module)}</option>
 			    {/foreach}
 			</select>
-			<div class="input-group-btn"><button class="btn btn-default" type="button" id="btn_import_release">导入配置</button></div>
+			<div class="input-group-btn dropdown">
+				<button class="btn btn-default dropdown-toggle" type="button" id="btn_import_release" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					导入配置 <span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu dropdown-menu-right" aria-labelledby="btn_import_release">
+			  		<li><a href="javascript:;" onclick="windowModal('导入配置会覆盖当前任务的发布设置，且不可恢复','{:url("release/import")}');">其它任务设置</a></li>
+			  		<li><a href="javascript:;" onclick="windowModal('导入配置会覆盖当前任务的发布设置，且不可恢复','{:url("mystore/upload?type=release&from_task=1")}');">导入文件</a></li>
+					{if !empty($releData)}
+			  		<li role="separator" class="divider"></li>
+			  		<li><a href="{:url('release/export?task_id='.$releData['task_id'])}" target="_blank">另存为</a></li>
+			  		{/if}
+			  	</ul>
+			</div>
 		</div>
 	</div>
 	<div class="rele-module" id="rele_module_cms" module="cms" style="display:none;">
@@ -164,28 +176,23 @@
 				</div>
 				<div class="form-group">
 					<label>文件格式</label>
-					<div class="row">
-						<div class="col-sm-4" style="padding-top:7px;">
-							<label class="radio-inline">
-							  <input type="radio" name="file[type]" value="xlsx"> Excel2007(.xlsx格式)
-							</label>
+					<div class="input-group mobile-input-group mobile-input-group1">
+						<div class="input-group-addon">
+							<label class="radio-inline"><input type="radio" name="file[type]" value="xlsx"> Excel2007(.xlsx格式)</label>
 						</div>
-						<div class="col-sm-4" style="padding-top:7px;">
-							<label class="radio-inline">
-							  <input type="radio" name="file[type]" value="xls"> Excel2003(.xls格式)
-							</label>
+						<div class="input-group-addon brr_0">
+							<label class="radio-inline"><input type="radio" name="file[type]" value="xls"> Excel2003(.xls格式)</label>
 						</div>
-						<div class="col-sm-4">
-							<div class="input-group">
-								<div class="input-group-addon" style="border:0;padding-left:0;">
-									<label class="radio-inline">
-										<input type="radio" name="file[type]" value="txt"> txt文本，字段分隔符
-									</label>
-								</div>
-								<input type="text" class="form-control" name="file[txt_implode]" placeholder="默认制表符" />
-							</div>
+						<div class="input-group-addon brr_0">
+							<label class="radio-inline"><input type="radio" name="file[type]" value="txt"> txt文本，字段分隔符</label>
 						</div>
+						<input type="text" class="form-control" name="file[txt_implode]" placeholder="默认制表符" />
 					</div>
+				</div>
+				<div class="form-group">
+					<label>文件最大行数</label>
+					<input name="file[max_line]" type="number" class="form-control" value="" />
+					<p class="help-block">文件超过最大行数时创建新的文件并自动编号，填0表示不限制</p>
 				</div>
 				{if !empty($collFields)}
 				<div class="form-group">
@@ -205,19 +212,18 @@
 		<div class="box box-default">
 			<div class="box-body">
 				<div class="form-group">
-					<label>api地址</label>
-					<div class="input-group mobile-input-group">
-						<div class="input-group-addon">{$apiRootUrl}/api_task/{$taskData['id']}/</div>
-						<input type="text" class="form-control" name="api[url]" placeholder="请输入字符串" />
+					<label>API密钥</label>
+					<div class="input-group">
+						<input type="text" class="form-control" name="api[key]" placeholder="请输入字符串" autocomplete="off" />
 						<div class="input-group-btn">
 							<button type="button" class="btn btn-default btn-api-rand-url">随机字符串</button>
 						</div>
 					</div>
 					<p class="help-block">
-						请务必输入一个复杂的字符串以防止他人破解api下载数据！
-						<br />
-						{if condition="!empty($releData['config']['api']['url'])"}
-						API网址：<a href="{$apiRootUrl}/api_task/{$taskData['id']}/{$releData['config']['api']['url']}" target="_blank">{$apiRootUrl}/api_task/{$taskData['id']}/{$releData['config']['api']['url']}</a>
+						设置一个密钥增加API安全性
+						{if !empty($releData['config']['api'])}
+						{php}$apiKeyStr=isset($releData['config']['api']['url'])?$releData['config']['api']['url']:md5($releData['config']['api']['key']);{/php}
+						，API网址：<a href="{$apiRootUrl}/api_task/{$taskData['id']}/{$apiKeyStr}" target="_blank">{$apiRootUrl}/api_task/{$taskData['id']}/{$apiKeyStr}</a>
 						{/if}
 					</p>
 				</div>
@@ -331,10 +337,10 @@
 											<input type="text" name="toapi[param_name][]" class="form-control" autocomplete="off" />
 										</td>
 										<td>
-											<div class="input-group toapi-txt-field">
+											<div class="input-group toapi-field-txt">
 												<input type="text" name="toapi[param_val][]" class="form-control" autocomplete="off" />
-												<div class="input-group-btn">
-													<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">字段 <span class="caret"></span></button>
+												<div class="input-group-addon">
+													<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">字段 <span class="caret"></span></a>
 											        <ul class="dropdown-menu dropdown-menu-right">
 											        	{if !empty($collFields)}
 														{foreach $collFields as $v}
@@ -371,10 +377,10 @@
 											<input type="text" name="toapi[header_name][]" class="form-control" autocomplete="off" />
 										</td>
 										<td>
-											<div class="input-group toapi-txt-field">
+											<div class="input-group toapi-field-txt">
 												<input type="text" name="toapi[header_val][]" class="form-control" autocomplete="off" />
-												<div class="input-group-btn">
-													<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">字段 <span class="caret"></span></button>
+												<div class="input-group-addon">
+													<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">字段 <span class="caret"></span></a>
 											        <ul class="dropdown-menu dropdown-menu-right">
 											        	{if !empty($collFields)}
 														{foreach $collFields as $v}

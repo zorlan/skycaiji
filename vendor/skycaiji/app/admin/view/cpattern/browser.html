@@ -1,4 +1,5 @@
 {$html}
+<textarea id="skycaiji_browser_html" style="display:none;">{$htmlTxt}</textarea>
 <!-- 以下为蓝天采集器代码 -->
 <link rel="stylesheet" href="{:config('root_website')}/public/static/css/cpattern_browser.css?{$Think.config.html_v}">
 <script type="text/javascript" src="{:config('root_website')}/public/jquery/jquery.min.js?{$Think.config.html_v}"></script>
@@ -14,11 +15,16 @@
 		<em class="skycaiji-close" title="关闭">×</em>
 		<div class="skycaiji-block">
 			<span class="skycaiji-b-l">当前元素的xpath：</span>
-			<div class="skycaiji-b-c"><input skycaiji-id="xpath" /></div>
+			<div class="skycaiji-b-c">
+				<div skycaiji-id="box-xpath"><input skycaiji-id="xpath" /></div>
+				<select skycaiji-id="xpaths" style="display:none;">
+					<option value="">请选择</option>
+				</select>
+			</div>
 			<div class="skycaiji-b-r">
 				<div style="display:inline;"><a href="javascript:;" skycaiji-id="show-xpath" data-val="1">显示</a> /</div>
-				<div style="display:inline;"><a href="javascript:;" title="当前元素的所有属性" skycaiji-id="obj-prop">属性</a> /</div>
 				<div style="display:inline;"><a href="javascript:;" title="清理界面" skycaiji-id="obj-clear">清理</a> /</div>
+				<div style="display:inline;"><a href="javascript:;" title="当前元素的所有属性" skycaiji-id="obj-prop">属性</a> /</div>
 				<div style="display:inline;"><a href="javascript:;" title="当前元素的父元素" skycaiji-id="obj-parent">父元素</a> /</div>
 				<div style="display:inline;"><a href="javascript:;" title="当前元素的子元素" skycaiji-id="obj-child">子元素</a></div>
 			</div>

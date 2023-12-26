@@ -52,8 +52,19 @@
 	    	<div class="panel-body">
 		        <div class="form-group">
 		        	<label>函数名</label>
+					<a href="javascript:;" class="fa fa-refresh plugin-func-refresh" title="刷新"></a>
 			   		<select class="form-control" data-func-func="1">
 			   			<option value="">不使用</option>
+			   			<optgroup label="系统函数">
+							{foreach $Think.config.allow_process_func as $k=>$v}
+							<option value="{$k}">{$k}：{$v}</option>
+							{/foreach}
+							{if is_array($Think.config.EXTEND_PROCESS_FUNC)}
+							{foreach $Think.config.EXTEND_PROCESS_FUNC as $k=>$v}
+							<option value="{$k}">{$k}：{$v}</option>
+							{/foreach}
+							{/if}
+						</optgroup>
 			       	</select>
 				</div>
 				<div class="form-group">

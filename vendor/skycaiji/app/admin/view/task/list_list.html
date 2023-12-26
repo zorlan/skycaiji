@@ -28,14 +28,14 @@
 			{if empty($taskList)}
 				<tr>
 					<td colspan="7" style="text-align:center;">
-						<p class="help-block">没有任务，创建<a href="{:url('task/save')}">新任务</a>或进入<a href="{:url('mystore/store')}">云平台</a>下载规则</p>
+						<p class="help-block">没有任务，创建<a href="{:url('task/set')}">新任务</a>或进入<a href="{:url('mystore/store')}">云平台</a>下载规则</p>
 					</td>
 				</tr>
 			{else/}
 			{foreach name="taskList" item="item"}
 				<tr data-task-id="{$item['id']}">
 					<td class="sort"><input type="text" name="newsort[{$item['id']}]" class="form-control" value="{$item['sort']}" autocomplete="off" /></td>
-	                <td><a href="{:url('task/save?id='.$item['id'])}">{$item['name']}</a></td>
+	                <td><a href="{:url('task/set?id='.$item['id'])}">{$item['name']}</a></td>
 	                <td><a href="{:url('task/list?show=list&tg_id='.$item['tg_id'])}">{$tgList[$item['tg_id']]?$tgList[$item['tg_id']]:lang($item['tg_id']?'deleted':'none')}</a></td>
 	                <td><a href="javascript:;" class="auto" data-val={$item['auto']} style="color:{$item['auto']>0?'green':'red'}" title="{$item['_timer_info']?$item['_timer_info']:''}">{:lang('task_auto_'.$item['auto'])}</a></td>
 	                <td>{$item['addtime']|date='Y-m-d',###}</td>
@@ -78,7 +78,7 @@
 				<tr>
 					<td colspan="5">
 						<button type="submit" class="btn btn-default">{$Think.lang.save}</button>
-						<a href="{:url('task/save')}" class="btn btn-primary">{$Think.lang.task_add}</a>
+						<a href="{:url('task/set')}" class="btn btn-primary">{$Think.lang.task_add}</a>
 					</td>
 					<td colspan="3">
 						<label class="checkbox-inline chk-inline">

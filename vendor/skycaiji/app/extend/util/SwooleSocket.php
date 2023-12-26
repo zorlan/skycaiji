@@ -292,7 +292,11 @@ class SwooleSocket{
     public function wsShutdown($ws){
         $ws->shutdown();
         $this->killProcess(getmypid(),SIGTERM,10);
-        exit();
+        $this->wsExit();
+    }
+    
+    public function wsExit(){
+        throw new \Exception('[exception_exit_collect]');
     }
     
     protected $wsTimer;
@@ -326,7 +330,7 @@ class SwooleSocket{
         $data=json_decode(base64_decode($data),true);
         $data=$this->commonWsOn($data,$ws,true);
         $response->end();
-        exit();
+        $this->wsExit();
     }
     protected function commonWsOn($data,$ws,$isRequest=false){
         init_array($data);
@@ -357,7 +361,7 @@ class SwooleSocket{
             
             $this->wsShutdown($ws);
         }else{
-            $ws->reboot();
+            $ws->reload();
         }
         return $data;
     }
@@ -390,7 +394,7 @@ class SwooleSocket{
         
         
         
-        exit();
+        $this->wsExit();
     }
     protected function ws_m_auto_backstage($data,$ws){
         $rootUrl=\think\Config::get('root_website').'/index.php?s=';
@@ -429,7 +433,7 @@ class SwooleSocket{
         
         
         
-        exit();
+        $this->wsExit();
     }
 }
 

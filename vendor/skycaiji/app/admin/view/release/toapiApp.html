@@ -1,7 +1,7 @@
 <input type="hidden" name="toapi[app_api]" value="{$appApi}" />
 <div class="box box-primary">
-<div class="box-body">
-<table class="table">
+<div class="box-body table-responsive toapi-app-table">
+<table class="table table-hover">
 <thead>
 	<tr>
 		<th>参数名称</th>
@@ -14,15 +14,7 @@
 <tr>
 	<td>{if !empty($pv['required'])}<em>*</em> {/if}{$pv['name']}</td>
 	<td>
-	{if $pv['tag']=='select'}
-	<select name="toapi[app_params][{$pk}]" class="form-control">
-		{if !empty($pvOption)}
-		{foreach $pvOption as $pvOk=>$pvOv}
-		<option value="{$pvOk}">{$pvOv}</option>
-		{/foreach}
-		{/if}
-	</select>
-	{elseif $pv['tag']=='radio'}
+	{if $pv['tag']=='radio'}
 		{if !empty($pvOption)}
 		{foreach $pvOption as $pvOk=>$pvOv}
 		<label class="radio-inline"><input type="radio" name="toapi[app_params][{$pk}]" value="{$pvOk}">{$pvOv}</label>
@@ -40,10 +32,30 @@
 	{elseif $pv['tag']=='number'}
 		<input type="number" name="toapi[app_params][{$pk}]" class="form-control" autocomplete="off" />
 	{else/}
-		<div class="input-group toapi-txt-field">
-			<input type="text" name="toapi[app_params][{$pk}]" class="form-control" autocomplete="off" />
+		<div class="input-group toapi-field-txt{if $pv['tag']=='select'||$pv['tag']=='selects'} toapi-field-slt{/if}">
+			{if $pv['tag']=='select'||$pv['tag']=='selects'}
 			<div class="input-group-btn">
-				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">字段 <span class="caret"></span></button>
+				<select name="toapi[app_params][{$pk}]{if $pv['tag']=='selects'}[]{/if}" class="form-control"{if $pv['tag']=='selects'} multiple="multiple"{/if}>
+					{if !empty($pvOption)}
+					{foreach $pvOption as $pvOk=>$pvOv}
+					<option value="{$pvOk}">{$pvOv}</option>
+					{/foreach}
+					{/if}
+					<option value="@skycaiji_custom">自定义内容</option>
+				</select>
+			</div>
+			{if $pv['tag']=='selects'}
+			<textarea name="toapi[app_custom_params][{$pk}]" class="form-control" placeholder="自定义内容，一行一个值&#13;&#10;可以按住 Ctrl 多选"></textarea>
+			{else/}
+			<input type="text" name="toapi[app_custom_params][{$pk}]" class="form-control" autocomplete="off" placeholder="自定义内容" />
+			{/if}
+			{elseif $pv['tag']=='textarea'}
+			<textarea name="toapi[app_params][{$pk}]" class="form-control"></textarea>
+			{else/}
+			<input type="text" name="toapi[app_params][{$pk}]" class="form-control" autocomplete="off" />
+			{/if}
+			<div class="input-group-addon">
+				<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">字段 <span class="caret"></span></a>
 		        <ul class="dropdown-menu dropdown-menu-right">
 		        	{if !empty($collFields)}
 					{foreach $collFields as $v}
@@ -62,5 +74,5 @@
 </div>
 </div>
 <script type="text/javascript">
-releaseClass.toapi_app_load({$appParams|json_encode});
+releaseClass.toapi_app_load({$appParams|json_encode},{$appCustomParams|json_encode});
 </script>

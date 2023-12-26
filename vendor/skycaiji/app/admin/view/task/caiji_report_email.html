@@ -1,0 +1,52 @@
+<table style="border:0;margin-bottom:10px;white-space:nowrap;text-align:left;">
+<tr>
+	<th style="padding:0 5px;">今日成功</th>
+	<th style="padding:0 5px;">今日失败</th>
+	<th style="padding:0 5px;">总成功数</th>
+	<th style="padding:0 5px;">总失败数</th>
+</tr>
+<tr>
+	<td style="padding:0 5px;">{$report['today_success']}条</td>
+	<td style="padding:0 5px;">{$report['today_error']}条</td>
+	<td style="padding:0 5px;">{$report['total_success']}条</td>
+	<td style="padding:0 5px;">{$report['total_error']}条</td>
+</tr>
+</table>
+
+<table style="border:0;margin-bottom:10px;white-space:nowrap;text-align:left;">
+<tr>
+	<th style="padding:0 5px;">自动任务</th>
+	<th style="padding:0 5px;">手动任务</th>
+	{if $report['caijitime']}
+	<th style="padding:0 5px;">最近采集</th>
+	{/if}
+	<th style="padding:0 5px;">自动触发</th>
+</tr>
+<tr>
+	<td style="padding:0 5px;">{$report['task_auto']}个</td>
+	<td style="padding:0 5px;">{$report['task_other']}个</td>
+	{if $report['caijitime']}
+	<td style="padding:0 5px;">{:date('Y-m-d H:i:s',$report['caijitime'])}</td>
+	{/if}
+	<td style="padding:0 5px;">{$report['autotime']?date('Y-m-d H:i:s',$report['autotime']):'无'}</td>
+</tr>
+</table>
+
+{if $report['today_tasks']}
+<table style="border:0;margin-bottom:10px;white-space:nowrap;text-align:left;">
+<tr>
+	<th style="padding:0 5px;">ID</th>
+	<th style="padding:0 5px;">任务名</th>
+	<th style="padding:0 5px;">今日成功</th>
+	<th style="padding:0 5px;">今日失败</th>
+</tr>
+{foreach $report['today_tasks'] as $k=>$v}
+<tr>
+	<td style="padding:0 5px;">{$k}</td>
+	<td style="padding:0 5px;">{$v['name']}</td>
+	<td style="padding:0 5px;">{$v['success']|intval}条</td>
+	<td style="padding:0 5px;">{$v['error']|intval}条</td>
+</tr>
+{/foreach}
+</table>
+{/if}

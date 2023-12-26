@@ -36,6 +36,8 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 	    'contentSign'=>array(
 	        'name'=>'内容标签',
 	        'loc'=>'任务»采集器设置»页面配置»提取内容标签»使用函数',
+	        'config'=>'allow_process_func',
+	        'extend'=>'EXTEND_PROCESS_FUNC',
 	    )
 	);
 	public function __construct($data = []){

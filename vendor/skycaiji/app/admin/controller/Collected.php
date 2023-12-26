@@ -101,7 +101,7 @@ class Collected extends BaseController {
 	   			$taskIds=array();
 	   			foreach ($dataList as $itemK=>$item){
 	   				$taskIds[$item['task_id']]=$item['task_id'];
-	   				if(preg_match('/^\w+\:\/\//', $item['target'])){
+	   				if(\util\Funcs::is_right_url($item['target'])){
 	   					
 	   					$dataList[$itemK]['target']='<a href="'.$item['target'].'" target="_blank">'.$item['target'].'</a>';
 	   				}

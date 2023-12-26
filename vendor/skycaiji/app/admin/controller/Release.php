@@ -17,13 +17,12 @@ class Release extends CollectController{
 	/*发布设置*/
 	public function setAction(){
 		$taskId=input('task_id/d',0);
-		$releaseId=input('release_id/d',0);
-		
+		$releaseImport=input('release_import','','trim');
 		if(request()->isPost()){
 		    
 		    \util\UnmaxPost::init_post_data('_post_data_');
 		    $taskId=\util\UnmaxPost::val('task_id/d',0);
-		    $releaseId=\util\UnmaxPost::val('release_id/d',0);
+		    $releaseImport=\util\UnmaxPost::val('release_import','','trim');
 		}
 		
 		$mtask=model('Task');
@@ -35,23 +34,36 @@ class Release extends CollectController{
 		$releData=$mrele->where(array('task_id'=>$taskData['id']))->find();
 		if(request()->isPost()){
 			$newData=array('task_id'=>$taskData['id'],'addtime'=>time(),'config'=>array());
-			if($releaseId>0){
+			if($releaseImport){
 				
-				$importRele=$mrele->where(array('id'=>$releaseId))->find();
-				$newData['module']=$importRele['module'];
-				$newData['config']=$importRele['config'];
+			    list($releImportType,$releImporVal)=explode(':',$releaseImport,2);
+			    $releImportType=strtolower($releImportType);
+			    $releImporVal=$releImporVal?:'';
+			    if($releImportType=='release'){
+			        
+			        $releImporVal=intval($releImporVal);
+			        $importRele=$mrele->where(array('id'=>$releImporVal))->find();
+			        $newData['module']=$importRele['module'];
+			        $newData['config']=$importRele['config'];
+			    }elseif($releImportType=='file'){
+			        
+			        $releImporVal=unserialize(base64_decode($releImporVal));
+			        init_array($releImporVal);
+			        $newData['module']=$releImporVal['module'];
+			        $newData['config']=$releImporVal['config'];
+			    }
 			}else{
 				
 			    $newData['module']=\util\UnmaxPost::val('module','','strtolower');
-				if(empty($newData['module'])){
-					$this->error(lang('rele_error_null_module'));
+			    if(!empty($newData['module'])){
+			        $releObj=controller('admin/R'.$newData['module'],'event');
+			        $newData['config']=$releObj->setConfig($newData['config']);
+			        $newData['config']=serialize($newData['config']);
 				}
-				$releObj=controller('admin/R'.$newData['module'],'event');
-				$newData['config']=$releObj->setConfig($newData['config']);
-				$newData['config']=serialize($newData['config']);
 			}
 			if(empty($newData['module'])){
-				$this->error(lang('rele_error_null_module'));
+			    
+				
 			}
 			
 			if(empty($releData)){
@@ -72,7 +84,7 @@ class Release extends CollectController{
 		    $this->set_html_tags(
 		        '任务:'.$taskData['name'].'_'.lang('rele_set'),
 		        lang('rele_set'),
-		        breadcrumb(array(array('url'=>url('task/save?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('release/set?task_id='.$taskData['id']),'title'=>lang('rele_set'))))
+		        breadcrumb(array(array('url'=>url('task/set?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('release/set?task_id='.$taskData['id']),'title'=>lang('rele_set'))))
 		    );
 
 			$this->assign('taskData',$taskData);
@@ -130,6 +142,84 @@ class Release extends CollectController{
 		$this->assign('releList',$releList);
 		return $this->fetch();
 	}
+	
+	/*导出设置*/
+	public function exportAction(){
+	    $taskId=input('task_id/d',0);
+	    $mtask=model('Task');
+	    $mrele=model('Release');
+	    $taskData=$mtask->getById($taskId);
+	    $releData=$mrele->where(array('task_id'=>$taskData['id']))->find();
+	    if(empty($releData)){
+	        $this->error('发布设置不存在');
+	    }
+	    $config=unserialize($releData['config']?:'');
+	    if(empty($config)){
+	        $this->error('发布设置不存在');
+	    }
+	    
+	    $hasPlugin=array();
+	    if($config['cms']&&$config['cms']['app']){
+	        $hasPlugin['cms']=$config['cms']['app'];
+	    }
+	    if($config['diy']&&$config['diy']['app']){
+	        $hasPlugin['diy']=$config['diy']['app'];
+	    }
+	    
+	    if(request()->isPost()){
+	        $pwd=input('pwd','','trim');
+	        $exportName=$releData['name']?:$taskData['name'];
+	        $release=array(
+	            'name'=>$exportName,
+	            'module'=>$releData['module'],
+	            'config'=>serialize($config),
+	        );
+	        $exportTxt=base64_encode(serialize($release));
+	        if(!empty($pwd)){
+	            
+	            $edClass=new \util\EncryptDecrypt();
+	            $exportTxt=$edClass->encrypt(array('data'=>$exportTxt,'pwd'=>$pwd));
+	            $exportTxt=base64_encode(serialize($exportTxt));
+	        }
+	        $exportTxt='/*skycaiji-release-start*/'.$exportTxt.'/*skycaiji-release-end*/';
+	        
+	        if(input('export_plugin')){
+	            
+	            if($hasPlugin){
+	                $exportName.='.含插件';
+    	            if($hasPlugin['cms']){
+    	                
+    	                $pluginData=controller('admin/Develop','controller')->_export_plugin_data('release','cms',$hasPlugin['cms'],$pwd);
+    	                if(empty($pluginData['success'])){
+    	                    $this->error($pluginData['msg']);
+    	                }
+    	                $exportTxt.="\r\n".$pluginData['plugin_txt'];
+    	            }
+    	            if($hasPlugin['diy']){
+    	                
+    	                $pluginData=controller('admin/Develop','controller')->_export_plugin_data('release','diy',$hasPlugin['diy'],$pwd);
+    	                if(empty($pluginData['success'])){
+    	                    $this->error($pluginData['msg']);
+    	                }
+    	                $exportTxt.="\r\n".$pluginData['plugin_txt'];
+    	            }
+	            }
+	        }
+	        $exportName.=($pwd?'.加密':'').'.发布';
+	        \util\Tools::browser_export_scj($exportName, $exportTxt);
+	    }else{
+	        $this->set_html_tags(
+	            '导出发布设置',
+	            '导出发布设置至本地',
+	            breadcrumb(array(array('url'=>url('task/set?id='.$taskData['id']),'title'=>lang('task').lang('separator').$taskData['name']),array('url'=>url('release/set?task_id='.$taskData['id']),'title'=>lang('rele_set'))))
+	        );
+	        $this->assign('task_id',$taskId);
+	        $this->assign('hasPlugin',$hasPlugin);
+	        return $this->fetch();
+	    }
+	}
+	
+	
 	/*检测cms信息*/
 	public function cmsDetectAction(){
 		$acms=controller('admin/Rcms','event');
@@ -493,6 +583,7 @@ class Release extends CollectController{
         
         $appApi=null;
         $appParams=null;
+        $appCustomParams=array();
         $releData=$mrele->where(array('task_id'=>$taskData['id']))->find();
         if(!empty($releData)){
             
@@ -505,6 +596,7 @@ class Release extends CollectController{
                     $appApi=json_decode($appApi,true);
                 }
                 $appParams=$config['toapi']['app_params'];
+                $appCustomParams=$config['toapi']['app_custom_params'];
             }
         }
         
@@ -514,22 +606,34 @@ class Release extends CollectController{
             if(empty($appUrl)){
                 $this->error('请输入接口地址');
             }
-            $appApi=get_html($appUrl,[],[],'utf-8');
-            if(!empty($appApi)){
-                $appApi=json_decode($appApi,true);
+            $apiHtml=get_html($appUrl,[],[],'utf-8');
+            if(!empty($apiHtml)){
+                $appApi=json_decode($apiHtml,true);
             }
             init_array($appApi);
+            $apiError='';
             if(empty($appApi)){
-                $this->error('接口读取失败');
+                $apiError='接口读取失败';
+            }elseif(empty($appApi['code'])){
+                $apiError=$appApi['msg']?:'接口错误';
             }
-            if(empty($appApi['code'])){
-                $this->error($appApi['msg']?:'接口错误');
+            if($apiError){
+                if($apiHtml){
+                    $this->assign('apiError',$apiError);
+                    $this->assign('apiHtml',$apiHtml);
+                    $apiHtml=$this->fetch('toapiHtml')->getContent();
+                    $apiHtml=array('html'=>$apiHtml);
+                }else{
+                    $apiHtml=array();
+                }
+                $this->error($apiError,'',$apiHtml);
             }
             $appApi=$appApi['data'];
         }
         
         init_array($appApi);
         init_array($appParams);
+        init_array($appCustomParams);
         
         if(!empty($appApi)){
             
@@ -552,6 +656,7 @@ class Release extends CollectController{
             $this->assign('appApi',base64_encode(json_encode($appApi)));
             $this->assign('appApiParams',$appApiParams);
             $this->assign('appParams',$appParams);
+            $this->assign('appCustomParams',$appCustomParams);
             return $this->fetch('toapiApp');
         }
     }

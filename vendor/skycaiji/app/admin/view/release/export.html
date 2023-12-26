@@ -2,7 +2,7 @@
 {block name="cssjs"}
 {/block}
 {block name="content"}
-<form method="post" role="form" action="{:url('collector/export')}">
+<form method="post" role="form" action="{:url('release/export')}">
 	<div class="box box-default">
 		<div class="box-body" style="padding-bottom:0;">
 			{:html_usertoken()}
@@ -16,7 +16,7 @@
 			<div class="form-group">
 		   		<label>导出插件</label>
 				<div class="input-group">
-					<label class="checkbox-inline"><input type="checkbox" name="export_plugin" value="1" /> 规则中包含插件，是否一同导出？</label>
+					<label class="checkbox-inline"><input type="checkbox" name="export_plugin" value="1" /> 设置中包含插件，是否一同导出？</label>
 				</div>
 			</div>
 			{/if}

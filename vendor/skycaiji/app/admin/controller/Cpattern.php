@@ -181,7 +181,7 @@ class Cpattern extends BaseController {
     			
     			case 'list':if(empty($field['list']))$this->error('列表数据不能为空！');break;
     			case 'extract':if(empty($field['extract']))$this->error('请选择字段！');break;
-    			case 'merge':if(empty($field['merge']))$this->error('字段组合不能为空！');break;
+    			
     			case 'sign':
     			    if(empty($field['sign']))$this->error('请输入'.lang('field_module_sign'));
     			    break;
@@ -288,14 +288,14 @@ class Cpattern extends BaseController {
 	        
 	        if(is_empty(g_sc_c('download_img','download_img'))){
 	            if(!empty($taskData['config']['download_img'])){
-	                $downImgUrl=url('task/save?id='.$taskId);
+	                $downImgUrl=url('task/set?id='.$taskId);
 	            }
 	        }else{
 	            $downImgUrl='';
 	        }
 	        if(is_empty(g_sc_c('download_file','download_file'))){
 	            if(!empty($taskData['config']['download_file'])){
-	                $downFileUrl=url('task/save?id='.$taskId);
+	                $downFileUrl=url('task/set?id='.$taskId);
 	            }
 	        }else{
 	            $downFileUrl='';
@@ -303,7 +303,7 @@ class Cpattern extends BaseController {
 	        
 	        if(is_empty(g_sc_c('translate','open'))){
 	            if(!empty($taskData['config']['translate'])){
-	                $transUrl=url('task/save?id='.$taskId);
+	                $transUrl=url('task/set?id='.$taskId);
 	            }
 	        }else{
 	            $transUrl='';
@@ -425,10 +425,6 @@ class Cpattern extends BaseController {
             
             if(empty($front_url['url'])){
                 $this->error('请输入网址');
-            }
-            
-            if(!preg_match('/^\w+\:\/\/[^\r\n]+/i',$front_url['url'])){
-                $this->error('请输入正确的网址格式');
             }
             
             $front_url['use_cookie']=intval($front_url['use_cookie']);

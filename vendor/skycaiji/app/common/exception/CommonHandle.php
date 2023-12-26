@@ -17,7 +17,7 @@ class CommonHandle extends \think\exception\Handle {
     {
         if(\util\Param::is_collector_collecting()&&IS_CLI){
             
-            \util\Tools::collect_output(strip_tags($e->getMessage()));
+            $this->_collect_output($e);
         }else{
             parent::renderForConsole($output,$e);
         }
@@ -26,7 +26,7 @@ class CommonHandle extends \think\exception\Handle {
     protected function renderHttpException(\think\exception\HttpException $e){
         if(\util\Param::is_collector_collecting()){
             
-            \util\Tools::collect_output(strip_tags($e->getMessage()));
+            $this->_collect_output($e);
         }else{
             return parent::renderHttpException($e);
         }
@@ -34,9 +34,16 @@ class CommonHandle extends \think\exception\Handle {
     protected function convertExceptionToResponse(\Exception $exception){
         if(\util\Param::is_collector_collecting()){
             
-            \util\Tools::collect_output(strip_tags($exception->getMessage()));
+            $this->_collect_output($e);
         }else{
             return parent::convertExceptionToResponse($exception);
+        }
+    }
+    private function _collect_output($exception){
+        $msg=$exception?strip_tags($exception->getMessage()):'';
+        if(strpos($msg,'[exception_exit_collect]')===false){
+            
+            \util\Tools::collect_output($msg);
         }
     }
 }

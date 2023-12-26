@@ -13,22 +13,125 @@ namespace skycaiji\admin\controller;
 
 class Api extends CollectController{
 	/*任务api发布*/
-	public function taskAction(){
+    public function taskAction(){
+        header('Content-type:text/json');
+        \util\Param::set_task_close_echo();
+        $taskId=input('id/d',0);
+        $apiKey=input('key');
+        $mrele=model('Release');
+        $keyIsOk=false;
+        $keyIsUrl=false;
+        $releData=$mrele->where(array('task_id'=>$taskId))->find();
+        if(!empty($releData)){
+            $releData['config']=$mrele->compatible_config($releData['config']);
+            $apiConfig=$releData['config']['api'];
+            init_array($apiConfig);
+            if(!empty($apiKey)){
+                if(isset($apiConfig['url'])){
+                    
+                    if($apiKey==$apiConfig['url']){
+                        $keyIsOk=true;
+                    }
+                }elseif($apiKey==md5($apiConfig['key'])){
+                    $keyIsOk=true;
+                }
+            }
+            if(isset($apiConfig['url'])){
+                $keyIsUrl=true;
+            }
+        }
+        if($keyIsUrl){
+            set_g_sc('api_task_key_is_url', true);
+        }
+        if(!$keyIsOk){
+            if($keyIsUrl){
+                json(array('error'=>'密钥错误'))->send();
+            }else{
+                $this->_json('密钥错误');
+            }
+        }
+        \util\Param::set_task_api_response();
+        
+        register_shutdown_function(function(){
+            \skycaiji\admin\model\Task::collecting_remove_all();
+            
+            $taskIds=g_sc('backstage_task_ids');
+            if(!empty($taskIds)&&is_array($taskIds)){
+                \skycaiji\admin\model\CacheModel::getInstance('backstage_task')->db()->strict(false)->where('cname','in',$taskIds)->update(array('ctype'=>1,'data'=>time()));
+            }
+        });
+        $this->collect_tasks($taskId, null, true);
+    }
+	/*任务单页采集*/
+	public function singleAction(){
 	    \util\Param::set_task_close_echo();
-		$taskId=input('id/d',0);
-		$apiurl=input('apiurl');
-		$mrele=model('Release');
-		$releData=$mrele->where(array('task_id'=>$taskId))->find();
-		if(empty($releData)){
-		    json(array('error'=>'没有发布设置！'))->send();
-		}
-		$releData['config']=$mrele->compatible_config($releData['config']);
-		if($apiurl!=$releData['config']['api']['url']){
-		    json(array('error'=>'api地址错误！'))->send();
-		}
-		\util\Param::set_task_api_response();
-		header('Content-type:text/json');
-		$this->collect_tasks($taskId, null, true);
+	    \util\Param::set_collector_single();
+	    $taskId=input('id/d',0);
+	    $key=input('key');
+	    
+	    $mtask=model('Task');
+	    $mcoll=model('Collector');
+	    $mrele=model('Release');
+	    $taskData=$mtask->getById($taskId);
+	    if(empty($taskData)){
+	        $this->_json(lang('task_error_empty_task'));
+	    }
+	    
+	    $singleConfig=$taskData['config']['single'];
+	    init_array($singleConfig);
+	    if(empty($singleConfig['open'])){
+	        $this->_json('未开启单页采集模式');
+	    }
+	    if($singleConfig['key']){
+	        if($key!=md5($singleConfig['key'])){
+	            $this->_json('接口密钥错误');
+	        }
+	    }
+	    $taskTips='任务：'.$taskData['name'].' » ';
+	    if(empty($taskData['module'])){
+	        
+	        $this->_json($taskTips.lang('task_error_null_module'));
+	    }
+	    if(!in_array($taskData['module'],config('allow_coll_modules'))){
+	        
+	        $this->_json($taskTips.lang('coll_error_invalid_module'));
+	    }
+	    $collData=$mcoll->where(array('task_id'=>$taskData['id'],'module'=>$taskData['module']))->find();
+	    if(empty($collData)){
+	        
+	        $this->_json($taskTips.lang('coll_error_empty_coll'));
+	    }
+	    $collData=$collData->toArray();
+	    $mtask->loadConfig($taskData);
+	    $acoll='\\skycaiji\\admin\\event\\C'.strtolower($collData['module']).'Single';
+	    $acoll=new $acoll();
+	    $acoll->init($collData);
+	    $releData=$mrele->where(array('task_id'=>$taskData['id']))->find();
+	    $arele=null;
+	    if($releData){
+	        
+	        $releData=$releData->toArray();
+	        if($releData['module']&&$releData['module']!='api'){
+	            
+	            $arele='\\skycaiji\\admin\\event\\R'.strtolower($releData['module']);
+	            $arele=new $arele();
+	            $arele->init($releData);
+	            $GLOBALS['_sc']['real_time_release']=&$arele;
+	        }
+	    }
+	    $fieldData=$acoll->collectSingle($singleConfig);
+	    init_array($fieldData);
+	    if($fieldData['collected']&&$arele&&is_empty(g_sc_c('caiji','real_time'))){
+	        
+	        $arele->doExport($fieldData['collected']);
+	    }
+	    if(empty($fieldData['data'])){
+	        $msg=g_sc('collect_echo_msg_txt');
+	        $msg=strip_tags($msg);
+	        $this->_json($msg);
+	    }else{
+	        $this->_json('',1,$fieldData['data']);
+	    }
 	}
 	
 	/*api触发任务采集*/
@@ -173,5 +276,11 @@ class Api extends CollectController{
         }
 	    
 	    return json($updateResult);
+	}
+	
+	private function _json($msg='',$code=0,$data=array()){
+	    init_array($data);
+	    $result=array('code'=>$code,'msg'=>$msg,'data'=>$data);
+	    json($result)->send();
 	}
 }

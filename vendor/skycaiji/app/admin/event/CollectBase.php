@@ -20,7 +20,6 @@ class CollectBase extends \skycaiji\admin\controller\CollectController {
 			return null;
 		}else{
 		    $url=$url?$url:'';
-		    
 		    $msg=$this->_echo_msg_str($msg,'red');
 		    $txt=g_sc('collect_echo_msg_txt');
 		    $txt=$txt?($txt."\r\n".$msg):$msg;
@@ -32,7 +31,6 @@ class CollectBase extends \skycaiji\admin\controller\CollectController {
 	    if($this->is_collecting()){
 			parent::echo_msg($strArgs,$color,$echo,$end_str,$div_style);
 		}else{
-		    
 		    $msg=$this->_echo_msg_str($strArgs,$color,$end_str,$div_style);
 		    $txt=g_sc('collect_echo_msg_txt');
 		    $txt=$txt?($txt."\r\n".$msg):$msg;
@@ -103,7 +101,7 @@ class CollectBase extends \skycaiji\admin\controller\CollectController {
     	            if($stop){
     	                $this->echo_msg('已终止运行');
     	                $this->echo_msg_end();
-    	                exit();
+    	                throw new \Exception('[exception_exit_collect]');
     	            }
     	        }
     	    }

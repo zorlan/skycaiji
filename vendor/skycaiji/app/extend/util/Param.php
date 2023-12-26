@@ -38,6 +38,14 @@ class Param{
 	    return self::defined('COLLECTOR_COLLECTING');
 	}
 	
+	
+	public static function set_collector_single(){
+	    self::set_define('COLLECTOR_SINGLE');
+	}
+	public static function is_collector_single(){
+	    return self::defined('COLLECTOR_SINGLE');
+	}
+	
 	public static function set_task_api_response(){
 	    self::set_define('TASK_API_RESPONSE_JSON');
 	}

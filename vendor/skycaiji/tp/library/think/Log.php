@@ -33,32 +33,32 @@ class Log
     const NOTICE = 'notice';
     const ALERT  = 'alert';
     const DEBUG  = 'debug';
-
+    
     /**
      * @var array 日志信息
      */
     protected static $log = [];
-
+    
     /**
      * @var array 配置参数
      */
     protected static $config = [];
-
+    
     /**
      * @var array 日志类型
      */
     protected static $type = ['log', 'error', 'info', 'sql', 'notice', 'alert', 'debug'];
-
+    
     /**
      * @var log\driver\File|log\driver\Test|log\driver\Socket 日志写入驱动
      */
     protected static $driver;
-
+    
     /**
      * @var string 当前日志授权 key
      */
     protected static $key;
-
+    
     /**
      * 日志初始化
      * @access public
@@ -69,20 +69,20 @@ class Log
     {
         $type  = isset($config['type']) ? $config['type'] : 'File';
         $class = false !== strpos($type, '\\') ? $type : '\\think\\log\\driver\\' . ucwords($type);
-
+        
         self::$config = $config;
         unset($config['type']);
-
+        
         if (class_exists($class)) {
             self::$driver = new $class($config);
         } else {
             throw new ClassNotFoundException('class not exists:' . $class, $class);
         }
-
+        
         // 记录初始化信息
         App::$debug && Log::record('[ LOG ] INIT ' . $type, 'info');
     }
-
+    
     /**
      * 获取日志信息
      * @access public
@@ -93,7 +93,7 @@ class Log
     {
         return $type ? self::$log[$type] : self::$log;
     }
-
+    
     /**
      * 记录调试信息
      * @access public
@@ -103,12 +103,15 @@ class Log
      */
     public static function record($msg, $type = 'log')
     {
-        self::$log[$type][] = $msg;
-
-        // 命令行下面日志写入改进
-        IS_CLI && self::save();
+        //[修改]过滤信息
+        if(!\util\Tp::filter_log_msg($msg)){
+            self::$log[$type][] = $msg;
+            
+            // 命令行下面日志写入改进
+            IS_CLI && self::save();
+        }
     }
-
+    
     /**
      * 清空日志信息
      * @access public
@@ -118,7 +121,7 @@ class Log
     {
         self::$log = [];
     }
-
+    
     /**
      * 设置当前日志记录的授权 key
      * @access public
@@ -129,7 +132,7 @@ class Log
     {
         self::$key = $key;
     }
-
+    
     /**
      * 检查日志写入权限
      * @access public
@@ -140,7 +143,7 @@ class Log
     {
         return !self::$key || empty($config['allow_key']) || in_array(self::$key, $config['allow_key']);
     }
-
+    
     /**
      * 保存调试信息
      * @access public
@@ -152,14 +155,14 @@ class Log
         if (empty(self::$log)) {
             return true;
         }
-
+        
         is_null(self::$driver) && self::init(Config::get('log'));
-
+        
         // 检测日志写入权限
         if (!self::check(self::$config)) {
             return false;
         }
-
+        
         if (empty(self::$config['level'])) {
             // 获取全部日志
             $log = self::$log;
@@ -175,16 +178,16 @@ class Log
                 }
             }
         }
-
+        
         if ($result = self::$driver->save($log, true)) {
             self::$log = [];
         }
-
+        
         Hook::listen('log_write_done', $log);
-
+        
         return $result;
     }
-
+    
     /**
      * 实时写入日志信息 并支持行为
      * @access public
@@ -196,28 +199,28 @@ class Log
     public static function write($msg, $type = 'log', $force = false)
     {
         $log = self::$log;
-
+        
         // 如果不是强制写入，而且信息类型不在可记录的类别中则直接返回 false 不做记录
         if (true !== $force && !empty(self::$config['level']) && !in_array($type, self::$config['level'])) {
             return false;
         }
-
+        
         // 封装日志信息
         $log[$type][] = $msg;
-
+        
         // 监听 log_write
         Hook::listen('log_write', $log);
-
+        
         is_null(self::$driver) && self::init(Config::get('log'));
-
+        
         // 写入日志
         if ($result = self::$driver->save($log, false)) {
             self::$log = [];
         }
-
+        
         return $result;
     }
-
+    
     /**
      * 静态方法调用
      * @access public
@@ -229,9 +232,9 @@ class Log
     {
         if (in_array($method, self::$type)) {
             array_push($args, $method);
-
+            
             call_user_func_array('\\think\\Log::record', $args);
         }
     }
-
+    
 }

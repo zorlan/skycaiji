@@ -48,6 +48,14 @@ class Curl{
 	    $options=$rOptions;
 	    $postData=$rPostData;
 	    
+	    if(stripos($url,'&amp;')!==false){
+	        
+	        if(!preg_match('/\&[^\;\&]+?\=/', $url)){
+	            
+	            $url=str_ireplace('&amp;', '&', $url);
+	        }
+	    }
+	    
 		$instance=self::init();
 		
 		$isPost=false;
@@ -76,6 +84,8 @@ class Curl{
 		curl_setopt ( $ch, CURLOPT_FOLLOWLOCATION, 1 );
 		curl_setopt ( $ch, CURLOPT_HEADER, 1 );
 		curl_setopt ( $ch, CURLOPT_AUTOREFERER, 1 );
+		curl_setopt ( $ch, CURLOPT_ENCODING, '' );
+		
 		if($options['nobody']){
 			
 			curl_setopt($ch, CURLOPT_NOBODY, true);

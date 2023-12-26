@@ -62,6 +62,7 @@
 			<div class="input-group-addon iga-rt">
 		      	<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk c-p-process-sign-wildcard">{$Think.lang.sign_wildcard}</a>
 				<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+				<a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tool_tips()"></a>
 			</div>
 		</div>
 		<p style="margin:5px 0;">替换成</p>
@@ -187,6 +188,9 @@
 	                  					<option value="1">取反</option>
 	                  				</select>
 	                  			</div>
+	                  			<div class="input-group-addon" style="padding:0;min-width:31px;width:31px;border-left:0;">
+	                  				<a href="javascript:;" class="fa fa-refresh icon-info-tips plugin-func-refresh" title="刷新"></a>
+	                  			</div>
 	                  			<div class="input-group-addon" style="padding:0;min-width:31px;width:31px;">
 	                  				<a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips p-m-if-val-func-info"></a>
 	                  			</div>
@@ -257,7 +261,7 @@
 			&nbsp; <label><input type="checkbox" data-process="tool:tool_list" value="format" />清除文本格式（去除html元素所有样式，如：id、class、style等）</label>
 			&nbsp; <label><input type="checkbox" data-process="tool:tool_list" value="url_not_complete" />禁止补全网址</label>
 			&nbsp; <label title="将网址替换成重定向后的真实地址"><input type="checkbox" data-process="tool:tool_list" value="url_real" />网址真实地址</label>
-			&nbsp; <label title="从播放器中提取出音视频网址，如提取不到可开启“页面渲染”功能再尝试"><input type="checkbox" data-process="tool:tool_list" value="vedio_url" />提取音视频网址</label>
+			&nbsp; <label title="从html中提取出音视频网址，建议字段的值是渲染后的html"><input type="checkbox" data-process="tool:tool_list" value="vedio_url" />提取音视频网址</label>
 		</div>
 	</div>
 	<div class="c-p-process-module" module="download">
@@ -362,6 +366,7 @@
 		<section>
 		<div class="form-group">
 			<label>PHP函数名</label>
+			<a href="javascript:;" class="fa fa-refresh plugin-func-refresh" title="刷新"></a>
 			<select data-process="func:func_name"  class="form-control">
 				<option value="">--请选择--</option>
 				<optgroup label="系统函数">

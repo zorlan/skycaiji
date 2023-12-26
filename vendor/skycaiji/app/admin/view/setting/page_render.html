@@ -12,7 +12,9 @@
 			<div class="alert alert-success" role="alert">
 				渲染工具正在运行！
 				<button type="button" id="btn_chrome_clean" class="btn btn-sm btn-success" style="margin-left:5px;">清理渲染工具缓存</button>
+				{if $serverIsLocal}
 				<button type="button" id="btn_chrome_restart" class="btn btn-sm btn-success" style="margin-left:5px;">重启渲染工具</button>
+				{/if}
 			</div>
 			{else /}
 			<div class="alert alert-warning" role="alert">渲染工具服务器未开启，请检查配置是否正确！确认无误后点击保存</div>
@@ -28,8 +30,14 @@
 		    	</select>
 		    </div>
 		    <div id="render_tool_chrome" style="display:none;">
-				<p class="help-block">请在服务器中安装浏览器</p>
 				<div class="form-group">
+		        	<label>浏览器环境</label>
+					<div class="input-group">
+			        	<label class="radio-inline"><input type="radio" name="chrome[server]" value="" checked="checked">本地安装</label>
+			        	<label class="radio-inline"><input type="radio" name="chrome[server]" value="remote">远程调用</label>
+			        </div>
+		        </div>
+				<div class="form-group" data-chrome-server="">
 		        	<label>浏览器文件路径或者环境变量名</label>
 			        <div class="input-group">
 			        	<input type="text" class="form-control" name="chrome[filename]" placeholder="默认环境变量名chrome" value="{$config['chrome']['filename']}" />
@@ -48,7 +56,7 @@
 				       	<input type="text" name="chrome[port]" class="form-control" placeholder="默认9222" value="{$config['chrome']['port']}" />
 				    </div>
 			    </div>
-				<div class="form-group">
+				<div class="form-group" data-chrome-server="">
 		        	<label>用户配置目录</label>
 					<input type="text" name="chrome[user_data_dir]" class="form-control" placeholder="选填" value="{$config['chrome']['user_data_dir']}" />
 			    	<p class="help-block">自定义浏览器存储用户配置文件的目录</p>

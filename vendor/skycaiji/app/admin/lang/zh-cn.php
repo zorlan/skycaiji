@@ -21,6 +21,7 @@ return array(
 	'tips_sign_group_global'=>'捕获组：(?&lt;nr标识&gt;[\s\S]*?)，匹配正则并保存为[内容]标签以供全局调用',
 	
 	'tips_regular'=>'可使用正则表达式',
+    'tips_export_ipt_pwd'=>'加密文件并且导入时需要输入该密码（请牢记密码否则无法解密），默认无密码不加密',
 	
 	'setting'=>'设置',
     'setting_site'=>'站点设置',
@@ -33,7 +34,7 @@ return array(
 	'set_caiji_num'=>'最大采集数量',
 	'set_caiji_timeout'=>'最大执行时间',
 	
-	'setting_email'=>'邮件发送设置',
+	'setting_email'=>'邮件设置',
 	'set_email_sender'=>'发件人名称',
 	'set_email_email'=>'发件人邮箱账号',
 	'set_email_pwd'=>'发件人邮箱密码',
@@ -235,6 +236,9 @@ return array(
 	'rele_module_toapi'=>'调用接口',
 	'rele_module_file'=>'文件存储',
 	'rele_module_diy'=>'自定义插件',
+    'rele_m_name_cms'=>'CMS',
+    'rele_m_name_diy'=>'自定义',
+    
 	'rele_btn_detect'=>'开始检测',
 	'rele_cms_path'=>'CMS路径',
 

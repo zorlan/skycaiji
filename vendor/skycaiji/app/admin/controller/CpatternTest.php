@@ -17,7 +17,7 @@ class CpatternTest extends BaseController {
     public $eCpattern=null;
     public function __construct($request = null){
         parent::__construct($request);
-        $this->eCpattern= new \skycaiji\admin\event\Cpattern();
+        $this->eCpattern= new \skycaiji\admin\event\CpatternSingle();
     }
     /*浏览器*/
     public function browserAction(){
@@ -407,66 +407,12 @@ class CpatternTest extends BaseController {
         $input_urls=array();
         
         if($test=='get_fields'){
-            
-            if(is_array($this->eCpattern->config['new_field_list'])){
-                foreach ($this->eCpattern->config['new_field_list'] as $field){
-                    list($fPageType,$fPageName)=$this->eCpattern->page_source_split($field['field']['source']);
-                    if(empty($fPageType)){
-                        
-                        if($field['field']['module']=='sign'){
-                            
-                            if(empty($this->eCpattern->config['level_urls'])){
-                                $input_urls['source_url']=$inputedUrls['source_url'];
-                            }else{
-                                
-                                $endLevelNum=count($this->eCpattern->config['level_urls']);
-                                $endLevel=$this->eCpattern->config['level_urls'][$endLevelNum-1];
-                                $input_urls['level_url'][$endLevelNum]=array('level'=>$endLevelNum,'name'=>$endLevel['name'],'url'=>$inputedUrls['level_'.$endLevelNum]);
-                            }
-                        }
-                    }elseif('source_url'==$fPageType){
-                        
-                        $input_urls['source_url']=$inputedUrls['source_url'];
-                    }elseif('level_url'==$fPageType){
-                        
-                        if(is_array($this->eCpattern->config['level_urls'])){
-                            foreach($this->eCpattern->config['level_urls'] as $levIx=>$levVal){
-                                if($field['field']['source']==$this->eCpattern->page_source_merge('level_url',$levVal['name'])){
-                                    
-                                    $level=$levIx+1;
-                                    if($field['field']['module']=='sign'){
-                                        
-                                        if($level==1){
-                                            
-                                            $input_urls['source_url']=$inputedUrls['source_url'];
-                                        }else{
-                                            
-                                            $prevLevel=$level-1;
-                                            $input_urls['level_url'][$prevLevel]=array('level'=>$prevLevel,'name'=>$this->eCpattern->get_config('level_urls',$prevLevel-1,'name'),'url'=>$inputedUrls['level_'.$prevLevel]);
-                                        }
-                                    }
-                                    
-                                    $input_urls['level_url'][$level]=array('level'=>$level,'name'=>$levVal['name'],'url'=>$inputedUrls['level_'.$level]);
-                                    break;
-                                }
-                            }
-                        }
-                    }elseif('relation_url'==$fPageType){
-                        
-                        $this->_page_input_urls(true,'relation_url',$fPageName,$inputedUrls,$input_urls);
-                    }
-                }
-            }
-            
-            $pageSigns=$this->eCpattern->parent_page_signs($pageType,$pageName,'url_web');
-            $this->_page_signs_input_urls(true,true,$pageSigns,$inputedUrls,$input_urls);
-            $pageSigns=$this->eCpattern->parent_page_signs($pageType,$pageName,'renderer');
-            $this->_page_signs_input_urls(true,true,$pageSigns,$inputedUrls,$input_urls);
+            $input_urls=$this->eCpattern->single_get_input_urls($inputedUrls, $input_urls);
         }elseif($test=='get_html'||$test=='get_browser'){
             
             if(!empty($pageType)){
                 
-                $this->_page_input_urls($pageType=='url'?true:false,$pageType,$pageName,$inputedUrls,$input_urls);
+                $this->eCpattern->single_input_urls($pageType=='url'?true:false,$pageType,$pageName,$inputedUrls,$input_urls);
             }
         }elseif($test=='get_signs'){
             if(empty($pageType)){
@@ -477,15 +423,15 @@ class CpatternTest extends BaseController {
                     foreach($this->eCpattern->config['level_urls'] as $levIx=>$levVal){
                         
                         $level=$levIx+1;
-                        $input_urls['level_url'][$level]=array('level'=>$level,'name'=>$levVal['name'],'url'=>$inputedUrls['level_'.$level]);
+                        $input_urls['level_url'][$level]=array('level'=>$level,'name'=>$levVal['name'],'url'=>$inputedUrls['level'.$level.'_url']);
                     }
                 }
             }else{
                 
-                $this->_page_input_urls($pageType=='url'?true:false,$pageType,$pageName,$inputedUrls,$input_urls);
+                $this->eCpattern->single_input_urls($pageType=='url'?true:false,$pageType,$pageName,$inputedUrls,$input_urls);
                 if(input('?signs_cur_all')){
                     
-                    $prevPageSource=$this->_input_parent_page($pageType=='url'?true:false,$pageType,$pageName);
+                    $prevPageSource=$this->eCpattern->single_parent_page($pageType=='url'?true:false,$pageType,$pageName);
                     if($prevPageSource){
                         
                         list($prevPageType,$prevPageName)=$this->eCpattern->page_source_split($prevPageSource);
@@ -494,7 +440,7 @@ class CpatternTest extends BaseController {
                                 foreach ($this->eCpattern->config['level_urls'] as $k=>$v){
                                     if($v['name']==$prevPageName){
                                         $curLevelNum=$k+1;
-                                        $input_urls['level_url'][$curLevelNum]=array('level'=>$curLevelNum,'name'=>$v['name'],'url'=>$inputedUrls['level_'.$curLevelNum]);
+                                        $input_urls['level_url'][$curLevelNum]=array('level'=>$curLevelNum,'name'=>$v['name'],'url'=>$inputedUrls['level'.$curLevelNum.'_url']);
                                         break;
                                     }
                                 }
@@ -503,33 +449,34 @@ class CpatternTest extends BaseController {
                             $input_urls[$prevPageType]=$inputedUrls[$prevPageType]?$inputedUrls[$prevPageType]:'';
                         }
                         
-                        $this->_page_input_urls($prevPageType=='url'?true:false,$prevPageType,$prevPageName,$inputedUrls,$input_urls);
+                        $this->eCpattern->single_input_urls($prevPageType=='url'?true:false,$prevPageType,$prevPageName,$inputedUrls,$input_urls);
                     }
                 }
             }
         }elseif($test=='get_relation_urls'){
             
-            $this->_page_input_urls(true,'url','',$inputedUrls,$input_urls);
+            $this->eCpattern->single_input_urls(true,'url','',$inputedUrls,$input_urls);
             if(is_array($this->eCpattern->config['relation_urls'])){
                 foreach ($this->eCpattern->config['relation_urls'] as $relationUrl){
-                    $this->_page_input_urls(true,'relation_url',$relationUrl['name'],$inputedUrls,$input_urls);
+                    $this->eCpattern->single_input_urls(true,'relation_url',$relationUrl['name'],$inputedUrls,$input_urls);
                 }
             }
         }elseif($test=='get_pagination'){
             
-            $this->_page_input_urls($pageType=='url'?true:false,$pageType,$pageName,$inputedUrls,$input_urls);
+            $this->eCpattern->single_input_urls($pageType=='url'?true:false,$pageType,$pageName,$inputedUrls,$input_urls);
         }
         
-        $this->_input_urls_parent($pageType=='url'?true:false, $input_urls, $inputedUrls, $input_urls);
-        
-        if(is_array($input_urls['level_url'])){
+        if($test!='get_fields'){
             
-            ksort($input_urls['level_url']);
-        }
-        
-        if($this->eCpattern->source_is_url()){
-            
-            unset($input_urls['source_url']);
+            $this->eCpattern->single_urls_parent($pageType=='url'?true:false, $input_urls, $inputedUrls, $input_urls);
+            if(is_array($input_urls['level_url'])){
+                
+                ksort($input_urls['level_url']);
+            }
+            if($this->eCpattern->source_is_url()){
+                
+                unset($input_urls['source_url']);
+            }
         }
         
         $pageOpenedList=array();
@@ -552,186 +499,8 @@ class CpatternTest extends BaseController {
         return $this->fetch('cpattern:test_input_url');
     }
     
-    
-    private function _page_input_urls($isContUrl,$pageType,$pageName,$inputedUrls,&$input_urls){
-        $pageSigns=$this->eCpattern->parent_page_signs($pageType,$pageName);
-        $this->_page_signs_input_urls($isContUrl,false,$pageSigns,$inputedUrls,$input_urls);
-        $pageSigns=$this->eCpattern->parent_page_signs($pageType,$pageName,'url_web');
-        $this->_page_signs_input_urls($isContUrl,true,$pageSigns,$inputedUrls,$input_urls);
-        $pageSigns=$this->eCpattern->parent_page_signs($pageType,$pageName,'renderer');
-        $this->_page_signs_input_urls($isContUrl,true,$pageSigns,$inputedUrls,$input_urls);
-    }
-    
-    
-    private function _page_signs_input_urls($isContUrl,$inPageConfig,$pageSigns,$inputedUrls,&$input_urls){
-        $iptUrls=array();
-        if(!empty($pageSigns)){
-            if($inPageConfig){
-                
-                if(!empty($pageSigns['cur'])&&(!empty($pageSigns['cur']['url'])||!empty($pageSigns['cur']['area']))){
-                    
-                    $prevPageSource=$this->_input_parent_page($isContUrl, $pageSigns['cur']['page_type'], $pageSigns['cur']['page_name']);
-                    if($prevPageSource){
-                        
-                        list($prevPageType,$prevPageName)=$this->eCpattern->page_source_split($prevPageSource);
-                        if($prevPageType=='level_url'){
-                            if(is_array($this->eCpattern->config['level_urls'])){
-                                foreach ($this->eCpattern->config['level_urls'] as $k=>$v){
-                                    if($v['name']==$prevPageName){
-                                        $curLevelNum=$k+1;
-                                        $iptUrls['level_url'][$curLevelNum]=array('level'=>$curLevelNum,'name'=>$v['name'],'url'=>$inputedUrls['level_'.$curLevelNum]);
-                                        break;
-                                    }
-                                }
-                            }
-                        }else{
-                            $iptUrls[$prevPageType]=$inputedUrls[$prevPageType]?$inputedUrls[$prevPageType]:'';
-                        }
-                    }
-                }
-            }
-            
-            
-            if(!empty($pageSigns['source_url'])&&is_array($pageSigns['source_url'])){
-                if(!empty($pageSigns['source_url']['content'])){
-                    
-                    $iptUrls['source_url']=$inputedUrls['source_url']?$inputedUrls['source_url']:'';
-                }
-            }
-            
-            
-            if(!empty($pageSigns['level_url'])&&is_array($pageSigns['level_url'])){
-                
-                $signLevels=array_keys($pageSigns['level_url']);
-                if(is_array($this->eCpattern->config['level_urls'])){
-                    foreach ($this->eCpattern->config['level_urls'] as $levIx=>$levVal){
-                        
-                        
-                        $level=$levIx+1;
-                        if(in_array($levVal['name'],$signLevels)){
-                            
-                            if($level==1){
-                                
-                                $iptUrls['source_url']=$inputedUrls['source_url']?$inputedUrls['source_url']:'';
-                            }else{
-                                
-                                $prevLevel=$level-1;
-                                $iptUrls['level_url'][$prevLevel]=array('level'=>$prevLevel,'name'=>$this->eCpattern->get_config('level_urls',$prevLevel-1,'name'),'url'=>$inputedUrls['level_'.$prevLevel]);
-                            }
-                            
-                            $iptUrls['level_url'][$level]=array('level'=>$level,'name'=>$levVal['name'],'url'=>$inputedUrls['level_'.$level]);
-                        }
-                    }
-                }
-            }
-            if(!$isContUrl){
-                
-                if(!empty($pageSigns['url'])||(!empty($pageSigns['relation_url'])&&is_array($pageSigns['relation_url']))){
-                    
-                    $iptUrls['url']=$inputedUrls['url']?$inputedUrls['url']:'';
-                }
-            }
-        }
-        
-        if(isset($iptUrls['source_url'])){
-            $input_urls['source_url']=$iptUrls['source_url'];
-        }
-        if(is_array($iptUrls['level_url'])){
-            foreach ($iptUrls['level_url'] as $k=>$v){
-                $input_urls['level_url'][$k]=$v;
-            }
-        }
-        if(isset($iptUrls['url'])){
-            $input_urls['url']=$iptUrls['url'];
-        }
-        
-        return $iptUrls;
-    }
-    
-    
-    private function _input_urls_parent($isContUrl,$curInputUrls,$inputedUrls,&$input_urls){
-        $levelNames=array();
-        if(is_array($curInputUrls)&&is_array($curInputUrls['level_url'])){
-            foreach ($curInputUrls['level_url'] as $v){
-                $levelNames[$v['name']]=$v['name'];
-            }
-        }
-        if($levelNames){
-            foreach ($levelNames as $levelName){
-                $mergeTypes=array(''=>false,'url_web'=>true,'renderer'=>true);
-                foreach ($mergeTypes as $mtk=>$mtv){
-                    $pageSigns=$this->eCpattern->parent_page_signs('level_url',$levelName,$mtk);
-                    $iptUrls=$this->_page_signs_input_urls($isContUrl,$mtv,$pageSigns,$inputedUrls,$input_urls);
-                    if(is_array($iptUrls['level_url'])){
-                        
-                        foreach ($iptUrls['level_url'] as $k=>$v){
-                            if(isset($input_urls['level_url'][$k])){
-                                unset($iptUrls['level_url'][$k]);
-                            }
-                        }
-                        if(!empty($iptUrls['level_url'])){
-                            $this->_input_urls_parent($isContUrl,$iptUrls, $inputedUrls, $input_urls);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    
-    private function _input_parent_page($isContUrl,$pageType,$pageName){
-        $prevPageType='';
-        $prevPageName='';
-        
-        if($pageType=='url'){
-            
-            if(empty($this->eCpattern->config['level_urls'])){
-                
-                $prevPageType='source_url';
-                $prevPageName='';
-            }else{
-                
-                $endLevelNum=count($this->eCpattern->config['level_urls']);
-                $prevPageType='level_url';
-                $prevPageName=$this->eCpattern->config['level_urls'][$endLevelNum-1]['name'];
-            }
-        }elseif($pageType=='level_url'){
-            
-            $prevLevelNum=-1;
-            $prevLevel=null;
-            if(is_array($this->eCpattern->config['level_urls'])){
-                foreach ($this->eCpattern->config['level_urls'] as $k=>$v){
-                    $prevLevelNum=$k;
-                    if($v['name']==$pageName){
-                        
-                        break;
-                    }
-                    $prevLevel=$v;
-                }
-            }
-            if($prevLevelNum>-1){
-                if($prevLevelNum==0){
-                    
-                    $prevPageType='source_url';
-                    $prevPageName='';
-                }else{
-                    
-                    $prevPageType='level_url';
-                    $prevPageName=$prevLevel['name'];
-                }
-            }
-        }elseif($pageType=='relation_url'){
-            
-            if(!$isContUrl){
-                
-                $prevPageType='url';
-                $prevPageName='';
-            }
-        }
-        return $this->eCpattern->page_source_merge($prevPageType, $prevPageName);
-    }
-    
     public function get_fieldsAction(){
+        set_g_sc('is_test_echo_msg', 1);
         $collData=$this->_test_init();
         $this->_get_test_content('get_fields',$collData);
     }
@@ -758,7 +527,7 @@ class CpatternTest extends BaseController {
         $collData=$this->_test_init();
         
         $test_url=input('test_url','','trim');
-        if($test_url&&!preg_match('/^\w+\:\/\//',$test_url)){
+        if(!\util\Funcs::is_right_url($test_url)){
             
             $test_url='http://'.$test_url;
         }
@@ -785,8 +554,8 @@ class CpatternTest extends BaseController {
             if(!empty($pageType)){
                 
                 $input_urls=array();
-                $this->_page_input_urls($pageType=='url'?true:false,$pageType,$pageName,$inputedUrls,$input_urls);
-                $this->_input_urls_parent($pageType=='url'?true:false, $input_urls, $inputedUrls, $input_urls);
+                $this->eCpattern->single_input_urls($pageType=='url'?true:false,$pageType,$pageName,$inputedUrls,$input_urls);
+                $this->eCpattern->single_urls_parent($pageType=='url'?true:false, $input_urls, $inputedUrls, $input_urls);
                 
                 if(isset($input_urls['source_url'])&&empty($input_urls['source_url'])){
                     $this->error('请输入起始页',$errorUrl);
@@ -812,6 +581,16 @@ class CpatternTest extends BaseController {
                 
                 $html=\util\Funcs::html_clear_js($html);
                 
+                
+                $scjNames=array();
+                $html=preg_replace_callback('/(<[a-zA-Z]+\b[^<>]*)(>)/', function($match)use(&$scjNames){
+                    do{
+                        $scjName=\util\Funcs::uniqid();
+                    }while($scjNames[$scjName]);
+                    $scjNames[$scjName]=1;
+                    return $match[1].' skycaiji-no="'.$scjName.'"'.$match[2];
+                }, $html);
+                
                 $configUnset=array();
                 $configSetted=array();
                 if(!$this->eCpattern->get_config('url_complete')){
@@ -824,10 +603,13 @@ class CpatternTest extends BaseController {
                     $configSetted[]='代理';
                 }
                 
+                $htmlTxt=str_replace(array('&','<','>'), array('&amp;','&lt;','&gt;'), $html);
+                
                 header("Content-type:text/html;charset=utf-8");
                 
                 $this->assign('configTips',array('setted'=>$configSetted,'unset'=>$configUnset));
                 $this->assign('html',$html);
+                $this->assign('htmlTxt',$htmlTxt);
                 return $this->fetch('cpattern:browser');
             }else{
                 
@@ -838,21 +620,11 @@ class CpatternTest extends BaseController {
         }
     }
     private function _get_test_content($testName,$collData){
-        
         $test_url=input('test_url','','trim');
-        if(empty($test_url)){
-            $this->error('请输入网址');
-        }
-        if(!preg_match('/^\w+\:\/\//',$test_url)){
-            
-            $test_url='http://'.$test_url;
-        }
-        
-        $pageSource=input('page_source','url');
         
         $pageType='';
         $pageName='';
-        
+        $pageSource=input('page_source','url');
         if(in_array($testName,array('get_html','get_browser','get_signs','get_pagination'))){
             
             list($pageType,$pageName)=$this->eCpattern->page_source_split($pageSource);
@@ -862,111 +634,22 @@ class CpatternTest extends BaseController {
             $pageName='';
         }
         
-        
-        if($pageType=='front_url'){
-            $this->eCpattern->cur_front_urls[$pageName]=$test_url;
-            $this->eCpattern->collFrontUrls(true);
-        }elseif($pageType=='source_url'){
-            $this->eCpattern->cur_source_url=$test_url;
-        }elseif($pageType=='level_url'){
-            $this->eCpattern->cur_level_urls[$pageName]=$test_url;
-        }elseif($pageType=='url'){
-            $this->eCpattern->cur_cont_url=$test_url;
-        }
-
-        if(input('?source_url')){
-            
-            $this->eCpattern->cur_source_url=input('source_url','','trim');
-            if(empty($this->eCpattern->cur_source_url)){
-                $this->error('请输入起始页');
-            }
-        }
         $inputLevels=array();
         foreach (input('param.') as $k=>$v){
             
-            if(preg_match('/^level_(\d+)$/',$k,$mLevel)){
+            if(preg_match('/^level(\d+)_url$/',$k,$mLevel)){
                 
-                $mLevel=intval($mLevel[1])-1;
+                $mLevel=intval($mLevel[1]);
                 $inputLevels[$mLevel]=input($k,'','trim');
             }
         }
-        ksort($inputLevels);
-        foreach ($inputLevels as $k=>$v){
-            $levelName=$this->eCpattern->get_config('level_urls',$k,'name');
-            $this->eCpattern->cur_level_urls[$levelName]=$v;
-            if(empty($v)){
-                $this->error('请输入多级页：'.$levelName);
-            }
-        }
-        if(input('?url')){
-            
-            $this->eCpattern->cur_cont_url=input('url','','trim');
-            if(empty($this->eCpattern->cur_cont_url)){
-                $this->error('请输入内容页');
-            }
-        }
         
-        
-        if(!empty($this->eCpattern->cur_source_url)){
-            
-            
-            if($pageType!='front_url'&&$pageType!='source_url'){
-                if(empty($this->eCpattern->config['level_urls'])){
-                    
-                    $this->eCpattern->getContUrls($this->eCpattern->cur_source_url,false);
-                }else{
-                    
-                    $this->eCpattern->getLevelUrls($this->eCpattern->cur_source_url,1,false);
-                }
-            }
-            
-            $this->eCpattern->get_page_html($this->eCpattern->cur_source_url, 'source_url', '');
-        }
-        if(!empty($this->eCpattern->cur_level_urls)){
-            
-            
-            $levelIsEnd=false;
-            $levelCurNum=0;
-            $levelCount=count($this->eCpattern->config['level_urls']);
-            foreach ($this->eCpattern->config['level_urls'] as $k=>$v){
-                $levelCurNum++;
-                if(isset($this->eCpattern->cur_level_urls[$v['name']])){
-                    if($k==0){
-                        
-                        if($this->eCpattern->cur_source_url){
-                            $this->eCpattern->getLevelUrls($this->eCpattern->cur_source_url,$k+1,false);
-                        }
-                    }else{
-                        
-                        $prevLevelUrl=$this->eCpattern->config['level_urls'][$k-1];
-                        if($this->eCpattern->cur_level_urls[$prevLevelUrl['name']]){
-                            $this->eCpattern->getLevelUrls($this->eCpattern->cur_level_urls[$prevLevelUrl['name']],$k+1,false);
-                        }
-                    }
-                    
-                    $this->eCpattern->get_page_html($this->eCpattern->cur_level_urls[$v['name']], 'level_url', $v['name']);
-                }
-                if($levelCurNum==$levelCount){
-                    $levelIsEnd=true;
-                }
-                
-                if($pageType=='level_url'&&$pageName==$v['name']){
-                    break;
-                }
-            }
-            if($levelIsEnd){
-                
-                $endLevel=$this->eCpattern->config['level_urls'][$levelCount-1];
-                if(isset($this->eCpattern->cur_level_urls[$endLevel['name']])){
-                    if($pageType!='level_url'||$pageName!=$endLevel['name']){
-                        
-                        $this->eCpattern->getContUrls($this->eCpattern->cur_level_urls[$endLevel['name']],false);
-                        
-                        $this->eCpattern->get_page_html($this->eCpattern->cur_level_urls[$endLevel['name']], 'level_url', $endLevel['name']);
-                    }
-                }
-            }
-        }
+        $this->eCpattern->loadSingle(
+            $pageType,$pageName,$test_url,
+            input('?source_url')?input('source_url','','trim'):null,
+            $inputLevels,
+            input('?url')?input('url','','trim'):null
+        );
         
         if('get_fields'==$testName){
             $val_list=$this->eCpattern->getFields($test_url);
@@ -1205,7 +888,7 @@ class CpatternTest extends BaseController {
                 exit('未抓取到源码'.$errorMsg);
             }else{
                 
-                exit($htmlInfo['html']);
+                exit(' '.$htmlInfo['html']);
             }
         }elseif('get_browser'==$testName){
             

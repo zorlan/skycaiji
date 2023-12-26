@@ -158,7 +158,7 @@ return [
 
     'log'                    => [
         // 日志记录方式，内置 file socket 支持扩展
-        'type'  => '\util\Log',//使用自定义的日志驱动
+        'type'  => 'File',
         // 日志保存目录
         'path'  => LOG_PATH,
         // 日志记录级别
@@ -257,14 +257,30 @@ return [
     	'strtolower'=>'全部小写',
     	'strtoupper'=>'全部大写',
     	'ucfirst'=>'首字母大写',
-    	'ucwords'=>'每个单词首字母大写',
-    	'base64_encode'=>'编码',
-    	'md5'=>'加密',
+	    'ucwords'=>'每个单词首字母大写',
+    	'base64_encode'=>'base64加密',
+	    'base64_decode'=>'base64解密',
+	    'json_encode'=>'json编码',
+	    'json_decode'=>'json解码',
+	    'md5'=>'md5加密',
+	    'sha1'=>'sha1加密',
+	    'hash'=>'hash加密',
+	    'crypt'=>'crypt加密',
+	    'htmlspecialchars'=>'预定义的字符转换为HTML实体',
+	    'htmlspecialchars_decode'=>'把预定义的HTML实体转换为字符',
+	    'htmlentities'=>'把字符转换为HTML实体',
+	    'html_entity_decode'=>'把HTML实体转换为字符',
+	    'urlencode'=>'编码URL字符串',
+	    'urldecode'=>'解码URL字符串',
+	    'rawurlencode'=>'编码URL字符串(RFC3986)',
+	    'rawurldecode'=>'解码URL字符串(RFC3986)',
     ),//数据处理允许的函数
 
     'allow_process_if'=>array(
         'empty'=>'是空值',
         'is_numeric'=>'是数字',
+        'is_int'=>'是整数',
+        'is_float'=>'是浮点数',
     ),//数据处理>条件判断允许的函数
     /*******************************************************************************/
 ];

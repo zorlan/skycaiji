@@ -61,14 +61,20 @@ class ChromeSocket{
     }
     
     public function openHost(){
-        if(!in_array(strtolower($this->host),array('localhost','127.0.0.1','0.0.0.0'))){
+        if($this->serverIsLocal()){
             
-            return;
+            $return=self::execHeadless($this->filename,$this->port,$this->options,false);
+            if(!empty($return['error'])){
+                throw new \Exception($return['error']);
+            }
         }
-        $return=self::execHeadless($this->filename,$this->port,$this->options,false);
-        if(!empty($return['error'])){
-            throw new \Exception($return['error']);
+    }
+    
+    public function serverIsLocal(){
+        if($this->options['server']=='remote'){
+            return false;
         }
+        return true;
     }
     
     public static function execHeadless($filename,$port,$options,$isTest){
@@ -198,7 +204,7 @@ class ChromeSocket{
                         $this->send('Fetch.continueRequest',$fParams);
                     }
                     if($returnInfo){
-                        if($dataParams['request']&&$dataParams['request']['url']==$locUrl){
+                        if($dataParams['request']&&$locUrl==($dataParams['request']['url'].($dataParams['request']['urlFragment']?:''))){
                             
                             
                             $htmlInfo['code']=intval($dataParams['responseStatusCode']);
@@ -269,6 +275,15 @@ class ChromeSocket{
             
             $url='http://'.$url;
         }
+        
+        if(stripos($url,'&amp;')!==false){
+            
+            if(!preg_match('/\&[^\;\&]+?\=/', $url)){
+                
+                $url=str_ireplace('&amp;', '&', $url);
+            }
+        }
+        
         if(!is_array($headers)){
             $headers=array();
         }
@@ -664,11 +679,14 @@ class ChromeSocket{
     }
     
     public function closeBrowser(){
-        $verData=$this->getVersion();
-        if(!empty($verData)&&!empty($verData['webSocketDebuggerUrl'])){
+        if($this->serverIsLocal()){
             
-            $this->websocket($verData['webSocketDebuggerUrl']);
-            $this->send('Browser.close');
+            $verData=$this->getVersion();
+            if(!empty($verData)&&!empty($verData['webSocketDebuggerUrl'])){
+                
+                $this->websocket($verData['webSocketDebuggerUrl']);
+                $this->send('Browser.close');
+            }
         }
     }
 }

@@ -30,7 +30,14 @@
 		        </div>
 		        <p class="help-block">将&lt;img src="data:image/*;base64"&gt;非url形式的编码数据保存为图片</p>
 		    </div>
-
+		    <div class="form-group">
+		        <label>读取图片真实地址</label>
+		        <div class="input-group">
+			        <label class="radio-inline"><input type="radio" name="url_real" value="1">是</label>
+					<label class="radio-inline"><input type="radio" name="url_real" value="0" checked="checked">否</label>
+		        </div>
+		        <p class="help-block">读取图片网址重定向后的真实地址</p>
+		    </div>
 	        <div class="form-group">
 	        	<label>图片保存目录（绝对路径）</label>
 	        	<input type="text" name="img_path" class="form-control" placeholder="默认：{:config('root_path')}{:DS}data{:DS}images" />
@@ -93,7 +100,7 @@
 		    <div class="form-group">
 	        	<label>扩展图片后缀</label>
 	        	<input type="text" name="more_suffix" class="form-control" placeholder="选填" />
-		   		<p class="help-block">默认识别后缀 jpg, jpeg, gif, png, bmp，未知后缀名自动保存为jpg格式，如需支持其他格式图片请输入后缀名（多个用逗号分隔）</p>	        
+		   		<p class="help-block">默认识别后缀 jpg, jpeg, gif, png, bmp, webp, wbmp，未知后缀名自动保存为jpg格式，如需支持其他格式图片请输入后缀名（多个用逗号分隔）</p>	        
 		    </div>
 		    <div class="form-group">
 	        	<label>下载超时（秒）</label>

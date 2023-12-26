@@ -10,7 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.6.1');
+define('SKYCAIJI_VERSION', '2.6.2');
 \think\Loader::addNamespace('plugin', realpath(SKYCAIJI_PATH.'plugin'));
 \think\Loader::addNamespace('util',realpath(APP_PATH.'extend/util'));
 
@@ -239,8 +239,7 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
     $headers=$curlHeaders;
     unset($curlHeaders);
     
-    if(!preg_match('/^\w+\:\/\//', $url)){
-        
+    if(!\util\Funcs::is_right_url($url)){
         $url='http://'.$url;
     }
     

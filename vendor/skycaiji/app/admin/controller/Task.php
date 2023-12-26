@@ -263,7 +263,7 @@ class Task extends CollectController {
         }
         return $taskList;
     }
-    public function saveAction(){
+    public function setAction(){
         $mtask=model('Task');
         $taskData=null;
         $id=input('id/d',0);
@@ -287,7 +287,7 @@ class Task extends CollectController {
                 $newData['config']['img_url']=input('config.img_url','','trim');
             }
             $newData['sort']=min(intval($newData['sort']),999999);
-            $newData['config']=$this->_save_config($newData['config']);
+            $newData['config']=$this->_set_config($newData['config']);
             $newData['config']=serialize($newData['config']);
             $taskTimerData=$newData['task_timer'];
             unset($newData['task_timer']);
@@ -334,9 +334,9 @@ class Task extends CollectController {
                         }
                     }
                     
-                    $this->_save_common($taskData, $taskTimerData);
+                    $this->_set_common($taskData, $taskTimerData);
                     
-                    $this->success(lang('op_success'),input('referer','','trim')?input('referer','','trim'):('task/save?id='.$tid));
+                    $this->success(lang('op_success'),input('referer','','trim')?input('referer','','trim'):('task/set?id='.$tid));
                 }else{
                     $this->error(lang('op_failed'));
                 }
@@ -353,21 +353,22 @@ class Task extends CollectController {
                 if($mtask->strict(false)->where(array('id'=>intval($taskData['id'])))->update($newData)>=0){
                     $taskData=$mtask->getById($taskData['id']);
                     
-                    $this->_save_common($taskData, $taskTimerData);
+                    $this->_set_common($taskData, $taskTimerData);
                     
-                    $this->success(lang('op_success'),'task/save?id='.$taskData['id']);
+                    $this->success(lang('op_success'),'task/set?id='.$taskData['id']);
                 }else{
                     $this->error(lang('op_failed'));
                 }
             }
         }else{
+            $tipsSingle='';
             $mtaskgroup=model('Taskgroup');
             $tgSelect=$mtaskgroup->getLevelSelect();
             if($isAdd){
                 $this->set_html_tags(
                     lang('task_add'),
                     lang('task_add'),
-                    breadcrumb(array(array('url'=>url('task/list'),'title'=>lang('task_list')),array('url'=>url('task/save'),'title'=>lang('task_add'))))
+                    breadcrumb(array(array('url'=>url('task/list'),'title'=>lang('task_list')),array('url'=>url('task/set'),'title'=>lang('task_add'))))
                 );
             }else{
                 if(input('?show_config')){
@@ -378,20 +379,54 @@ class Task extends CollectController {
                 $this->set_html_tags(
                     '任务:'.$taskData['name'],
                     lang('task_edit').'：'.$taskData['name'].'（id:'.$taskData['id'].'）',
-                    breadcrumb(array(array('url'=>url('task/list'),'title'=>lang('task_list')),array('url'=>url('task/save?id='.$taskData['id']),'title'=>$taskData['name'])))
+                    breadcrumb(array(array('url'=>url('task/list'),'title'=>lang('task_list')),array('url'=>url('task/set?id='.$taskData['id']),'title'=>$taskData['name'])))
                 );
                 
                 $fieldList=array();
                 $collData=model('Collector')->where(array('task_id'=>$taskData['id']))->find();
-                if(!empty($collData)&&!empty($collData['config'])){
-                    $collData['config']=unserialize($collData['config']?:'');
-                    if(is_array($collData['config'])&&is_array($collData['config']['field_list'])){
-                        foreach($collData['config']['field_list'] as $v){
+                if(!empty($collData)){
+                    
+                    $collConfig=unserialize($collData['config']?:'');
+                    if(is_array($collConfig)&&is_array($collConfig['field_list'])){
+                        foreach($collConfig['field_list'] as $v){
                             $fieldList[]=$v['name'];
                         }
                         $fieldList=array_unique($fieldList);
                         $fieldList=array_filter($fieldList);
                     }
+                    $singleConfig=$taskData['config']['single'];
+                    if($singleConfig&&$singleConfig['open']){
+                        $tipsSingle='，单页采集模式中不使用';
+                        
+                        $eCpattern=new \skycaiji\admin\event\CpatternSingle();
+                        $eCpattern->init($collData);
+                        $singleIptUrls=$eCpattern->single_get_input_urls(array(), $input_urls);
+                        
+                        $singleApiUrl=array('url'=>'<b>内容页网址</b>');
+                        $singleIptMore=false;
+                        if(isset($singleIptUrls['source_url'])){
+                            
+                            $singleApiUrl['source_url']='<b>起始页网址</b>';
+                            $singleIptMore=true;
+                        }
+                        if(is_array($singleIptUrls['level_url'])){
+                            foreach ($singleIptUrls['level_url'] as $level_url){
+                                $singleApiUrl['level'.$level_url['level'].'_url']='<b>多级页“'.$level_url['name'].'”网址</b>';
+                                $singleIptMore=true;
+                            }
+                        }
+                        foreach ($singleApiUrl as $k=>$v){
+                            $singleApiUrl[$k]=$k.'='.$v;
+                        }
+                        
+                        $singleKey=$singleConfig['key']?('/'.md5($singleConfig['key'])):'';
+                        
+                        $singleApiUrl=htmlspecialchars(config('root_website').'/?s=/api_single/'.$taskData['id'].$singleKey.'&').implode('&', $singleApiUrl);
+                        
+                        $this->assign('singleApiUrl',$singleApiUrl);
+                        $this->assign('singleIptMore',$singleIptMore);
+                    }
+                    
                 }
                 $mtimer=model('TaskTimer');
                 $timerData=$mtimer->getTimer($taskData['id']);
@@ -400,6 +435,7 @@ class Task extends CollectController {
                 $timerInfo=$timerInfo?('<br><b>定时：</b>'.$timerInfo):'';
                 
                 $this->assign('taskData',$taskData);
+                $this->assign('collData',$collData);
                 $this->assign('timerInfo',$timerInfo);
                 $this->assign('fieldList',$fieldList);
             }
@@ -454,34 +490,22 @@ class Task extends CollectController {
             $this->assign('gConfig',$gConfig);
             $this->assign('tgSelect',$tgSelect);
             $this->assign('numGtG',$numGtG);
+            $this->assign('tipsSingle',$tipsSingle);
             
             $this->assign('proxyGroups',model('ProxyGroup')->getAll());
             if(request()->isAjax()){
-                return view('save_ajax');
+                return view('set_ajax');
             }else{
-                return $this->fetch('save');
+                return $this->fetch('set');
             }
         }
     }
     
-    public function import_rule_fileAction(){
-        if(request()->isPost()){
-            $result=controller('admin/Mystore')->_upload_addon(true,'rule_file',false,false);
-            if($result['success']){
-                $this->success($result['msg'],'',$result);
-            }else{
-                $this->error($result['msg'],'',$result);
-            }
-        }else{
-            $this->error();
-        }
-    }
-    
-    private function _save_common($taskData,$taskTimerData){
+    private function _set_common($taskData,$taskTimerData){
         
-        $ruleId=input('rule_id');
-        if(!empty($taskData)&&!empty($ruleId)){
-            $this->_import_rule($taskData, $ruleId);
+        $ruleImport=input('rule_import','','trim');
+        if(!empty($taskData)&&!empty($ruleImport)){
+            $this->_import_rule($taskData,$ruleImport);
         }
         
         model('TaskTimer')->addTimer($taskData['id'],$taskTimerData);
@@ -494,7 +518,7 @@ class Task extends CollectController {
         }
     }
     
-    private function _save_config($config=array()){
+    private function _set_config($config=array()){
         
         $config=is_array($config)?$config:array();
         $config['num']=empty($config['num'])?'':$config['num'];
@@ -621,41 +645,38 @@ class Task extends CollectController {
     	return $config;
     }
     
-    private function _import_rule($taskData,$ruleId){
+    private function _import_rule($taskData,$ruleImport){
     	$mtask=model('Task');
     	$mrule=model('Rule');
     	$mcoll=model('Collector');
     	
-    	list($ruleType,$ruleId)=explode(':', $ruleId);
-    	$ruleId=intval($ruleId);
+    	list($ruleType,$ruleVal)=explode(':',$ruleImport,2);
     	$ruleType=strtolower($ruleType);
+    	$ruleVal=$ruleVal?:'';
     	if(!empty($taskData)){
     		$name=null;
     		$module=null;
     		$config=null;
     		if('rule'==$ruleType){
     			
-    			$ruleData=$mrule->getById($ruleId);
+    		    $ruleVal=intval($ruleVal);
+    		    $ruleData=$mrule->getById($ruleVal);
     		}elseif('collector'==$ruleType){
-    			
-    			$ruleData=$mcoll->getById($ruleId);
+    		    
+    		    $ruleVal=intval($ruleVal);
+    		    $ruleData=$mcoll->getById($ruleVal);
     		}elseif('file'==$ruleType){
-    			
-    		    $result=controller('admin/Mystore')->_upload_addon(true,'rule_file',false,true);
-    		    if(!$result['success']){
-    		        $this->error($result['msg'],'task/save?id='.$taskData['id']);
-    		    }else{
-    		        $ruleData=$result['ruleData'];
-    		    }
+    		    
+    		    $ruleData=unserialize(base64_decode($ruleVal));
+    		    init_array($ruleData);
     		}
-    		
     		if(!empty($ruleData)){
     			$name=$ruleData['name'];
     			$module=$ruleData['module'];
     			$config=$ruleData['config'];
     		}
     		
-    		$referer=input('referer','','trim')?input('referer','','trim'):('task/save?id='.$taskData['id']);
+    		$referer=input('referer','','trim')?input('referer','','trim'):('task/set?id='.$taskData['id']);
 			
     		if(empty($module)||(strcasecmp($module, $taskData['module'])!==0)){
     			$this->error('导入的规则模块错误',$referer);

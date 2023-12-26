@@ -481,6 +481,69 @@ class Funcs{
 	    }
 	    return $url;
 	}
+	
+	public static function txt_auto_url_encode($txt,$charset){
+	    if(!preg_match('/\%[a-z0-9A-Z]{2}/',$txt)){
+	        
+	        $txt=\util\Funcs::convert_charset($txt,'utf-8',$charset);
+	        $txt=rawurlencode($txt);
+	    }else{
+	        
+	        $txt=preg_replace_callback('/[^\w\-\_\.\~\+]+/',function($match){
+	            $match=$match[0];
+	            $match=\util\Funcs::convert_charset($match,'utf-8',$charset);
+	            $match=rawurlencode($match);
+	            return $match;
+	        },$txt);
+	    }
+	    return $txt;
+	}
+	
+	public static function is_right_url($url){
+	    if($url&&preg_match('/^\w+\:\/\//', $url)){
+	        return true;
+	    }else{
+	        return false;
+	    }
+	}
+	
+	public static function get_cookies_from_header($header,$convert2str=false){
+	    $cookies=array();
+	    if($header){
+	        if(preg_match_all('/^\s*cookie\s*\:([^\r\n]+);/im', $header, $mcookies)){
+	            
+	            foreach ($mcookies[1] as $mcv){
+	                if(preg_match_all('/([^\;]+?)\=([^\;]*)/',$mcv,$mcookie)){
+	                    foreach ($mcookie[1] as $k=>$v){
+	                        $v=trim($v);
+	                        if($v){
+	                            $cookies[$v]=$mcookie[2][$k];
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	        if(preg_match_all('/\bset\-cookie\s*\:([^\;]+?)\=([^\;]*)/i', $header, $mcookies)){
+	            
+	            foreach ($mcookies[1] as $k=>$v){
+	                $v=trim($v);
+	                if($v){
+	                    $cookies[$v]=$mcookies[2][$k];
+	                }
+	            }
+	        }
+	    }
+	    if($convert2str&&$cookies){
+	        
+	        $cookie=array();
+	        foreach ($cookies as $k=>$v){
+	            $cookie[]=$k.'='.$v;
+	        }
+	        $cookie=implode(';', $cookie);
+	        $cookies=$cookie;
+	    }
+	    return $cookies;
+	}
 }
 
 ?>

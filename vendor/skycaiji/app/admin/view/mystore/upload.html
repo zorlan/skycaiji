@@ -2,15 +2,19 @@
 {:html_usertoken()}	
 	<input name="type" type="hidden" value="{$type}" />
 	<input name="replace" type="hidden" value="" />
+	<input name="from_task" type="hidden" value="{$fromTask}" />
 	<div class="form-group">
 		<label>{$typeName}文件</label>
 		<input type="file" name="upload_file" class="form-control" style="padding:4px 0 0 4px; background:#efefef;">
 	</div>
-	<div class="form-group plugins-box" style="display:none;">
-		<label style="margin-bottom:0;">检测到文件中包含{$typeIsRule?'':'多个'}插件，{$typeIsRule?'可':'请'}选择需要导入的插件（导入后会覆盖已有插件）</label>
-		<div class="plugins-info"></div>
+	<div class="form-group upload-ipt-pwd" style="display:none;">
+		<label>输入密码</label>
+		<input type="text" name="upload_addon[pwd]" class="form-control" placeholder="该文件已加密，请输入密码">
 	</div>
-	
+	<div class="form-group upload-plugins" style="display:none;">
+		<label style="margin-bottom:0;">检测到文件中包含{$typeIsPlugin?'多个':''}插件，{$typeIsPlugin?'请':'可'}选择需要导入的插件（导入后会覆盖已有插件）</label>
+		<div class="upload-plugins-info"></div>
+	</div>
 	{if condition="g_sc_c('site','verifycode')"}	
 	<div class="form-group">
 		<label>{$Think.lang.verifycode}</label>
@@ -25,10 +29,14 @@
 	</div>
 </form>
 <script type="text/javascript">
+'use strict';
 function win_upload_replace(){
 	//替换
 	$('#win_form_upload').find('[name="replace"]').val(1);
 	$('#win_form_upload').submit();
+}
+function win_upload_ipt_pwd(){
+	$('#win_form_upload .upload-ipt-pwd').show();
 }
 function win_upload_plugins(plugins){
 	//选择插件
@@ -37,7 +45,7 @@ function win_upload_plugins(plugins){
 		for(var app in plugins){
 			html+='<div class="checkbox"><label><input type="checkbox" name="upload_addon[plugins][]" value="'+app+'">'+plugins[app]+'</label></div>'
 		}
-		$('#win_form_upload .plugins-box').show().find('.plugins-info').html(html);
+		$('#win_form_upload .upload-plugins').show().find('.upload-plugins-info').html(html);
 	}
 }
 </script>

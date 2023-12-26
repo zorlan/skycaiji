@@ -15,12 +15,7 @@
 		    	请在 {$funcClass['filename']} 文件中编辑代码 或者 <a href="{:url('develop/editor?type=func&app='.$app)}"><b>使用插件编辑器</b></a>
 		    </div>
 		    <div class="form-group">
-		    	<div class="dropdown">
-			    	<button type="button" class="btn btn-default btn-block dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">插件另存为 <span class="caret"></span></button>
-			        <ul class="dropdown-menu" style="width:100%;text-align:center;background:#f4f4f4;">
-			        	<li><a href="{:url('admin/develop/export?type=func&app='.$funcClass['app'])}" target="_blank">导出至本地</a></li>
-			        </ul>
-		        </div>
+		    	<a href="{:url('admin/develop/export?type=func&module='.$funcClass['module'].'&app='.$funcClass['app'])}" class="btn btn-default btn-block" target="_blank">插件另存为</a>
 		    </div>
 			{/if}
 		    <div class="form-group">

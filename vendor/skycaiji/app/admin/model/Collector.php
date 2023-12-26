@@ -33,6 +33,11 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	        $config=array();
 	    }
 	    
+	    if(isset($config['url_reverse'])){
+	        
+	        $config['url_order']=$config['url_reverse']?'reverse':'';
+	    }
+	    
 	    if(!isset($config['area'])){
 	        
 	        if(!empty($config['area_start'])||!empty($config['area_end'])) {

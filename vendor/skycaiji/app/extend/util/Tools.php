@@ -133,34 +133,50 @@ class Tools{
      * @return boolean
      */
     public static function send_mail($emailConfig,$to, $name, $subject = '', $body = '', $attachment = null){
-        set_time_limit(60);
-        
-        $mail = new \PHPMailer();
-        
-        
-        $mail->isSMTP();
-        $mail->Host = $emailConfig['smtp'];
-        $mail->SMTPAuth = true;
-        $mail->Username = $emailConfig['email'];
-        $mail->Password = $emailConfig['pwd'];
-        $mail->SMTPSecure = empty($emailConfig['type'])?'tls':$emailConfig['type'];
-        $mail->Port = $emailConfig['port'];
-        
-        $mail->setFrom($emailConfig['email'], $emailConfig['sender']);
-        $mail->addAddress($to, $name);
-        
-        $mail->isHTML(true);
-        
-        $mail->Subject = $subject;
-        $mail->Body    = $body;
-        $mail->AltBody = '';
-        
-        if(is_array($attachment)){ 
-            foreach ($attachment as $file){
-                is_file($file) && $mail->AddAttachment($file);
+        $error='';
+        init_array($emailConfig);
+        foreach (array('email','smtp','port') as $k){
+            if(empty($emailConfig[$k])){
+                $error=lang('set_email_'.$k).'不能为空';
             }
         }
-        return $mail->Send() ? true : $mail->ErrorInfo;
+        if(empty($error)){
+            try{
+                $mail = new \PHPMailer();
+                
+                
+                $mail->isSMTP();
+                $mail->CharSet='UTF-8';
+                $mail->Host = $emailConfig['smtp'];
+                $mail->SMTPAuth = true;
+                $mail->Username = $emailConfig['email'];
+                $mail->Password = $emailConfig['pwd'];
+                $mail->SMTPSecure = empty($emailConfig['type'])?'tls':$emailConfig['type'];
+                $mail->Port = $emailConfig['port'];
+                
+                $mail->setFrom($emailConfig['email'], $emailConfig['sender']);
+                $mail->addAddress($to, $name);
+                
+                $mail->isHTML(true);
+                
+                $mail->Subject = $subject;
+                $mail->Body    = $body;
+                $mail->AltBody = '';
+                
+                if(is_array($attachment)){ 
+                    foreach ($attachment as $file){
+                        is_file($file) && $mail->AddAttachment($file);
+                    }
+                }
+            }catch(\Exception $ex){
+                $error=$ex->getMessage();
+            } 
+        }
+        if(empty($error)){
+            return $mail->Send() ? true : $mail->ErrorInfo;
+        }else{
+            return $error;
+        }
     }
     
     public static function cp_page_tpl_vars($pageType){
@@ -751,6 +767,42 @@ class Tools{
             }
         }
         return $data;
+    }
+    
+    public static function clear_src_urls($urls){
+        if(is_array($urls)){
+            foreach ($urls as $k=>$v){
+                $v=trim($v);
+                $v=trim($v,'\'" ');
+                $v=trim($v);
+                $urls[$k]=$v;
+            }
+        }else{
+            $urls=trim($urls);
+            $urls=trim($urls,'\'" ');
+            $urls=trim($urls);
+        }
+        return $urls;
+    }
+    
+    public static function browser_export_scj($name,$txt){
+        set_time_limit(600);
+        ob_start();
+        header("Expires: 0" );
+        header("Pragma:public" );
+        header("Cache-Control:must-revalidate,post-check=0,pre-check=0" );
+        header("Cache-Control:public");
+        header("Content-Type:application/octet-stream" );
+        
+        header("Content-transfer-encoding: binary");
+        header("Content-Length: " .mb_strlen($txt));
+        if (preg_match("/MSIE/i", $_SERVER["HTTP_USER_AGENT"])) {
+            header('Content-Disposition: attachment; filename="'.urlencode($name).'.txt"');
+        }else{
+            header('Content-Disposition: attachment; filename="'.$name.'.txt"');
+        }
+        echo $txt;
+        ob_end_flush();
     }
 }
 ?>

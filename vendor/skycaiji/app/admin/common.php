@@ -48,7 +48,7 @@ function trim_input_process($formName,$data=null){
         $data=input($formName,array(),null);
     }
     init_array($data);
-    static $passModules=array('substr','insert','replace');
+    static $passModules=array('substr','insert','replace','batch');
     foreach ($data as $k=>$v){
         init_array($v);
         if(isset($v['title'])){

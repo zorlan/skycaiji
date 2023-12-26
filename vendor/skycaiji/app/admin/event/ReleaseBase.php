@@ -14,6 +14,11 @@ use skycaiji\admin\model\CacheModel;
 class ReleaseBase extends CollectBase{
 	/*已采集记录*/
 	public function record_collected($url,$returnData,$release,$insertData=null,$echo=true){
+	    $returnData['id']=isset($returnData['id'])?$returnData['id']:0;
+	    $returnData['target']=isset($returnData['target'])?$returnData['target']:'';
+	    $returnData['desc']=isset($returnData['desc'])?$returnData['desc']:'';
+	    $returnData['error']=isset($returnData['error'])?$returnData['error']:'';
+	    
 		if($returnData['id']>0){
 			
 			$title='';
@@ -241,6 +246,34 @@ class ReleaseBase extends CollectBase{
 		}
 		$key=md5($url);
 		if(!isset($this->cache_img_list[$key])){
+		    
+		    $headers=array();
+		    $useCookieImg=\util\Param::get_gsc_use_cookie('img',true);
+		    if(!is_empty(g_sc('task_img_headers'))){
+		        
+		        $headers=g_sc('task_img_headers');
+		        if(!is_array($headers)){
+		            $headers=array();
+		        }
+		    }
+		    if(!empty($useCookieImg)){
+		        
+		        unset($headers['cookie']);
+		        $headers['cookie']=$useCookieImg;
+		    }
+		    
+		    
+		    if(!is_empty(g_sc_c('download_img','img_timeout'))){
+		        
+		        $options['timeout']=g_sc_c('download_img','img_timeout');
+		    }else{
+		        $options['timeout']=300;
+		    }
+		    if(!is_empty(g_sc_c('download_img','img_max'))){
+		        
+		        $options['max_bytes']=intval(g_sc_c('download_img','img_max'))*1024*1024;
+		    }
+		    
 			
 		    $prop='';
 		    $dataImageCode='';
@@ -254,6 +287,23 @@ class ReleaseBase extends CollectBase{
 		        }
 		    }else{
 		        
+		        if(!is_empty(g_sc_c('download_img','url_real'))){
+		            
+		            $realOptions=$options;
+		            $realOptions['return_head']=true;
+		            $realOptions['return_info']=true;
+		            $imgCodeInfo=get_html($url,$headers,$realOptions,'utf-8',null,true);
+		            if(!empty($imgCodeInfo['ok'])){
+		                unset($options['max_bytes']);
+		                if($imgCodeInfo['info']&&$imgCodeInfo['info']['url']){
+		                    
+		                    
+		                    $url=$imgCodeInfo['info']['url'];
+		                }
+		            }else{
+		                return $this->_down_retry($proxyDbIp, $originalUrl, $retryCur, $retryMax, $imgCodeInfo, true);
+		            }
+		        }
 		        $prop=\util\Funcs::get_url_suffix($url);
 		    }
 		    if(!in_array($prop, $imgSuffixes)){
@@ -324,32 +374,6 @@ class ReleaseBase extends CollectBase{
 			    }else{
 			        
 			        try {
-			            $headers=array();
-			            $useCookieImg=\util\Param::get_gsc_use_cookie('img',true);
-			            if(!is_empty(g_sc('task_img_headers'))){
-			                
-			                $headers=g_sc('task_img_headers');
-			                if(!is_array($headers)){
-			                    $headers=array();
-			                }
-			            }
-			            if(!empty($useCookieImg)){
-			                
-			                unset($headers['cookie']);
-			                $headers['cookie']=$useCookieImg;
-			            }
-			            
-			            if(!is_empty(g_sc_c('download_img','img_timeout'))){
-			                
-			                $options['timeout']=g_sc_c('download_img','img_timeout');
-			            }else{
-			                $options['timeout']=300;
-			            }
-			            if(!is_empty(g_sc_c('download_img','img_max'))){
-			                
-			                $options['max_bytes']=intval(g_sc_c('download_img','img_max'))*1024*1024;
-			            }
-			            
 			            $imgCodeInfo=get_html($url,$headers,$options,'utf-8',null,true);
 			            if(!empty($imgCodeInfo['ok'])){
 			                
@@ -573,18 +597,22 @@ class ReleaseBase extends CollectBase{
 	            
 	            $options['max_bytes']=intval(g_sc_c('download_file','file_max'))*1024*1024;
 	        }
+	        $getRealUrl=g_sc_c('download_file','url_real');
 	        
 	        $prop=\util\Funcs::get_url_suffix($url);
-	        
 	        static $urlProps=array('htm','html','php','asp','jsp');
 	        if(in_array($prop, $urlProps)||empty($prop)){
+	            $getRealUrl=true;
+	        }
+	        if($getRealUrl){
 	            
-	            $options['return_info']=true;
-	            $options['return_head']=true;
-	            $fileCodeInfo=get_html($url,$headers,$options,'utf-8',null,true);
+	            $realOptions=$options;
+	            $realOptions['return_head']=true;
+	            $realOptions['return_info']=true;
+	            $fileCodeInfo=get_html($url,$headers,$realOptions,'utf-8',null,true);
 	            if(!empty($fileCodeInfo['ok'])){
 	                unset($options['max_bytes']);
-	                if($fileCodeInfo['info']['url']){
+	                if($fileCodeInfo['info']&&$fileCodeInfo['info']['url']){
 	                    
 	                    
 	                    $url=$fileCodeInfo['info']['url'];
@@ -640,7 +668,6 @@ class ReleaseBase extends CollectBase{
 	        if(!$isExists){
 	            
                 try {
-                    unset($options['return_head']);
                     $options['return_info']=true;
                     $fileCodeInfo=get_html($url,$headers,$options,'utf-8',null,true);
                     if(!empty($fileCodeInfo['ok'])){

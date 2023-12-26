@@ -83,12 +83,46 @@ class Rtoapi extends Release{
             $apiConfig['charset']=$appApi['charset']?:'';
             $apiConfig['encode']=$appApi['encode']?:'';
             $apiConfig['response']=is_array($appApi['response'])?$appApi['response']:array();
-            
-            $paramVals=$this->config['toapi']['app_params'];
             $headerVals=is_array($appApi['headers'])?$appApi['headers']:array();
             
             if($appApi['content_type']){
                 $headerVals['content-type']=$appApi['content_type'];
+            }
+            
+            $paramVals=$this->config['toapi']['app_params'];
+            $appCustomParams=$this->config['toapi']['app_custom_params'];
+            
+            if($appCustomParams&&is_array($appCustomParams)){
+                
+                foreach($appCustomParams as $k=>$v){
+                    if($paramVals[$k]){
+                        
+                        if(is_array($paramVals[$k])){
+                            
+                            $paramCustomIndex=array_search('@skycaiji_custom',$paramVals[$k]);
+                            if(!is_empty($paramCustomIndex,true)){
+                                
+                                unset($paramVals[$k][$paramCustomIndex]);
+                                $paramVals[$k]=array_values($paramVals[$k]);
+                                static $appCustomList=array();
+                                $vk=md5($v);
+                                if(!isset($appCustomList[$vk])){
+                                    if(preg_match_all('/[^\r\n]+/',$v,$vm)){
+                                        $appCustomList[$vk]=$vm[0];
+                                    }else{
+                                        $appCustomList[$vk]=array();
+                                    }
+                                }
+                                $paramVals[$k]=array_merge($paramVals[$k],$appCustomList[$vk]);
+                            }
+                        }else{
+                            if($paramVals[$k]=='@skycaiji_custom'){
+                                
+                                $paramVals[$k]=$v;
+                            }
+                        }
+                    }
+                }
             }
         }else{
             
@@ -210,7 +244,7 @@ class Rtoapi extends Release{
                 $retryCur=0;
                 do{
                     $doWhile=false;
-                    $htmlInfo=get_html($url,$headerData,array('return_body'=>1,'curlopts'=>$curlopts),$apiCharset,$postData,true);
+                    $htmlInfo=get_html($url,$headerData,array('timeout'=>60,'return_body'=>1,'curlopts'=>$curlopts),$apiCharset,$postData,true);
                     init_array($htmlInfo);
                     $html=$htmlInfo['html']?:'';
                     $this->collect_sleep($this->config['toapi']['interval'],true);
@@ -254,9 +288,9 @@ class Rtoapi extends Release{
                             }
                         }
                     }
-                    if(!is_empty($apiResponse['id'],true)&&$html&&!is_empty($returnData['id'],true)){
+                    if(!is_empty($apiResponse['id'],true)&&$html&&isset($returnData['id'])){
                         
-                        if($returnData['id']>0){
+                        if($returnData['id']&&$returnData['id']>0){
                             $addedNum++;
                             if($returnData['id']>1&&empty($returnData['target'])){
                                 

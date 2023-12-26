@@ -103,6 +103,13 @@ class Release extends \skycaiji\common\model\BaseModel{
                 }
             }
         }
+        if(is_array($config['api'])){
+            
+            if(isset($config['api']['url'])){
+                $config['api']['key']=$config['api']['url'];
+            }
+        }
+        
         return $config;
     }
     

@@ -90,7 +90,7 @@ class Develop extends BaseController {
 				$params[$k]=json_decode(url_b64decode($v),true);
 			}
 			
-			$this->create_cms_app(array('name'=>$name,'app'=>$appName), $params,$is_edit);
+			$this->_create_cms_app(array('name'=>$name,'app'=>$appName), $params,$is_edit);
 			
 		}else{
 			$appName=input('app','');
@@ -221,7 +221,7 @@ class Develop extends BaseController {
 		}
 	}
 	/*创建cms发布插件*/
-	public function create_cms_app($appData,$params,$is_edit=false){
+	private function _create_cms_app($appData,$params,$is_edit=false){
 		if(!preg_match('/^[a-z][a-z0-9]*$/i', $appData['app'])){
 			$this->error('插件名错误！');
 		}
@@ -813,136 +813,27 @@ EOF;
 	
 	/*导出插件*/
 	public function exportAction(){
-		$type=input('type');
-		$app=input('app');
-		
-		$pluginData=$this->get_plugin_data($type,$app);
-		if(empty($pluginData['success'])){
-		    $this->error($pluginData['msg']);
-		}
-		$pluginData=$pluginData['plugin'];
-
-		set_time_limit(600);
-		$txt='/*skycaiji-plugin-start*/'.base64_encode(serialize($pluginData)).'/*skycaiji-plugin-end*/';
-		$name=$pluginData['app'];
-		ob_start();
-		header("Expires: 0" );
-		header("Pragma:public" );
-		header("Cache-Control:must-revalidate,post-check=0,pre-check=0" );
-		header("Cache-Control:public");
-		header("Content-Type:application/octet-stream" );
-		
-		header("Content-transfer-encoding: binary");
-		header("Accept-Length: " .mb_strlen($txt));
-		if (preg_match("/MSIE/i", $_SERVER["HTTP_USER_AGENT"])) {
-			header('Content-Disposition: attachment; filename="'.urlencode($name).'.scj"');
-		}else{
-			header('Content-Disposition: attachment; filename="'.$name.'.scj"');
-		}
-		echo $txt;
-		ob_end_flush();
-	}
-	
-	public function get_plugin_data($type,$app){
-		$mapp=null;
-		if($type=='release'){
-			$mapp=model('ReleaseApp');
-		}elseif($type=='func'){
-			$mapp=model('FuncApp');
-		}else{
-		    return return_result('类型错误');
-		}
-		if(empty($app)){
-		    return return_result('app标识错误');
-		}
-		$pluginDb=$mapp->where('app',$app)->find();
-		if(empty($pluginDb)){
-		    return return_result('插件不存在');
-		}
-		
-		$pluginData=array(
-			'app'=>$pluginDb['app'],
-			'name'=>$pluginDb['name'],
-			'type'=>$type,
-			'module'=>$pluginDb['module'],
-			'uptime'=>$pluginDb['uptime'],
-			'store_url'=>''
-		);
-		
-		if(!empty($pluginDb['provider_id'])){
-			
-		    $mprov=model('Provider');
-		    $provData=$mprov->where('id',$pluginDb['provider_id'])->find();
-		    $pluginData['store_url']=\skycaiji\admin\model\Provider::create_store_url($provData['url'],'client/addon/plugin',array('app'=>$pluginDb['app']));
-		}
-		
-		if(empty($pluginData['name'])){
-		    return return_result('插件名称为空');
-		}
-		if(empty($pluginData['module'])){
-		    return return_result('插件模块为空');
-		}
-		$appFile=config('plugin_path').'/'.$type.'/'.$pluginDb['module'].'/'.$pluginData['app'].'.php';
-		if($type=='release'){
-			$appTpl=config('plugin_path').'/'.$type.'/view/'.$pluginDb['module'].'/'.$pluginData['app'].'.html';
-			if(file_exists($appTpl)){
-				
-				$appTpl=file_get_contents($appTpl);
-				$pluginData['tpl']=base64_encode($appTpl);
-			}
-		}
-		if(file_exists($appFile)){
-			
-			$appFile=file_get_contents($appFile);
-			$pluginData['code']=base64_encode($appFile);
-		}
-		if(empty($pluginData['code'])){
-		    return return_result('插件文件不存在');
-		}
-		
-		return return_result('',true,array('plugin'=>$pluginData));
-	}
-	
-	public function _format_array($arr,$headStr=''){
-		if(is_array($arr)){
-			$arr=var_export($arr,true);
-		}
-		$arr=preg_replace_callback('/^\s*/m', function($matches) use ($headStr){
-			
-			$returnStr="\t";
-			for($i=0;$i<(strlen($matches[0])/2);$i++){
-				$returnStr.="\t";
-			}
-			return $headStr.$returnStr;
-		}, $arr);
-		$arr=preg_replace('/\s+array\s*\(/i', 'array(', $arr);
-		return $arr;
-	}
-	
-	public function _copy_files($fromPath,$toPath){
-		if(empty($fromPath)||empty($toPath)){
-			return false;
-		}
-		if(is_dir($fromPath)){
-			
-			$fileList=scandir($fromPath);
-			foreach( $fileList as $file ){
-				if('.'== $file || '..' == $file){
-					continue;
-				}
-				$fileName=$fromPath.'/'.$file;
-				if(!file_exists($fileName)){
-					continue;
-				}
-				$toFile=$toPath.'/'.$file;
-				if(is_dir( $fileName )){
-					mkdir($toFile,0777,true);
-					$this->_copy_files($fileName, $toFile);
-				}elseif(is_file($fileName)){
-					write_dir_file($toFile,file_get_contents($fileName));
-				}
-			}
-		}
+	    $type=input('type');
+	    $module=input('module');
+	    $app=input('app');
+	    if(request()->isPost()){
+	        $pwd=input('pwd','','trim');
+	        $pluginData=$this->_export_plugin_data($type, $module, $app, $pwd);
+	        if(empty($pluginData['success'])){
+	            $this->error($pluginData['msg']);
+	        }
+	        \util\Tools::browser_export_scj($app.($pwd?'.加密':'').'.插件', $pluginData['plugin_txt']);
+	    }else{
+	        $this->set_html_tags(
+	            '导出插件',
+	            '导出插件至本地',
+	            breadcrumb(array('导出插件'))
+	        );
+	        $this->assign('type',$type);
+	        $this->assign('module',$module);
+	        $this->assign('app',$app);
+	        return $this->fetch();
+	    }
 	}
 	
 	
@@ -1166,6 +1057,154 @@ EOF;
 	        $this->assign('methodCmt',$methodCmt);
 	        $this->assign('methodCode',$methodCode);
 	        return $this->fetch('plugin_skycaiji_method');
+	    }
+	}
+	
+	
+	private function _get_plugin_data($type,$app){
+	    $mapp=null;
+	    if($type=='release'){
+	        $mapp=model('ReleaseApp');
+	    }elseif($type=='func'){
+	        $mapp=model('FuncApp');
+	    }else{
+	        return return_result('类型错误');
+	    }
+	    if(empty($app)){
+	        return return_result('app标识错误');
+	    }
+	    $pluginDb=$mapp->where('app',$app)->find();
+	    if(empty($pluginDb)){
+	        return return_result('插件不存在');
+	    }
+	    
+	    $pluginData=array(
+	        'app'=>$pluginDb['app'],
+	        'name'=>$pluginDb['name'],
+	        'type'=>$type,
+	        'module'=>$pluginDb['module'],
+	        'uptime'=>$pluginDb['uptime'],
+	        'store_url'=>''
+	    );
+	    
+	    if(!empty($pluginDb['provider_id'])){
+	        
+	        $mprov=model('Provider');
+	        $provData=$mprov->where('id',$pluginDb['provider_id'])->find();
+	        $pluginData['store_url']=\skycaiji\admin\model\Provider::create_store_url($provData['url'],'client/addon/plugin',array('app'=>$pluginDb['app']));
+	    }
+	    
+	    if(empty($pluginData['name'])){
+	        return return_result('插件名称为空');
+	    }
+	    if(empty($pluginData['module'])){
+	        return return_result('插件模块为空');
+	    }
+	    $appFile=config('plugin_path').'/'.$type.'/'.$pluginDb['module'].'/'.$pluginData['app'].'.php';
+	    if($type=='release'){
+	        $appTpl=config('plugin_path').'/'.$type.'/view/'.$pluginDb['module'].'/'.$pluginData['app'].'.html';
+	        if(file_exists($appTpl)){
+	            
+	            $appTpl=file_get_contents($appTpl);
+	            $pluginData['tpl']=base64_encode($appTpl);
+	        }
+	    }
+	    if(file_exists($appFile)){
+	        
+	        $appFile=file_get_contents($appFile);
+	        $pluginData['code']=base64_encode($appFile);
+	    }
+	    if(empty($pluginData['code'])){
+	        return return_result('插件文件不存在');
+	    }
+	    
+	    return return_result('',true,array('plugin'=>$pluginData));
+	}
+	
+	public function _export_plugin_data($type,$module,$app,$pwd){
+	    $reuslt=return_result('');
+	    if($type=='release'&&$module=='diy'){
+	        
+	        $pluginResult=return_result('');
+	        if(!model('ReleaseApp')->appFileExists($app,'diy')){
+	            $pluginResult['msg']='插件不存在';
+	        }else{
+	            $pluginResult['success']=1;
+	            $pluginResult['plugin']=array(
+	                'app'=>$app,
+	                'type'=>'release',
+	                'module'=>'diy',
+	                'code'=>'',
+	            );
+	            $filename=model('ReleaseApp')->appFileName($app,'diy');
+	            $pluginResult['plugin']['code']=file_get_contents($filename);
+	            $pluginResult['plugin']['code']=base64_encode($pluginResult['plugin']['code']);
+	        }
+	    }else{
+	        $pluginResult=$this->_get_plugin_data($type,$app);
+	    }
+	    
+	    if(empty($pluginResult['success'])){
+	        if($type=='release'){
+	            $reuslt['msg']=lang('rele_m_name_'.$module).'发布插件：'.$app;
+	        }elseif($type=='func'){
+	            $reuslt['msg']=model('FuncApp')->get_func_module_val($module,'name').'函数插件：'.$app;
+	        }
+	        $reuslt['msg'].=' » '.$pluginResult['msg'];
+	    }else{
+	        $pluginResult=$pluginResult['plugin'];
+	        $pluginResult=base64_encode(serialize($pluginResult));
+	        if(!empty($pwd)){
+	            
+	            $edClass=new \util\EncryptDecrypt();
+	            $pluginResult=$edClass->encrypt(array('data'=>$pluginResult,'pwd'=>$pwd));
+	            $pluginResult=base64_encode(serialize($pluginResult));
+	        }
+	        $reuslt['success']=true;
+	        $reuslt['plugin_txt']='/*skycaiji-plugin-start*/'.$pluginResult.'/*skycaiji-plugin-end*/';
+	    }
+	    return $reuslt;
+	}
+	
+	private function _format_array($arr,$headStr=''){
+	    if(is_array($arr)){
+	        $arr=var_export($arr,true);
+	    }
+	    $arr=preg_replace_callback('/^\s*/m', function($matches) use ($headStr){
+	        
+	        $returnStr="\t";
+	        for($i=0;$i<(strlen($matches[0])/2);$i++){
+	            $returnStr.="\t";
+	        }
+	        return $headStr.$returnStr;
+	    }, $arr);
+	        $arr=preg_replace('/\s+array\s*\(/i', 'array(', $arr);
+	        return $arr;
+	}
+	
+	private function _copy_files($fromPath,$toPath){
+	    if(empty($fromPath)||empty($toPath)){
+	        return false;
+	    }
+	    if(is_dir($fromPath)){
+	        
+	        $fileList=scandir($fromPath);
+	        foreach( $fileList as $file ){
+	            if('.'== $file || '..' == $file){
+	                continue;
+	            }
+	            $fileName=$fromPath.'/'.$file;
+	            if(!file_exists($fileName)){
+	                continue;
+	            }
+	            $toFile=$toPath.'/'.$file;
+	            if(is_dir( $fileName )){
+	                mkdir($toFile,0777,true);
+	                $this->_copy_files($fileName, $toFile);
+	            }elseif(is_file($fileName)){
+	                write_dir_file($toFile,file_get_contents($fileName));
+	            }
+	        }
 	    }
 	}
 }
