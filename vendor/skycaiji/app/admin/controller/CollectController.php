@@ -227,11 +227,14 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
                 
                 set_g_sc(['c','caiji','real_time'],0);
                 
-                $cacheApiData=$arele->get_cache_fields();
-                if($cacheApiData!==false){
+                if(\util\Param::is_task_api_response()){
                     
-                    
-                    $arele->json_exit($cacheApiData);
+                    $cacheApiData=$arele->get_cache_fields();
+                    if($cacheApiData!==false){
+                        
+                        
+                        $arele->json_exit($cacheApiData);
+                    }
                 }
             }
         }
@@ -360,7 +363,7 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
                     if(!is_empty(g_sc('api_task_key_is_url'))){
                         json(array('error'=>$msg))->send();
                     }else{
-                        json(array('code'=>0,'msg'=>$msg,'data'=>[]))->send();
+                        $this->jsonSend($msg);
                     }
                 }
             }else{

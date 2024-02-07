@@ -395,7 +395,7 @@ EOF;
 	
 	/*开发应用*/
 	public function appAction(){
-		$app=input('app');
+		$app=input('app','');
 		$app=strtolower($app);
 		$mapp=model('App');
 		$appData=null;

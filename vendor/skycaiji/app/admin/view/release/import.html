@@ -1,6 +1,6 @@
 {if condition="!empty($releList)"}
 <div id="window_reles">
-	<ul class="row" id="rele_list">
+	<ul class="row" id="rele_list" {$pagenav?'':' style="margin-bottom:0;"'}>
 	{foreach name="releList" item="rele"}
 	{php}
 		if(!empty($taskNames[$rele['task_id']])){
@@ -9,7 +9,7 @@
 			$releTitle='发布：'.$rele['name'];
 		}
 	{/php}
-	<li class="col-xs-6" style="padding:0;">
+	<li class="col-xs-6" style="padding:3px 15px 3px 0;">
 		<a href="javascript:;" data-id="{$rele['id']}" data-title="{$releTitle|htmlentities}">
 			{$releTitle}
 		</a>

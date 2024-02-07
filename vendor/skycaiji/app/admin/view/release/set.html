@@ -1,5 +1,6 @@
 {extend name="common:main" /}
 {block name="cssjs"}
+<link rel="stylesheet" href="__PUBLIC__/static/css/release.css?{$Think.config.html_v}">
 <script type="text/javascript" src="__PUBLIC__/static/js/admin/release.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
@@ -29,6 +30,22 @@
 			  		{/if}
 			  	</ul>
 			</div>
+		</div>
+	</div>
+	<div class="rele-module" id="rele_module_dataset" module="dataset" style="display:none;">
+		<div class="form-group">
+			<input type="hidden" name="dataset[auto_create]" class="form-control" value="" />
+			<div class="dropdown">
+				<button class="btn btn-default btn-block dropdown-toggle" type="button" id="btn_dataset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					设置数据集 <span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu" style="width:100%;text-align:center;" aria-labelledby="btn_dataset">
+			  		<li><a href="javascript:" id="btn_dataset_list">选择数据集</a></li>
+			  		<li><a href="javascript:" id="btn_dataset_create">自动创建数据集</a></li>
+			  	</ul>
+			</div>
+		</div>
+		<div id="dataset_config" style="display:none;">
 		</div>
 	</div>
 	<div class="rele-module" id="rele_module_cms" module="cms" style="display:none;">

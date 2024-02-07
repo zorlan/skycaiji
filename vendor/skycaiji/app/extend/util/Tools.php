@@ -43,32 +43,34 @@ class Tools{
             if(file_exists(config('root_path').'/data/config.php')){
                 
                 $dataConfig=include config('root_path').'/data/config.php';
-                
-                $dbConfig=array();
-                foreach ($dataConfig as $k=>$v){
-                    if(strpos($k, 'DB_')!==false){
-                        
-                        $dbConfig[$k]=$v;
-                        unset($dataConfig[$k]);
+                if($dataConfig&&is_array($dataConfig)){
+                    
+                    $dbConfig=array();
+                    foreach ($dataConfig as $k=>$v){
+                        if(strpos($k, 'DB_')!==false){
+                            
+                            $dbConfig[$k]=$v;
+                            unset($dataConfig[$k]);
+                        }
                     }
-                }
-                
-                
-                $dbConfig=array(
-                    'type'=>$dbConfig['DB_TYPE'],
-                    'hostname'=>$dbConfig['DB_HOST'],
-                    'hostport'=>$dbConfig['DB_PORT'],
-                    'database'=>$dbConfig['DB_NAME'],
-                    'password'=>$dbConfig['DB_PWD'],
-                    'username'=>$dbConfig['DB_USER'],
-                    'prefix'=>$dbConfig['DB_PREFIX'],
-                );
-                
-                if(!empty($dbConfig)&&is_array($dbConfig)){
-                    $dbConfig=array_merge(config('database'),$dbConfig);
-                    config('database',$dbConfig);
-                    config($dataConfig);
-                    $loaded=true;
+                    
+                    
+                    $dbConfig=array(
+                        'type'=>$dbConfig['DB_TYPE'],
+                        'hostname'=>$dbConfig['DB_HOST'],
+                        'hostport'=>$dbConfig['DB_PORT'],
+                        'database'=>$dbConfig['DB_NAME'],
+                        'password'=>$dbConfig['DB_PWD'],
+                        'username'=>$dbConfig['DB_USER'],
+                        'prefix'=>$dbConfig['DB_PREFIX'],
+                    );
+                    
+                    if(!empty($dbConfig)&&is_array($dbConfig)){
+                        $dbConfig=array_merge(config('database'),$dbConfig);
+                        config('database',$dbConfig);
+                        config($dataConfig);
+                        $loaded=true;
+                    }
                 }
             }
         }
@@ -263,7 +265,13 @@ class Tools{
             }else{
                 
                 init_array($curlParams);
-                return self::proc_open_exec_curl($commandStr,$curlParams['showInfo'],$curlParams['timeout'],$curlParams['closeProc'],$curlParams['killProc']);
+                $return=null;
+                try{
+                    $return=self::proc_open_exec_curl($commandStr,$curlParams['showInfo'],$curlParams['timeout'],$curlParams['closeProc'],$curlParams['killProc']);
+                }catch(\Exception $ex){
+                    $return=array('error'=>$ex->getMessage());
+                }
+                return $return;
             }
         }
         
@@ -280,11 +288,28 @@ class Tools{
         }
         $params=array($commandStr,$showInfo,$timeout,$closeProc,$killProc);
         cache('proc_open_exec_params',$params);
-        $json=get_html(url('admin/index/proc_open_exec?key='.\util\Param::set_url_cache_key('proc_open_exec'),null,false,true),null,array('timeout'=>3));
+        $data=get_html(url('admin/index/proc_open_exec?key='.\util\Param::set_url_cache_key('proc_open_exec'),null,false,true),null,array('timeout'=>3),'auto',null,true);
+        $json=$data?$data['html']:null;
         if($json){
             $json=json_decode($json,true);
         }
+        $error='';
         init_array($json);
+        if(empty($json)){
+            if($data['ok']){
+                if(empty($data['html'])||preg_match('/^(\[|\{)/',$data['html'])){
+                    
+                    $error='执行失败，请检查web服务器是否拥有执行命令的权限';
+                }else{
+                    $error=strip_tags($data['html']);
+                }
+            }else{
+                $error=strip_tags($data['header']);
+            }
+        }
+        if($error){
+            throw new \Exception($error);
+        }
         return $json;
     }
     
@@ -761,7 +786,7 @@ class Tools{
                     );
                     if(!$returnArray){
                         
-                        $data=vsprintf($data[0],htmlspecialchars($data[1],ENT_QUOTES));
+                        $data=sprintf($data[0],htmlspecialchars($data[1],ENT_QUOTES));
                     }
                 }
             }

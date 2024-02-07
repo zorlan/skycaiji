@@ -26,7 +26,7 @@ class CpatternSingle extends Cpattern{
             if(\util\Param::is_collector_single()){
                 
                 $txt=strip_tags($txt);
-                json(array('code'=>0,'msg'=>$txt,'data'=>[]))->send();
+                $this->jsonSend($txt);
             }else{
                 parent::error($txt,$url,$data,$wait,$header);
             }

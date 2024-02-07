@@ -367,7 +367,7 @@ class Tool extends BaseController {
 									$createSql.='PRIMARY KEY ('.implode(',', $primarys).')';
 								}
 								
-								$createSql.=' ) ENGINE=MyISAM DEFAULT CHARSET=utf8';
+								$createSql.=' ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4';
 								db()->execute($createSql);
 							}else{
 								

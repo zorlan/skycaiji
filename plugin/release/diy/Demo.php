@@ -11,7 +11,7 @@ class Demo extends BaseDiy{
 	    'db_pwd'     => '', //密码
 	    'db_port'    => 3306, //端口
 		'db_prefix'  => '', //表前缀
-	    'db_charset' => 'utf8', //编码
+	    'db_charset' => 'utf8mb4', //编码
 	);
 	/**
 	 * 导入数据

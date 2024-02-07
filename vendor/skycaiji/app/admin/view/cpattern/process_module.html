@@ -42,19 +42,22 @@
 	   	</section>
 	</div>
 	<div class="c-p-process-module" module="insert">
-		<div class="form-group">
-			<label>位置</label>
-			<select data-process="insert:insert_loc" class="form-control">
-				<option value="head">开头</option>
-				<option value="" selected="selected">结尾</option>
-				<option value="rand">随机</option>
-			</select>
-			<p class="help-block" style="display:none;">随机在换行（&lt;p&gt; &lt;br&gt;）标签中插入内容，没有换行标签则在开头、结尾中随机插入</p>
-		</div>
-		<div class="form-group">
-			<label>内容</label>
-			<textarea data-process="insert:insert_txt" rows="3" class="form-control"></textarea>
-		</div>
+		<section>
+			<div class="form-group">
+				<label>位置</label>
+				<select data-process="insert:insert_loc" class="form-control">
+					<option value="head">开头</option>
+					<option value="" selected="selected">结尾</option>
+					<option value="rand">随机</option>
+				</select>
+				<p class="help-block" style="display:none;">随机在换行（&lt;p&gt; &lt;br&gt;）标签中插入内容，没有换行标签则在开头、结尾中随机插入</p>
+			</div>
+			<div class="form-group">
+				<label>内容</label>
+				<textarea data-process="insert:insert_txt" rows="3" class="form-control"></textarea>
+				<p class="help-block">可输入任何内容或 <select class="p-m-insert-field"><option value="">插入字段</option></select></p>
+			</div>
+		</section>
 	</div>
 	<div class="c-p-process-module" module="replace">
 		<div class="input-group">
@@ -262,6 +265,7 @@
 			&nbsp; <label><input type="checkbox" data-process="tool:tool_list" value="url_not_complete" />禁止补全网址</label>
 			&nbsp; <label title="将网址替换成重定向后的真实地址"><input type="checkbox" data-process="tool:tool_list" value="url_real" />网址真实地址</label>
 			&nbsp; <label title="从html中提取出音视频网址，建议字段的值是渲染后的html"><input type="checkbox" data-process="tool:tool_list" value="vedio_url" />提取音视频网址</label>
+			&nbsp; <label title="将文本中的网址补齐为&lt;img src=&quot;网址&quot;&gt;"><input type="checkbox" data-process="tool:tool_list" value="img_tag" />补齐为&lt;img&gt;标签</label>
 		</div>
 	</div>
 	<div class="c-p-process-module" module="download">

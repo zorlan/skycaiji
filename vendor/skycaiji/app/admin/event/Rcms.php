@@ -133,7 +133,7 @@ class Rcms extends Release{
 	}
 	/*获取cms名字列表*/
 	public function cms_name_list($cmsPath,$return=false){
-		$cmsPath=realpath($cmsPath);
+	    $cmsPath=$cmsPath?realpath($cmsPath):'';
 		
 		static $list=array();
 		if($return){

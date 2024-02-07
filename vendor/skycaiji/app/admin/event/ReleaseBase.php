@@ -19,6 +19,7 @@ class ReleaseBase extends CollectBase{
 	    $returnData['desc']=isset($returnData['desc'])?$returnData['desc']:'';
 	    $returnData['error']=isset($returnData['error'])?$returnData['error']:'';
 	    
+	    $mcollected=model('Collected');
 		if($returnData['id']>0){
 			
 			$title='';
@@ -30,28 +31,40 @@ class ReleaseBase extends CollectBase{
 		        
 		        $title=$insertData;
 		    }
-			model('Collected')->insert(array(
-				'url' => $url,
+		    $collectedId=$mcollected->insert(array(
 				'urlMd5' => md5 ( $url ),
 			    'titleMd5'=>empty($title)?'':md5($title),
 			    'contentMd5'=>empty($content)?'':md5($content),
-				'target' => $returnData['target'],
-				'desc' => $returnData['desc']?$returnData['desc']:'',
-				'error'=>'',
-				'task_id' => $release ['task_id'],
+				'task_id' => $release['task_id'],
 				'release' => $release['module'],
-				'addtime'=>time()
-			));
+				'addtime'=>time(),
+			    'status'=>1
+			),false,true);
+			if($collectedId>0){
+			    $mcollected->addInfo(array(
+			        'id' => $collectedId,
+			        'url' => $url,
+			        'target' => $returnData['target'],
+			        'desc' => $returnData['desc']?$returnData['desc']:'',
+			        'error'=>'',
+			    ));
+			}
 			if(!empty($returnData['target'])){
 			    $target=$returnData['target'];
-			    $echoData=array('成功将<a href="%s" target="_blank">内容</a>发布至：',$url);
+			    $echoData=array('成功将<a href="%s" target="_blank">内容</a>发布至'.lang('collected_rele_'.$release['module']).'：',$url);
 				if(preg_match('/^http(s){0,1}\:\/\//i',$target)){
 				    $echoData[0].='<a href="%s" target="_blank">%s</a>';
 				    $echoData[]=$target;
 				    $echoData[]=$target;
 				}else{
-				    $echoData[0].='%s';
-				    $echoData[]=$target;
+				    $target=$mcollected->convertTarget($release['module'],$returnData['target']);
+				    if($target==$returnData['target']){
+				        
+				        $echoData[0].='%s';
+				        $echoData[]=$target;
+				    }else{
+				        $echoData[0].=$target;
+				    }
 				}
 				$this->echo_msg($echoData,'green',$echo);
 			}else{
@@ -61,20 +74,26 @@ class ReleaseBase extends CollectBase{
 			
 			if(!empty($returnData['error'])){
 				
-			    if(model('Collected')->collGetNumByUrl($url)<=0){
+			    if($mcollected->collGetNumByUrl($url)<=0){
 					
-					model('Collected')->insert(array(
-						'url' => $url,
+			        $collectedId=$mcollected->insert(array(
 						'urlMd5' => md5 ( $url ),
 						'titleMd5'=>'',
 						'contentMd5'=>'',
-						'target' => '',
-						'desc'=>'',
-						'error' => $returnData['error'],
 						'task_id' => $release['task_id'],
 						'release' => $release['module'],
-						'addtime'=>time()
-					));
+			            'addtime'=>time(),
+			            'status'=>0
+			        ),false,true);
+			        if($collectedId>0){
+			            $mcollected->addInfo(array(
+			                'id' => $collectedId,
+			                'url' => $url,
+			                'target' => '',
+			                'desc'=>'',
+			                'error' => $returnData['error'],
+			            ));
+			        }
 				}
 				$this->echo_msg(array('发布失败：%s',$returnData['error']),'red',$echo);
 			}

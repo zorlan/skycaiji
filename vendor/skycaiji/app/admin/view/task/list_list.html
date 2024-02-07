@@ -1,5 +1,6 @@
 {extend name="common:main" /}
 {block name="cssjs"}
+<link rel="stylesheet" href="__PUBLIC__/static/css/task.css?{$Think.config.html_v}">
 <script src="__PUBLIC__/static/js/admin/tasks.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
@@ -20,7 +21,7 @@
 	                <th class="sorting{$orderClass['auto']}" data-order="auto" title="{$orderSort['auto']}" style="min-width:90px;">{$Think.lang.task_auto}</th>
 	                <th class="sorting{$orderClass['addtime']}" data-order="addtime" title="{$orderSort['addtime']}">{$Think.lang.task_addtime}</th>
 	                <th class="sorting{$orderClass['caijitime']}" data-order="caijitime" title="{$orderSort['caijitime']}">{$Think.lang.task_caijitime}</th>
-	                <th>{$Think.lang.task_collected}</th>
+	                <th width="200">{$Think.lang.task_collected}</th>
 	                <th>{$Think.lang.op}</th>
 	            </tr>
 			</thead>
@@ -51,15 +52,11 @@
 	                	</ul>
 	                </td>
 	                <td>
-	                	{if is_array($item['_collected_info'])}
-	                		<ul class="in-line">
-		                		<li>今日<a href="{:url('collected/list?task_id='.$item['id'].'&begin='.$todayDate)}" target="_blank">{$item['_collected_info']['today']}</a>条</li>
-		                		<li class="sep">|</li>
-								<li>总共<a href="{:url('collected/list?task_id='.$item['id'])}" target="_blank">{$item['_collected_info']['total']}</a>条</li>
-	                		</ul>
-	                	{else/}
-	                		无
-	                	{/if}
+	                	<ul class="in-line">
+	                		<li>今日<a href="{:url('collected/list?task_id='.$item['id'].'&begin='.$todayDate)}" class="today-num" target="_blank">0</a>条</li>
+	                		<li class="sep">|</li>
+							<li>总共<a href="{:url('collected/list?task_id='.$item['id'])}" class="total-num" target="_blank">0</a>条</li>
+                		</ul>
 	                </td>
 	                <td>
 	                	<ul class="in-line">

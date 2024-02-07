@@ -1,0 +1,78 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<link rel="stylesheet" href="__PUBLIC__/static/css/dataapi.css?{$Think.config.html_v}">
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/dataapi.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="box">
+	<div class="box-body">
+		<form id="form_list" method="post" ajax-submit="true" action="{:url('dataapi/op')}">
+		{:html_usertoken()}
+		<div class="table-responsive" style="border:0;">
+		<table id="dataapi_list" class="table table-hover datatable">
+			<thead>
+	            <tr>
+					<th>{$Think.lang.sort}</th>
+					<th>名称</th>
+					<th>ID</th>
+					<th>状态</th>
+					<th>数据集</th>
+	                <th style="width:150px;">{$Think.lang.op}</th>
+	            </tr>
+			</thead>
+			<tbody>
+			{foreach name="daList" item="item"}
+				<tr data-ds-id="{$item['id']}" data-da-id="{$item['id']}">
+					<td class="sort"><input type="text" name="newsort[{$item['id']}]" class="form-control" value="{$item['sort']}" autocomplete="off" /></td>
+	                <td><a href="{:url('dataapi/set?id='.$item['id'])}">{$item['name']}</a></td>
+	                <td>{$item['id']}</td>
+	                <td><a href="javascript:;" class="status{$item['status']?'':' status-close'}">{$item['status']?'开启':'关闭'}</a></td>
+	                <td><a href="{:url('dataset/set?id='.$item['ds_id'])}">{$dsNames[$item['ds_id']]}</a></td>
+	                <td>
+	                	<ul class="in-line">
+	                		<li><a href="{:url('dataapi/set?id='.$item['id'])}">编辑</a></li>
+	                		<li class="sep">|</li>
+	                		<li><a href="javascript:;" class="delete">{$Think.lang.delete}</a></li>
+	                	</ul>
+	                </td>
+	            </tr>
+			{/foreach}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="5">
+						<button type="submit" class="btn btn-default">{$Think.lang.save}</button>
+						<a href="{:url('dataapi/set')}" class="btn btn-primary">添加数据接口</a>
+					</td>
+				</tr>
+    			{if condition="!empty($pagenav)"}
+				<tr>
+					<td colspan="5">{$pagenav}</td>
+				</tr>
+				{/if}
+			</tfoot>
+		</table>
+		</div>
+		</form>
+	</div>
+</div>
+<div class="list-footer">
+	<form id="form_search" method="post" action="{:url('dataapi/list')}" class="form-inline">
+		{:html_usertoken()}
+	    <div class="form-group form-group-sm">
+			<label>ID</label>
+		    <input type="number" name="id" class="form-control" value="" placeholder="精确搜索" autocomplete="off" />
+	    </div>
+	    <div class="form-group form-group-sm">
+			<label>名称</label>
+		    <input type="text" name="name" class="form-control" value="" placeholder="模糊搜索" autocomplete="off" />
+	    </div>
+	    <div class="form-group form-group-sm">
+        	<button type="submit" class="btn btn-default btn-sm">{$Think.lang.search}</button>
+        </div>
+	</form>
+</div>
+<script type="text/javascript">
+dataapiClass.init_list({$search|json_encode});
+</script>
+{/block}

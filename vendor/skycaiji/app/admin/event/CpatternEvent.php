@@ -126,25 +126,28 @@ class CpatternEvent extends CpatternColl{
                 break;
             case 'rule':
                 
-                $val = $this->field_module_rule(array(
-                'reg_rule'=>$field_params['reg_extract_rule'],
-                'reg_rule_merge'=>$field_params['reg_extract_rule_merge'],
-                'rule_multi'=>$field_params['extract_rule_multi'],
-                'rule_multi_str'=>$field_params['extract_rule_multi_str'],
-                ), $field_html);
-                
+                $field_params['reg_rule']=$field_params['reg_extract_rule'];
+                $field_params['reg_rule_merge']=$field_params['reg_extract_rule_merge'];
+                $field_params['rule_multi']=$field_params['extract_rule_multi'];
+                $field_params['rule_multi_str']=$field_params['extract_rule_multi_str'];
+                $field_params['rule_multi_type']=$field_params['extract_rule_multi_type'];
+                $val = $this->field_module_rule($field_params, $field_html);
                 break;
             case 'xpath':
-                $val = $this->field_module_xpath(array(
-                'xpath' => $field_params['extract_xpath'],
-                'xpath_attr' => $field_params['extract_xpath_attr'],
-                'xpath_attr_custom' => $field_params['extract_xpath_attr_custom'],
-                'xpath_multi' => $field_params['extract_xpath_multi'],
-                'xpath_multi_str' => $field_params['extract_xpath_multi_str'],
-                ), $field_html);
+                $field_params['xpath']=$field_params['extract_xpath'];
+                $field_params['xpath_attr']=$field_params['extract_xpath_attr'];
+                $field_params['xpath_attr_custom']=$field_params['extract_xpath_attr_custom'];
+                $field_params['xpath_multi']=$field_params['extract_xpath_multi'];
+                $field_params['xpath_multi_str']=$field_params['extract_xpath_multi_str'];
+                $field_params['xpath_multi_type']=$field_params['extract_xpath_multi_type'];
+                $val = $this->field_module_xpath($field_params, $field_html);
                 break;
             case 'json':
-                $val=$this->field_module_json(array('json'=>$field_params['extract_json'],'json_arr'=>$field_params['extract_json_arr'],'json_arr_implode'=>$field_params['extract_json_arr_implode']), $field_html);
+                $field_params['json']=$field_params['extract_json'];
+                $field_params['json_loop']=$field_params['extract_json_loop'];
+                $field_params['json_arr']=$field_params['extract_json_arr'];
+                $field_params['json_arr_implode']=$field_params['extract_json_arr_implode'];
+                $val = $this->field_module_json($field_params, $field_html);
                 break;
         }
         return $val;
@@ -357,8 +360,10 @@ class CpatternEvent extends CpatternColl{
         }
         return $fieldVal;
     }
-    public function process_f_insert($fieldVal,$params){
+    public function process_f_insert($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName=''){
         $txt=$params['insert_txt'];
+        $txt=$this->_replace_insert_fields($txt,$fieldVal,$curUrlMd5,$loopIndex);
+        
         if(empty($params['insert_loc'])){
             $fieldVal.=$txt;
         }elseif($params['insert_loc']=='head'){
@@ -455,6 +460,11 @@ class CpatternEvent extends CpatternColl{
                     $murl=$urlInfo['info']['url'];
                 }
                 return $murl;
+            },$fieldVal);
+        }
+        if(in_array('img_tag', $params['tool_list'])){
+            $fieldVal=preg_replace_callback('/(?<![\'\"])(\bhttp[s]{0,1}\:\/\/[^\s\'\"\<\>]+)(?![\'\"])/i',function($match){
+                return '<img src="'.$match[1].'" />';
             },$fieldVal);
         }
         return $fieldVal;
@@ -1069,7 +1079,7 @@ class CpatternEvent extends CpatternColl{
         if(empty($process)){
             return $fieldVal;
         }
-        static $conds=array('filter','if','func','api','download');
+        static $conds=array('filter','if','func','api','download','insert');
         static $fnConds=array('translate','tool');
         foreach ($process as $params){
             

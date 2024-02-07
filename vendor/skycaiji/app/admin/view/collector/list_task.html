@@ -1,6 +1,6 @@
 {if condition="!empty($collList)"}
 <div id="window_colls">
-	<ul class="row" id="coll_list">
+	<ul class="row" id="coll_list" {$pagenav?'':' style="margin-bottom:0;"'}>
 	{foreach name="collList" item="coll"}
 	{php}
 		if(!empty($taskNames[$coll['task_id']])){
@@ -9,7 +9,7 @@
 			$collTitle='采集器：'.$coll['name'];
 		}
 	{/php}
-	<li class="col-xs-6" style="padding:0;">
+	<li class="col-xs-6" style="padding:3px 15px 3px 0;">
 		<a href="javascript:;" data-id="{$coll['id']}" data-title="{$collTitle|htmlentities}">
 			{$collTitle}
 		</a>

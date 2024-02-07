@@ -87,7 +87,7 @@ class Rapi extends Release{
 	        if(!is_empty(g_sc('api_task_key_is_url'))){
 	            json($collFieldsList)->send();
 	        }else{
-	            json(array('code'=>1,'msg'=>'','data'=>$collFieldsList))->send();
+	            $this->jsonSend('',$collFieldsList,1);
 	        }
 	    }else{
 	        $html='<form id="win_form_preview" method="post" target="_blank" action="'.url('tool/preview_data').'">'.html_usertoken()

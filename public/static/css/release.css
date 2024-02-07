@@ -1,0 +1,78 @@
+@CHARSET "UTF-8";
+
+/*发布设置*/
+#dataset_config table tr td{height:50px;vertical-align:middle!important;}
+.dataset-field-txt>.input-group-addon{padding:0;}
+.dataset-field-txt>.input-group-addon a.dropdown-toggle{border-color:#fff;padding:6px 12px;color:#666;}
+.dataset-field-txt>.input-group-addon a.dropdown-toggle:hover{color:#000;}
+.dataset-field-txt>.input-group-addon a.dropdown-toggle .caret{margin-top:-2px;}
+
+.rele-db-error{margin-top:10px;color:red;font-weight:bold;}
+.db-table-bind-params{padding:0;margin-bottom:0;border:0;}
+.db-table-bind-params .table{margin-bottom:0;}
+.db-table-bind-params .table tr>th:first-child,.db-table-bind-params .table tr>td:first-child{padding-left:15px;}
+.db-table-bind-params .table thead th{padding-top:13px;padding-bottom:13px;}
+.db-table-bind-op{width:auto;height:auto;display:inline;padding:0;}
+.db-table-bind-where-tpl,.db-table-bind-query-tpl{display:none;}
+
+.db-table-bind-where,.db-table-bind-query{display:none;}
+.db-table-bind-data-seq{display:none;}
+.db-table-bind-where,.db-table-bind-query,.db-table-bind-data{border:0;}
+
+.db-table-bind-signs>.input-group-btn{position:static;}
+
+.dm-db-charset li {padding:5px 15px;}
+.dm-db-charset li.divider{padding:0;}
+.dm-db-charset li span{padding:5px; cursor:pointer;color:#555;}
+.dm-db-charset li span:hover{background:#eee;}
+
+.toapi-param-table table,.toapi-header-table table{margin-bottom:0;}
+.toapi-param-table td:first-child,.toapi-header-table td:first-child{width:200px;}
+.toapi-param-table td:last-child,.toapi-header-table td:last-child{width:50px;text-align:center;}
+
+#toapi_resp_module_help .help-block{display:none;margin:0;}
+
+.toapi-app-table table tr td{height:50px;vertical-align:middle!important;}
+.toapi-field-txt>.input-group-addon{padding:0;}
+.toapi-field-txt>.input-group-addon a.dropdown-toggle{border-color:#fff;padding:6px 12px;color:#666;}
+.toapi-field-txt>.input-group-addon a.dropdown-toggle:hover{color:#000;}
+.toapi-field-txt>.input-group-addon a.dropdown-toggle .caret{margin-top:-2px;}
+
+.toapi-field-slt select.form-control{min-width:120px!important;margin-right:-1px;min-height:34px;max-height:90px;}
+.toapi-field-slt textarea.form-control{height:90px;}
+.toapi-field-slt input.form-control,.toapi-field-slt textarea.form-control,.toapi-field-slt .input-group-addon{display:none!important;}
+
+.toapi-field-slt-txt input.form-control,.toapi-field-slt-txt textarea.form-control,.toapi-field-slt-txt .input-group-addon{display:table-cell!important;}
+
+/**/
+#cms_bind em{color:red;}
+#cms_bind .box{margin-bottom:0;}
+#cms_bind .table{margin-bottom:0;}
+#toapi_app_params em{color:red;}
+
+
+
+@media (min-width: 1200px) {
+	/*table-responsive设置overflow:inherit;可正常显示dropdown-menu*/
+	.db-table-bind-where,.db-table-bind-query,.db-table-bind-data{overflow:inherit;}
+}
+
+@media (max-width: 1199px) {
+	/*dropdown-menu用fixed避免被table-responsive的overflow:hidden;影响*/
+	.db-table-bind-signs .dropdown-menu{padding:0;border:4px solid #ddd;border-radius:4px;background:transparent;position:fixed;left:10px;right:10px;bottom:10px;top:auto;max-height:80%;overflow-y:scroll;}
+	.db-table-bind-signs .dropdown-menu table{margin:0;}	
+}
+
+@media (min-width: 900px) {
+	#dataset_config .table tr td:FIRST-CHILD{width:200px;white-space:nowrap;padding-right:10px;}	
+	.toapi-app-table .table tr td:FIRST-CHILD{width:200px;white-space:nowrap;padding-right:10px;}
+	#cms_bind .table tr td:FIRST-CHILD{width:200px;white-space:nowrap;padding-right:10px;}	
+}
+
+@media (max-width: 550px){
+	.mobile-input-group{width:100%;}
+	.mobile-input-group>.input-group-addon{display:table-caption;width:100%;background:#fafafa;margin-bottom:5px;border-right:1px solid #ccc;}
+	.mobile-input-group1>.input-group-addon{display:block;}
+	
+	.toapi-param-table td:first-child,.toapi-header-table td:first-child{width:auto;}
+}

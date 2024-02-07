@@ -163,6 +163,13 @@ class Funcs{
 	    return $val;
 	}
 	
+	public static function array_keys_to_lower($arr){
+	    if($arr&&is_array($arr)){
+	        $arr=array_change_key_case($arr,CASE_LOWER);
+	    }
+	    return $arr;
+	}
+	
 	
 	public static function convert_html2json($html,$returnStr=false){
 	    static $jsonpRegExp='/^(\s*[\$\w\-]+\s*[\{\(])+(?P<json>[\s\S]+)(?P<end>[\}\]])\s*\)\s*[\;]{0,1}/i';

@@ -1,8 +1,8 @@
 {if condition="!empty($ruleList)"}
 <div id="window_rules">
-	<ul class="row" id="rule_list">
+	<ul class="row" id="rule_list" {$pagenav?'':' style="margin-bottom:0;"'}>
 	{foreach name="ruleList" item="rule"}
-	<li class="col-xs-6" style="padding:0;"><a href="javascript:;" data-id="{$rule['id']}" data-title="{$rule['name']|htmlentities}">{$rule['name']}</a></li>
+	<li class="col-xs-6" style="padding:3px 15px 3px 0;"><a href="javascript:;" data-id="{$rule['id']}" data-title="{$rule['name']|htmlentities}">{$rule['name']}</a></li>
 	{/foreach}
 	</ul>
 	{$pagenav}

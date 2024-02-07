@@ -204,6 +204,24 @@ class Task extends CollectController {
         $this->success('','');
     }
     
+    public function taskCollectedNumAction(){
+        $taskIds=input('task_ids/a',array(),'intval');
+        
+        init_array($taskIds);
+        $list=array();
+        if($taskIds){
+            $mcollected=model('Collected');
+            $todayTime=strtotime(date('Y-m-d',time()));
+            foreach ($taskIds as $taskId){
+                $list[$taskId]=array(
+                    'today'=>$mcollected->where(array('task_id'=>array('=',$taskId),'addtime'=>array('>',$todayTime)))->count(),
+                    'total'=>$mcollected->where('task_id',$taskId)->count(),
+                );
+            }
+        }
+        $this->success('','',$list);
+    }
+    
     private function _set_tasks($taskList){
         if($taskList){
             
@@ -231,20 +249,6 @@ class Task extends CollectController {
                         $taskList[$k]=$v;
                     }
                 }
-            }
-            
-            $mcollected=model('Collected');
-            $todayTime=strtotime(date('Y-m-d',time()));
-            foreach ($taskList as $k=>$v){
-                $taskId=$v['id'];
-                if(empty($taskId)){
-                    continue;
-                }
-                $collected=array();
-                $collected['today']=$mcollected->where(array('task_id'=>array('=',$taskId),'addtime'=>array('>',$todayTime)))->count();
-                $collected['total']=$mcollected->where('task_id',$taskId)->count();
-                $v['_collected_info']=$collected;
-                $taskList[$k]=$v;
             }
             
             $mrele=model('Release');

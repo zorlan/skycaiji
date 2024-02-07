@@ -46,8 +46,9 @@ class Api extends CollectController{
         if(!$keyIsOk){
             if($keyIsUrl){
                 json(array('error'=>'密钥错误'))->send();
+                exit();
             }else{
-                $this->_json('密钥错误');
+                $this->jsonSend('密钥错误');
             }
         }
         \util\Param::set_task_api_response();
@@ -74,32 +75,32 @@ class Api extends CollectController{
 	    $mrele=model('Release');
 	    $taskData=$mtask->getById($taskId);
 	    if(empty($taskData)){
-	        $this->_json(lang('task_error_empty_task'));
+	        $this->jsonSend(lang('task_error_empty_task'));
 	    }
 	    
 	    $singleConfig=$taskData['config']['single'];
 	    init_array($singleConfig);
 	    if(empty($singleConfig['open'])){
-	        $this->_json('未开启单页采集模式');
+	        $this->jsonSend('未开启单页采集模式');
 	    }
 	    if($singleConfig['key']){
 	        if($key!=md5($singleConfig['key'])){
-	            $this->_json('接口密钥错误');
+	            $this->jsonSend('接口密钥错误');
 	        }
 	    }
 	    $taskTips='任务：'.$taskData['name'].' » ';
 	    if(empty($taskData['module'])){
 	        
-	        $this->_json($taskTips.lang('task_error_null_module'));
+	        $this->jsonSend($taskTips.lang('task_error_null_module'));
 	    }
 	    if(!in_array($taskData['module'],config('allow_coll_modules'))){
 	        
-	        $this->_json($taskTips.lang('coll_error_invalid_module'));
+	        $this->jsonSend($taskTips.lang('coll_error_invalid_module'));
 	    }
 	    $collData=$mcoll->where(array('task_id'=>$taskData['id'],'module'=>$taskData['module']))->find();
 	    if(empty($collData)){
 	        
-	        $this->_json($taskTips.lang('coll_error_empty_coll'));
+	        $this->jsonSend($taskTips.lang('coll_error_empty_coll'));
 	    }
 	    $collData=$collData->toArray();
 	    $mtask->loadConfig($taskData);
@@ -128,9 +129,9 @@ class Api extends CollectController{
 	    if(empty($fieldData['data'])){
 	        $msg=g_sc('collect_echo_msg_txt');
 	        $msg=strip_tags($msg);
-	        $this->_json($msg);
+	        $this->jsonSend($msg);
 	    }else{
-	        $this->_json('',1,$fieldData['data']);
+	        $this->jsonSend('',$fieldData['data'],1);
 	    }
 	}
 	
@@ -274,13 +275,6 @@ class Api extends CollectController{
             }
             $updateResult['code']=1;
         }
-	    
 	    return json($updateResult);
-	}
-	
-	private function _json($msg='',$code=0,$data=array()){
-	    init_array($data);
-	    $result=array('code'=>$code,'msg'=>$msg,'data'=>$data);
-	    json($result)->send();
 	}
 }

@@ -250,10 +250,10 @@ class Backstage extends BaseController{
 	            
 	            $mcollected=model('Collected');
 	            $todayTime=strtotime(date('Y-m-d',time()));
-	            $tongji['today_success']=$mcollected->where(array('addtime'=>array('GT',$todayTime),'target'=>array('<>','')))->count();
-	            $tongji['today_error']=$mcollected->where(array('addtime'=>array('GT',$todayTime),'error'=>array('<>','')))->count();
-	            $tongji['total_success']=$mcollected->where("`target` <> ''")->count();
-	            $tongji['total_error']=$mcollected->where("`error` <> ''")->count();
+	            $tongji['today_success']=$mcollected->where(array('addtime'=>array('GT',$todayTime),'status'=>1))->count();
+	            $tongji['today_error']=$mcollected->where(array('addtime'=>array('GT',$todayTime),'status'=>0))->count();
+	            $tongji['total_success']=$mcollected->where('status',1)->count();
+	            $tongji['total_error']=$mcollected->where('status',0)->count();
 	            $cacheTongji=array('time'=>time(),'data'=>$tongji);
 	            cache('admin_check_up_tongji',$cacheTongji);
 	        }else{
@@ -483,6 +483,7 @@ class Backstage extends BaseController{
         			$list=model('Collected')->where($cond)->order('addtime desc')->paginate(10,false,paginate_auto_config());
         			$pagenav=$list->render();
         			$list=$list->all();
+        			$list=model('Collected')->getInfoDatas($list);
         			
         			$this->assign('list',$list);
         			$this->assign('pagenav',$pagenav);
@@ -577,7 +578,7 @@ class Backstage extends BaseController{
 	        $mconfig=model('Config');
 	        $config=$mconfig->getConfig('admincp','data');
 	        init_array($config);
-	        if($op=='mini'||$op=='narrow'){
+	        if($op=='mini'||$op=='narrow'||$op=='check_skip'){
 	            $config[$op]=intval($val);
 	        }elseif($op=='skin'){
 	            if(preg_match('/^[\w\-\_]+$/', $val)){
@@ -585,7 +586,7 @@ class Backstage extends BaseController{
 	            }
 	        }
 	        
-	        $allowConfig=array('skin'=>'','mini'=>'','narrow'=>'');
+	        $allowConfig=array('skin'=>'','mini'=>'','narrow'=>'','check_skip'=>'');
 	        foreach ($allowConfig as $k=>$v){
 	            $allowConfig[$k]=isset($config[$k])?$config[$k]:'';
 	        }

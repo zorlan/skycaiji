@@ -196,7 +196,7 @@ class Cpattern extends BaseController {
 				'num' => array('num_start','num_end'),
 				'time' => array ('time_format','time_start','time_end','time_stamp'),
 				'list' => array('list','list_type'),
-			    'extract' =>array('extract','extract_module','extract_rule','extract_rule_merge','extract_rule_multi','extract_rule_multi_str','extract_xpath','extract_xpath_attr','extract_xpath_attr_custom','extract_xpath_multi','extract_xpath_multi_str','extract_json','extract_json_arr','extract_json_arr_implode'),
+			    'extract' =>array('extract','extract_module','extract_rule','extract_rule_merge','extract_rule_multi','extract_rule_multi_type','extract_rule_multi_str','extract_xpath','extract_xpath_attr','extract_xpath_attr_custom','extract_xpath_multi','extract_xpath_multi_type','extract_xpath_multi_str','extract_json','extract_json_arr','extract_json_arr_implode','extract_json_loop'),
 				'merge' => 'merge',
 			    'sign' => 'sign'
 			);

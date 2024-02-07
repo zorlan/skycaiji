@@ -55,9 +55,9 @@
 			<li><a href="{:url('admin/setting/email')}"><i class="fa fa-circle-o"></i> {$Think.lang.setting_email}</a></li>
 		</ul>
 	</li>
-   	<li class="treeview{$curMenu['task']}{$curMenu['taskgroup']}{$curMenu['collector']}{$curMenu['release']}">
+   	<li class="treeview{$curMenu['task']}{$curMenu['taskgroup']}{$curMenu['collector']}{$curMenu['release']}{$curMenu['collected']}">
        	<a href="#">
-       		<i class="fa fa-tasks"></i> <span>{$Think.lang.task}</span>
+       		<i class="fa fa-th-list"></i> <span>{$Think.lang.task}</span>
       		<span class="pull-right-container">
        			<i class="fa fa-angle-left pull-right"></i>
       		</span>
@@ -65,19 +65,22 @@
 		<ul class="treeview-menu">
 			<li><a href="{:url('admin/task/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.task_list}</a></li>
 			<li><a href="{:url('admin/task/set')}"><i class="fa fa-circle-o"></i> {$Think.lang.task_add}</a></li>
-			<li class="treeview{$curMenu['taskgroup']}">
-				<a href="#"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup}
-				<span class="pull-right-container">
-				<i class="fa fa-angle-left pull-right"></i>
-				</span>
-				</a>
-				<ul class="treeview-menu">
-					<li><a href="{:url('taskgroup/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup_list}</a></li>
-					<li><a href="{:url('taskgroup/add')}"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup_add}</a></li>
-				</ul>
-			</li>
+			<li><a href="{:url('admin/taskgroup/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.taskgroup}</a></li>
+			<li><a href="{:url('admin/collected/list')}"><i class="fa fa-circle-o"></i> 已采集数据</a></li>
 		</ul>
     </li>
+	<li class="treeview{$curMenu['dataset']}{$curMenu['dataapi']}">
+		<a href="#">
+			<i class="fa fa-database"></i> <span>数据</span>
+			<span class="pull-right-container">
+				<i class="fa fa-angle-left pull-right"></i>
+			</span>
+		</a>
+		<ul class="treeview-menu">
+			<li><a href="{:url('admin/dataset/list')}"><i class="fa fa-circle-o"></i> 数据集</a></li>
+			<li><a href="{:url('admin/dataapi/list')}"><i class="fa fa-circle-o"></i> 数据接口</a></li>
+		</ul>
+	</li>
 	<li class="treeview{$curMenu['store']}{$curMenu['mystore']}{$curMenu['provider']}">
 		<a href="#">
 			<i class="fa fa-cloud"></i> <span>云端</span>
@@ -101,18 +104,6 @@
 					<li><a href="{:url('admin/mystore/app')}"><i class="fa fa-circle-o"></i> 应用程序</a></li>
 				</ul>
 			</li>
-		</ul>
-	</li>
-	<li class="treeview{$curMenu['collected']}">
-		<a href="#">
-			<i class="fa fa-database"></i> <span>{$Think.lang.collected}</span>
-			<span class="pull-right-container">
-				<i class="fa fa-angle-left pull-right"></i>
-			</span>
-		</a>
-		<ul class="treeview-menu">
-			<li><a href="{:url('admin/collected/list')}"><i class="fa fa-circle-o"></i> 数据列表</a></li>
-			<li><a href="{:url('admin/collected/chart')}"><i class="fa fa-circle-o"></i> 统计图表</a></li>
 		</ul>
 	</li>
 	<li class="treeview{$curMenu['user']}">

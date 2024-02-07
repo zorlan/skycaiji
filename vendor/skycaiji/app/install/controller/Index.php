@@ -165,7 +165,7 @@ class Index extends BaseController{
 			unset($dbConfig['db_name']);
 			Config::set('database',$this->_get_db_config($dbConfig));
 			$dbConn=Db::connect();
-			$dbConn->execute('create database if not exists '.$dbName.' default character set utf8');
+			$dbConn->execute('create database if not exists '.$dbName.' default character set utf8mb4');
 			$dbConn->execute('use '.$dbName);
 			
 			foreach($sqlList as $sql){

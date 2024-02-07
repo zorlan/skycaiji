@@ -10,7 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.6.2');
+define('SKYCAIJI_VERSION', '2.7');
 \think\Loader::addNamespace('plugin', realpath(SKYCAIJI_PATH.'plugin'));
 \think\Loader::addNamespace('util',realpath(APP_PATH.'extend/util'));
 
@@ -178,6 +178,8 @@ function paginate_auto_config($path='',$queryParamsOrAuto=true){
 		
 		$params=is_array($queryParamsOrAuto)?$queryParamsOrAuto:array();
 	}
+	init_array($params);
+	unset($params['_usertoken_']);
 	
 	$params[config('paginate.var_page')]='-_-PAGE-_-';
 	$params=http_build_query($params);

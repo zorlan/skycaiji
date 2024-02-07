@@ -188,7 +188,7 @@ class Taskgroup extends BaseController {
     	$id=input('id/d',0);
     	$op=input('op');
     	
-    	$ops=array('item'=>array('delete','move'),'list'=>array('deleteall','saveall'));
+    	$ops=array('item'=>array('delete','move'),'list'=>array('saveall'));
     	if(!in_array($op,$ops['item'])&&!in_array($op,$ops['list'])){
     		
     		$this->error(lang('invalid_op'));
@@ -239,46 +239,15 @@ class Taskgroup extends BaseController {
     			$this->assign('parentTgList',$parentTgList);
     			return $this->fetch();
     		}
-    	}elseif($op=='deleteall'){
-    		
-    	    $ids=input('ids/a',array());
-    		if(is_array($ids)&&count($ids)>0){
-    			$list=$mtaskgroup->where(array('id'=>array('in',$ids)))->column('*');
-    			$deleteIds=array();
-    			foreach ($list as $item){
-    				
-    				$subCount=$mtaskgroup->where(array('parent_id'=>$item['id']))->count();
-    				if($subCount==0){
-    					$deleteIds[$item['id']]=$item['id'];
-    				}else{
-    					$hasSub=true;
-    				}
-    			}
-    			if($deleteIds){
-    				$mtaskgroup->where(array('id'=>array('in',$deleteIds)))->delete();
-    				$mtask->strict(false)->where(array('tg_id'=>array('in',$deleteIds)))->update(array('tg_id'=>0));
-    			}
-    		}
-    		$this->success(lang($hasSub?'tg_deleteall_has_sub':'op_success'));
     	}elseif($op=='saveall'){
     		
-    	    $ids=input('ids/a',array());
     	    $newsort=input('newsort/a',array());
-			if(is_array($ids)&&count($ids)>0){
-	    		$ids=array_map('intval', $ids);
-	    		
-	    		$updateSql=' UPDATE '.$mtaskgroup->getQuery()->getTable().' SET `sort` = CASE `id` ';
-	    		foreach ($ids as $tgid){
-	    		    $newsort[$tgid]=min(intval($newsort[$tgid]),999999);
-	    		    $updateSql.= sprintf(" WHEN %d THEN '%s' ", $tgid, $newsort[$tgid]);
-	    		}
-	    		$updateSql.='END WHERE `id` IN ('. implode(',',$ids).')';
-	    		try{
-	    			$mtaskgroup->execute($updateSql);
-	    		}catch (\Exception $ex){
-	    			$this->error(lang('op_failed'));
-	    		}
-			}
+    	    if(is_array($newsort)&&count($newsort)>0){
+    	        foreach ($newsort as $key=>$val){
+    	            $val=min(intval($val),999999);
+    	            $mtaskgroup->strict(false)->where('id',intval($key))->update(array('sort'=>$val));
+    	        }
+    	    }
     		$this->success(lang('op_success'),'list');
     	}
     }

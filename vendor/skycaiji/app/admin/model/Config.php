@@ -303,28 +303,24 @@ class Config extends \skycaiji\common\model\Config {
 	            $result['msg']='未检测到PHP可执行文件，请手动输入';
 	        }else{
 	            $info=\util\Tools::cli_command_exec('collect cli --url_params '.base64_encode(json_encode(array('op'=>'php'))),$phpFile,array('showInfo'=>'all','closeProc'=>true));
-	            init_array($info);
-	            if(empty($info)){
-	                $result['msg']='执行失败，请检查web服务器是否拥有执行命令的权限';
-	            }else{
-	                $output=trim($info['output']);
-	                $info['error']=trim($info['error']);
-	                $info['output']=array();
-	                if($output&&preg_match('/\{[\s\S]+\}/i',$output,$mjson)){
-	                    
-	                    $info['output']=json_decode($mjson[0],true);
-	                }
-	                init_array($info['output']);
-	                if(empty($info['output'])){
-	                    
-	                    $result['msg']=$info['error']?$info['error']:($output?$output:'php无效');
-	                }else{
-	                    $result['success']=true;
-	                    $result['ver']=$info['output']['ver'];
-	                    $result['swoole']=$info['output']['swoole'];
-	                    $result['msg_ver']='php v'.$result['ver'];
-	                }
-	            }
+	            
+                $output=trim($info['output']);
+                $info['error']=trim($info['error']);
+                $info['output']=array();
+                if($output&&preg_match('/\{[\s\S]+\}/i',$output,$mjson)){
+                    
+                    $info['output']=json_decode($mjson[0],true);
+                }
+                init_array($info['output']);
+                if(empty($info['output'])){
+                    
+                    $result['msg']=$info['error']?$info['error']:($output?$output:'php无效');
+                }else{
+                    $result['success']=true;
+                    $result['ver']=$info['output']['ver'];
+                    $result['swoole']=$info['output']['swoole'];
+                    $result['msg_ver']='php v'.$result['ver'];
+                }
 	        }
 	    }
 	    return $result;

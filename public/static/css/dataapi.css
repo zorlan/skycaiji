@@ -1,0 +1,13 @@
+@CHARSET "UTF-8";
+
+
+#dataapi_list .status{color:green;}
+#dataapi_list .status-close{color:red;}
+
+#config_conds tr>th:first-child,#config_conds tr>td:first-child{padding-left:15px;}
+#config_conds thead th{padding-top:13px;padding-bottom:13px;}
+#config_conds tbody tr>td:last-child{vertical-align:middle;font-size:14px;}
+#config_conds .config-cond-move{font-size:12px;}
+#config_conds .config-cond-dlt{margin-left:2px;margin-right:2px;}
+#config_conds .config-cond-sub td:FIRST-CHILD{padding-left:50px; background:url('../images/bg_column.gif') no-repeat 15px 15px;}
+#config_conds .config-cond-sub .config-cond-add{display:none;}

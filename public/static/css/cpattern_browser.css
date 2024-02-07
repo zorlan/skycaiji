@@ -39,7 +39,7 @@
 #skycaiji_console .skycaiji-block{width:100%;overflow:hidden;line-height:20px;padding-top:5px;}
 #skycaiji_console .skycaiji-block>.skycaiji-b-l{float:left;width:130px;}
 #skycaiji_console .skycaiji-block>.skycaiji-b-c{margin-left:130px;margin-right:260px;}
-#skycaiji_console .skycaiji-block>.skycaiji-b-c .skycaiji-b-c-i{margin-right:20px;}
+#skycaiji_console .skycaiji-block>.skycaiji-b-c .skycaiji-b-c-i{margin-right:20px;min-width:300px;}
 #skycaiji_console .skycaiji-block>.skycaiji-b-c input{width:100%;height:20px;float:left;}
 #skycaiji_console .skycaiji-block>.skycaiji-b-c select{width:20px;height:20px;overflow:hidden;float:left;}
 #skycaiji_console .skycaiji-block>.skycaiji-b-r{padding-left:5px;float:left;}

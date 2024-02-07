@@ -10,7 +10,6 @@
 		<table id="list_table" class="table table-hover datatable">
 			<thead>
 				<tr>
-					<th class="chk">{$Think.lang.select}</th>
 					<th>{$Think.lang.sort}</th>
 					<th>{$Think.lang.taskgroup_name}</th>
 					<th>{$Think.lang.op}</th>
@@ -21,7 +20,6 @@
 				{php}$num++;$itemList=is_array($subList[$pitem['id']])?array_merge(array($pitem),$subList[$pitem['id']]):array($pitem);{/php}
 				{foreach name="itemList" item="item"}
 				<tr class="bg{$num%2}">
-					<td class="chk"><input type="checkbox" name="ids[]" value="{$item['id']}" /></td>
 					<td class="sort"><input type="text" name="newsort[{$item['id']}]" class="form-control" value="{$item['sort']}" autocomplete="off" /></td>
 					<td{$item['parent_id']?' class="sub"':''}>{$item['name']}</td>
 					<td>
@@ -37,13 +35,10 @@
 			</tbody>
 			<tfoot>
 				<tr>
-					<td class="chk"><label class="chk-all"><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" /><span>全部</span></label></td>
-					<td colspan="2">
-						<button type="submit" class="btn btn-primary">{$Think.lang.save}</button>
-						<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
-						<button type="button" class="btn btn btn-success" onclick="windowModal('{$Think.lang.tg_add_sub}','{:url('taskgroup/add')}')">{$Think.lang.taskgroup_add}</button>
+					<td colspan="3">
+						<button type="submit" class="btn btn-default">{$Think.lang.save}</button>
+						<button type="button" class="btn btn btn-primary" onclick="windowModal('{$Think.lang.taskgroup_add}','{:url('taskgroup/add')}')">{$Think.lang.taskgroup_add}</button>
 					</td>
-					<td></td>
 				</tr>
 			</tfoot>
 		</table>
@@ -89,7 +84,7 @@ $(document).ready(function(){
 	             success: function(data){
 	            	data.code==1?toastr.success(data.msg):toastr.error(data.msg);
 	            	if(data.code==1){
-	             		obj.parent().parent().remove();
+	             		obj.parents('tr').eq(0).remove();
 	            	}
 	             }
 	         });
@@ -115,28 +110,6 @@ $(document).ready(function(){
 		dropdown.find('.dropdown-menu').remove();
 		dropdown.append(options);
 	});
-	
-	//sort改变值后选中
-	$('input[name^="newsort"]').bind('change',function(){
-		$(this).parent().parent().find('input[name="ids[]"]').prop('checked',true);
-	});
-	//删除选中
-	$('#deleteall').bind('click',function(){
-		var obj=$(this);
-		confirmRight('{$Think.lang.confirm_delete}',function(){
-			ajaxOpen({
-	        	type: "POST",
-	        	url: "{:url('taskgroup/op')}",
-	        	dataType: "json",
-				data:$('#form_list').serialize()+'&op=deleteall',
-	         	success: function(data){
-	            	data.code==1?toastr.success(data.msg):toastr.error(data.msg);
-					setTimeout("window.location.reload();",2500);
-	        	}
-	        });
-		});
-	});
 });
-
 </script>
 {/block}

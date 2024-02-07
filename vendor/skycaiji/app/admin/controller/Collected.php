@@ -76,27 +76,37 @@ class Collected extends BaseController {
    			$cond['release']=$search['release'];
    		}
    		$search['status']=input('status');
-   		if(!empty($search['status'])){
-   			if($search['status']==1){
-   				
-   				$cond['target']=array('<>','');
-   			}elseif($search['status']==2){
-   				
-   				$cond['error']=array('<>','');
-   			}
+   		if(!is_empty($search['status'],true)){
+   		    $cond['status']=intval($search['status']);
    		}
    		$dataList=array();
    		$taskList=array();
    		if(!$null_task){
-	   		$count=$mcollected->where($cond)->count();
+   		    $condJoin=array();
+   		    if($cond['url']){
+   		        foreach ($cond as $k=>$v){
+   		            $k=($k=='url'?'i.':'c.').$k;
+   		            $condJoin[$k]=$v;
+   		        }
+   		    }
+   		    if($condJoin){
+   		        $count=$mcollected->alias('c')->join($mcollected->collected_info_tname().' i','c.id=i.id')->where($condJoin)->count();
+   		    }else{
+   		        $count=$mcollected->where($cond)->count();
+   		    }
 	   		$limit=$search['num'];
 	   		if($count>0){
 	   			
-	   			$dataList=$mcollected->where($cond)->order('id desc')->paginate($limit,false,paginate_auto_config());
+	   		    if($condJoin){
+	   		        $dataList=$mcollected->alias('c')->join($mcollected->collected_info_tname().' i','c.id=i.id')->where($condJoin)->order('c.id desc')->paginate($limit,false,paginate_auto_config());
+	   		    }else{
+	   		        $dataList=$mcollected->where($cond)->order('id desc')->paginate($limit,false,paginate_auto_config());
+	   		    }
 	   			$pagenav=$dataList->render();
 	   			$this->assign('pagenav',$pagenav);
 	   			$dataList=$dataList->all();
 	   			$dataList=empty($dataList)?array():$dataList;
+	   			$dataList=$mcollected->getInfoDatas($dataList);
 	   			
 	   			$taskIds=array();
 	   			foreach ($dataList as $itemK=>$item){
@@ -113,7 +123,7 @@ class Collected extends BaseController {
 	   		
 	   		$this->set_html_tags(
 	   		    lang('collected_list'),
-	   		    lang('collected_list'),
+	   		    lang('collected_list').' <small><a href="'.url('collected/chart').'">统计图表</a></small>',
 	   		    breadcrumb(array(array('url'=>url('collected/list'),'title'=>'已采集数据'),array('url'=>url('collected/list'),'title'=>$navTips?$navTips:'数据列表')))
 	   		);
    		}
@@ -129,10 +139,10 @@ class Collected extends BaseController {
 	        init_array($release);
 	        if(in_array('all', $release)){
 	            
-	            model('Collected')->where("`error` is not null and `error`<>''")->delete();
+	            model('Collected')->deleteByCond(array('status'=>0));
 	        }else{
 	            
-	            model('Collected')->where('release','in',$release)->where("`error` is not null and `error`<>''")->delete();
+	            model('Collected')->deleteByCond(array('release'=>array('in',$release),'status'=>0));
 	        }
 	        $this->success('清理完成','admin/collected/list');
 	    }else{
@@ -161,13 +171,13 @@ class Collected extends BaseController {
 		}
 		if($op=='delete'){
 			
-			$mcollected->where(array('id'=>$id))->delete();
+		    $mcollected->deleteByCond(array('id'=>$id));
 			$this->success(lang('delete_success'));
 		}elseif($op=='deleteall'){
 			
 			$ids=input('ids/a',array(),'intval');
 			if(is_array($ids)&&count($ids)>0){
-				$mcollected->where(array('id'=>array('in',$ids)))->delete();
+			    $mcollected->deleteByCond(array('id'=>array('in',$ids)));
 			}
     		$this->success(lang('op_success'),'list');
 		}
@@ -176,7 +186,7 @@ class Collected extends BaseController {
 	public function chartAction(){
 	    $this->set_html_tags(
 	        '已采集数据：统计图表',
-	        '已采集数据：统计图表',
+	        '已采集数据：统计图表 <small><a href="'.url('collected/list').'">数据列表</a></small>',
 	        breadcrumb(array(array('url'=>url('collected/list'),'title'=>'已采集数据'),array('url'=>url('collected/chart'),'title'=>'统计图表')))
 	    );
 		return $this->fetch();
@@ -239,13 +249,13 @@ class Collected extends BaseController {
 				
 				$dataList['success'][$k]=$mcollected->where(array(
 					'addtime'=>array('between',array($v['start'],$v['end'])),
-					'target'=>array('<>','')
+					'status'=>1
 				))->count();
 				
 				
 				$dataList['failed'][$k]=$mcollected->where(array(
 					'addtime'=>array('between',array($v['start'],$v['end'])),
-					'error'=>array('<>','')
+					'status'=>0
 				))->count();
 			}
 			
@@ -267,13 +277,13 @@ class Collected extends BaseController {
 				
 				$dataList['success'][$module]=$mcollected->where(array(
 					'release'=>$module,
-					'target'=>array('<>','')
+					'status'=>1
 				))->count();
 				
 				
 				$dataList['failed'][$module]=$mcollected->where(array(
 					'release'=>$module,
-					'error'=>array('<>','')
+					'status'=>0
 				))->count();
 			}
 			$this->success('',null,$dataList);

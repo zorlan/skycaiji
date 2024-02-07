@@ -1,0 +1,39 @@
+<form id="form_field" method="post" action="{:url('dataset/field')}">
+{:html_usertoken()}
+	<input type="hidden" name="objid" value="" />
+	<input type="hidden" name="is_submit" value="1" />
+	<div class="form-group">
+		<label>字段名称</label>
+		<input type="text" name="name" class="form-control" autocomplete="off" value="" />
+		<input type="hidden" name="name_original" value="" />
+	</div>
+	<div class="form-group">
+		<label>数据类型</label>
+		<div class="input-group input-select-custom">
+			<div class="input-group-btn">
+				<select name="type" class="form-control">
+					<option value="">请选择</option>
+					<option value="bigint">{$Think.lang.ds_f_type_bigint}</option>
+					<option value="double">{$Think.lang.ds_f_type_double}</option>
+					<option value="varchar">{$Think.lang.ds_f_type_varchar}</option>
+					<option value="mediumtext">{$Think.lang.ds_f_type_mediumtext}</option>
+					<option value="datetime">{$Think.lang.ds_f_type_datetime}</option>
+				</select>
+			</div>
+			<input type="number" name="len" class="form-control" placeholder="长度，默认：500" autocomplete="off" />
+		</div>
+		{if !empty($field['name_original'])}
+		<p class="help-block">修改类型可能会造成数据丢失，请谨慎操作！</p>
+		{/if}
+	</div>
+	<div class="form-group">
+		<label>字段描述</label>
+		<textarea name="desc" class="form-control" placeholder="选填"></textarea>
+	</div>
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+<script type="text/javascript">
+datasetClass.field_init('{$objid}',{$field|json_encode});
+</script>

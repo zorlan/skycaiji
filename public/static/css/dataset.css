@@ -1,0 +1,51 @@
+@CHARSET "UTF-8";
+/*数据集*/
+#dataset_list .fields{
+	border:0;padding:0px 5px;height:20px;line-height:14px;font-size:12px;color:#555;background:#fff;
+}
+#dataset_db_list td .txt-big{height:100px!important;}
+#dataset_db_list td{vertical-align:middle;}
+#dataset_db_list td .form-control{
+	height: 30px;
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+
+.dataset-db-list::-webkit-scrollbar{
+    width: 12px;
+    height: 12px;
+}
+.dataset-search::-webkit-scrollbar{
+    width: 8px;
+    height: 8px;
+}
+.dataset-db-list::-webkit-scrollbar-button,.dataset-search::-webkit-scrollbar-button{
+    background-color:#efefef;
+}
+.dataset-db-list::-webkit-scrollbar-track,.dataset-search::-webkit-scrollbar-track{
+    background:#efefef;
+}
+.dataset-db-list::-webkit-scrollbar-thumb,.dataset-search::-webkit-scrollbar-thumb{
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.dataset-search{width:100%;overflow-x:scroll;white-space:nowrap;padding-bottom:5px;padding-right:5px;}
+
+#dataset_db_list input::placeholder,#dataset_db_list textarea::placeholder{color:#bbb!important;}
+
+#dataset_fields tr>th:first-child,#dataset_fields tr>td:first-child{padding-left:15px;}
+#dataset_fields thead th{padding-top:13px;padding-bottom:13px;}
+
+
+.dataset-sep{
+    color: #999;
+    text-indent: -9999px;
+    display: inline-block;
+    width: 3px;
+    line-height: 12px;
+    margin-left: 2px;
+    border-left: 1px solid #aaa;	
+}

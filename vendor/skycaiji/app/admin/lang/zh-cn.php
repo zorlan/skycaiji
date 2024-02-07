@@ -132,7 +132,7 @@ return array(
 	'taskgroup_add'=>'添加分组',
 	'taskgroup_edit'=>'编辑分组',
 	'taskgroup'=>'任务分组',
-	'taskgroup_list'=>'分组列表',
+	'taskgroup_list'=>'任务分组列表',
 	'taskgroup_name'=>'分组名称',
 	'taskgroup_sort'=>'排序',
 	'taskgroup_sort_help'=>'数字越大越靠前',
@@ -229,7 +229,8 @@ return array(
 	'rele_error_db'=>'数据库错误：',
 	'rele_error_no_table'=>'该数据库没有表',
 	'rele_success_db_ok'=>'数据库连接成功',
-	'rele_module'=>'发布方式',
+    'rele_module'=>'发布方式',
+    'rele_module_dataset'=>'数据集',
 	'rele_module_cms'=>'本地CMS程序',
 	'rele_module_db'=>'数据库',
 	'rele_module_api'=>'生成API',
@@ -257,7 +258,8 @@ return array(
 	'collected'=>'已采集数据',	
 	'collected_list'=>'已采集数据列表',
 
-	'COLLECTED_RELE_'=>'无',
+    'COLLECTED_RELE_'=>'无',
+    'collected_rele_dataset'=>'数据集',
 	'collected_rele_cms'=>'CMS',
 	'collected_rele_db'=>'数据库',
 	'collected_rele_file'=>'文件',
@@ -355,6 +357,17 @@ return array(
     'tips_matchn_area'=>'示例：[内容123] [内容abc]',
 	'tips_match_url'=>'示例：&lt;a href=&quot;http://demo.com/[内容123]/[内容abc]&quot;&gt;(*)&lt;/a&gt;',
 	'tips_matchn_url'=>'示例：http://www.demo.com/[内容123]-[内容abc].html',
+    
+    'ds_f_type_bigint'=>'数字',
+    'ds_f_type_double'=>'小数',
+    'ds_f_type_varchar'=>'字符串',
+    'ds_f_type_mediumtext'=>'文本',
+    'ds_f_type_datetime'=>'时间',
+    
+    'ds_ix_type_index'=>'普通索引',
+    'ds_ix_type_unique'=>'唯一索引',
+    'ds_ix_type_fulltext'=>'全文索引',
+    
     
 	'release_upgrade'=>'插件版本过低，请升级插件 <a href="https://www.skycaiji.com/manual/doc/release_upgrade" target="_blank">升级教程</a>',
 );

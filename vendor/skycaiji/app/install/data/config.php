@@ -8,6 +8,6 @@ return array(
 	'DB_PORT' => '{$DB_PORT}', // 端口
 	'DB_PREFIX' => '{$DB_PREFIX}', // 数据库表前缀
 	'DB_DSN' => '', // 数据库连接DSN 用于PDO方式
-	'DB_CHARSET' => 'utf8', // 数据库的编码 默认为utf8
+    'DB_CHARSET' => 'utf8mb4', // 数据库的编码 默认为utf8mb4
 );
 ?>

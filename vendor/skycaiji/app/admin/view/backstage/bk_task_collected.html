@@ -19,7 +19,7 @@
 		<tr>
 			<td>{php}$curIx++;{/php}{$curIx}</td>
 			<td class="desc">
-				{if condition="!empty($item['error'])"}
+				{if empty($item['status'])}
 					失败：{$item['error']}
 				{else /}
 					{$item['target']} {$item['desc']?$item['desc']:''}

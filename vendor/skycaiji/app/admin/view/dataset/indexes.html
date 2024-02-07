@@ -1,0 +1,61 @@
+<div id="win_dataset_indexes" style="margin-top:-10px;margin-bottom:-10px;">
+<form method="post" ajax-submit="true" action="{:url('dataset/indexes')}">
+	{:html_usertoken()}
+	{if !empty($dsData)}
+	<input type="hidden" name="ds_id" value="{$dsData['id']}" />
+	{/if}
+	<div class="form-group">
+		<div class="table-responsive">
+			<table class="table table-hover index-list">
+			<thead>
+				<tr>
+					<th style="width:130px;">索引类型</th>
+					<th>字段（多个字段为联合索引）</th>
+					<th style="width:70px;">操作<a href="javascript:;" class="glyphicon glyphicon-plus index-add-index" style="margin-left:5px;font-size:12px;" title="添加索引"></a></th>
+				</tr>
+			</thead>
+			</table>
+		</div>
+	</div>
+	<button type="submit" class="btn btn-primary btn-block">保存</button>
+</form>
+<div class="index-tpl" style="display:none;">
+<table>
+	<tr data-tpl="index">
+		<td>
+			<select class="form-control index-type">
+				<option value="">无</option>
+				<option value="index">{$Think.lang.ds_ix_type_index}</option>
+				<option value="unique">{$Think.lang.ds_ix_type_unique}</option>
+				<option value="fulltext">{$Think.lang.ds_ix_type_fulltext}</option>
+			</select>
+		</td>
+		<td>
+			<table class="table">
+				<tr class="index-fields"></tr>
+			</table>
+		</td>
+		<td>
+			<div class="input-group">
+				<div class="input-group-addon"><a href="javascript:;" class="glyphicon glyphicon-plus index-add-field" style="font-size:12px;" title="添加字段"></a></div>
+				<div class="input-group-addon" style="border-left:1px solid #d2d6de;"><a href="javascript:;" class="glyphicon glyphicon-remove index-delete-index" style="font-size:12px;" title="删除索引"></a></div>
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td data-tpl="fields">
+			<select class="form-control index-field">
+			<option value="">无</option>
+			{foreach $fields as $k=>$v}
+			<option value="{$k}" data-type="{$v['type']}">{$v['name']}</option>
+			{/foreach}
+			<option value="-1">删除字段</option>
+			</select>
+		</td>
+	</tr>
+</table>
+</div>
+</div>
+<script type="text/javascript">
+datasetClass.indexes_init({$dbIndexes|json_encode});
+</script>

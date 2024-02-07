@@ -258,7 +258,7 @@ class Task extends \skycaiji\common\model\BaseModel{
                         if($taskLastTime>0&&(abs($timeNow-$taskLastTime)>$failedInterval)){
                             
                             
-                            $taskFailedNum=$mcollected->where(array('task_id'=>$taskId,'addtime'=>array('GT',$taskLastTime),'error'=>array('<>','')))->count();
+                            $taskFailedNum=$mcollected->where(array('task_id'=>$taskId,'addtime'=>array('GT',$taskLastTime),'status'=>0))->count();
                             if($taskFailedNum>0&&$taskFailedNum>$caijiConfig['failed_num']){
                                 
                                 $mcacheEmail->setCache($taskKey,$timeNow);
@@ -287,15 +287,15 @@ class Task extends \skycaiji\common\model\BaseModel{
                             $mcacheEmail->setCache($reportKey,$timeNow);
                             $report=array(
                                 'today_success'=>0,'today_error'=>0,'today_tasks'=>array(),
-                                'total_success'=>$mcollected->where("`target` <> ''")->count(),
-                                'total_error'=>$mcollected->where("`error` <> ''")->count(),
+                                'total_success'=>$mcollected->where('status',1)->count(),
+                                'total_error'=>$mcollected->where('status',0)->count(),
                                 'task_auto'=>$mtask->where('`auto`>0')->count(),
                                 'task_other'=>$mtask->where('`auto`=0')->count(),
                                 'caijitime'=>$mtask->where('`auto`>0')->max('caijitime'),
                                 'autotime'=>CacheModel::getInstance()->getCache('collect_backstage_time','data'),
                             );
-                            $todaySuccess=$mcollected->field('task_id,count(task_id)')->where(array('addtime'=>array('GT',$todayTime),'target'=>array('<>','')))->group('task_id')->column('count(task_id)','task_id');
-                            $todayError=$mcollected->field('task_id,count(task_id)')->where(array('addtime'=>array('GT',$todayTime),'error'=>array('<>','')))->group('task_id')->column('count(task_id)','task_id');
+                            $todaySuccess=$mcollected->field('task_id,count(task_id)')->where(array('addtime'=>array('GT',$todayTime),'status'=>1))->group('task_id')->column('count(task_id)','task_id');
+                            $todayError=$mcollected->field('task_id,count(task_id)')->where(array('addtime'=>array('GT',$todayTime),'status'=>0))->group('task_id')->column('count(task_id)','task_id');
                             
                             if($todaySuccess){
                                 $report['today_success']=array_sum($todaySuccess);

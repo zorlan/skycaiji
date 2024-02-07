@@ -1,0 +1,83 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<link rel="stylesheet" href="__PUBLIC__/static/css/dataset.css?{$Think.config.html_v}">
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/dataset.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<form id="form_dataset" method="post" role="form" action="{:url('admin/dataset/set')}">
+{if !empty($dsData)}
+<input type="hidden" name="id" value="{$dsData['id']}" />
+{/if}
+<div class="box box-default">
+	<div class="box-body" style="padding-bottom:0;">
+		{:html_usertoken()}
+	    <div class="form-group">
+	        <label>名称</label>
+	        <input type="text" name="name" class="form-control" autocomplete="off" />
+	    </div>
+	    <div class="form-group">
+	        <label>描述</label>
+	        <textarea name="desc" class="form-control" placeholder="选填"></textarea>
+	    </div>
+	   	<div class="form-group">
+	       	<label>排序</label>
+			<input type="number" class="form-control" name="sort" autocomplete="off" value="{$dsData?intval($dsData['sort']):0}">
+			<p class="help-block">数字越大越靠前</p>
+		</div>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-body" style="padding:0;">
+   		<div class="table-responsive">
+   			<table class="table table-hover ui-sortable" id="dataset_fields">
+   				<thead>
+   					<tr>
+   						<th style="width:200px">字段名称</th>
+   						<th>数据类型</th>
+   						<th>字段描述</th>
+   						<th style="width:80px">操作  <a href="javascript:;" class="glyphicon glyphicon-plus" id="add_dataset_field" style="font-size:12px;" title="添加字段"></a></th>
+   					</tr>
+   				</thead>
+   				<tbody>
+   				</tbody>
+   			</table>
+   		</div>
+	</div>
+</div>
+<div class="form-group">
+	<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+</div>
+</form>
+{if !empty($dsData)}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<a href="javascript:;" id="set_dataset_indexes">设置索引</a> <span class="dataset-sep">|</span>
+		<a href="{:url('dataset/db?ds_id='.$dsData['id'])}">查看数据</a>
+	</div>
+   	{if !empty($indexes)}
+	<div class="panel-body">
+   		{foreach $indexes as $k=>$v}
+   		<span class="label label-default" style="font-size:12px;margin-left:5px;">{$v['type']}：{:implode(',',$v['fields'])}</span>
+   		{/foreach}
+	</div>
+   	{/if}
+</div>
+{/if}
+<table style="display:none;">
+	<tr id="tpl_field">
+		<td><a href="javascript:;" class="field-name" data-dbname="" style="white-space:nowrap;"></a></td>
+		<td>
+			<span class="field-type"></span>
+		</td>
+		<td class="field-desc"></td>
+		<td>
+			<input type="hidden" name="fields[]" value="" />
+			<a href="javascript:;" class="glyphicon icon-drag-move field-move" style="font-size:12px;" title="移动"></a>
+			<a href="javascript:;" class="glyphicon glyphicon-remove field-dlt" style="font-size:12px;" title="删除"></a>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">
+datasetClass.init({$dsData|json_encode});
+</script>
+{/block}

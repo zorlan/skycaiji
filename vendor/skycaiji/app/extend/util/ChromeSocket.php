@@ -118,7 +118,11 @@ class ChromeSocket{
                 $return['error']='页面渲染需开启proc_open或在服务器中执行命令：'.$command;
             }else{
                 
-                $return['info']=\util\Tools::proc_open_exec_curl($command,$isTest?'all':true,10,$isTest?true:false);
+                try{
+                    $return['info']=\util\Tools::proc_open_exec_curl($command,$isTest?'all':true,10,$isTest?true:false);
+                }catch (\Exception $ex){
+                    $return['error']=$ex->getMessage();
+                }
             }
         }
         return $return;

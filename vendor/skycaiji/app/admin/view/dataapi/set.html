@@ -1,0 +1,247 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<link rel="stylesheet" href="__PUBLIC__/static/css/dataapi.css?{$Think.config.html_v}">
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/dataapi.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<form id="form_dataapi" method="post" ajax-submit="true" role="form" action="{:url('admin/dataapi/set')}">
+{if !empty($daData)}
+<input type="hidden" name="id" value="{$daData['id']}" />
+{/if}
+<div class="box box-default">
+	<div class="box-body" style="padding-bottom:0;">
+		{:html_usertoken()}
+	    <div class="form-group">
+	        <label>名称</label>
+	       	<div class="input-group">
+	        	<input type="text" name="name" class="form-control" autocomplete="off" placeholder="数据接口名称" />
+	       		<span class="input-group-addon brl_0 brr_0">网址别名</span>
+	        	<input type="text" name="route" class="form-control" autocomplete="off" placeholder="选填，可通过该别名访问接口" />
+	        </div>
+	    </div>
+	    <div class="form-group">
+	        <label>状态</label>
+			<div class="input-group">
+		        <label class="radio-inline"><input type="radio" name="status" value="1">开启</label>
+				<label class="radio-inline"><input type="radio" name="status" value="0" checked="checked">关闭</label>
+	        </div>
+	    </div>
+	    <div class="form-group">
+	        <label>描述</label>
+	        <textarea name="desc" class="form-control" placeholder="选填"></textarea>
+	    </div>
+	   	<div class="form-group">
+	       	<label>排序</label>
+			<input type="number" class="form-control" name="sort" autocomplete="off" value="0">
+			<p class="help-block">数字越大越靠前</p>
+		</div>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<div class="panel-title">接口配置</div>
+	</div>
+	<div class="panel-body">
+	   	<div class="form-group">
+	       	<label>请求方式</label>
+				<select name="config[api_method]" class="form-control">
+					<option value="">同时允许GET和POST</option>
+					<option value="get">仅限GET</option>
+					<option value="post">仅限POST</option>
+				</select>
+	    </div>
+	   	<div class="form-group">
+	       	<label>密钥</label>
+	       	<div class="input-group">
+	       		<span class="input-group-addon">密钥</span>
+				<input type="text" class="form-control" name="config[api_key]" placeholder="选填，防止接口被盗用" autocomplete="off">
+	       		<span class="input-group-addon brl_0 brr_0">模式</span>
+	       		<select name="config[api_mode]" class="form-control">
+	       			<option value="">便捷（密钥明文传输有泄露风险）</option>
+	       			<option value="safe">安全（需要签名处理）</option>
+	       		</select>
+	       	</div>
+			<p class="help-block"></p>
+		</div>
+	   	<div class="form-group">
+	       	<label>数据量</label>
+	       	<div class="input-group">
+	       		<span class="input-group-addon">每页最大数量</span>
+	       		<input type="number" name="config[page_per]" class="form-control" placeholder="默认：50" />
+	       		<span class="input-group-addon brl_0 brr_0">最大分页数</span>
+	       		<input type="number" name="config[page_max]" class="form-control" placeholder="默认不限制" />
+	       		<span class="input-group-addon brl_0 brr_0">分页参数名</span>
+	       		<input type="text" name="config[page_name]" class="form-control" placeholder="默认：p" />
+	       	</div>
+			<p class="help-block">限制接口输出的数据量</p>
+		</div>
+	</div>
+</div>
+<div class="form-group">
+	<input type="hidden" name="ds_id" class="form-control"/>
+	<button type="button" class="btn btn-default btn-block" style="font-weight:bold;" id="btn_dataset">绑定数据集</button>
+</div>
+<div class="panel panel-default" id="config_conds_box" style="display:none;">
+	<div class="panel-heading">
+		<div class="panel-title">数据查询</div>
+	</div>
+	<div class="panel-body" style="padding:0;">
+		<div class="table-responsive">
+			<table class="table table-hover" id="config_conds">
+			<thead>
+				<tr>
+					<th>条件逻辑</th>
+					<th>数据集字段</th>
+					<th>条件判断</th>
+					<th>传入参数名 <a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips" id="tips_config_cond" title="提示信息"></a></th>
+					<th style="width:90px;">操作 <a href="javascript:;" class="glyphicon glyphicon-plus" id="add_config_cond" style="font-size:12px;" title="添加条件"></a></th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="panel-body">
+		<div class="form-group">
+	       	<label>排序字段</label>
+	       	<div class="input-group">
+	       		<select name="config[order_field]" class="form-control">
+	       			<option value="">无</option>
+	       		</select>
+	       		<div class="input-group-addon">
+	       			<label class="radio-inline"><input type="radio" name="config[order_sort]" value="" checked="checked">升序</label>
+	       			<label class="radio-inline"><input type="radio" name="config[order_sort]" value="desc">降序</label>
+	       		</div>
+	       	</div>
+		</div>
+		<div class="form-group">
+	       	<label>隐藏字段</label>
+	       	<div id="config_hide_fields"></div>
+	       	<p class="help-block">勾选的字段不会在接口中显示</p>
+	    </div>
+	</div>
+</div>
+<div class="form-group">
+	<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+</div>
+</form>
+{if !empty($daData)}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<div class="panel-title">使用接口</div>
+	</div>
+	<div class="panel-body">
+		<table class="table" style="margin-bottom:0;">
+			<tr>
+				<td style="width:80px;border-top:0">接口网址</td>
+				<td style="border-top:0">
+					{if $isSafeMode}
+					{$apiUrl.'签名_时间戳'}
+					<div class="help-block">
+						由于密钥启用了安全模式，需将“签名”替换成 md5({$config['api_key']|md5}+时间戳)，注意时间戳是10位数字不是日期格式！<br>
+						PHP中的示例：$url='{$apiUrl}'.md5('{$config['api_key']|md5}'.time()).'_'.time();
+					</div>
+					{else/}
+					{$apiUrl}
+					{/if}
+				</td>
+			</tr>
+			<tr>
+				<td>请求方式</td>
+				<td>{$config['api_method']?$config['api_method']:'不限制'}</td>
+			</tr>
+			{if !empty($groupConds)}
+			<tr>
+				<td>发送数据</td>
+				<td>
+					{foreach $groupConds as $kgc=>$conds}
+					<div style="margin-bottom:15px;">
+					{if $kgc>0}
+					<div style="text-align:left;margin-bottom:15px;font-size:16px;font-weight:bold;">或者</div>
+					{/if}
+					<div style="border:3px solid #eee;border-radius:5px;display:inline-block;">
+					<table class="table table-bordered" style="width:auto;margin:0">
+						<tr>
+							<td style="text-align:right">条件</td>
+							<td>参数名</td>
+						</tr>
+						{foreach $conds as $kc=>$cond}
+						{if $kc>0}
+						<tr>
+							<td style="text-align:right;border-right:0;"><b>并且</b></td>
+							<td style="border-left:0;"></td>
+						</tr>
+						{/if}
+						{if empty($cond['subs'])}
+						<tr>
+							<td style="text-align:right">字段"{$fieldNames[$cond['field']]}" {$condOps[$cond['op']]}</td>
+							<td>{$cond['name']}</td>
+						</tr>
+						{else/}
+							{foreach $cond['subs'] as $kcs=>$condSubs}
+								{if $kcs>0}
+								<tr>
+									<td></td>
+									<td>或者</td>
+								</tr>
+								{/if}
+								{foreach $condSubs as $condSub}
+								<tr>
+									<td style="text-align:right">字段"{$fieldNames[$condSub['field']]}" {$condOps[$condSub['op']]}</td>
+									<td>{$condSub['name']}</td>
+								</tr>
+								{/foreach}
+							{/foreach}
+						{/if}
+						{/foreach}
+					</table>
+					</div>
+					</div>
+					{/foreach}
+					{if count($groupConds)>1}
+					<p class="help-block">满足其中一组条件即可执行数据查询</p>
+					{/if}
+				</td>
+			</tr>
+			{/if}
+		</table>
+	</div>
+</div>
+{/if}
+<table style="display:none;">
+	<tr id="tpl_config_cond">
+		<td>
+			<input type="hidden" name="conds[sub][]" value="" />
+			<select class="form-control" name="conds[logic][]">
+				<option value="and">并且</option>
+				<option value="or">或者</option>
+        	</select>
+		</td>
+		<td>
+			<select class="form-control" name="conds[field][]">
+				<option value="">无</option>
+			</select>
+		</td>
+		<td>
+			<select class="form-control" name="conds[op][]">
+				<option value="">无</option>
+              	{foreach $condOps as $k=>$v}
+				<option value="{$k}">{$v}</option>
+              	{/foreach}
+        	</select>
+		</td>
+		<td>
+			<input type="text" name="conds[name][]" class="form-control" value="" placeholder="" autocomplete="off" />
+		</td>
+		<td>
+			<a href="javascript:;" class="glyphicon icon-drag-move config-cond-move" title="移动"></a>
+			<a href="javascript:;" class="fa fa-remove config-cond-dlt" title="删除"></a>
+			<a href="javascript:;" class="fa fa-plus config-cond-add" title="添加子条件"></a>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">
+dataapiClass.init({$daData|json_encode});
+</script>
+{/block}

@@ -1,5 +1,6 @@
 {extend name="common:main" /}
 {block name="cssjs"}
+<link rel="stylesheet" href="__PUBLIC__/static/css/task.css?{$Think.config.html_v}">
 <script src="__PUBLIC__/static/js/admin/tasks.js?{$Think.config.html_v}"></script>
 {/block}
 {block name="content"}
@@ -18,7 +19,7 @@
 	                <th>{$Think.lang.task_auto}</th>
 	                <th>{$Think.lang.task_addtime}</th>
 	                <th>{$Think.lang.task_caijitime}</th>
-	                <th>{$Think.lang.task_collected}</th>
+	                <th width="200">{$Think.lang.task_collected}</th>
 	                <th>{$Think.lang.op}</th>
 				</tr>
 				</thead>

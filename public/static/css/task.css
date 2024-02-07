@@ -1,0 +1,7 @@
+@CHARSET "UTF-8";
+
+#task_list_folder .taskgroup-opened .icon-folder-pre:before{content:"\2212"}
+#task_list_folder .taskgroup-opened .icon-folder:before{content:"\e118"}
+
+#task_list_folder .icon-folder-pre:before{font-size:12px;content:"\002b"}
+#task_list_folder .icon-folder:before{content:"\e117";margin-right:5px;}

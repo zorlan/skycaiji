@@ -1,0 +1,103 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<link href="__PUBLIC__/static/css/jquery.datetimepicker.css?{$Think.config.html_v}" rel="stylesheet">
+<script type="text/javascript" src="__PUBLIC__/static/js/jquery.datetimepicker.js?{$Think.config.html_v}"></script>
+<link rel="stylesheet" href="__PUBLIC__/static/css/dataset.css?{$Think.config.html_v}">
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/dataset.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<div class="box">
+	<div class="box-body">
+		<form id="form_list" ajax-submit="true" method="post" action="{:url('dataset/dbSet')}">
+		<div class="overlay">
+			<i class="fa fa-refresh fa-spin"></i>
+		</div>
+		{:html_usertoken()}
+		{if !empty($dsData)}
+		<input type="hidden" name="ds_id" value="{$dsData['id']}"/>
+		{/if}
+		<div class="table-responsive dataset-db-list" style="border:0;">
+		<table id="dataset_db_list" class="table table-striped datatable">
+			<thead>
+	            <tr>
+					<th class="chk">ID</th>
+					{foreach $fields as $field}
+					<th>{$field['name']}</th>
+					{/foreach}
+	                <th style="width:50px;">{$Think.lang.op}</th>
+	            </tr>
+			</thead>
+			<tbody>
+			</tbody>
+			<tfoot>
+				{php}$colspan=count($fields)+2;{/php}
+				<tr>
+					<td class="chk"><label class="chk-all"><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')"><span>全部</span></label></td>
+					<td colspan="{$colspan}">
+						<button type="submit" class="btn btn-default">保存</button>
+						<button type="button" class="btn btn-danger" id="deleteall">删除</button>
+						<button type="button" class="btn btn-primary" id="addnew">新增</button>
+					</td>
+				</tr>
+    			{if condition="!empty($pagenav)"}
+				<tr>
+					<td colspan="{$colspan+1}">{$pagenav}</td>
+				</tr>
+				{/if}
+			</tfoot>
+		</table>
+		</div>
+		</form>
+	</div>
+</div>
+<div class="list-footer dataset-search">
+	<form id="form_search" method="post" action="{:url('dataset/db')}" class="form-inline">
+		{:html_usertoken()}
+		{if !empty($dsData)}
+		<input type="hidden" name="ds_id" value="{$dsData['id']}"/>
+		{/if}
+		<div class="form-group form-group-sm" style="margin-bottom:5px;">
+			<label>每页显示</label>
+		    <select name="num" class="form-control">
+			    <option value="30">30个</option>
+			    <option value="50">50个</option>
+			    <option value="100">100个</option>
+			    <option value="150">150个</option>
+			    <option value="200">200个</option>
+			    <option value="300">300个</option>
+		    </select>
+	    </div>
+	    <div class="form-group form-group-sm" style="margin-bottom:5px;">
+			<label>ID</label>
+		    <input type="number" name="id" class="form-control" value="" placeholder="精确搜索" autocomplete="off" />
+	    </div>
+	    {foreach $fields as $fname=>$field}
+	    <div class="form-group form-group-sm" style="margin-bottom:5px;">
+			<label>{$field['name']}</label>
+		    <input type="text" name="{$fname}" class="form-control" value="" placeholder="模糊搜索" autocomplete="off" />
+	    </div>
+	    {/foreach}
+	    <div class="form-group form-group-sm" style="margin-bottom:5px;margin-right:10px;">
+        	<button type="submit" class="btn btn-default btn-sm">{$Think.lang.search}</button>
+        </div>
+	</form>
+</div>
+<table style="display:none;">
+	<tr id="tpl_db" data-db-id="">
+		<td class="chk"><label class="checkbox-inline"><input type="checkbox" name="ids[]" value=""> <span data-field="id"></span></label></td>
+		{foreach $fields as $fname=>$field}
+        <td>
+        	{if $field['type']=='mediumtext'}
+        	<textarea data-field="{$fname}" name="{$fname}[_id_]" class="form-control" placeholder="{:lang('ds_f_type_'.$field['type'])}"></textarea>
+        	{else/}
+        	<input type="{if $field['type']=='bigint'}number{else/}text{/if}" data-field="{$fname}" name="{$fname}[_id_]" class="form-control{if $field['type']=='datetime'} db-time{/if}" placeholder="{:lang('ds_f_type_'.$field['type'])}" autocomplete="off" />
+        	{/if}
+        </td>
+		{/foreach}
+		<td><a href="javascript:;" class="db-delete">{$Think.lang.delete}</a></td>
+	</tr>
+</table>
+<script type="text/javascript">
+datasetClass.db_init({$list|json_encode},{$search|json_encode});
+</script>
+{/block}

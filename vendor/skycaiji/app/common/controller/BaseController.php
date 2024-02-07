@@ -22,7 +22,19 @@ class BaseController extends Controller {
 		parent::success($msg,$url,$data,$wait,$header);
 		exit();
 	}
-
+	
+	public function jsonSend($msg='',$data=array(),$code=0,$options=null){
+	    $json=array(
+	        'code' => $code,
+	        'msg'  => $msg,
+	        'data' => is_array($data)?$data:array()
+	    );
+	    if(is_array($options)){
+	        $json=array_merge($json,$options);
+	    }
+	    json($json)->send();
+	    exit();
+	}
 	/**
 	 * tp3.2默认跳转操作 支持错误导向和正确跳转
 	 * @param Boolean $success 状态

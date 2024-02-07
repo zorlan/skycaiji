@@ -1,0 +1,51 @@
+{if !empty($dsList)}
+<div id="window_dataset_list">
+	<ul class="row">
+	{foreach $dsList as $v}
+	<li class="col-xs-6" style="padding:3px 15px 3px 0;">
+		<a href="javascript:;" data-id="{$v['id']}" data-title="{$v['name']|htmlentities}">
+			{$v['name']}
+		</a>
+	</li>
+	{/foreach}
+	</ul>
+	{$pagenav}
+	<form method="get" action="{:url('dataset/select?from='.$from)}" class="form-inline" style="padding-top:15px;margin-top:10px;border-top:solid 1px #f4f4f4;">
+		{:html_usertoken()}
+	    <div class="form-group form-group-sm">
+			<label>ID</label>
+		    <input type="number" name="id" class="form-control" value="{$search['id']}" placeholder="精确搜索" />
+	    </div>
+	    <div class="form-group form-group-sm">
+			<label>名称</label>
+		    <input type="text" name="name" class="form-control" value="{$search['name']}" placeholder="模糊搜索" />
+	    </div>
+	    <div class="form-group form-group-sm">
+        	<button type="submit" class="btn btn-default btn-sm" style="margin-bottom:0;">{$Think.lang.search}</button>
+        </div>
+	</form>
+</div>
+{else/}
+	没有数据集！<a href="{:url('dataset/set')}" target="_blank">创建一个</a>
+{/if}
+<script type="text/javascript">
+'use strict';
+(function(){
+	$('#window_dataset_list .pagination').addClass('pagination-sm');
+	$('#window_dataset_list .pagination a').bind('click',function(){
+		windowModal('数据集',$(this).attr('href'));
+		return false;
+	});
+	$('#window_dataset_list form').bind('submit',function(){
+		windowModal('数据集',$(this).attr('action'),{ajax:{data:$(this).serialize()}});
+		return false;
+	});
+	$('#window_dataset_list a[data-id]').bind('click',function(){
+		{if $from=='release'}
+		releaseClass.dataset_load({'dataset_id':$(this).attr('data-id')});
+		{else if $from=='dataapi'}
+		dataapiClass.dataset_load({'dataset_id':$(this).attr('data-id')});
+		{/if}
+	});
+})();
+</script>

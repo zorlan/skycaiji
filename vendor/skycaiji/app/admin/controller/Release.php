@@ -218,8 +218,27 @@ class Release extends CollectController{
 	        return $this->fetch();
 	    }
 	}
-	
-	
+	public function datasetAction(){
+	    $mds=model('Dataset');
+        $taskId=input('task_id/d',0);
+        $dsId=input('ds_id/d',0);
+        $dsData=$mds->getById($dsId);
+        $fields=$dsData['config']['fields'];
+        init_array($fields);
+        
+        $collFields=array();
+        if($taskId>0){
+            $taskData=model('Task')->getById($taskId);
+            if(!empty($taskData)){
+                $collFields=controller('admin/Rdb','event')->get_coll_fields($taskData['id'], $taskData['module']);
+            }
+            init_array($collFields);
+        }
+        $this->assign('dsData',$dsData);
+        $this->assign('fields',$fields);
+        $this->assign('collFields',$collFields);
+        return $this->fetch();
+	}
 	/*检测cms信息*/
 	public function cmsDetectAction(){
 		$acms=controller('admin/Rcms','event');
