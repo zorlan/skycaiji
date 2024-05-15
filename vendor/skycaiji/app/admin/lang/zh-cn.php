@@ -164,14 +164,16 @@ return array(
 	'field_module_auto'=>'自动获取',
 	'field_module_xpath'=>'XPath匹配',
 	'field_module_words'=>'固定文字',
-	'field_module_num'=>'随机数字',
+    'field_module_num'=>'随机数字',
+    'field_module_no'=>'自增数字',
 	'field_module_time'=>'时间',
 	'field_module_list'=>'列表抽取',
 	'field_module_json'=>'JSON提取',
 	'field_module_merge'=>'字段组合',
 	'field_module_extract'=>'字段提取',
     'field_module_sign'=>'内容标签',
-	
+    
+    'process_module_extract'=>'提取内容',
     'process_module_html'=>'html标签过滤',
     'process_module_insert'=>'插入内容',
 	'process_module_replace'=>'内容替换',
@@ -183,13 +185,13 @@ return array(
 	'process_module_batch'=>'批量替换',
 	'process_module_substr'=>'截取字符串',
 	'process_module_func'=>'使用函数',
-	'process_module_api'=>'调用接口',
-		
-	'p_m_if_1'=>'满足条件采集',	
-	'p_m_if_2'=>'满足条件不采集',
-	'p_m_if_3'=>'不满足条件采集',
-	'p_m_if_4'=>'不满足条件不采集',
-    
+    'process_module_api'=>'调用接口',
+    'process_module_apiapp'=>'接口插件',
+
+	'p_m_if_1'=>'满足条件继续操作',	
+	'p_m_if_2'=>'满足条件中断操作',
+	'p_m_if_3'=>'不满足条件继续操作',
+	'p_m_if_4'=>'不满足条件中断操作',
     
     'p_m_if_c_has'=>'包含',
     'p_m_if_c_nhas'=>'不包含',
@@ -368,6 +370,14 @@ return array(
     'ds_ix_type_unique'=>'唯一索引',
     'ds_ix_type_fulltext'=>'全文索引',
     
+    'apiapp_op_variable'=>'变量',
+    'apiapp_op_request'=>'请求',
+    'apiapp_variable_m_'=>'直接输入',
+    'apiapp_variable_m_user'=>'用户输入',
+    'apiapp_variable_m_extract'=>'提取内容',
+    'apiapp_variable_m_time'=>'时间',
+    'apiapp_variable_m_num'=>'随机数字',
+    'apiapp_variable_m_list'=>'列表抽取',
     
 	'release_upgrade'=>'插件版本过低，请升级插件 <a href="https://www.skycaiji.com/manual/doc/release_upgrade" target="_blank">升级教程</a>',
 );

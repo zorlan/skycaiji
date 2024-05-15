@@ -92,6 +92,7 @@
 .label-custom-opened{font-weight:normal;background-color:#dedede;color:#555;}
 
 .plugin-func-refresh{font-size:12px;}
+.plugin-api-refresh{font-size:12px;}
 
 .brl_0{border-left:0;}
 .brr_0{border-right:0;}
@@ -281,6 +282,27 @@ table.table thead .sorting_desc:after {
 /*杂项*/
 .form-inline label{font-weight:normal;}
 
+.form-control-slt{width:30px!important;text-align:left;}
+.form-control-slt select.form-control {
+	min-width: 22px !important;
+	width: 22px !important;
+	height: 30px !important;
+	float: none !important;
+	border: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	text-indent: -200px !important;
+	
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	-ms-appearance: none;
+	appearance: none;
+	
+	background: url('../images/select.png') no-repeat scroll right center transparent;
+	background-size: 14px;
+}
+.form-control-slt select.form-control::-ms-expand { display: none; }
+
 .box-header .navbar-toggle{background:#efefef;margin-top:0;}
 .box-header .navbar-toggle .icon-bar{background:#aaa;}
 
@@ -407,15 +429,6 @@ footer.footer-end{display:none;}
 .tool-json-tree .val{}
 .tool-json-tree .text{width:100%;}
 .tool-json-tree .text textarea{width:100%;}
-/*开发*/
-.deve-editor-left{padding-right:0px;}
-.deve-editor-right{padding-left:1px;}
-.deve-editor-apps-nav{margin-bottom:0;}
-
-.deve-editor-apps{padding-left:5px;list-style:none;}
-.deve-editor-apps li{padding:2px 0;width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.deve-editor-apps li a{color:#333;}
-.deve-editor-apps li.cur a{font-weight:bold;}
 
 /*采集窗口*/
 .win-cem-process-body{position:relative;}
@@ -470,8 +483,6 @@ footer.footer-end{display:none;}
 		padding-top:50px;
 	}
 	.content-wrapper .content{padding-top:8px;}
-	
-	.deve-editor-left,.deve-editor-right{padding-left:15px;padding-right:15px;margin-bottom:10px;}
 	
 	/*元素最小宽度，防止太窄无法输入*/
 	.table-responsive .table input.form-control{min-width:100px;}

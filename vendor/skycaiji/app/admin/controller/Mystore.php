@@ -12,6 +12,7 @@
 namespace skycaiji\admin\controller;
 
 use skycaiji\admin\model\FuncApp;
+use skycaiji\admin\model\ApiApp;
 class Mystore extends BaseController {
 	public function indexAction(){
     	$this->redirect('mystore/store');
@@ -118,8 +119,8 @@ class Mystore extends BaseController {
 		
 		$this->set_html_tags(
 		    lang('rule_'.$type),
-		    '已下载',
-		    breadcrumb(array(array('url'=>url('mystore/rule'),'title'=>'已下载：'.lang('rule_'.$type))))
+		    lang('rule_'.$type),
+		    breadcrumb(array(array('url'=>url('mystore/rule'),'title'=>lang('rule_'.$type))))
 		);
 		
 		$this->assign('ruleList',$ruleList);
@@ -262,8 +263,8 @@ class Mystore extends BaseController {
 		
 		$this->set_html_tags(
 		    '发布插件',
-		    '已下载',
-		    breadcrumb(array(array('url'=>url('mystore/releaseApp'),'title'=>'已下载：发布插件')))
+		    '发布插件',
+		    breadcrumb(array(array('url'=>url('mystore/releaseApp'),'title'=>'发布插件')))
 		);
 		
 		$this->assign('appList',$appList);
@@ -582,13 +583,13 @@ class Mystore extends BaseController {
 		
 		$this->set_html_tags(
 		    '函数插件',
-		    '已下载',
-		    breadcrumb(array(array('url'=>url('mystore/funcApp'),'title'=>'已下载：函数插件')))
+		    '函数插件',
+		    breadcrumb(array(array('url'=>url('mystore/funcApp'),'title'=>'函数插件')))
 		);
 		
 		$this->assign('appList',$appList);
 		$this->assign('modules',$mfuncApp->funcModules);
-		return $this->fetch('func');
+		return $this->fetch('func_app');
 	}
 	
 	public function funcAppOpAction(){
@@ -666,6 +667,140 @@ class Mystore extends BaseController {
 			}
 		}
 	}
+	
+	
+	/*接口插件*/
+	public function apiAppAction(){
+	    $page=max(1,input('p/d',0));
+	    $cond=array();
+	    
+	    $sortBy=input('sort','');
+	    $orderKey=input('order','');
+	    
+	    \util\Param::set_cache_action_order_by('action_mystore_api_order', $orderKey, $sortBy);
+	    
+	    $sortBy=($sortBy=='asc')?'asc':'desc';
+	    $this->assign('sortBy',$sortBy);
+	    $this->assign('orderKey',$orderKey);
+	    
+	    $orderBy=empty($orderKey)?'id desc':($orderKey.' '.$sortBy);
+	    
+	    $mapiApp=model('ApiApp');
+	    $limit=20;
+	    $count=$mapiApp->where($cond)->count();
+	    $appList=$mapiApp->where($cond)->order($orderBy)->paginate($limit,false,paginate_auto_config());
+	    
+	    $pagenav = $appList->render();
+	    $this->assign('pagenav',$pagenav);
+	    $appList=$appList->all();
+	    
+	    if(!empty($appList)){
+	        $provList=array();
+	        foreach ($appList as $k=>$v){
+	            if(!empty($v['provider_id'])){
+	                
+	                $provList[$v['provider_id']]=$v['provider_id'];
+	            }
+	        }
+	        
+	        $mprov=model('Provider');
+	        $provList=$mprov->where('id','in',$provList)->column('*','id');
+	        
+	        foreach ($appList as $k=>$v){
+	            $url='';
+	            if(!empty($v['provider_id'])&&!empty($provList[$v['provider_id']])){
+	                
+	                $url=$provList[$v['provider_id']]['url'];
+	                $appList[$k]['_is_provider']=true;
+	            }
+	            $appList[$k]['_store_url']=\skycaiji\admin\model\Provider::create_store_url($url,'client/addon/plugin',array('app'=>$v['app']));
+	        }
+	    }
+	    
+	    $this->set_html_tags(
+	        '接口插件',
+	        '接口插件',
+	        breadcrumb(array(array('url'=>url('mystore/apiApp'),'title'=>'接口插件')))
+	    );
+	    $this->assign('appList',$appList);
+	    $this->assign('modules',$mapiApp->apiModules);
+	    return $this->fetch('api_app');
+	}
+	
+	
+	public function apiAppOpAction(){
+	    $op=input('op');
+	    $id=input('id');
+	    
+	    $ops=array('item'=>array('delete','enable'),'list'=>array('check_store_update'),'else'=>array('auto_check'));
+	    if(!in_array($op,$ops['item'])&&!in_array($op,$ops['list'])&&!in_array($op,$ops['else'])){
+	        
+	        $this->error(lang('invalid_op'));
+	    }
+	    
+	    $mapiApp=new ApiApp();
+	    $appData=$mapiApp->where('id',$id)->find();
+	    if($op=='enable'){
+	        $enable=input('enable/d');
+	        $mapiApp->where('id',$appData['id'])->update(array('enable'=>$enable));
+	        $this->success();
+	    }elseif($op=='delete'){
+	        if(!empty($appData['module'])&&!empty($appData['app'])){
+	            $filename=$mapiApp->app_filename($appData['module'], $appData['app']);
+	            if(file_exists($filename)){
+	                unlink($filename);
+	            }
+	        }
+	        $mapiApp->where('id',$appData['id'])->delete();
+	        $this->success('删除成功');
+	    }elseif($op=='auto_check'){
+	        
+	        $this->_auto_check_plugin();
+	    }elseif($op=='check_store_update'){
+	        
+	        $ids=input('ids/a',array());
+	        
+	        $appList=model('ApiApp')->where(array('id'=>array('in',$ids)))->column('*','app');
+	        $updateList=$this->_check_store_plugin_update($appList);
+	        if(!empty($updateList)){
+	            $this->success('',null,$updateList);
+	        }else{
+	            $this->error();
+	        }
+	    }
+	}
+	
+	public function apiAppConfigAction(){
+	    $id=input('id');
+	    $mapiApp=model('ApiApp');
+	    $appData=$mapiApp->where('id',$id)->find();
+	    if(empty($appData)){
+	        $this->error('插件不存在');
+	    }
+	    $config=$mapiApp->compatible_config($appData['config']);
+	    $globalOps=$mapiApp->get_app_ops($appData,null,true,true);
+	    if(request()->isPost()){
+	        $global=input('global/a',array(),null);
+	        foreach($globalOps as $globalOp){
+	            if($globalOp['user']['required']&&is_empty($global[$globalOp['name_key']],true)){
+	                
+	                if($globalOp['user']['tag']=='select'||is_empty($globalOp['user']['default'],true)){
+	                    
+	                    $this->error('必填：'.$globalOp['name']);
+	                }
+	            }
+	        }
+	        $config['global']=$global;
+	        $mapiApp->where('id',$id)->update(array('config'=>serialize($config)));
+	        $this->success('配置成功','',array('js'=>"$('#myModal').modal('hide');"));
+	    }else{
+	        $this->assign('globalOps',$globalOps);
+	        $this->assign('appData',$appData);
+	        $this->assign('config',$config);
+	        return $this->fetch();
+	    }
+	}
+	
 	/*导入*/
 	public function uploadAction(){
 	    $type=input('type','');
@@ -867,6 +1002,9 @@ class Mystore extends BaseController {
 	                            }elseif($pluginData['type']=='func'){
 	                                $mapp=model('FuncApp');
 	                                $pluginTitle='函数插件：'.$mapp->get_func_module_val($pluginData['module'],'name').' » ';
+	                            }elseif($pluginData['type']=='api'){
+	                                $mapp=model('ApiApp');
+	                                $pluginTitle='接口插件：'.$mapp->get_api_module_val($pluginData['module'],'name').' » ';
 	                            }else{
 	                                continue;
 	                            }
@@ -874,12 +1012,12 @@ class Mystore extends BaseController {
 	                                
 	                                $pluginTitle.=$pluginData['app'];
 	                                if($mapp->appFileExists($pluginData['app'],'diy')){
-	                                    $pluginTitle='[已有] '.$pluginTitle;
+	                                    $pluginTitle='<span style="color:red">[覆盖已有]</span> '.$pluginTitle;
 	                                }
 	                            }else{
 	                                $pluginTitle.=$pluginData['name'].'('.$pluginData['app'].')';
 	                                if($mapp->where('app',$pluginData['app'])->count()>0){
-	                                    $pluginTitle='[已有] '.$pluginTitle;
+	                                    $pluginTitle='<span style="color:red">[覆盖已有]</span> '.$pluginTitle;
 	                                }
 	                            }
 	                            $pluginList[$pluginData['type'].':'.$pluginData['module'].':'.$pluginData['app']]=$pluginTitle;
@@ -903,6 +1041,8 @@ class Mystore extends BaseController {
 	                                $isReleDiy=$pluginData['module']=='diy'?true:false;
 	                            }elseif($pluginType=='func'){
 	                                $pluginTitle='函数插件：';
+	                            }elseif($pluginType=='api'){
+	                                $pluginTitle='接口插件：';
 	                            }else{
 	                                continue;
 	                            }
@@ -937,6 +1077,8 @@ class Mystore extends BaseController {
 	                        $mapp=model('ReleaseApp');
 	                    }elseif($pluginData['type']=='func'){
 	                        $mapp=model('FuncApp');
+	                    }elseif($pluginData['type']=='api'){
+	                        $mapp=model('ApiApp');
 	                    }else{
 	                        return return_result('插件类型错误');
 	                    }

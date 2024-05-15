@@ -811,12 +811,14 @@ class CpatternTest extends BaseController {
                 }
             }elseif($pnType=='next'){
                 
-                $pnUrls=$this->eCpattern->getPaginationUrls($pageType,$pageName,false,$test_url,'',true);
-                if(!empty($pnUrls)){
-                    $this->eCpattern->used_pagination_urls[$pageSource]=array();
-                    $curPnUrl=reset($pnUrls);
+                $curPnUrl=$test_url;
+                $nextPnUrl=$this->eCpattern->getPaginationNext($pageType,$pageName,false,$curPnUrl,'',true);
+                if(!empty($nextPnUrl)){
                     $pnUrls=array();
-                    $pnUrls[]=array('cur'=>$test_url,'next'=>$curPnUrl);
+                    $pnUrls[]=array('cur'=>$curPnUrl,'next'=>$nextPnUrl);
+                    $this->eCpattern->used_pagination_urls[$pageSource][md5($curPnUrl)]=1;
+                    $curPnUrl=$nextPnUrl;
+                    
                     $loopMax=10;
                     $loopNum=0;
                     do{
@@ -826,8 +828,7 @@ class CpatternTest extends BaseController {
                         $nextPnUrl=$this->eCpattern->getPaginationNext($pageType, $pageName, true, $curPnUrl, '');
                         if(!empty($nextPnUrl)){
                             $pnUrls[]=array('cur'=>$curPnUrl,'next'=>$nextPnUrl);
-                            $curPnMd5=md5($curPnUrl);
-                            $this->eCpattern->used_pagination_urls[$pageSource][$curPnMd5]=1;
+                            $this->eCpattern->used_pagination_urls[$pageSource][md5($curPnUrl)]=1;
                             $curPnUrl=$nextPnUrl;
                             $doWhile=true;
                         }

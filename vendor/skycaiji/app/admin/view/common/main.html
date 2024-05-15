@@ -81,7 +81,7 @@
 			<li><a href="{:url('admin/dataapi/list')}"><i class="fa fa-circle-o"></i> 数据接口</a></li>
 		</ul>
 	</li>
-	<li class="treeview{$curMenu['store']}{$curMenu['mystore']}{$curMenu['provider']}">
+	<li class="treeview{$curMenu['store']}{$curMenu['mystore']}{$curMenu['provider']}{$curMenu['develop']}">
 		<a href="#">
 			<i class="fa fa-cloud"></i> <span>云端</span>
 			<span class="pull-right-container">
@@ -91,17 +91,32 @@
 		<ul class="treeview-menu">
 			<li><a href="{:url('admin/mystore/store')}" target="_blank"><i class="fa fa-circle-o"></i> 云平台</a></li>
 			<li><a href="{:url('admin/provider/list')}"><i class="fa fa-circle-o"></i> 第三方</a></li>
-			<li class="treeview menu-open">
-				<a href="#"><i class="fa fa-circle-o"></i> 已下载
+			<li class="treeview{$curMenu['develop']?'':' menu-open cur-menu'}">
+				<a href="#"><i class="fa fa-circle-o"></i> 仓库
 				<span class="pull-right-container">
 					<i class="fa fa-angle-left pull-right"></i>
 				</span>
 				</a>
-				<ul class="treeview-menu" style="display:block;">
+				<ul class="treeview-menu">
 					<li><a href="{:url('admin/mystore/rule')}"><i class="fa fa-circle-o"></i> 采集规则</a></li>
-					<li><a href="{:url('admin/mystore/releaseApp')}"><i class="fa fa-circle-o"></i> 发布插件</a></li>
 					<li><a href="{:url('admin/mystore/funcApp')}"><i class="fa fa-circle-o"></i> 函数插件</a></li>
+					<li><a href="{:url('admin/mystore/apiApp')}"><i class="fa fa-circle-o"></i> 接口插件</a></li>
+					<li><a href="{:url('admin/mystore/releaseApp')}"><i class="fa fa-circle-o"></i> 发布插件</a></li>
 					<li><a href="{:url('admin/mystore/app')}"><i class="fa fa-circle-o"></i> 应用程序</a></li>
+				</ul>
+			</li>
+			<li class="treeview{$curMenu['develop']}">
+				<a href="#"><i class="fa fa-circle-o"></i> 开发
+				<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+				</span>
+				</a>
+				<ul class="treeview-menu">
+					<li><a href="{:url('admin/develop/func')}"><i class="fa fa-circle-o"></i> 函数插件</a></li>
+					<li><a href="{:url('admin/develop/api')}"><i class="fa fa-circle-o"></i> 接口插件</a></li>
+					<li><a href="{:url('admin/develop/releaseCms')}"><i class="fa fa-circle-o"></i> 发布插件</a></li>
+					<li><a href="{:url('admin/develop/app')}"><i class="fa fa-circle-o"></i> 应用程序</a></li>
+					<li><a href="{:url('admin/develop/editor')}"><i class="fa fa-edit"></i> 插件编辑器</a></li>
 				</ul>
 			</li>
 		</ul>
@@ -117,27 +132,14 @@
 			<li><a href="{:url('admin/user/list')}"><i class="fa fa-circle-o"></i> {$Think.lang.user_list}</a></li>
 		</ul>
 	</li>
-	<li class="treeview{$curMenu['develop']}{$curMenu['tool']}">
+	<li class="treeview{$curMenu['tool']}">
 		<a href="#">
-			<i class="fa fa-wrench"></i> <span>工具&amp;开发</span>
+			<i class="fa fa-wrench"></i> <span>工具</span>
 			<span class="pull-right-container">
 				<i class="fa fa-angle-left pull-right"></i>
 			</span>
 		</a>
 		<ul class="treeview-menu">
-			<li class="treeview{$curMenu['develop']}">
-				<a href="#"><i class="fa fa-circle-o"></i> 开发
-				<span class="pull-right-container">
-					<i class="fa fa-angle-left pull-right"></i>
-				</span>
-				</a>
-				<ul class="treeview-menu">
-					<li><a href="{:url('admin/develop/releaseCms')}"><i class="fa fa-circle-o"></i> CMS发布插件</a></li>
-					<li><a href="{:url('admin/develop/func')}"><i class="fa fa-circle-o"></i> 函数插件</a></li>
-					<li><a href="{:url('admin/develop/app')}"><i class="fa fa-circle-o"></i> 应用程序</a></li>
-					<li><a href="{:url('admin/develop/editor')}"><i class="fa fa-edit"></i> 插件编辑器</a></li>
-				</ul>
-			</li>
 			<li><a href="{:url('admin/tool/fileManager')}"><i class="fa fa-circle-o"></i> 文件管理</a></li>
 			<li><a href="{:url('admin/tool/preview')}"><i class="fa fa-circle-o"></i> 解析预览</a></li>
 			<li><a href="{:url('admin/tool/logs')}"><i class="fa fa-circle-o"></i> 错误日志</a></li>

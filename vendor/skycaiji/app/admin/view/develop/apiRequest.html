@@ -1,0 +1,158 @@
+<form id="win_form_request" class="deve-api-request-box" method="post" action="{:url('develop/apiRequest')}">
+{:html_usertoken()}
+	<input type="hidden" name="objid" value="{$objid}" />
+	<div class="form-group">
+		<div class="input-group">
+			<div class="input-group-addon" style="background:#f4f4f4;">请求名称</div>
+			<input type="text" name="request[name]" class="form-control" autocomplete="off" />
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="input-group api-insert-variable">
+			<div class="input-group-addon" style="background:#f4f4f4;">请求网址</div>
+			<input type="text" name="request[url]" class="form-control" autocomplete="off" />
+			<div class="input-group-addon api-insert-variable-btn">
+				<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">变量 <span class="caret"></span></a>
+		        <ul class="dropdown-menu dropdown-menu-right">
+		        </ul>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label>网页编码</label>
+		<div class="input-group input-select-custom">
+			<div class="input-group-btn">
+				<select name="request[charset]" class="form-control">
+					<option value="">utf-8</option>
+					<option value="gbk">gbk</option>
+					<option value="gb2312">gb2312</option>
+					<option value="custom">自定义</option>
+				</select>
+			</div>
+			<input type="text" class="form-control" name="request[charset_custom]">
+		</div>
+	</div>
+	<div class="form-group">
+		<label>内容解压缩</label>
+		<div class="input-group input-select-custom">
+			<div class="input-group-btn">
+				<select name="request[encode]" class="form-control">
+					<option value="">系统默认</option>
+					<option value="gzip">gzip</option>
+					<option value="br">br</option>
+					<option value="compress">compress</option>
+					<option value="deflate">deflate</option>
+					<option value="identity">identity</option>
+					<option value="custom">自定义</option>
+				</select>
+			</div>
+			<input type="text" class="form-control" name="request[encode_custom]">
+		</div>
+	</div>
+	<div class="form-group">
+		<label>请求方式</label>
+		<select name="request[type]" class="form-control">
+			<option value="">GET</option>
+			<option value="post">POST</option>
+		</select>
+	</div>
+	<div class="form-group request-type-post" style="display:none;">
+		<label>POST数据类型 <a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="globalOp.tipsCurlPost()"></a></label>
+    	<select name="request[content_type]" class="form-control">
+			<option value="">默认表单数据：application/x-www-form-urlencoded</option>
+			<option value="application/json">JSON数组：application/json</option>
+			<option value="multipart/form-data">表单上传：multipart/form-data</option>
+		</select>
+	</div>
+	<div class="form-group">
+     	<label>发送数据</label>
+      	<a href="javascript:;" class="glyphicon glyphicon-plus request-param-add" title="添加"></a>
+        <table class="table table-bordered table-hover request-param-list">
+            <thead>
+               <tr>
+                   <td style="width:150px;">名称</td>
+                   <td>值</td>
+                   <td style="width:50px;">删除</td>
+               </tr>
+            </thead>
+            <tbody>
+			</tbody>
+		</table>
+	</div>
+	<div class="form-group">
+     	<label>请求头信息</label>
+      	<a href="javascript:;" class="glyphicon glyphicon-plus request-header-add" title="添加"></a>
+        <table class="table table-bordered table-hover request-header-list">
+            <thead>
+               <tr>
+                   <td style="width:150px;">名称</td>
+                   <td>值</td>
+                   <td style="width:50px;">删除</td>
+               </tr>
+            </thead>
+            <tbody>
+			</tbody>
+		</table>
+	</div>
+	<div class="form-group">
+     	<label>请求超时（秒）</label>
+		<input type="number" name="request[timeout]" class="form-control" placeholder="默认60" />
+		<p class="help-block">超过请求时间断开连接</p>
+    </div>
+	<div class="form-group">
+     	<label>调用间隔（毫秒，1000毫秒=1秒）</label>
+		<input type="number" name="request[interval]" class="form-control" placeholder="默认0" />
+		<p class="help-block">如接口有频率限制，可设置间隔时间避免调用过快导致失败</p>
+    </div>
+	<div class="form-group">
+     	<label>失败等待（秒）</label>
+		<input type="number" name="request[wait]" class="form-control" placeholder="默认0" />
+		<p class="help-block">一般情况下调用失败都是频繁请求接口导致被禁用，设置该值等待一段时间让接口恢复正常</p>
+    </div>
+	<div class="form-group">
+     	<label>失败重试</label>
+		<input type="number" name="request[retry]" class="form-control" placeholder="默认0" />
+		<p class="help-block">调用失败重试次数，留空或0表示不重试</p>
+	</div>
+	<div class="form-group">
+     	<label>缓存结果（分钟）</label>
+		<input type="number" name="request[cache]" class="form-control" placeholder="默认不缓存" />
+		<p class="help-block">是否缓存请求响应的结果，默认不缓存</p>
+    </div>
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+<table style="display:none;">
+	<tr id="tpl_request_header">
+		<td><input type="text" name="request[header_names][]" class="form-control" autocomplete="off" /></td>
+		<td>
+			<div class="input-group api-insert-variable">
+				<input type="text" name="request[header_vals][]" class="form-control" autocomplete="off" />
+				<div class="input-group-addon api-insert-variable-btn">
+					<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">变量 <span class="caret"></span></a>
+			        <ul class="dropdown-menu dropdown-menu-right">
+			        </ul>
+				</div>
+			</div>
+		</td>
+		<td><a href="javascript:;" class="glyphicon glyphicon-remove request-header-delete"></a></td>
+	</tr>
+	<tr id="tpl_request_param">
+		<td><input type="text" name="request[param_names][]" class="form-control" autocomplete="off" /></td>
+		<td>
+			<div class="input-group api-insert-variable">
+				<input type="text" name="request[param_vals][]" class="form-control" autocomplete="off" />
+				<div class="input-group-addon api-insert-variable-btn">
+					<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">变量 <span class="caret"></span></a>
+			        <ul class="dropdown-menu dropdown-menu-right">
+			        </ul>
+				</div>
+			</div>
+		</td>
+		<td><a href="javascript:;" class="glyphicon glyphicon-remove request-param-delete"></a></td>
+	</tr>
+</table>
+<script type="text/javascript">
+developClass.api_init_request({$request|json_encode});
+</script>

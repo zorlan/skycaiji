@@ -52,7 +52,8 @@
 <div class="panel panel-default">
 	<div class="panel-heading">
 		<a href="javascript:;" id="set_dataset_indexes">设置索引</a> <span class="dataset-sep">|</span>
-		<a href="{:url('dataset/db?ds_id='.$dsData['id'])}">查看数据</a>
+		<a href="{:url('dataset/db?ds_id='.$dsData['id'])}">查看数据</a> <span class="dataset-sep">|</span>
+		<a href="{:url('dataapi/list?ds='.$dsData['id'])}">相关接口</a>
 	</div>
    	{if !empty($indexes)}
 	<div class="panel-body">

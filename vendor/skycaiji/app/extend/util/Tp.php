@@ -24,6 +24,7 @@ class Tp{
             'open_basedir restriction in effect',
             ']unlink(',']rmdir(',
             '[exception_exit_collect]',
+            'preg_replace_callback(): Passing null',
         );
         static $passListLower=null;
         if(!isset($passListLower)){

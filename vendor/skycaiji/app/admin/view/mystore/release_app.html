@@ -4,20 +4,8 @@
 {/block}
 {block name="content"}
 {php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'降序'));{/php}
-<div class="nav-tabs-custom">
-	<ul class="nav nav-tabs">
-    	<li><a href="{:url('mystore/rule')}">采集规则</a></li>
-    	<li class="active"><a href="{:url('mystore/releaseApp')}">发布插件</a></li>
-    	<li><a href="{:url('mystore/funcApp')}">函数插件</a></li>
-    	<li class="nav-tab-right">
-    		<div class="nav-check-update">
-    			<a href="javascript:;" id="check_update">检测更新</a>
-    			<input type="checkbox" id="auto_check" {:is_empty(g_sc_c('store_auto_check_plugin'))?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
-    		</div>
-    		<span class="nav-sep">|</span>
-    		<div class="nav-upload"><a href="{:url('mystore/upload')}" onclick="windowModal('导入插件',$(this).attr('href'));return false;">导入插件</a></div>
-    	</li>
-	</ul>
+<div class="nav-tabs-custom" style="margin-bottom:15px;">
+	{include file="mystore:nav" _type="release" /}
 	<div class="tab-content">
 		<div class="tab-pane active">
 		    <div class="table-responsive" style="border:0;">
@@ -26,20 +14,20 @@
 				<table id="list_table" class="table table-hover datatable">
 					<thead>
 						<tr>
-							<th class="sorting{$orderClass['id']}" data-order="id" title="ID{$orderSort['id']}" style="width:65px;min-width:65px;">{$Think.lang.select}</th>
+							<th class="sorting{$orderClass['id']}" data-order="id" title="ID{$orderSort['id']}" style="width:50px;">ID</th>
 							<th class="sorting{$orderClass['name']}" data-order="name" title="{$orderSort['name']}">名称</th>
 							<th class="sorting{$orderClass['app']}" data-order="app" title="{$orderSort['app']}">标识</th>
 							<th>模块</th>
 							<th class="sorting{$orderClass['addtime']}" data-order="addtime" title="{$orderSort['addtime']}">本地添加</th>
 							<th class="sorting{$orderClass['uptime']}" data-order="uptime" title="{$orderSort['uptime']}">平台更新</th>
 							<th>平台</th>
-							<th>{$Think.lang.op}</th>
+							<th style="width:90px;">{$Think.lang.op}</th>
 						</tr>
 					</thead>
 					<tbody>
 					{foreach name="appList" item="app"}
 						<tr data-app-id="{$app['id']}">
-							<td class="chk"><input type="checkbox" name="ids[]" value="{$app['id']}" /></td>
+							<td>{$app['id']}</td>
 							<td><div class="name">{$app['name']}</div></td>
 							<td>{$app['app']}</td>
 							<td>{$app['module']}</td>
@@ -56,18 +44,17 @@
 					{/foreach}
 					</tbody>
 					<tfoot>
+						{if empty($appList)}
 						<tr>
-							<td class="chk"><label class="chk-all"><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" /><span>全部</span></label></td>
-							<td colspan="2">
-								<button type="button" class="btn btn btn-danger" id="deleteall">{$Think.lang.delete}</button>
-								&nbsp;<a href="{:url('develop/releaseCms')}" class="btn btn-primary">开发一个</a>
-							</td>
-							<td colspan="5" style="text-align:right;font-size:12px;">
-								{if !empty($appList)}
-								<p class="help-block">在 “任务 &gt; 发布设置 &gt; 本地CMS程序” 中使用</p>
-								{/if}
+							<td colspan="8">没有发布插件</td>
+						</tr>
+						{else/}
+						<tr>
+							<td colspan="8" style="font-size:12px;padding:0;">
+								<p class="help-block" style="margin:8px 0 0 8px;">在 “任务 &gt; 发布设置 &gt; 本地CMS程序” 中使用</p>
 							</td>
 						</tr>
+						{/if}
 		    			{if condition="!empty($pagenav)"}
 						<tr>
 							<td colspan="8">{$pagenav}</td>
@@ -80,6 +67,7 @@
 		</div>
 	</div>
 </div>
+<a href="{:url('develop/releaseCms')}" class="btn btn-primary">开发一个</a>
 <script type="text/javascript">
 myStoreClass.init_releaseapp();
 </script>

@@ -10,9 +10,9 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.7');
-\think\Loader::addNamespace('plugin', realpath(SKYCAIJI_PATH.'plugin'));
-\think\Loader::addNamespace('util',realpath(APP_PATH.'extend/util'));
+define('SKYCAIJI_VERSION', '2.8');
+\think\Loader::addNamespace('plugin',SKYCAIJI_PATH.'plugin');
+\think\Loader::addNamespace('util',APP_PATH.'extend/util');
 
 error_reporting(E_ERROR | E_PARSE); 
 
@@ -282,6 +282,23 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
                                 $postDataJsonKey[$kv]=array();
                             }
                             $postDataJsonKey=&$postDataJsonKey[$kv];
+                        }
+                        
+                        if(is_numeric($v)&&is_string($v)){
+                            
+                            if(strpos($v,'.')!==false){
+                                
+                                if(strlen(str_replace(array('-','.'),'',$v))<=14){
+                                    
+                                    $v=floatval($v);
+                                }
+                            }else{
+                                
+                                if(strlen(str_replace('-','',$v))<=18){
+                                    
+                                    $v=intval($v);
+                                }
+                            }
                         }
                         $postDataJsonKey=$v;
                     }

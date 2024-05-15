@@ -102,17 +102,22 @@ class ChromeSocket{
                 
                 $command=\skycaiji\admin\model\Config::cli_safe_filename($command);
             }
-            $command.=' --headless --proxy-server';
-            if(!empty($options['user_data_dir'])){
-                
-                $command=sprintf('%s --user-data-dir=%s',$command,$options['user_data_dir']);
-            }
             
-            if($isTest&&$hasProcOpen){
+            if($isTest&&!IS_WIN){
                 
-                $command=sprintf('%s',$command);
+                $command.=' --version';
             }else{
-                $command=sprintf('%s --remote-debugging-port=%s',$command,$port);
+                $command.=' --headless --proxy-server';
+                if(!empty($options['user_data_dir'])){
+                    
+                    $command=sprintf('%s --user-data-dir=%s',$command,$options['user_data_dir']);
+                }
+                if($isTest&&$hasProcOpen){
+                    
+                    $command=sprintf('%s',$command);
+                }else{
+                    $command=sprintf('%s --remote-debugging-port=%s',$command,$port);
+                }
             }
             if(!$hasProcOpen){
                 $return['error']='页面渲染需开启proc_open或在服务器中执行命令：'.$command;
@@ -692,6 +697,55 @@ class ChromeSocket{
                 $this->send('Browser.close');
             }
         }
+    }
+    
+    
+    public static function config_init($config){
+        init_array($config);
+        init_array($config['chrome']);
+        $chromeSocket=null;
+        if(model('admin/Config')->page_render_is_chrome(true,$config['tool'])){
+            $chromeSocket=new \util\ChromeSocket($config['chrome']['host'],$config['chrome']['port'],$config['timeout'],$config['chrome']['filename'],$config['chrome']);
+        }
+        return $chromeSocket;
+    }
+    
+    
+    public static function config_start($config,$restart=false){
+        init_array($config);
+        $chromeSocket=self::config_init($config);
+        $error='';
+        if($chromeSocket){
+            try {
+                if($restart){
+                    
+                    $chromeSocket->closeBrowser();
+                    $chromeSocket->openHost();
+                }else{
+                    if(!$chromeSocket->hostIsOpen()){
+                        
+                        $chromeSocket->openHost();
+                    }
+                }
+            }catch (\Exception $ex){
+                $error=$ex->getMessage();
+            }
+        }
+        return $error;
+    }
+    
+    public static function config_clear(){
+        $config=model('admin/Config')->getConfig('page_render','data');
+        $chromeSocket=self::config_init($config);
+        if($chromeSocket){
+            $chromeSocket->clearBrowser();
+        }
+    }
+    
+    public static function config_restart(){
+        $config=model('admin/Config')->getConfig('page_render','data');
+        $error=self::config_start($config,true);
+        return $error;
     }
 }
 

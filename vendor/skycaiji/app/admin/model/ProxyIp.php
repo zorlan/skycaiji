@@ -257,7 +257,7 @@ class ProxyIp extends \skycaiji\common\model\BaseModel {
 					'type' => $api ['api_type']?$api ['api_type']:'',
 					'user' => $api ['api_user']?$api ['api_user']:'',
 				    'pwd' => $api ['api_pwd']?$api ['api_pwd']:'',
-				    'group_id' => $api ['api_group_id']?$api ['api_group_id']:'',
+				    'group_id' => $api ['api_group_id']?$api ['api_group_id']:0,
 				) );
 				
 				if(!empty($ips)){

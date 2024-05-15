@@ -15,5 +15,7 @@ return array(
 	'user_error_password'=>'密码必须由6-30位字母、数字或特殊字符组成！',
     'user_error_repassword'=>'确认密码和密码不一致！',
     'user_error_email'=>'邮箱格式错误！',
+    
+    'cache write error'=>'请将目录:'.config('runtime_path').'设置777可读写权限，否则无法写入文件',
 );
 ?>

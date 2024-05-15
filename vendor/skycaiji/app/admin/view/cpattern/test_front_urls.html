@@ -20,8 +20,8 @@
 						<tr>
 							<td>
 								源码<br>
-								<a href="javascript:;" onclick="visualizeData($('#win_test_font_url_html_{$frontIx}').val());">预览</a><br>
-								<a href="javascript:;" onclick="visualizeData('<pre>'+htmlspecialchars($('#win_test_font_url_html_{$frontIx}').val())+'</pre>');">查看</a>
+								<a href="javascript:;" onclick="globalOp.visualizeData($('#win_test_font_url_html_{$frontIx}').val());">预览</a><br>
+								<a href="javascript:;" onclick="globalOp.visualizeData('<pre>'+htmlspecialchars($('#win_test_font_url_html_{$frontIx}').val())+'</pre>');">查看</a>
 							</td>
 							<td><textarea class="form-control" rows="4" id="win_test_font_url_html_{$frontIx}">{$frontData['html']|htmlspecialchars}</textarea></td>
 						</tr>

@@ -43,23 +43,13 @@ class Cpattern extends BaseController {
                 $urlFmt=$source['url'];
                 if($source['param']=='num'){
                     
-                    $source['param_num_start']=intval($source ['param_num_start']);
-                    $source['param_num_end']=intval($source ['param_num_end']);
-                    $source['param_num_end'] = max ( $source ['param_num_start'], $source ['param_num_end'] );
-                    $source['param_num_inc'] = max ( 1, intval($source ['param_num_inc']));
-                    $source['param_num_desc']=$source['param_num_desc']?1:0;
-                    
-                    if($source['param_num_desc']){
-                        
-                        for($i=$source['param_num_end'];$i>=$source['param_num_start'];$i--){
-                            $urls[]=str_replace(cp_sign('match'), $source['param_num_start']+($i-$source['param_num_start'])*$source['param_num_inc'], $source['url']);
-                        }
-                    }else{
-                        for($i=$source['param_num_start'];$i<=$source['param_num_end'];$i++){
-                            $urls[]=str_replace(cp_sign('match'), $source['param_num_start']+($i-$source['param_num_start'])*$source['param_num_inc'], $source['url']);
-                        }
+                    $urls=\util\Funcs::increase_nums($source['param_num_start'],$source['param_num_end'],$source['param_num_inc'],$source['param_num_desc'],$source['param_num_len']);
+                    foreach ($urls as $k=>$v){
+                        $urls[$k]=str_replace(cp_sign('match'), $v, $source['url']);
                     }
-                    $urlFmt=str_replace(cp_sign('match'),"{param:num,{$source['param_num_start']}\t{$source['param_num_end']}\t{$source['param_num_inc']}\t{$source['param_num_desc']}}",$urlFmt);
+                    $urlParamNum="{$source['param_num_start']}\t{$source['param_num_end']}\t{$source['param_num_inc']}\t{$source['param_num_desc']}\t{$source['param_num_len']}";
+                    $urlParamNum=trim($urlParamNum);
+                    $urlFmt=str_replace(cp_sign('match'),"{param:num,{$urlParamNum}}",$urlFmt);
                 }elseif($source['param']=='letter'){
                     
                     $letter_start=ord($source['param_letter_start']);
@@ -126,6 +116,7 @@ class Cpattern extends BaseController {
                         $source['param_num_end']=intval($param_val[1]);
                         $source['param_num_inc']=intval($param_val[2]);
                         $source['param_num_desc']=intval($param_val[3]);
+                        $source['param_num_len']=intval($param_val[4]);
                     }elseif($source['param']=='letter'){
                         $source['param_letter_start']=strtolower($param_val[0]);
                         $source['param_letter_end']=strtolower($param_val[1]);
@@ -173,11 +164,15 @@ class Cpattern extends BaseController {
     			case 'xpath':if(empty($field['xpath']))$this->error('XPath规则不能为空！');break;
     			case 'json':if(empty($field['json']))$this->error('提取规则不能为空！');break;
     			case 'num':
-    				$randNum=0;
     				$field['num_start']=intval($field['num_start']);
     				$field['num_end']=intval($field['num_end']);
     				$field['num_end'] = max ( $field['num_start'], $field ['num_end'] );
     				break;
+    			case 'no':
+    			    $field['no_start']=intval($field['no_start']);
+    			    $field['no_inc']=intval($field['no_inc']);
+    			    $field['no_len']=intval($field['no_len']);
+    			    break;
     			
     			case 'list':if(empty($field['list']))$this->error('列表数据不能为空！');break;
     			case 'extract':if(empty($field['extract']))$this->error('请选择字段！');break;
@@ -193,14 +188,15 @@ class Cpattern extends BaseController {
 				'xpath' =>array('xpath','xpath_multi','xpath_multi_type','xpath_multi_str','xpath_attr','xpath_attr_custom'),
 				'json' =>array('json','json_arr','json_arr_implode','json_loop'),
 				'words' =>'words',
-				'num' => array('num_start','num_end'),
+			    'num' => array('num_start','num_end'),
+			    'no' => array('no_start','no_inc','no_len'),
 				'time' => array ('time_format','time_start','time_end','time_stamp'),
 				'list' => array('list','list_type'),
 			    'extract' =>array('extract','extract_module','extract_rule','extract_rule_merge','extract_rule_multi','extract_rule_multi_type','extract_rule_multi_str','extract_xpath','extract_xpath_attr','extract_xpath_attr_custom','extract_xpath_multi','extract_xpath_multi_type','extract_xpath_multi_str','extract_json','extract_json_arr','extract_json_arr_implode','extract_json_loop'),
 				'merge' => 'merge',
 			    'sign' => 'sign'
 			);
-    		$returnField=array('name'=>$field['name'],'source'=>$field['source'],'module'=>$field['module']);
+			$returnField=array('name'=>$field['name'],'desc'=>$field['desc'],'source'=>$field['source'],'module'=>$field['module']);
     		
     		if(is_array($modules[$field['module']])){
     			foreach($modules[$field['module']] as $mparam){
@@ -251,6 +247,18 @@ class Cpattern extends BaseController {
             $this->success('',null,array('field'=>$field,'process'=>$process));
         }else{
             $this->error('复制失败');
+        }
+    }
+    
+    public function reset_field_noAction(){
+        if(request()->isPost()){
+            $taskId=input('task_id/d',0);
+            $fieldName=input('field_name','');
+            $ckey='taskFNo_'.$taskId.'_'.$fieldName;
+            CacheModel::getInstance()->deleteCache($ckey);
+            $this->success('已重置');
+        }else{
+            $this->error('操作失败');
         }
     }
     

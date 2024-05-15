@@ -262,6 +262,12 @@ class Store extends BaseController {
 			$success=model('FuncApp')->addFunc($newData,$plugin['code']);
 			$success=$success?true:false;
 			$result=return_result($success?'成功':'无效的插件',$success);
+		}elseif($plugin['type']=='api'){
+		    
+		    $newData['module']=$plugin['module'];
+		    $success=model('ApiApp')->addApp($newData,$plugin['code']);
+		    $success=$success?true:false;
+		    $result=return_result($success?'成功':'无效的插件',$success);
 		}else{
 		    $result=return_result('插件类型错误');
 		}

@@ -126,7 +126,7 @@ class Rdb extends Release{
                         continue;
                     }
                     $sqlWhereList=array();
-                    if(!empty($dbTable['op'])){
+                    if(!empty($dbTable['where'])){
                         
                         $tbWhere=$dbTable['where'];
                         foreach ($tbWhere['logic'] as $k=>$v){
@@ -198,18 +198,35 @@ class Rdb extends Release{
                         }else{
                             if(empty($dbTable['op'])){
                                 
-                                $status=$mdb->table($table)->insert($tbField);
-                                if($status>0){
-                                    $insertTables[]=$table;
-                                    if($dbHasSeq){
-                                        
-                                        $autoIds[$table]=$mdb->getLastInsID($sequenceName);
-                                    }else{
-                                        $autoIds[$table]=$mdb->getLastInsID();
-                                    }
-                                }else{
+                                $whereCount=0;
+                                if($sqlWhereList){
                                     
-                                    throw new \Exception('新增失败');
+                                    $mdb=$mdb->table($table);
+                                    foreach ($sqlWhereList as $sqlWhere){
+                                        if($sqlWhere[0]=='or'){
+                                            $mdb=$mdb->whereOr($sqlWhere[1],$sqlWhere[2],$sqlWhere[3]);
+                                        }else{
+                                            $mdb=$mdb->where($sqlWhere[1],$sqlWhere[2],$sqlWhere[3]);
+                                        }
+                                    }
+                                    $whereCount=$mdb->count();
+                                }
+                                if($whereCount>0){
+                                    $this->echo_msg('表'.$table.'新增数据失败：条件已存在记录','orange');
+                                }else{
+                                    $status=$mdb->table($table)->insert($tbField);
+                                    if($status>0){
+                                        $insertTables[]=$table;
+                                        if($dbHasSeq){
+                                            
+                                            $autoIds[$table]=$mdb->getLastInsID($sequenceName);
+                                        }else{
+                                            $autoIds[$table]=$mdb->getLastInsID();
+                                        }
+                                    }else{
+                                        
+                                        throw new \Exception('新增失败');
+                                    }
                                 }
                             }elseif($dbTable['op']=='update'){
                                 
@@ -229,7 +246,7 @@ class Rdb extends Release{
                                         $updateTables[]=$table;
                                     }else{
                                         
-                                        $this->echo_msg('表'.$table.'更新失败','orange');
+                                        $this->echo_msg('表'.$table.'更新数据失败：未满足设置的条件','orange');
                                     }
                                 }
                             }

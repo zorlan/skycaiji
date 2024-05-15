@@ -8,6 +8,12 @@
 			<input type="text" name="field[name]" class="form-control" autocomplete="off" />
    		</div>
 	</div>
+	<div class="form-group">
+   		<div class="input-group">
+   			<span class="input-group-addon" style="background:#f4f4f4;">字段描述</span>
+			<input type="text" name="field[desc]" class="form-control" autocomplete="off" placeholder="选填" />
+   		</div>
+	</div>
 	<div class="form-group c-p-field-source">
    		<div class="input-group">
    			<span class="input-group-addon" style="background:#f4f4f4;">数据来源</span>
@@ -29,6 +35,7 @@
 				<optgroup label="数据生成">
 					<option value="words">{$Think.lang.field_module_words}</option>
 					<option value="num">{$Think.lang.field_module_num}</option>
+					<option value="no">{$Think.lang.field_module_no}</option>
 					<option value="list">{$Think.lang.field_module_list}</option>
 					<option value="time">{$Think.lang.field_module_time}</option>
 				</optgroup>
@@ -81,9 +88,26 @@
 				<div class="input-group">
 					<div class="input-group-addon">范围</div>
 					<input type="number" name="field[num_start]" class="form-control" />
-					<div class="input-group-addon" style="border-left:0;border-right:0;">到</div>
+					<div class="input-group-addon brl_0 brr_0">到</div>
 					<input type="number" name="field[num_end]" class="form-control" />
 		   		</div>
+			</div>
+			<div class="c-p-field-module" module="no" style="display:none;">
+				<div class="form-group">
+					<div class="input-group">
+						<div class="input-group-addon">起始数字</div>
+						<input type="number" name="field[no_start]" class="form-control" placeholder="默认：1" />
+						<div class="input-group-addon brl_0 brr_0">递增数</div>
+						<input type="number" name="field[no_inc]" class="form-control" placeholder="默认：1" />
+			   		</div>
+		   		</div>
+				<div class="form-group">
+					<div class="input-group">
+						<div class="input-group-addon">补零位数</div>
+						<input type="number" name="field[no_len]" class="form-control" placeholder="默认不补零，小于位数的数字开头自动补零" />
+					</div>
+				</div>
+				<p class="help-block">注意：自增数字不受采集退出影响会连续记录（测试除外）如需重新开始可以<a href="javascript:;" class="c-p-field-no-reset">点击重置</a></p>
 			</div>
 			<div class="c-p-field-module" module="time" style="display:none;">
 				<div class="input-group" style="margin-bottom:7px;">

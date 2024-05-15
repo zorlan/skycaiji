@@ -1,0 +1,222 @@
+<form id="win_form_variable" method="post" action="{:url('develop/apiVariable')}">
+{:html_usertoken()}
+	<input type="hidden" name="objid" value="{$objid}" />
+	<div class="form-group">
+		<div class="input-group">
+			<div class="input-group-addon" style="background:#f4f4f4;">变量名称</div>
+			<input type="text" name="variable[name]" class="form-control" autocomplete="off" />
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="input-group">
+			<div class="input-group-addon" style="background:#f4f4f4;">变量描述</div>
+			<input type="text" name="variable[desc]" class="form-control" autocomplete="off" placeholder="选填" />
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="input-group">
+			<div class="input-group-addon" style="background:#f4f4f4;">获取方式</div>
+			<select name="variable[module]" class="form-control">
+				<option value="">{$Think.lang.apiapp_variable_m_}</option>
+				<option value="user">{$Think.lang.apiapp_variable_m_user}</option>
+				<option value="extract">{$Think.lang.apiapp_variable_m_extract}</option>
+				<option value="time">{$Think.lang.apiapp_variable_m_time}</option>
+				<option value="num">{$Think.lang.apiapp_variable_m_num}</option>
+				<option value="list">{$Think.lang.apiapp_variable_m_list}</option>
+			</select>
+		</div>
+	</div>
+	<div class="variable-module" data-module="">
+		<div class="form-group api-insert-variable">
+			<label>输入内容</label>
+    		<textarea name="variable[value][value]" class="form-control" rows="3"></textarea>
+    		<div class="help-block api-insert-variable-btn">
+    			可输入任何内容或
+				<div class="dropdown" style="display:inline;">
+					<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">插入变量 <span class="caret"></span></a>
+			        <ul class="dropdown-menu dropdown-menu-right">
+			        </ul>
+				</div>
+    		</div>
+    	</div>
+    </div>
+	<div class="variable-module" data-module="user" style="display:none;">
+		<p class="help-block">在界面中显示控件，由用户操作输入内容</p>
+		<div class="form-group">
+			<label>必填</label>
+			<div class="input-group">
+		        <label class="radio-inline"><input type="radio" name="variable[user][required]" value="1">是</label>
+				<label class="radio-inline"><input type="radio" name="variable[user][required]" value="0" checked="checked">否</label>
+	        </div>
+		</div>
+		<div class="form-group">
+			<label>全局配置</label>
+			<div class="input-group">
+		        <label class="radio-inline"><input type="radio" name="variable[user][global]" value="1">是</label>
+				<label class="radio-inline"><input type="radio" name="variable[user][global]" value="0" checked="checked">否</label>
+	        </div>
+	        <p class="help-block">该变量是否是全局配置（在“云端»仓库»接口插件”中一次性配置）<br>否则在使用插件时配置（使用插件时可设置为不同值）</p>
+		</div>
+		<div class="form-group">
+			<label>变量控件</label>
+			<select name="variable[user][tag]" class="form-control">
+				<option value="">请选择</option>
+				<option value="text">文本</option>
+				<option value="radio">开关</option>
+				<option value="select">选项</option>
+			</select>
+		</div>
+		<div class="form-group variable-user-tag-select" style="display:none;">
+			<label>选项值</label>
+	  		<textarea class="form-control" name="variable[user][tag_select]" rows="3" placeholder=""></textarea>
+			<p class="help-block">
+				一行一个，直接输入值或键值对形式输入<br/>例如：<br/>
+				a=好评<br/>
+				b=中评<br/>
+				c=差评<br/>
+			</p>
+	  	</div>
+		<div class="form-group">
+			<label>默认值</label>
+			<input type="text" name="variable[user][default]" class="form-control" autocomplete="off" placeholder="选填，变量控件为文本：可输入任意内容，开关：输入1或0，选项：输入键名" />
+		</div>
+	</div>
+	<div class="variable-module" data-module="extract" style="display:none;">
+		<div class="form-group">
+			<label>提取来源</label>
+			<select name="variable[extract][source]" class="form-control">
+				<option value="">请选择</option>
+			</select>
+		</div>
+		<div class="form-group">
+			<label>提取方式</label>
+			<select name="variable[extract][type]" class="form-control">
+				<option value="">请选择</option>
+				<option value="json">json提取</option>
+				<option value="rule">规则匹配</option>
+				<option value="xpath">xpath匹配</option>
+			</select>
+		</div>
+		<div class="form-group variable-module-extract" data-extract-module="json" style="display:none;">
+			{include file="cpattern:rule_module" _type="json" _name="variable[extract]" _name_pre="" _allow_loop="" /}
+		</div>
+		<div class="form-group variable-module-extract" data-extract-module="rule" style="display:none;">
+			{include file="cpattern:rule_module" _type="rule" _name="variable[extract]" _name_pre="" _allow_loop="" /}
+		</div>
+		<div class="form-group variable-module-extract" data-extract-module="xpath" style="display:none;">
+			{include file="cpattern:rule_module" _type="xpath" _name="variable[extract]" _name_pre="" _allow_loop="" /}
+		</div>
+	</div>
+	<div class="variable-module" data-module="num" style="display:none;">
+		<div class="form-group">
+			<div class="input-group">
+				<div class="input-group-addon">范围</div>
+				<input type="number" name="variable[num][start]" class="form-control" />
+				<div class="input-group-addon" style="border-left:0;border-right:0;">到</div>
+				<input type="number" name="variable[num][end]" class="form-control" />
+	   		</div>
+   		</div>
+	</div>
+	<div class="variable-module" data-module="time" style="display:none;">
+		<div class="form-group">
+			<div class="input-group" style="margin-bottom:7px;">
+				<div class="input-group-addon">格式</div>
+				<input type="text" name="variable[time][format]" class="form-control" placeholder="默认：[年]/[月]/[日] [时]:[分]" />
+			</div>
+			<div class="help-block variable-time-format">
+				<span>标签：</span>
+				<ul class="in-line-mg">
+					<li><a href="javascript:;" data-val="[年]">[年]</a></li>
+					<li><a href="javascript:;" data-val="[月]">[月]</a></li>
+					<li><a href="javascript:;" data-val="[日]">[日]</a></li>
+					<li><a href="javascript:;" data-val="[时]">[时]</a></li>
+					<li><a href="javascript:;" data-val="[分]">[分]</a></li>
+					<li><a href="javascript:;" data-val="[秒]">[秒]</a></li>
+				</ul>
+			</div>
+			<div class="input-group">	
+				<div class="input-group-addon">范围随机</div>
+				<input type="text" name="variable[time][start]" class="form-control" placeholder="默认当前时间" autocomplete="off" />
+				<div class="input-group-addon" style="border-left:0;border-right:0;">到</div>
+				<input type="text" name="variable[time][end]" class="form-control" placeholder="默认当前时间" autocomplete="off" />
+	   			<div class="input-group-btn"><button type="button" class="btn btn-default" onclick="$(this).parent().siblings('input:text').val('');">清空</button></div>
+	   		</div>
+			<div class="checkbox"><label><input type="checkbox" name="variable[time][stamp]" value="1" /> 转换成时间戳</label></div>
+		</div>
+	</div>
+	<div class="variable-module" data-module="list" style="display:none;">
+		<div class="form-group">
+			<label>列表数据</label>
+			<textarea name="variable[list][data]" class="form-control" rows="3"></textarea>
+			<p class="help-block">一行一条数据，从列表中抽取数据</p>
+		</div>
+		<div class="form-group">
+			<label>抽取方式</label>
+			<select name="variable[list][type]" class="form-control">
+				<option value="" selected="selected">随机抽取</option>
+				<option value="asc">顺序抽取</option>
+				<option value="desc">倒序抽取</option>
+			</select>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+	    	<h4 class="panel-title">
+	        	<a data-toggle="collapse" href="#variable_func" aria-expanded="false">调用函数</a>
+	      	</h4>
+    	</div>
+    	<div id="variable_func" class="panel-collapse collapse">
+    		<div class="panel-body">
+		    	<div class="form-group">
+					<label>开启</label>
+					<div class="input-group">
+				        <label class="radio-inline"><input type="radio" name="variable[func][open]" value="1">是</label>
+						<label class="radio-inline"><input type="radio" name="variable[func][open]" value="0" checked="checked">否</label>
+			        </div>
+				</div>
+		    	<div class="form-group">
+					<label>函数列表</label>
+					<table class="table table-bordered table-hover" style="margin-bottom:0;">
+						<thead>
+							<tr>
+								<td style="width:200px;">函数名</td>
+								<td>传入变量</td>
+								<td style="width:70px;">操作 <a href="javascript:;" class="glyphicon glyphicon-plus variable-func-add" title="添加" style="font-size:12px;"></a></td>
+							</tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+    		</div>
+    	</div>
+	</div>
+	<div class="form-group form-group-sm">
+ 		<button type="submit" class="btn btn-primary btn-block">确定</button>
+ 	</div>
+</form>
+<table style="display:none;">
+	<tr id="tpl_variable_func">
+		<td><input type="text" name="variable[func][names][]" class="form-control" placeholder="php函数名或插件方法名" autocomplete="off" /></td>
+		<td>
+			<div class="input-group">
+				<textarea name="variable[func][params][]" class="form-control" rows="3" placeholder="默认传入当前变量&#13;&#10;一行一个值，请按函数传参，否则运行出错！"></textarea>
+				<div class="input-group-addon" style="padding:0;">
+					<div class="form-control-slt">
+						<select class="form-control variable-func-param">
+							<option value="">插入变量</option>
+							<option value="###">###表示当前变量</option>
+						</select>
+					</div>
+				</div>
+			</div>
+		</td>
+		<td>
+        	<a href="javascript:;" class="glyphicon icon-drag-move variable-func-move" style="font-size:11px;"></a>
+        	<a href="javascript:;" class="glyphicon glyphicon-remove variable-func-del" style="font-size:11px;"></a>
+        </td>
+	</tr>
+</table>
+<script type="text/javascript">
+developClass.api_init_variable({$variable|json_encode});
+</script>

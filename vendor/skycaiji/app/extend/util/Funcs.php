@@ -551,6 +551,44 @@ class Funcs{
 	    }
 	    return $cookies;
 	}
+	
+	public static function increase_nums($start,$end,$inc=1,$desc=false,$len=0,$max=0){
+	    $start=intval($start);
+	    $end=intval($end);
+	    $end=max($start,$end);
+	    $inc=intval($inc);
+	    $inc=$inc?$inc:1;
+	    $desc=$desc?1:0;
+	    $len=intval($len);
+	    $max=intval($max);
+	    
+	    $nums=array();
+	    if($desc){
+	        
+	        for($i=$end;$i>=$start;$i--){
+	            $curNum=$start+($i-$start)*$inc;
+	            if($len>0){
+	                $curNum=str_pad($curNum,$len,'0',STR_PAD_LEFT);
+	            }
+	            $nums[]=$curNum;
+	            if($max>0&&count($nums)>=$max){
+	                break;
+	            }
+	        }
+	    }else{
+	        for($i=$start;$i<=$end;$i++){
+	            $curNum=$start+($i-$start)*$inc;
+	            if($len>0){
+	                $curNum=str_pad($curNum,$len,'0',STR_PAD_LEFT);
+	            }
+	            $nums[]=$curNum;
+	            if($max>0&&count($nums)>=$max){
+	                break;
+	            }
+	        }
+	    }
+	    return $nums;
+	}
 }
 
 ?>

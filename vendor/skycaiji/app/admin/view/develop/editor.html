@@ -1,12 +1,14 @@
 {extend name="common:main" /}
 {block name="cssjs"}
+<link href="__PUBLIC__/static/css/develop.css?{$Think.config.html_v}" rel="stylesheet" type="text/css">
 {/block}
 {block name="content"}
 {if !$isApp}
 <div class="nav-tabs-custom">
 	<ul class="nav nav-tabs">
-		<li{$type=='release'?' class="active"':''}><a href="{:url('develop/editor')}">发布插件</a></li>
 		<li{$type=='func'?' class="active"':''}><a href="{:url('develop/editor?type=func')}">函数插件</a></li>
+		<li{$type=='api'?' class="active"':''}><a href="{:url('develop/editor?type=api')}">接口插件</a></li>
+		<li{$type=='release'?' class="active"':''}><a href="{:url('develop/editor?type=release')}">发布插件</a></li>
 	</ul>
 	<div class="tab-content">
 		<div class="tab-pane active">
@@ -40,8 +42,9 @@
 	<div class="col-sm-4 col-md-3 deve-editor-right">
 		<div class="nav-tabs-custom deve-editor-apps-nav">
 			<ul class="nav nav-tabs">
-				<li{$type=='release'?' class="active"':''}><a href="{:url('develop/editor')}">发布插件</a></li>
 				<li{$type=='func'?' class="active"':''}><a href="{:url('develop/editor?type=func')}">函数插件</a></li>
+				<li{$type=='api'?' class="active"':''}><a href="{:url('develop/editor?type=api')}">接口插件</a></li>
+				<li{$type=='release'?' class="active"':''}><a href="{:url('develop/editor?type=release')}">发布插件</a></li>
 			</ul>
 			<div class="tab-content">
 				<div class="tab-pane active">

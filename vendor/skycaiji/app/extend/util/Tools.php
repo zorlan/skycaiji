@@ -676,9 +676,14 @@ class Tools{
                 $curDomain=self::match_domain_url($base_url,true);
                 $curDomain=empty($curDomain)?rtrim($params['domain_url'],'/'):$curDomain;
                 $url=$curDomain.'/'.ltrim($url,'/');
-            }elseif(stripos($url,'javascript')===0||$url==''||strpos($url,'#')===0){
+            }elseif(stripos($url,'javascript')===0||$url==''||strpos($url,'#')===0||strpos($url,'?')===0){
                 
-                $url=($params['base_tag_url']?$params['base_tag_url']:$params['cur_url']).(strpos($url,'#')===0?($params['url_no_name']?'':$url):'');
+                if(strpos($url,'#')===0){
+                    $url=$params['url_no_name']?'':$url;
+                }else{
+                    $url=strpos($url,'?')===0?$url:'';
+                }
+                $url=($params['base_tag_url']?$params['base_tag_url']:$params['cur_url']).$url;
             }elseif(!preg_match('/^\w+\:\/\//', $url)){
                 
                 $url=$base_url.'/'.ltrim($url,'/');
@@ -828,6 +833,25 @@ class Tools{
         }
         echo $txt;
         ob_end_flush();
+    }
+    
+    public static function cache_file($path,$name,$value=''){
+        static $classList=array();
+        $path=$path?:'files';
+        if(!isset($classList[$path])){
+            $classList[$path]=new \think\cache\driver\File(array('path'=>config('runtime_path').'/'.$path.'/'));
+        }
+        $class=$classList[$path];
+        if(is_null($value)){
+            
+            $class->rm($name);
+        }elseif(''===$value){
+            
+            return $class->get($name);
+        }else{
+            
+            $class->set($name,$value);
+        }
     }
 }
 ?>

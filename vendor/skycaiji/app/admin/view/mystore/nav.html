@@ -1,0 +1,27 @@
+{assign name="_tpl_type" value="[_type]" /}
+{php}$curType=array($_tpl_type=>' class="active"');{/php}
+<ul class="nav nav-tabs">
+   	<li{$curType['rule']}><a href="{:url('mystore/rule')}">采集规则</a></li>
+   	<li{$curType['func']}><a href="{:url('mystore/funcApp')}">函数插件</a></li>
+   	<li{$curType['api']}><a href="{:url('mystore/apiApp')}">接口插件</a></li>
+   	<li{$curType['release']}><a href="{:url('mystore/releaseApp')}">发布插件</a></li>
+   	{if $_tpl_type=='rule'}
+   	<li class="nav-tab-right">
+    	<div class="nav-check-update">
+    		<a href="javascript:;" id="check_update">检测更新</a>
+    		<input type="checkbox" id="auto_check" {:is_empty(g_sc_c('store_auto_check_rule'))?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
+    	</div>
+    	<span class="nav-sep">|</span>
+   		<div class="nav-upload"><a href="{:url('mystore/upload?type=rule')}" onclick="windowModal('导入规则',$(this).attr('href'));return false;">导入规则</a></div>
+   	</li>
+   	{else/}
+   	<li class="nav-tab-right">
+   		<div class="nav-check-update">
+   			<a href="javascript:;" id="check_update">检测更新</a>
+   			<input type="checkbox" id="auto_check" {:is_empty(g_sc_c('store_auto_check_plugin'))?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
+   		</div>
+   		<span class="nav-sep">|</span>
+   		<div class="nav-upload"><a href="{:url('mystore/upload')}" onclick="windowModal('导入插件',$(this).attr('href'));return false;">导入插件</a></div>
+   	</li>
+   	{/if}
+</ul>

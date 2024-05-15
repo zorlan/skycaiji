@@ -47,12 +47,13 @@ class Mysql extends Connection
     }
 
     /**
-     * 取得数据表的字段信息
+     * 取得数据表的字段信息[修改]
      * @access public
      * @param string $tableName
+     * @param bool $isFull
      * @return array
      */
-    public function getFields($tableName)
+    public function getFields($tableName,$isFull=false)
     {
         list($tableName) = explode(' ', $tableName);
         if (false === strpos($tableName, '`')) {
@@ -61,21 +62,27 @@ class Mysql extends Connection
             }
             $tableName = '`' . $tableName . '`';
         }
-        $sql    = 'SHOW COLUMNS FROM ' . $tableName;
+        $sql    = 'SHOW '.($isFull?'FULL':'').' COLUMNS FROM ' . $tableName;
         $pdo    = $this->query($sql, [], false, true);
         $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
         $info   = [];
         if ($result) {
             foreach ($result as $key => $val) {
-                $val                 = array_change_key_case($val);
-                $info[$val['field']] = [
-                    'name'    => $val['field'],
+                $val = array_change_key_case($val);
+                $fname=$val['field'];
+                $info[$fname] = [
+                    'name'    => $fname,
                     'type'    => $val['type'],
                     'notnull' => (bool) ('' === $val['null']), // not null is empty, null is yes
                     'default' => $val['default'],
                     'primary' => (strtolower($val['key']) == 'pri'),
                     'autoinc' => (strtolower($val['extra']) == 'auto_increment'),
                 ];
+                if($isFull){
+                    $info[$fname]['comment']=$val['comment'];
+                    $info[$fname]['privileges']=$val['privileges'];
+                    $info[$fname]['collation']=$val['collation'];
+                }
             }
         }
         return $this->fieldCase($info);

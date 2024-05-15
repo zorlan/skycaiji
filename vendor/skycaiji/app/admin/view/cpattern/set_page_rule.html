@@ -77,6 +77,47 @@
 	</div>
 </div>
 
+{if $_tpl_is_pagination}
+<div class="panel panel-default">
+	<div class="panel-heading">
+	    <h4 class="panel-title">
+	        <a data-toggle="collapse" href="#{$_tpl_id}_no" aria-expanded="false" class="collapsed">使用分页序号</a>
+	    </h4>
+	</div>
+    <div id="{$_tpl_id}_no" class="panel-collapse collapse" aria-expanded="false">
+        <div class="panel-body">
+			<div class="form-group">
+				<label class="control-label">开启序号</label>
+				<div class="input-group">
+					<label class="radio-inline"><input type="radio" name="{$_tpl_name}[number][open]" value="1"> 是</label>
+					<label class="radio-inline"><input type="radio" name="{$_tpl_name}[number][open]" value="0"> 否</label>
+				</div>
+				<p class="help-block">可以指定分页序号范围并在{:cp_sign('match','N')}中调用，开启后可不填写“获取网址区域”和“提取网址规则”直接在“拼接成最终网址”中生成分页</p>
+			</div>
+        	<div class="form-group">
+        		<div class="input-group">
+        			<span class="input-group-addon">数字，从</span>
+        			<input type="number" name="{$_tpl_name}[number][start]" class="form-control" placeholder="默认：0" />
+        			<span class="input-group-addon brl_0 brr_0">到</span>
+        			<input type="number" name="{$_tpl_name}[number][end]" class="form-control" placeholder="默认：0" />
+        			<span class="input-group-addon brl_0 brr_0">递增数</span>
+        			<input type="number" name="{$_tpl_name}[number][inc]" class="form-control" placeholder="默认：1" />
+        		</div>
+        	</div>
+        	<div class="form-group">
+        		<div class="input-group">
+        			<span class="input-group-addon">补零位数</span>
+        			<input type="number" name="{$_tpl_name}[number][len]" class="form-control" placeholder="默认不补零，小于位数的数字开头自动补零" />
+        			<div class="input-group-addon">
+						<label class="checkbox-inline"><input type="checkbox" name="{$_tpl_name}[number][desc]" value="1">倒序</label>
+					</div>
+        		</div>
+        	</div>
+        </div>
+	</div>
+</div>
+{/if}
+
 <div class="panel panel-default">
     <div class="panel-heading">
         <h4 class="panel-title">
@@ -88,7 +129,7 @@
 			<div class="form-group">
 		    	<label class="control-label">提取网址规则</label>
 		    	<div class="input-group">
-		    		<textarea class="form-control" name="{$_tpl_name}[url_rule]" rows="3" {if $_tpl_url_required}data-placeholder-xpath="请输入xpath规则" data-placeholder-json="请输入json规则" placeholder="必须填写规则，{$Think.lang.tips_match_url}"{else/}data-placeholder-xpath="请输入xpath规则，默认获取所有链接并保存为{:cp_sign('match')}标签以供拼接调用" data-placeholder-json="请输入json规则" placeholder="默认获取所有链接并保存为{:cp_sign('match')}标签以供拼接调用，{$Think.lang.tips_match_url}"{/if}></textarea>
+		    		<textarea class="form-control" name="{$_tpl_name}[url_rule]" rows="3" {if $_tpl_url_required}data-placeholder-xpath="请输入xpath规则" data-placeholder-json="请输入json规则" placeholder="请输入规则，{$Think.lang.tips_match_url}"{else/}data-placeholder-xpath="请输入xpath规则，默认获取所有链接并保存为{:cp_sign('match')}标签以供拼接调用" data-placeholder-json="请输入json规则" placeholder="默认获取所有链接并保存为{:cp_sign('match')}标签以供拼接调用，{$Think.lang.tips_match_url}"{/if}></textarea>
 		    		<div class="input-group-addon iga-rt iga-rt1">
 						<select name="{$_tpl_name}[url_rule_module]" data-module-input="{$_tpl_name}[url_rule]" class="slt">
 			     			<option value="">正则</option>

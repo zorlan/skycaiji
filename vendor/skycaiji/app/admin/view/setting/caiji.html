@@ -101,14 +101,16 @@
 			    		<span class="input-group-addon brl_0 brr_0">间隔</span>
 			    		<input type="number" name="api_interval" class="form-control" placeholder="访问接口最小间隔，默认15秒" />
 			    	</div>
-			    	{if !empty($apiUrl)}
 					<p class="help-block">
+			    	{if !empty($apiUrl)}
 						通过访问接口网址即可触发采集指定任务：<em><b>{:htmlspecialchars($apiUrl)}</b></em>
 						{if !empty($apiParams)}
 						<br>{$apiParams}
 						{/if}
-					</p>
+			    	{else /}
+			    		保存后显示接口网址
 			    	{/if}
+					</p>
 			    </div>
 		    </div>
 		</div>

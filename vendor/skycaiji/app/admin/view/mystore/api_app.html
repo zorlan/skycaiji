@@ -1,0 +1,76 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/mystore.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+{php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'降序'));{/php}
+<div class="nav-tabs-custom" style="margin-bottom:15px;">
+	{include file="mystore:nav" _type="api" /}
+	<div class="tab-content">
+		<div class="tab-pane active">
+		    <div class="table-responsive" style="border:0;">
+				<form id="form_list" method="post" ajax-submit="true" action="{:url('mystore/apiAppOp')}">
+				{:html_usertoken()}
+				<table id="list_table" class="table table-hover datatable">
+					<thead>
+						<tr>
+							<th class="sorting{$orderClass['id']}" data-order="id" title="ID{$orderSort['id']}" style="width:50px;">ID</th>
+							<th class="sorting{$orderClass['name']}" data-order="name" title="{$orderSort['name']}">名称</th>
+							<th class="sorting{$orderClass['app']}" data-order="app" title="{$orderSort['app']}">标识</th>
+							<th class="sorting{$orderClass['module']}" data-order="module" title="{$orderSort['module']}">模块</th>
+							<th class="sorting{$orderClass['addtime']}" data-order="addtime" title="{$orderSort['addtime']}">本地添加</th>
+							<th class="sorting{$orderClass['uptime']}" data-order="uptime" title="{$orderSort['uptime']}">平台更新</th>
+							<th>平台</th>
+							<th style="width:205px;">{$Think.lang.op}</th>
+						</tr>
+					</thead>
+					<tbody>
+					{foreach name="appList" item="app"}
+						<tr data-app-id="{$app['id']}">
+							<td>{$app['id']}</td>
+							<td><div class="name">{$app['name']}</div></td>
+							<td>{$app['app']}</td>
+							<td title="使用：{$modules[$app['module']]['loc']}">{$modules[$app['module']]['name']}</td>
+							<td>{:date('Y-m-d H:i',$app['addtime'])}</td>
+							<td>{:date('Y-m-d H:i',$app['uptime'])}</td>
+							<td>
+								<a href="javascript:;" data-url="{$app['_store_url']}" class="store-detail">{$app['_is_provider']?'第三方':'官方'}</a>
+							</td>
+							<td>
+								<div class="in-line-mg"><a href="javascript:;" class="enable" style="color:{$app['enable']?'green':'red'}" data-val="{$app['enable']?1:0}">{$app['enable']?'已启用':'已禁用'}</a></div>
+								<div class="in-line-mg"><a href="javascript:;" class="config">全局配置</a></div>
+								<div class="in-line-mg"><a href="{:url('develop/api?app='.$app['app'])}">开发</a></div>
+								<div class="in-line-mg"><a href="javascript:;" url="{:url('mystore/apiAppOp?op=delete&id='.$app['id'])}" class="delete">删除</a></div>
+							</td>
+						</tr>
+					{/foreach}
+					</tbody>
+					<tfoot>
+						{if empty($appList)}
+						<tr>
+							<td colspan="8">没有接口插件</td>
+						</tr>
+						{else/}
+						<tr>
+							<td colspan="8" style="font-size:12px;padding:0;">
+								<p class="help-block" style="margin:8px 0 0 8px;">鼠标悬停在“模块”上可显示提示</p>
+							</td>
+						</tr>
+						{/if}
+		    			{if condition="!empty($pagenav)"}
+						<tr>
+							<td colspan="8">{$pagenav}</td>
+						</tr>
+						{/if}
+					</tfoot>
+				</table>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<a href="{:url('develop/api')}" class="btn btn-primary">开发一个</a>
+<script type="text/javascript">
+myStoreClass.init_apiapp();
+</script>
+{/block}

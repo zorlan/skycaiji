@@ -13,21 +13,21 @@
 			<thead>
 	            <tr>
 					<th>{$Think.lang.sort}</th>
+					<th style="width:40px;">ID</th>
 					<th>名称</th>
-					<th>ID</th>
-					<th>状态</th>
 					<th>数据集</th>
-	                <th style="width:150px;">{$Think.lang.op}</th>
+					<th style="width:30px;">状态</th>
+	                <th style="width:90px;">{$Think.lang.op}</th>
 	            </tr>
 			</thead>
 			<tbody>
 			{foreach name="daList" item="item"}
 				<tr data-ds-id="{$item['id']}" data-da-id="{$item['id']}">
 					<td class="sort"><input type="text" name="newsort[{$item['id']}]" class="form-control" value="{$item['sort']}" autocomplete="off" /></td>
-	                <td><a href="{:url('dataapi/set?id='.$item['id'])}">{$item['name']}</a></td>
 	                <td>{$item['id']}</td>
-	                <td><a href="javascript:;" class="status{$item['status']?'':' status-close'}">{$item['status']?'开启':'关闭'}</a></td>
+	                <td><a href="{:url('dataapi/set?id='.$item['id'])}">{$item['name']}</a></td>
 	                <td><a href="{:url('dataset/set?id='.$item['ds_id'])}">{$dsNames[$item['ds_id']]}</a></td>
+	                <td><a href="javascript:;" class="status{$item['status']?'':' status-close'}">{$item['status']?'开启':'关闭'}</a></td>
 	                <td>
 	                	<ul class="in-line">
 	                		<li><a href="{:url('dataapi/set?id='.$item['id'])}">编辑</a></li>
@@ -66,6 +66,10 @@
 	    <div class="form-group form-group-sm">
 			<label>名称</label>
 		    <input type="text" name="name" class="form-control" value="" placeholder="模糊搜索" autocomplete="off" />
+	    </div>
+	    <div class="form-group form-group-sm">
+			<label>数据集</label>
+		    <input type="text" name="ds" class="form-control" value="" placeholder="模糊搜索名称或精确搜索id" autocomplete="off" />
 	    </div>
 	    <div class="form-group form-group-sm">
         	<button type="submit" class="btn btn-default btn-sm">{$Think.lang.search}</button>

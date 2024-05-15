@@ -17,11 +17,11 @@
 	</div>
 	<div id="db_table_p_{$dbKey}" class="panel-collapse collapse in">
 	    <div class="panel-body db-table-bind-params">
-	    	<div class="table-responsive db-table-bind-where">
+			<div class="table-responsive db-table-bind-where">
 				<table class="table table-hover">
 				<thead>
 				<tr>
-					<th style="width:150px;">逻辑</th>
+					<th style="width:150px;">条件逻辑</th>
 					<th>数据库字段</th>
 					<th style="width:220px;">条件</th>
 					<th>条件值</th>
@@ -84,6 +84,9 @@
 				</tbody>
 				</table>
 	    	</div>
+			<p class="help-block db-table-bind-help" data-bind-op="">可设置条件，当数据库中存在该条件的记录时跳过新增操作，例如条件是：id = 123 ，查询到记录时跳过，无记录则新增数据</p>
+			<p class="help-block db-table-bind-help" data-bind-op="update">必须设置条件，当满足条件时更新数据</p>
+			<p class="help-block db-table-bind-help" data-bind-op="query">可设置条件，当满足条件时执行查询</p>
 			<div class="table-responsive db-table-bind-query">
 				<table class="table table-hover">
 				<thead>
@@ -143,8 +146,11 @@
 					{foreach $tbFields[$dbTable['table']] as $field}
 					{if isset($dbTable['field'][$field['name']])}
 					<tr>
-						<td>
+						<td {if $field['comment']}style="cursor:help;" title="{$field['comment']|htmlspecialchars}"{/if}>
 							{$field['name']}
+							{if $field['comment']}
+							<span style="font-size:10px;color:#ccc;" class="glyphicon glyphicon-question-sign"></span>
+							{/if}
 						</td>
 						<td>
 							{$field['type']}
@@ -167,8 +173,11 @@
 					{foreach $tbFields[$dbTable['table']] as $field}
 					{if !isset($dbTable['field'][$field['name']])}
 					<tr>
-						<td>
+						<td {if $field['comment']}style="cursor:help;" title="{$field['comment']|htmlspecialchars}"{/if}>
 							{$field['name']}
+							{if $field['comment']}
+							<span style="font-size:10px;color:#ccc;" class="glyphicon glyphicon-question-sign"></span>
+							{/if}
 						</td>
 						<td>
 							{$field['type']}

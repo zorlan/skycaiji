@@ -114,13 +114,16 @@
 #coll_tab_content td .glyphicon.delete{font-size:12px;top:1.1px;vertical-align:middle;}
 
 .c-p-process-accordion .panel-heading .glyphicon.c-p-process-title{font-size:11px;vertical-align:middle;}
+.c-p-process-accordion .panel-heading .glyphicon.c-p-process-close{font-size:12px;vertical-align:middle;}
+.c-p-process-accordion .panel-heading .glyphicon.c-p-process-closed{color:red}
 .c-p-process-accordion .panel-heading .glyphicon.icon-drag-move{font-size:12px;vertical-align:middle;}
 .c-p-process-accordion .panel-heading .glyphicon.c-p-process-clone{font-size:12px;top:0.3px;vertical-align:middle;}
 .c-p-process-accordion .panel-heading .glyphicon.c-p-process-del{font-size:12px;top:1.1px;vertical-align:middle;}
 .c-p-process-accordion .panel-heading .panel-title-title{float:left;}
-.c-p-process-accordion .panel-heading .panel-title-title input{display:none;border-radius:2px;border:1px solid #ccc;line-height:14px;font-size:12px;margin-left:5px;padding:1px 1px 1px 2px;}
+.c-p-process-accordion .panel-heading .panel-title-title input{display:none;border-radius:2px;border:1px solid #ccc;line-height:14px;font-size:12px;margin-left:2px;padding:1px 1px 1px 3px;}
 .c-p-process-accordion .panel-heading .panel-title-ops{float:right;line-height:19px;}
-
+.c-p-process-accordion>.panel{margin-bottom:8px;}
+.c-p-process-accordion>.panel:last-child{margin-bottom:0;}
 
 .iga-rt{text-align:left;line-height:20px;}
 .iga-rt .blk{display:block;}
@@ -135,17 +138,15 @@
 
 
 /*数据处理*/
-.form-control-slt{width:30px!important;text-align:center;}
-.form-control-slt select.form-control{min-width:20px!important;width:20px!important;height:30px!important;float:none!important;border:0!important;padding:0!important;margin:0!important;text-indent:-20px!important;}
+.process-extract-module{display:none;}
 
-.p-m-func-field,.p-m-insert-field{display:inline;width:80px;border:0;cursor:pointer;margin:0;padding:0;height:auto;color:#555;}
+.p-m-func-field,.p-m-apiapp-field,.p-m-insert-field{display:inline;width:80px;border:0;cursor:pointer;margin:0;padding:0;height:auto;color:#555;}
 
-.p-m-api-val-field,.p-m-api-header-field{display:none;margin-left:-1px;padding:0;}
+.p-m-api-val-field,.p-m-api-header-field{display:none;border-left:0;padding:0;}
 
 .p-m-api-table table,.p-m-api-header-table table{margin-bottom:0;}
 .p-m-api-table td:first-child,.p-m-api-header-table td:first-child{width:200px;}
 .p-m-api-table td:last-child,.p-m-api-header-table td:last-child{width:50px;text-align:center;}
-.p-m-api-rule-module{display:none;}
 
 .p-m-html-tags{}
 .p-m-html-tags a{font-size:12px;font-weight:normal;cursor:pointer;margin-right:5px;}

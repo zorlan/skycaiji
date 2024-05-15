@@ -227,5 +227,33 @@ EOF;
 	        }
 	    }
 	}
+	
+	public function upgrade_db_to_2_7_1(){
+	    $db_prefix=config('database.prefix');
+	    $apiapp_table=$db_prefix.'api_app';
+	    $exists=db()->query("show tables like '{$apiapp_table}'");
+	    if(empty($exists)){
+	        
+	        $addTable=<<<EOF
+CREATE TABLE `{$apiapp_table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `module` varchar(20) NOT NULL DEFAULT '',
+  `app` varchar(100) NOT NULL,
+  `name` varchar(100) NOT NULL DEFAULT '',
+  `desc` text,
+  `enable` tinyint(1) NOT NULL DEFAULT '0',
+  `addtime` int(11) NOT NULL DEFAULT '0',
+  `uptime` int(11) NOT NULL DEFAULT '0',
+  `provider_id` int(11) NOT NULL DEFAULT '0',
+  `config` mediumtext,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ix_app` (`app`),
+  UNIQUE KEY `module_app` (`module`,`app`),
+  KEY `module_enable` (`module`,`enable`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4
+EOF;
+	        db()->execute($addTable);
+	    }
+	}
 }
 ?>

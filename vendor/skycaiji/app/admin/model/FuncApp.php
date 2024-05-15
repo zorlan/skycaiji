@@ -138,6 +138,7 @@ class FuncApp extends \skycaiji\common\model\BaseModel{
 			$success=true;
 		}else{
 			
+		    $func['enable']=1;
 			$func['id']=$this->insertApp($func);
 			$success=$func['id']>0?true:false;
 		}

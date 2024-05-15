@@ -150,7 +150,7 @@ class DbCommon{
     				}
     			}
     		}else{
-    			$fields=$this->db()->getFields($tableName);
+    			$fields=$this->db()->getFields($tableName,true);
     			if(!empty($fields)){
     				foreach ($fields as $k=>$v){
     					$tb_fields[$k]=array_change_key_case($v,CASE_LOWER);

@@ -13,24 +13,28 @@
 			<thead>
 	            <tr>
 					<th>{$Think.lang.sort}</th>
+					<th style="width:40px;">ID</th>
 					<th style="width:150px;">名称</th>
-					<th style="width:50px;">ID</th>
 					<th>字段</th>
-					<th style="width:100px;">数据量</th>
-	                <th style="width:150px;">{$Think.lang.op}</th>
+					<th style="width:80px;">数据量</th>
+					<th style="width:70px;">接口</th>
+	                <th style="width:165px;">{$Think.lang.op}</th>
 	            </tr>
 			</thead>
 			<tbody>
 			{foreach name="dsList" item="item"}
 				<tr data-ds-id="{$item['id']}">
 					<td class="sort"><input type="text" name="newsort[{$item['id']}]" class="form-control" value="{$item['sort']}" autocomplete="off" /></td>
-	                <td><a href="{:url('dataset/set?id='.$item['id'])}">{$item['name']}</a></td>
 	                <td>{$item['id']}</td>
+	                <td><a href="{:url('dataset/set?id='.$item['id'])}">{$item['name']}</a></td>
 	                <td>{if !empty($dsFields[$item['id']])}<input type="text" class="form-control fields" readonly="true" value="{$dsFields[$item['id']]|htmlspecialchars}">{/if}</td>
-	                <td>共<a href="{:url('dataset/db?ds_id='.$item['id'])}" class="db-count">0</a>条</td>
+	                <td>共<a href="{:url('dataset/db?ds_id='.$item['id'])}" class="db-count" target="_blank">0</a>条</td>
+	                <td>共<a href="{:url('dataapi/list?ds='.$item['id'])}" class="da-count" target="_blank">0</a>个</td>
 	                <td>
 	                	<ul class="in-line">
 	                		<li><a href="{:url('dataset/db?ds_id='.$item['id'])}">数据</a></li>
+	                		<li class="sep">|</li>
+	                		<li><a href="{:url('dataapi/list?ds='.$item['id'])}">接口</a></li>
 	                		<li class="sep">|</li>
 	                		<li><a href="{:url('dataset/set?id='.$item['id'])}">编辑</a></li>
 	                		<li class="sep">|</li>

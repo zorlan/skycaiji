@@ -914,7 +914,11 @@ class Cpattern extends CpatternEvent{
 	        if(empty($html)){
 	            $html=$this->get_page_html($fromUrl, $pageType, $pageName, $isPagination);
 	        }
-	        if(!empty($pnConfig['reg_url'])){
+	        $openPnNum=false;
+	        if($pnConfig['number']&&$pnConfig['number']['open']){
+	            $openPnNum=true;
+	        }
+	        if(!empty($pnConfig['reg_url'])||$openPnNum){
 	            
 	            $allowColl=true;
 	            if($pageType=='url'&&empty($pnConfig['new_fields'])){
@@ -926,7 +930,7 @@ class Cpattern extends CpatternEvent{
 	                $areaMatch=$this->rule_match_area($pageType, $pageName, true, $html, true);
 	                $pn_area=$areaMatch['area'];
 	                $this->pn_area_matches[$pageType][$pageName]=$areaMatch['matches'];
-	                if(!empty($pn_area)){
+	                if(!empty($pn_area)||$openPnNum){
 	                    
 	                    
 	                    if(!empty($pnConfig['url_complete'])){
@@ -960,12 +964,12 @@ class Cpattern extends CpatternEvent{
 	                        $this->pn_url_matches[$pageType][$pageName]=$urlsMatches['matches'];
 	                    }else{
 	                        if($isTest){
-	                            return $this->echo_error('未获取到分页链接，请检查分页链接规则');
+	                            return $this->echo_error('未获取到分页链接，请检查“匹配分页网址”或“从选定区域中提取网址”');
 	                        }
 	                    }
 	                }else{
 	                    if($isTest){
-	                        return $this->echo_error('未获取到分页区域，请检查分页区域规则');
+	                        return $this->echo_error('未获取到分页区域，请检查“从选定区域中提取网址”');
 	                    }
 	                }
 	            }else{
@@ -1085,12 +1089,14 @@ class Cpattern extends CpatternEvent{
 		        $html=$htmlInfo['html'];
 			}
 		}
-		static $fieldArr=array('words','num','time','list');
+		static $fieldArr=array('words','num','no','time','list');
 		
 		$url_info=$this->match_url_info($cur_url, $html, 'set_field');
 	
 		$val='';
 		$field_func='field_module_'.$module;
+		$is_list_data=false;
+		$list_multi_str='';
 		if(method_exists($this, $field_func)){
 			
 			if('extract'==$module){
@@ -1115,6 +1121,18 @@ class Cpattern extends CpatternEvent{
 					    'file'=>$this->field_val_list[$field_params['extract']]['files'][$cur_url_md5],
 					);
 					$val=$this->field_module_extract($field_params, $extract_field_val, $url_info);
+				}
+				
+				if($field_params['extract_module']=='rule'){
+				    if($field_params['extract_rule_multi']&&$field_params['extract_rule_multi_type']=='list'){
+				        $is_list_data=true;
+				        $list_multi_str=$field_params['extract_rule_multi_str'];
+				    }
+				}elseif($field_params['extract_module']=='xpath'){
+				    if($field_params['extract_xpath_multi']&&$field_params['extract_xpath_multi_type']=='list'){
+				        $is_list_data=true;
+				        $list_multi_str=$field_params['extract_xpath_multi_str'];
+				    }
 				}
 			}elseif('merge'==$module){
 				
@@ -1171,7 +1189,23 @@ class Cpattern extends CpatternEvent{
 			    $val=$this->$field_func($field_params,empty($cont_url)?$cur_url:$cont_url);
 			}else{
 				$val=$this->$field_func($field_params,$html);
+				
+				if($module=='rule'){
+				    if($field_params['rule_multi']&&$field_params['rule_multi_type']=='list'){
+				        $is_list_data=true;
+				        $list_multi_str=$field_params['rule_multi_str'];
+				    }
+				}elseif($module=='xpath'){
+				    if($field_params['xpath_multi']&&$field_params['xpath_multi_type']=='list'){
+				        $is_list_data=true;
+				        $list_multi_str=$field_params['xpath_multi_str'];
+				    }
+				}
 			}
+		}
+		
+		if(!empty($list_multi_str)){
+		    $list_multi_str=str_replace(array('\r','\n'), array("\r","\n"), $list_multi_str);
 		}
 	
 		$vals=null;
@@ -1188,9 +1222,11 @@ class Cpattern extends CpatternEvent{
 		$cont_url_md5=empty($cont_url)?$cur_url_md5:md5($cont_url);
 		
 		foreach ($vals as $v_k=>$val){
+		    $val=isset($val)?$val:'';
 			$loopIndex=$is_loop?$v_k:-1;
 			$this->field_url_complete=true;
 			$this->field_down_img=true;
+			$this->field_stop_process=false;
 			
 			if($is_loop){
 			    
@@ -1201,14 +1237,33 @@ class Cpattern extends CpatternEvent{
 			    }
 			}
 			
-			if(!empty($field_process)){
-				
-			    $val=$this->process_field($field_name,$val,$field_process,$cur_url_md5,$loopIndex,$cont_url_md5);
+			if($is_list_data){
+			    
+			    $val=$val?json_decode($val,true):array();
+			    init_array($val);
+			    foreach ($val as $v_vk=>$v_vv){
+			        if(!empty($field_process)){
+			            
+			            $v_vv=$this->process_field($field_name,$v_vv,$field_process,$cur_url_md5,$loopIndex,$cont_url_md5);
+			        }
+			        if(!empty($this->config['common_process'])){
+			            
+			            $v_vv=$this->process_field($field_name,$v_vv,$this->config['common_process'],$cur_url_md5,$loopIndex,$cont_url_md5);
+			        }
+			        $val[$v_vk]=$v_vv;
+			    }
+			    $val=implode($list_multi_str, $val);
+			}else{
+			    if(!empty($field_process)){
+			        
+			        $val=$this->process_field($field_name,$val,$field_process,$cur_url_md5,$loopIndex,$cont_url_md5);
+			    }
+			    if(!empty($this->config['common_process'])){
+			        
+			        $val=$this->process_field($field_name,$val,$this->config['common_process'],$cur_url_md5,$loopIndex,$cont_url_md5);
+			    }
 			}
-			if(!empty($this->config['common_process'])){
-				
-			    $val=$this->process_field($field_name,$val,$this->config['common_process'],$cur_url_md5,$loopIndex,$cont_url_md5);
-			}
+			
 			if(isset($this->exclude_cont_urls[$cont_url_md5][$cur_url_md5])){
 				
 				if(empty($this->first_loop_field)){
@@ -1533,10 +1588,10 @@ class Cpattern extends CpatternEvent{
 		}
 		
 		$this->used_pagination_urls['url']=array();
-		$pn_urls=$this->getPaginationUrls('url','',false,$cont_url,$htmlInfo['html']);
-		if(!empty($pn_urls)){
+		$nextPnUrl=$this->getPaginationNext('url','',false,$cont_url,$htmlInfo['html']);
+		if(!empty($nextPnUrl)){
 			
-			$this->setPaginationFields($cont_url,reset($pn_urls));
+		    $this->setPaginationFields($cont_url,$nextPnUrl);
 		}
 		
 		$val_list=array();

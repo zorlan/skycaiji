@@ -199,7 +199,7 @@ class Collected extends BaseController {
 		$nowYear=intval(date('Y',$nowTime));
 		$nowMonth=intval(date('m',$nowTime));
 		$nowDay=intval(date('d',$nowTime));
-		if(in_array($op,array('today','this_month','this_year','years'))){
+		if(in_array($op,array('today','yesterday','this_month','last_month','this_year','last_year','years'))){
 			$dataList = array (
 				'name'=>array(),
 				'success' => array (),
@@ -214,7 +214,16 @@ class Collected extends BaseController {
 					$start=strtotime($start);
 					$dateList[$i+1]=array('name'=>($i+1).'点','start'=>$start,'end'=>$end);
 				}
-			}if($op=='this_month'){
+			}elseif($op=='yesterday'){
+			    
+			    $yesterday=date('Y-m-d',strtotime("{$nowYear}-{$nowMonth}-{$nowDay} -1 day"));
+			    for($i=0;$i<24;$i++){
+			        $start=$yesterday.' '.$i.':00';
+			        $end=strtotime($start.' +1 hour')-1;
+			        $start=strtotime($start);
+			        $dateList[$i+1]=array('name'=>($i+1).'点','start'=>$start,'end'=>$end);
+			    }
+			}elseif($op=='this_month'){
 				
 				$endDay=date('d',strtotime("{$nowYear}-{$nowMonth}-1 +1 month -1 day"));
 				$endDay=intval($endDay);
@@ -224,6 +233,18 @@ class Collected extends BaseController {
 					$start=strtotime($start);
 					$dateList[$i]=array('name'=>$i.'号','start'=>$start,'end'=>$end);
 				}
+			}elseif($op=='last_month'){
+			    
+			    $endDay=strtotime("{$nowYear}-{$nowMonth}-1 -1 day");
+			    $lastMonth=date('Y-m',$endDay);
+			    $endDay=date('d',$endDay);
+			    $endDay=intval($endDay);
+			    for($i=1;$i<=$endDay;$i++){
+			        $start=$lastMonth.'-'.$i;
+			        $end=strtotime($start.' +1 day')-1;
+			        $start=strtotime($start);
+			        $dateList[$i]=array('name'=>$i.'号','start'=>$start,'end'=>$end);
+			    }
 			}elseif($op=='this_year'){
 				
 				for($i=1;$i<=12;$i++){
@@ -233,6 +254,16 @@ class Collected extends BaseController {
 					$dateList[$i]=array('name'=>$i.'月','start'=>$start,'end'=>$end);
 					
 				}
+			}elseif($op=='last_year'){
+			    
+			    $lastYear=$nowYear-1;
+			    for($i=1;$i<=12;$i++){
+			        $start=$lastYear.'-'.$i.'-1';
+			        $end=strtotime($start.' +1 month')-1;
+			        $start=strtotime($start);
+			        $dateList[$i]=array('name'=>$i.'月','start'=>$start,'end'=>$end);
+			        
+			    }
 			}elseif($op=='years'){
 				
 				$minTime=$mcollected->min('addtime');

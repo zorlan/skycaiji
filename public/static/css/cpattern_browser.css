@@ -3,15 +3,16 @@
 .skycaiji_bd{border-width:1px!important;border-style:solid!important;}
 .skycaiji_bd1{border-color:red!important;}
 .skycaiji_bd2{border-color:black!important;}
-.skycaiji_bd3{border-color:yellow!important;}
-.skycaiji_bd4{border-color:cyan!important;}
+.skycaiji_bd3{border-color:blue!important;}
+.skycaiji_bd4{border-color:green!important;}
 .skycaiji_bd5{border-color:purple!important;}
 .skycaiji_bd6{border-color:orange!important;}
 .skycaiji_bd7{border-color:brown!important;}
 .skycaiji_bd8{border-color:pink!important;}
-.skycaiji_bd9{border-color:blue!important;}
+.skycaiji_bd9{border-color:yellow!important;}
 .skycaiji_bd10{border-color:grey!important;}
-.skycaiji_bd11{border-color:green!important;}
+.skycaiji_bd11{border-color:cyan!important;}
+.skycaiji_bd_list{border-width:1px!important;border-style:dashed!important;}
 
 #skycaiji_wrapper * {
 	font-size: 14px;

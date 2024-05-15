@@ -13,6 +13,7 @@ namespace skycaiji\admin\controller;
 
 use plugin;
 use skycaiji\admin\model\FuncApp;
+use skycaiji\admin\model\ApiApp;
 class Develop extends BaseController {
 	public static $typeList = array (
 		'number' => '数字(number)',
@@ -268,7 +269,7 @@ class Develop extends BaseController {
 					foreach ($select_val[0] as $slv){
 						if(strpos($slv,'=')!==false){
 							
-							list($slv_k,$slv_v)=explode('=', $slv);
+							list($slv_k,$slv_v)=explode('=',$slv,2);
 							if(is_null($slv_k)){
 								$slv_k=$slv_v;
 							}
@@ -319,67 +320,39 @@ class Develop extends BaseController {
 				$funcPhp.="\r\n\tpublic function {$v}(){\r\n\t\t/*必须返回键值对数组*/\r\n\t\treturn array();\r\n\t}";
 			}
 		}
-if(empty($cmsClass)){
-
-$phpCode=<<<EOF
-<?php
-namespace plugin\\release\\cms;
-class {$appData['app']} extends BaseCms{
-	/*参数*/
-	public \$_params ={$_params};
-
-	{$funcPhp}
-	
-	/*导入数据*/
-	public function runImport(\$params){
-		/*
-		 * -----这里开始写代码-----
-		 * 数据库操作：\$this->db()，可参考thinkphp5的数据库操作
-		 * 参数值列表：\$params，\$params[变量名] 调用参数的值
-		 */
 		
-		
-		
-		/*
-		 * 必须以数组形式返回：
-		 * id（必填）表示入库返回的自增id或状态
-		 * target（可选）记录入库的数据位置（发布的网址等）
-		 * desc（可选）记录入库的数据位置附加信息
-		 * error（可选）记录入库失败的错误信息
-		 * 入库的信息可在“已采集数据”中查看
-		 */
-		return array('id'=>0,'target'=>'','desc'=>'','error'=>'');
-	}
-}
-?>
-EOF;
-}else{
-	
-	$phpCode=null;
-	if($is_old_plugin){
-		
-		$phpCode=$mapp->oldFileCode($appData['app'],'cms');
-		
-		$phpCode=preg_replace('/\bthinkphp\s*\d+(\.\d+){0,1}/i', 'thinkphp5', $phpCode);
-		$phpCode=preg_replace('/\bnamespace\s+Release\\\Cms\;/i', 'namespace plugin\\release\\cms;', $phpCode);
-		$phpCode=preg_replace('/\bclass\s+(\w+)Cms\s+extends\s+BaseCms\b/i', "class \\1 extends BaseCms", $phpCode);
-	}else{
-		$phpCode=file_get_contents($mapp->appFileName($appData['app'],'cms'));
-	}
-	
-	$phpCode=preg_replace('/public\s*\$_params\s*\=[\s\S]+?\)\s*;/i', 'public $_params ='.$_params.';', $phpCode);
-	
-	
-	if(!empty($funcPhp)){
-		if(preg_match('/namespace[^\r\n]+?\{/', $phpCode)){
-			
-			$phpCode=preg_replace('/\}\s*\}\s*\?\>/',"\r\n".$funcPhp."\t\r\n}\r\n}\r\n?>",$phpCode);
-		}else{
-			
-			$phpCode=preg_replace('/\}\s*\?\>/',"\r\n".$funcPhp."\r\n}\r\n?>",$phpCode);
-		}
-	}
-}
+        if(empty($cmsClass)){
+            
+            $phpCode=file_get_contents(config('app_path').'/public/release_app/class.tpl');
+            $phpCode=str_replace(array('{$classname}','{$params}','{$funcs}'),array($appData['app'],$_params,$funcPhp),$phpCode);
+        }else{
+        	
+        	$phpCode=null;
+        	if($is_old_plugin){
+        		
+        		$phpCode=$mapp->oldFileCode($appData['app'],'cms');
+        		
+        		$phpCode=preg_replace('/\bthinkphp\s*\d+(\.\d+){0,1}/i', 'thinkphp5', $phpCode);
+        		$phpCode=preg_replace('/\bnamespace\s+Release\\\Cms\;/i', 'namespace plugin\\release\\cms;', $phpCode);
+        		$phpCode=preg_replace('/\bclass\s+(\w+)Cms\s+extends\s+BaseCms\b/i', "class \\1 extends BaseCms", $phpCode);
+        	}else{
+        		$phpCode=file_get_contents($mapp->appFileName($appData['app'],'cms'));
+        	}
+        	
+        	$phpCode=preg_replace('/public\s*\$_params\s*\=[\s\S]+?\)\s*;/i', 'public $_params ='.$_params.';', $phpCode);
+        	
+        	
+        	if(!empty($funcPhp)){
+        		if(preg_match('/namespace[^\r\n]+?\{/', $phpCode)){
+        			
+        			$phpCode=preg_replace('/\}\s*\}\s*\?\>/',"\r\n".$funcPhp."\t\r\n}\r\n}\r\n?>",$phpCode);
+        		}else{
+        			
+        			$phpCode=preg_replace('/\}\s*\?\>/',"\r\n".$funcPhp."\r\n}\r\n?>",$phpCode);
+        		}
+        	}
+        }
+        
 		if(!empty($phpCode)){
 			$success=$mapp->addCms(array('app'=>$appData['app'],'name'=>$appData['name']),$phpCode);
 			if($success){
@@ -740,7 +713,7 @@ EOF;
 				$methods=input('methods/a',array());
 				
 				if(empty($module)){
-					$this->error('请选择类型');
+					$this->error('请选择模块');
 				}
 				
 				$module=$mfuncApp->format_module($module);
@@ -748,7 +721,7 @@ EOF;
 				$identifier=$mfuncApp->format_identifier($identifier);
 				
 				if(!$mfuncApp->right_module($module)){
-					$this->error('类型错误');
+					$this->error('模块错误');
 				}
 				if(!$mfuncApp->right_identifier($identifier)){
 					$this->error('功能标识只能由字母或数字组成，且首个字符必须是字母！');
@@ -775,6 +748,9 @@ EOF;
 				}
 				
 				$app=$mfuncApp->app_name($copyright,$identifier);
+				if($mfuncApp->where('app',$app)->count()>0){
+				    $this->error('函数插件已存在：'.$app);
+				}
 				
 				$id=$mfuncApp->createApp($module,$app,array('name'=>$name,'methods'=>$methods));
 				
@@ -822,7 +798,15 @@ EOF;
 	        if(empty($pluginData['success'])){
 	            $this->error($pluginData['msg']);
 	        }
-	        \util\Tools::browser_export_scj($app.($pwd?'.加密':'').'.插件', $pluginData['plugin_txt']);
+	        $typeName='';
+	        if($type=='release'){
+	            $typeName='发布';
+	        }elseif($type=='func'){
+	            $typeName='函数';
+	        }elseif($type=='api'){
+	            $typeName='接口';
+	        }
+	        \util\Tools::browser_export_scj($app.($pwd?'.加密':'').'.'.$typeName.'插件', $pluginData['plugin_txt']);
 	    }else{
 	        $this->set_html_tags(
 	            '导出插件',
@@ -843,6 +827,7 @@ EOF;
         $app=input('app','');
         $mReleApp=model('ReleaseApp');
         $mFuncApp=model('FuncApp');
+        $mApiApp=model('ApiApp');
         $isApp=false;
         $setTitle='';
         $setNav='';
@@ -900,6 +885,24 @@ EOF;
                     }
                     $setTitle.=' » '.$appName;
                     $setNav=breadcrumb(array(array('url'=>url('develop/func?app='.$app),'title'=>$app),'编辑插件'));
+                }elseif($type=='api'){
+                    $setTitle='接口插件';
+                    $appName=$app;
+                    $apiData=$mApiApp->where('app',$app)->find();
+                    if(!empty($apiData)){
+                        if(file_exists($mApiApp->app_filename($apiData['module'],$apiData['app']))){
+                            $appcode=file_get_contents($mApiApp->app_filename($apiData['module'],$apiData['app']));
+                        }
+                        if($apiData['module']){
+                            
+                            $setTitle.=' » '.$mApiApp->get_api_module_val($apiData['module'],'name');
+                        }
+                        if($apiData['name']){
+                            $appName.='（'.$apiData['name'].'）';
+                        }
+                    }
+                    $setTitle.=' » '.$appName;
+                    $setNav=breadcrumb(array(array('url'=>url('develop/api?app='.$app),'title'=>$app),'编辑插件'));
                 }
                 $appcode=$appcode?:'';
                 if($setTitle){
@@ -907,7 +910,7 @@ EOF;
                 }
             }
         }else{
-            $type='release';
+            $type='func';
         }
         $appList=array();
         if($type=='release'){
@@ -939,6 +942,8 @@ EOF;
             }
         }elseif($type=='func'){
             $appList=$mFuncApp->order('app asc')->column('name','app');
+        }elseif($type=='api'){
+            $appList=$mApiApp->order('app asc')->column('name','app');
         }
         init_array($appList);
         
@@ -1001,6 +1006,14 @@ EOF;
 	                $this->error('插件不存在');
 	            }
 	            $filename=$mFuncApp->filename($funcData['module'],$funcData['app']);
+	        }elseif($type=='api'){
+	            $mApiApp=model('ApiApp');
+	            
+	            $apiData=$mApiApp->where('app',$app)->find();
+	            if(empty($apiData)||empty($apiData['module'])||empty($apiData['app'])){
+	                $this->error('插件不存在');
+	            }
+	            $filename=$mApiApp->app_filename($apiData['module'],$apiData['app']);
 	        }else{
 	            $this->error('类型错误');
 	        }
@@ -1067,6 +1080,8 @@ EOF;
 	        $mapp=model('ReleaseApp');
 	    }elseif($type=='func'){
 	        $mapp=model('FuncApp');
+	    }elseif($type=='api'){
+	        $mapp=model('ApiApp');
 	    }else{
 	        return return_result('类型错误');
 	    }
@@ -1149,6 +1164,8 @@ EOF;
 	            $reuslt['msg']=lang('rele_m_name_'.$module).'发布插件：'.$app;
 	        }elseif($type=='func'){
 	            $reuslt['msg']=model('FuncApp')->get_func_module_val($module,'name').'函数插件：'.$app;
+	        }elseif($type=='api'){
+	            $reuslt['msg']=model('ApiApp')->get_api_module_val($module,'name').'接口插件：'.$app;
 	        }
 	        $reuslt['msg'].=' » '.$pluginResult['msg'];
 	    }else{
@@ -1205,6 +1222,141 @@ EOF;
 	                write_dir_file($toFile,file_get_contents($fileName));
 	            }
 	        }
+	    }
+	}
+	
+	/*开发接口插件*/
+	public function apiAction(){
+	    $mapiApp=new ApiApp();
+	    if(request()->isPost()){
+            $app=input('app');
+	        $module=input('module');
+	        $copyright=input('copyright');
+	        $identifier=input('identifier');
+	        $name=input('name');
+	        $name=$mapiApp->format_str($name);
+	        $content=input('content','',null);
+	        
+	        $ops=input('ops/a',array(),'trim');
+	        if(empty($module)){
+	            $this->error('请选择模块');
+	        }
+	        
+	        $module=$mapiApp->format_module($module);
+	        $copyright=$mapiApp->format_copyright($copyright);
+	        $identifier=$mapiApp->format_identifier($identifier);
+	        
+	        if(!$mapiApp->right_module($module)){
+	            $this->error('模块错误');
+	        }
+	        if(!$mapiApp->right_identifier($identifier)){
+	            $this->error('功能标识只能由字母或数字组成，且首个字符必须是字母！');
+	        }
+	        if(!$mapiApp->right_copyright($copyright)){
+	            $this->error('作者版权只能由字母或数字组成，且首个字符必须是字母！');
+	        }
+	        
+	        $app=$mapiApp->app_name($copyright,$identifier);
+	        $count=$mapiApp->where('app',$app)->count();
+	        if(input('?edit')){
+	            
+	            if($count<=0){
+	                $this->error('接口插件不存在');
+	            }
+	        }else{
+	            if($count>0){
+	                $this->error('已存在接口插件：'.$app);
+	            }
+	        }
+	        $id=$mapiApp->createApp($module,$app,array('name'=>$name,'ops'=>$ops,'content'=>$content));
+	        
+	        if($id>0){
+	            $this->success('创建成功','develop/api?app='.$app);
+	        }else{
+	            $this->error('创建失败');
+	        } 
+	    }else{
+	        $mapiApp=model('ApiApp');
+	        $this->set_html_tags(
+	            '开发接口插件',
+	            '开发接口插件 <small><a href="https://www.skycaiji.com/manual/doc/api" target="_blank"><span class="glyphicon glyphicon-info-sign"></span></a></small>',
+	            breadcrumb(array(array('url'=>url('mystore/apiApp'),'title'=>'接口插件'),array('url'=>url('develop/api'),'title'=>'开发接口插件')))
+	        );
+	        
+	        $app=input('app','');
+	        if($app){
+	            
+	            $apiData=$mapiApp->where('app',$app)->find();
+	            if(!empty($apiData)){
+	                $apiClass=$mapiApp->get_app_class($apiData['module'],$apiData['app']);
+	                $apiClass['name']=$apiData['name'];
+	                $this->assign('apiClass',$apiClass);
+	            }
+	        }
+	        
+	        $this->assign('app',$app);
+	        $this->assign('module',$module);
+	        $this->assign('modules',$mapiApp->apiModules);
+	        return $this->fetch();
+	    }
+	}
+	
+	public function apiTestAction(){
+	    $app=input('app','','trim');
+	    if(request()->isPost()){
+	        $mapp=model('ApiApp');
+	        $appData=$mapp->where('app',$app)->find();
+	        if(empty($appData)){
+	            $this->error('插件不存在');
+	        }
+	        $config=input('config/a',array(),'trim');
+	        $return=$mapp->execute_app($appData['module'],$appData['app'],'',$config,null,true);
+            $this->success('','',$return);
+	    }else{
+	        $this->assign('app',$app);
+	        return $this->fetch('apiTest');
+	    }
+	}
+	
+	public function apiVariableAction(){
+	    if(request()->isPost()){
+	        $objid=input('post.objid');
+	        $variable=input('post.variable/a',array(),'trim');
+	        $mapiApp=model('ApiApp');
+	        $check=$mapiApp->check_variable_name($variable['name']);
+	        if(!$check['success']){
+	            $this->error($check['msg']);
+	        }
+	        $variable['func']=$mapiApp->filter_variable_func($variable['func']);
+	        $this->success('',null,array('variable'=>$variable,'objid'=>$objid));
+	    }else{
+	        $variable=input('variable','','url_b64decode');
+	        $objid=input('objid');
+	        $variable=$variable?json_decode($variable,true):array();
+	        init_array($variable);
+	        $this->assign('variable',$variable);
+	        $this->assign('objid',$objid);
+	        return $this->fetch('apiVariable');
+	    }
+	}
+	public function apiRequestAction(){
+	    if(request()->isPost()){
+	        $objid=input('post.objid');
+	        $request=input('post.request/a',array(),'trim');
+	        $mapiApp=model('ApiApp');
+	        $check=$mapiApp->check_request_name($request['name']);
+	        if(!$check['success']){
+	            $this->error($check['msg']);
+	        }
+	        $this->success('',null,array('request'=>$request,'objid'=>$objid));
+	    }else{
+	        $request=input('request','','url_b64decode');
+	        $objid=input('objid');
+	        $request=$request?json_decode($request,true):array();
+	        init_array($request);
+	        $this->assign('request',$request);
+	        $this->assign('objid',$objid);
+	        return $this->fetch('apiRequest');
 	    }
 	}
 }

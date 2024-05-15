@@ -1,0 +1,39 @@
+{if !empty($globalOps)}
+<form id="win_form_api_app_config" method="post" ajax-submit="true" action="{:url('mystore/apiAppConfig')}">
+{:html_usertoken()}
+	<input type="hidden" name="id" value="{$appData['id']}" />
+	{foreach $globalOps as $globalOp}
+	<div class="form-group">
+		<label>{$globalOp['name']|htmlspecialchars} {if $globalOp['user']['required']}<span style="color:red;font-weight:bold;margin-left:5px;">*</span>{/if}</label>
+		{if $globalOp['user']['tag']=='text'}
+		<textarea name="global[{$globalOp['name_key']}]" rows="2" class="form-control"{if !is_empty($globalOp['user']['default'],true)} placeholder="默认：{$globalOp['user']['default']}"{/if}"></textarea>
+		{elseif $globalOp['user']['tag']=='radio'}
+		<div class="input-group">
+        	<label class="radio-inline"><input type="radio" name="global[{$globalOp['name_key']}]" value="1"{if $globalOp['user']['default']} checked="checked"{/if}>是</label>
+        	<label class="radio-inline"><input type="radio" name="global[{$globalOp['name_key']}]" value="0"{if empty($globalOp['user']['default'])} checked="checked"{/if}>否</label>
+        </div>
+		{elseif $globalOp['user']['tag']=='select'}
+		<select name="global[{$globalOp['name_key']}]" class="form-control">
+			<option value="">请选择</option>
+			{foreach $globalOp['user']['tag_select'] as $sk=>$sv}
+			<option value="{$sk}"{if $globalOp['user']['default']==$sk} selected="selected"{/if}>{$sv}</option>
+			{/foreach}
+		</select>
+		{/if}
+		{if $globalOp['desc']}
+		<p class="help-block">{$globalOp['desc']|htmlspecialchars}</p>
+		{/if}
+	</div>
+	{/foreach}
+   	<div class="form-group">
+		<button type="submit" class="btn btn-primary btn-block">{$Think.lang.submit}</button>
+	</div>
+</form>
+<script type="text/javascript">
+myStoreClass.apiapp_config({$config|json_encode});
+</script>
+{else /}
+<script type="text/javascript">
+myStoreClass.apiapp_config_none();
+</script>
+{/if}

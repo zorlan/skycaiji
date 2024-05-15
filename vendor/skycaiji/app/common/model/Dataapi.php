@@ -303,7 +303,14 @@ class Dataapi extends BaseModel{
         return $conds;
     }
     private function _cond_query($cond,$params){
-        return array($cond['field'],$this->get_cond_sql($cond['op']),$params[$cond['name']]);
+        $val=$params[$cond['name']];
+        if($cond['op']==='like'||$cond['op']==='nlike'){
+            if(strpos($val,'%')===false&&!is_empty($val,true)){
+                
+                $val='%'.$val.'%';
+            }
+        }
+        return array($cond['field'],$this->get_cond_sql($cond['op']),$val);
     }
 }
 ?>

@@ -3,7 +3,7 @@
 	<div class="well" style="text-align:center;">
 		<label class="checkbox-inline"><input type="checkbox" name="types[]" value="all"> 所有</label>
 		<label class="checkbox-inline" title="系统日志、临时文件等"><input type="checkbox" name="types[]" value="system" checked="checked"> 系统缓存</label>
-		<label class="checkbox-inline" title="采集运行时产生的文件"><input type="checkbox" name="types[]" value="data"> 数据缓存</label>
+		<label class="checkbox-inline" title="采集运行时缓存的数据"><input type="checkbox" name="types[]" value="data"> 采集缓存</label>
 		{if $clearPageRender}
 		<label class="checkbox-inline" title="渲染工具的内存数据"><input type="checkbox" name="types[]" value="page_render"> 渲染工具缓存</label>
 		{/if}

@@ -72,9 +72,11 @@ class BaseController extends \skycaiji\common\controller\BaseController{
 	            
 	            $this->error('密码错误','',array('_check_pwd_'=>true));
 	        }
-	        if(input('_check_skip_')){
+	        
+	        $checkSkip=input('_check_skip_/d',0);
+	        if($checkSkip>0){
 	            
-	            cookie('check_userpwd',$muser->generate_key($user),array('expire'=>3600));
+	            cookie('check_userpwd',$muser->generate_key($user),array('expire'=>3600*$checkSkip));
 	        }
 	    }
 	}

@@ -158,12 +158,14 @@
 				<a href="javascript:;" data-toggle="collapse" style="float:left;"></a>
 				<div class="panel-title-title">
 					<a href="javascript:;" data-toggle="collapse" style="color:inherit;"></a>
-					<input type="text" />
+					<input type="text" data-name="[title]" />
 				</div>
 				<div class="panel-title-ops">
+					<input type="hidden" data-name="[close]" />
 					<a href="javascript:;" class="glyphicon glyphicon-tag c-p-process-title" title="标题"></a> 
 					<a href="javascript:;" class="glyphicon icon-drag-move" title="移动"></a>
 					<a href="javascript:;" class="glyphicon glyphicon-copy c-p-process-clone" title="复制"></a>
+					<a href="javascript:;" class="glyphicon glyphicon-ban-circle c-p-process-close" title="禁用"></a>
 					<a href="javascript:;" class="glyphicon glyphicon-remove c-p-process-del" title="删除"></a>
 				</div>
 			</div>
@@ -174,6 +176,7 @@
 		</div>
 	</div>
 	<div id="coll_tpl_page_signs" class="c-p-url-ps-table">
+		<div class=""></div>
 		<table class="table table-hover">
 			<thead>
 				<tr>
@@ -185,6 +188,8 @@
 			</thead>
 			<tbody>
 			</tbody>
+			<tfoot style="display:none;">
+			</tfoot>
 		</table>
 	</div>
 </div>

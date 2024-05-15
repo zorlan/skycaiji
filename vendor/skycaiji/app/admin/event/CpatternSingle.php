@@ -210,6 +210,8 @@ class CpatternSingle extends Cpattern{
 	    $this->single_signs_input_urls($isContUrl,true,$pageSigns,$inputedUrls,$input_urls);
 	    $pageSigns=$this->parent_page_signs($pageType,$pageName,'renderer');
 	    $this->single_signs_input_urls($isContUrl,true,$pageSigns,$inputedUrls,$input_urls);
+	    $pageSigns=$this->parent_page_signs($pageType,$pageName,'pn:');
+	    $this->single_signs_input_urls($isContUrl,true,$pageSigns,$inputedUrls,$input_urls);
 	}
 	
 	
@@ -442,6 +444,8 @@ class CpatternSingle extends Cpattern{
 	    $pageSigns=$this->parent_page_signs('url','','url_web');
 	    $this->single_signs_input_urls(true,true,$pageSigns,$inputedUrls,$input_urls);
 	    $pageSigns=$this->parent_page_signs('url','','renderer');
+	    $this->single_signs_input_urls(true,true,$pageSigns,$inputedUrls,$input_urls);
+	    $pageSigns=$this->parent_page_signs('url','','pn:');
 	    $this->single_signs_input_urls(true,true,$pageSigns,$inputedUrls,$input_urls);
 	    
 	    $this->single_urls_parent(true, $input_urls, $inputedUrls, $input_urls);

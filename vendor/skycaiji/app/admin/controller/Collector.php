@@ -11,7 +11,6 @@
 
 namespace skycaiji\admin\controller;
 use skycaiji\admin\model\CacheModel;
-use skycaiji\admin\model\FuncApp;
 use util\Encrypt;
 
 class Collector extends BaseController {
@@ -173,6 +172,8 @@ class Collector extends BaseController {
         
         $funcList=array('contentSign'=>array(),'process'=>array(),'processIf'=>array());
         
+        $apiAppList=array('process'=>array());
+        
         $contentSignFuncPages=array('front_urls','source_url','level_urls','url','relation_urls');
         foreach ($contentSignFuncPages as $page){
             $pageConfigList=array();
@@ -207,6 +208,7 @@ class Collector extends BaseController {
             
             $processList[]=$config['common_process'];
         }
+        $hasPlugin=false;
         if($processList){
             foreach ($processList as $process){
                 if(is_array($process)){
@@ -218,6 +220,12 @@ class Collector extends BaseController {
                                 if(is_array($v['if_addon'])&&is_array($v['if_addon']['func'])){
                                     $funcList['processIf']=array_merge($funcList['processIf'],$v['if_addon']['func']);
                                 }
+                            }elseif($v['module']=='apiapp'){
+                                
+                                if($v['apiapp_app']){
+                                    $apiAppList['process'][$v['apiapp_app']]=$v['apiapp_app'];
+                                    $hasPlugin=true;
+                                }
                             }
                         }
                     }
@@ -225,7 +233,7 @@ class Collector extends BaseController {
             }
         }
         
-        $hasPlugin=false;
+        
         foreach ($funcList as $funcModule=>$funcs){
             if(is_array($funcs)){
                 foreach ($funcs as $k=>$v){
@@ -268,17 +276,33 @@ class Collector extends BaseController {
     	    if($hasPlugin){
     	        
     	        $export_plugin=input('export_plugin/d');
-    	        if($export_plugin&&is_array($funcList)){
-    	            
+    	        if($export_plugin){
     	            $exportName.='.含插件';
-    	            foreach ($funcList as $funcModule=>$funcs){
-    	                if(is_array($funcs)){
-    	                    foreach ($funcs as $func){
-    	                        $pluginData=controller('admin/Develop','controller')->_export_plugin_data('func',$funcModule,$func,$pwd);
-    	                        if(empty($pluginData['success'])){
-    	                            $this->error($pluginData['msg']);
+    	            
+    	            if(is_array($funcList)){
+    	                foreach ($funcList as $funcModule=>$funcs){
+    	                    if(is_array($funcs)){
+    	                        foreach ($funcs as $func){
+    	                            $pluginData=controller('admin/Develop','controller')->_export_plugin_data('func',$funcModule,$func,$pwd);
+    	                            if(empty($pluginData['success'])){
+    	                                $this->error($pluginData['msg']);
+    	                            }
+    	                            $exportTxt.="\r\n".$pluginData['plugin_txt'];
     	                        }
-    	                        $exportTxt.="\r\n".$pluginData['plugin_txt'];
+    	                    }
+    	                }
+    	            }
+    	            
+    	            if(is_array($apiAppList)){
+    	                foreach ($apiAppList as $apiModule=>$apiApps){
+    	                    if(is_array($apiApps)){
+    	                        foreach ($apiApps as $apiApp){
+    	                            $pluginData=controller('admin/Develop','controller')->_export_plugin_data('api',$apiModule,$apiApp,$pwd);
+    	                            if(empty($pluginData['success'])){
+    	                                $this->error($pluginData['msg']);
+    	                            }
+    	                            $exportTxt.="\r\n".$pluginData['plugin_txt'];
+    	                        }
     	                    }
     	                }
     	            }
@@ -423,7 +447,7 @@ class Collector extends BaseController {
                     
                     $startTime=input('start',0,'intval');
                     $endTime=input('end',0,'intval');
-                    if(abs($endTime-$startTime)>10*1000){
+                    if(abs($endTime-$startTime)>3*1000){
                         
                         $mconfig=model('Config');
                         if($mconfig->server_is_cli()){
@@ -527,27 +551,18 @@ class Collector extends BaseController {
         if(empty($module)){
             $this->error('模块错误');
         }
-        $mfuncApp=new FuncApp();
+        $mfuncApp=model('FuncApp');
         
-        $cacheName='cache_plugin_func_method_'.$module;
+        $cacheName='cache_plugin_func_module_'.$module;
         $cacheFuncs=cache($cacheName);
         
-        $enableApps=$mfuncApp->where(array('module'=>$module,'enable'=>1))->column('uptime','app');
-        
-        foreach ($enableApps as $k=>$v){
-            $appFilename=$mfuncApp->filename($module, $k);
-            if(file_exists($appFilename)){
-                $v.=','.filemtime($appFilename);
-            }
-            $enableApps[$k]=$v;
-        }
-        ksort($enableApps);
+        $enableApps=$this->_plugin_func_enable_apps($module);
         $enableApps=md5(serialize($enableApps));
         
         $apps=array();
         if(empty($cacheFuncs)||$enableApps!=$cacheFuncs['key']||abs(time()-$cacheFuncs['time'])>3600){
             
-            $appList=$mfuncApp->where(array('module'=>$module,'enable'=>1))->column('uptime','app');
+            $appList=$this->_plugin_func_enable_apps($module);
             $apps=array();
             if(!empty($appList)){
                 foreach ($appList as $k=>$v){
@@ -562,5 +577,67 @@ class Collector extends BaseController {
             $apps=$cacheFuncs['list'];
         }
         $this->success('',null,$apps);
+    }
+    private function _plugin_func_enable_apps($module){
+        $mfuncApp=model('FuncApp');
+        $enableApps=$mfuncApp->where(array('module'=>$module,'enable'=>1))->column('uptime','app');
+        
+        foreach ($enableApps as $k=>$v){
+            $appFilename=$mfuncApp->filename($module, $k);
+            if(file_exists($appFilename)){
+                $v.=','.filemtime($appFilename);
+            }
+            $enableApps[$k]=$v;
+        }
+        ksort($enableApps);
+        return $enableApps;
+    }
+    
+    public function plugin_apiAction(){
+        $module=input('module');
+        if(empty($module)){
+            $this->error('模块错误');
+        }
+        $mapiApp=model('ApiApp');
+        
+        $cacheName='cache_plugin_api_module_'.$module;
+        $cacheApis=cache($cacheName);
+        
+        $enableApps=$this->_plugin_api_enable_apps($module);
+        $enableApps=md5(serialize($enableApps));
+        
+        $apps=array();
+        if(empty($cacheApis)||$enableApps!=$cacheApis['key']||abs(time()-$cacheApis['time'])>3600){
+            
+            $appList=$this->_plugin_api_enable_apps($module);
+            $apps=array();
+            if(!empty($appList)){
+                $apps=$mapiApp->where('app','in',array_keys($appList))->column('*','app');
+                foreach ($apps as $k=>$v){
+                    $apps[$k]=array(
+                        'name'=>$v['name'],
+                        'ops'=>$mapiApp->get_app_ops($v,null,true,false)
+                    );
+                }
+            }
+            cache($cacheName,array('list'=>$apps,'time'=>time(),'key'=>md5(serialize($appList))));
+        }else{
+            $apps=$cacheApis['list'];
+        }
+        $this->success('',null,$apps);
+    }
+    private function _plugin_api_enable_apps($module){
+        $mapiApp=model('ApiApp');
+        $enableApps=$mapiApp->where(array('module'=>$module,'enable'=>1))->column('uptime','app');
+        
+        foreach ($enableApps as $k=>$v){
+            $appFilename=$mapiApp->app_filename($module, $k);
+            if(file_exists($appFilename)){
+                $v.=','.filemtime($appFilename);
+            }
+            $enableApps[$k]=$v;
+        }
+        ksort($enableApps);
+        return $enableApps;
     }
 }

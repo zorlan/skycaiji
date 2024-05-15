@@ -70,6 +70,9 @@ class CpatternBase extends CollectBase{
                     if($configParams['rule_multi_type']=='loop'){
                         
                         $val=$matchConts;
+                    }elseif($configParams['rule_multi_type']=='list'){
+                        
+                        $val=json_encode($matchConts);
                     }else{
                         
                         $multiStr=$configParams['rule_multi_str'];
@@ -175,7 +178,8 @@ class CpatternBase extends CollectBase{
     
     
     public function rule_module_xpath_data($configParams,$html){
-        $vals='';
+        $vals=array();
+        $xpathMulti=$configParams['xpath_multi']?true:false;
         if(!empty($configParams['xpath'])){
             $html=$this->filter_html_tags($html,array('script'));
             $dom=new \DOMDocument;
@@ -216,23 +220,8 @@ class CpatternBase extends CollectBase{
             
             $nodes = $xPath->query($xpath_q);
             
-            $multiStr='';
-            $is_loop=false;
-            if(!empty($configParams['xpath_multi'])){
-                
-                $is_loop='loop'==$configParams['xpath_multi_type']?true:false;
-                if($is_loop){
-                    $vals=array();
-                }else{
-                    
-                    $multiStr=str_replace(array('\r','\n'), array("\r","\n"), $configParams['xpath_multi_str']);
-                }
-            }
-            
-            $curI=0;
             foreach ($nodes as $node){
-                $curI++;
-                $val=($curI<=1?'':$multiStr);
+                $val='';
                 if($normal_attr){
                     
                     $val.=$node->nodeValue;
@@ -259,21 +248,37 @@ class CpatternBase extends CollectBase{
                     }
                 }
                 
-                if($is_loop){
+                if($xpathMulti){
                     
                     $vals[]=$val;
                 }else{
-                    $vals.=$val;
-                }
-                
-                if(empty($configParams['xpath_multi'])){
                     
+                    $vals=$val;
                     break;
                 }
             }
             
             libxml_clear_errors();
             
+        }
+        
+        if($xpathMulti){
+            
+            init_array($vals);
+            if($configParams['xpath_multi_type']!='loop'){
+                
+                if($configParams['xpath_multi_type']=='list'){
+                    
+                    $vals=json_encode($vals);
+                }else{
+                    
+                    $multiStr=$configParams['xpath_multi_str'];
+                    if(!empty($multiStr)){
+                        $multiStr=str_replace(array('\r','\n'), array("\r","\n"), $multiStr);
+                    }
+                    $vals=implode($multiStr, $vals);
+                }
+            }
         }
         return $vals;
     }
@@ -705,6 +710,15 @@ class CpatternBase extends CollectBase{
         }
         $pageConfig['reg_area_module']=$pageConfig['area_module'];
         
+        if($isPagination){
+            
+            init_array($pageConfig['number']);
+            foreach ($pageConfig['number'] as $k=>$v){
+                $pageConfig['number'][$k]=intval($v);
+            }
+            $pageConfig['number']['inc']=max(1,intval($pageConfig['number']['inc']));
+        }
+        
         
         if(empty($pageConfig['url_rule_module'])){
             
@@ -1025,6 +1039,24 @@ class CpatternBase extends CollectBase{
      */
     public function execute_plugin_func($module,$funcName,$fieldVal,$paramsStr,$paramValList=null,$errorTips=null){
         $return=model('FuncApp')->execute_func($module,$funcName,$fieldVal,$paramsStr,$paramValList);
+        if(empty($return['success'])&&!empty($return['msg'])){
+            
+            $errorTips=$errorTips?$errorTips:'';
+            $this->echo_error(htmlspecialchars($return['msg'].$errorTips));
+        }
+        return $return['data'];
+    }
+    /**
+     * 执行数据处理»接口函数
+     * @param string $module 模块
+     * @param string $appName 接口app
+     * @param string $fieldVal 字段值
+     * @param string $appConfig 接口配置
+     * @param array $paramValList 需要替换的数据列表
+     * @param string $errorTips 错误提示信息
+     */
+    public function execute_plugin_apiapp($module,$appName,$fieldVal,$appConfig,$paramValList=null,$errorTips=null){
+        $return=model('ApiApp')->execute_app($module,$appName,$fieldVal,$appConfig,$paramValList);
         if(empty($return['success'])&&!empty($return['msg'])){
             
             $errorTips=$errorTips?$errorTips:'';

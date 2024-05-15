@@ -18,12 +18,14 @@ class Dataapi extends BaseController {
         
         $search=array(
             'id'=>input('id/d',0),
-            'name'=>input('name','','trim')
+            'name'=>input('name','','trim'),
+            'ds'=>input('ds','')
         );
         if($search['id']<=0){
             unset($search['id']);
         }
         
+        $mds=model('Dataset');
         $mda=model('Dataapi');
         $cond=array();
         if($search['id']){
@@ -32,7 +34,16 @@ class Dataapi extends BaseController {
         if($search['name']){
             $cond['name']=array('like','%'.$search['name'].'%');
         }
-        
+        if($search['ds']){
+            if(is_numeric($search['ds'])){
+                $cond['ds_id']=$search['ds'];
+            }else{
+                $dsIds=$mds->where('name','like','%'.$search['ds'].'%')->column('id','id');
+                if($dsIds){
+                    $cond['ds_id']=array('in',$dsIds);
+                }
+            }
+        }
         $daList=array();
         $limit=50;
         $daList=$mda->where($cond)->order('sort desc')->paginate($limit,false,paginate_auto_config());
@@ -49,7 +60,7 @@ class Dataapi extends BaseController {
         
         $this->set_html_tags(
             '数据接口',
-            '数据接口',
+            '数据接口'.($cond?'：搜索':''),
             breadcrumb(array(array('url'=>url('dataapi/list'),'title'=>'数据接口'),array('url'=>url('dataapi/list'),'title'=>'列表')))
         );
         

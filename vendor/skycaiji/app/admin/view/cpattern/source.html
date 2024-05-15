@@ -32,19 +32,20 @@
 		<div class="radio form-inline form-group form-group-sm" source-param="num">
 			<label>
 				<input type="radio" name="source[param]" value="num" />
-				数字
+				数字：
 			</label>
 			<div class="source-params">
 				从 <input name="source[param_num_start]" type="number" value="1" class="form-control" style="width:70px;">
 				到 <input name="source[param_num_end]" type="number" value="5" class="form-control" style="width:70px;">
 				递增数 <input name="source[param_num_inc]" type="number" value="1" class="form-control" style="width:70px;">
-				<label><input type="checkbox" name="source[param_num_desc]" value="1"> 倒序</label>
+				<label style="margin-right:15px;"><input type="checkbox" name="source[param_num_desc]" value="1"> 倒序</label>
+				最少补零位数 <input name="source[param_num_len]" type="number" value="" class="form-control" style="width:100px;" placeholder="默认不补零">
 			</div>
 		</div>
 		<div class="radio form-inline form-group form-group-sm" source-param="letter">
 			<label>
 				<input type="radio" name="source[param]" value="letter" />
-				字母
+				字母：
 			</label>
 			<div class="source-params">
 				从 <input name="source[param_letter_start]" type="text" value="a" class="form-control" style="width:50px;">
@@ -55,7 +56,7 @@
 		<div class="radio form-inline form-group form-group-sm" source-param="custom">
 			<label>
 				<input type="radio" name="source[param]" value="custom" />
-				自定义
+				自定义：
 			</label>
 			<div class="source-params">
 	       		<textarea class="form-control" style="width:auto;" name="source[param_custom]" rows="3"></textarea>

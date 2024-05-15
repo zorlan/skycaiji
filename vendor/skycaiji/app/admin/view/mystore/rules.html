@@ -5,19 +5,7 @@
 {block name="content"}
 {php}$orderClass=array($orderKey=>'_'.$sortBy);$orderSort=array($orderKey=>($sortBy=='asc'?'升序':'降序'));{/php}
 <div class="nav-tabs-custom">
-	<ul class="nav nav-tabs">
-    	<li class="active"><a href="{:url('mystore/rule')}">采集规则</a></li>
-    	<li><a href="{:url('mystore/releaseApp')}">发布插件</a></li>
-    	<li><a href="{:url('mystore/funcApp')}">函数插件</a></li>
-    	<li class="nav-tab-right">
-	    	<div class="nav-check-update">
-	    		<a href="javascript:;" id="check_update">检测更新</a>
-	    		<input type="checkbox" id="auto_check" {:is_empty(g_sc_c('store_auto_check_rule'))?'':'checked="checked"'} value="1" title="刷新页面时自动检测" />
-	    	</div>
-	    	<span class="nav-sep">|</span>
-    		<div class="nav-upload"><a href="{:url('mystore/upload?type=rule')}" onclick="windowModal('导入规则',$(this).attr('href'));return false;">导入规则</a></div>
-    	</li>
-	</ul>
+	{include file="mystore:nav" _type="rule" /}
 	<div class="tab-content">
 		<div class="tab-pane active">
 		    <div class="table-responsive" style="border:0;">
@@ -26,19 +14,19 @@
 				<table id="list_table" class="table table-hover datatable">
 					<thead>
 						<tr>
-							<th class="sorting{$orderClass['id']}" data-order="id" title="ID{$orderSort['id']}" style="width:65px;min-width:65px;">{$Think.lang.select}</th>
+							<th class="sorting{$orderClass['id']}" data-order="id" title="ID{$orderSort['id']}" style="width:50px;">ID</th>
 							<th class="sorting{$orderClass['name']}" data-order="name" title="{$orderSort['name']}">名称</th>
 							<th>模块</th>
 							<th class="sorting{$orderClass['addtime']}" data-order="addtime" title="{$orderSort['addtime']}">本地添加</th>
 							<th class="sorting{$orderClass['uptime']}" data-order="uptime" title="{$orderSort['uptime']}">平台更新</th>
 							<th>平台</th>
-							<th>{$Think.lang.op}</th>
+							<th style="width:50px;">{$Think.lang.op}</th>
 						</tr>
 					</thead>
 					<tbody>
 					{foreach name="ruleList" item="rule"}
 						<tr data-rule-id="{$rule['id']}">
-							<td class="chk"><input type="checkbox" name="ids[]" value="{$rule['id']}" /></td>
+							<td>{$rule['id']}</td>
 							<td><div class="name">{$rule['name']}</div></td>
 							<td>{:lang('task_module_'.$rule['module'])}</td>
 							<td>{:date('Y-m-d H:i',$rule['addtime'])}</td>
@@ -51,15 +39,17 @@
 					{/foreach}
 					</tbody>
 					<tfoot>
+						{if empty($ruleList)}
 						<tr>
-							<td class="chk"><label class="chk-all"><input type="checkbox" id="chkall" onclick="checkall(this,'ids[]')" /><span>全部</span></label></td>
-							<td><button type="button" class="btn btn-danger" id="deleteall">{$Think.lang.delete}</button></td>
-							<td colspan="5" style="text-align:right;font-size:12px;">
-								{if !empty($ruleList)}
-								<p class="help-block">在 “编辑任务 &gt; 导入规则 &gt; 已下载规则” 中使用</p>
-								{/if}
+							<td colspan="7">没有采集规则</td>
+						</tr>
+						{else/}
+						<tr>
+							<td colspan="7" style="font-size:12px;padding:0;">
+								<p class="help-block" style="margin:8px 0 0 8px;">在 “编辑任务 &gt; 导入规则 &gt; 云端仓库规则” 中使用</p>
 							</td>
 						</tr>
+						{/if}
 		    			{if condition="!empty($pagenav)"}
 						<tr>
 							<td colspan="7">{$pagenav}</td>

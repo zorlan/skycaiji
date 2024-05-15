@@ -124,14 +124,16 @@ class Dataset extends BaseController {
     }
     
     public function dbCountAction(){
-        $counts=array();
+        $counts=array('db'=>array(),'da'=>array());
         if($this->request->isPost()){
             $ids=input('ids/a',array(),'intval');
             init_array($ids);
+            $mda=model('Dataapi');
             foreach ($ids as $id){
                 try{
                     $dst=DatasetTable::getInstance($id);
-                    $counts[$id]=$dst->db()->count();
+                    $counts['db'][$id]=$dst->db()->count();
+                    $counts['da'][$id]=$mda->where('ds_id',$id)->count();
                 }catch(\Exception $ex){}
             }
         }

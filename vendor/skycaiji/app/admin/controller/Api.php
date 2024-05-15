@@ -277,4 +277,57 @@ class Api extends CollectController{
         }
 	    return json($updateResult);
 	}
+	
+	/*页面渲染接口*/
+	public function page_renderAction(){
+	    $data=\skycaiji\admin\model\CacheModel::getInstance()->getCache('page_render_api_key','data');
+	    if(empty($data['open'])){
+	        $this->jsonSend('接口未开启');
+	    }else{
+	        if($data['key']){
+	            
+	            $key=input('key','');
+	            if(md5($data['key'])!=$key){
+	                $this->jsonSend('密钥错误');
+	            }
+	        }
+	        $op=input('op','');
+	        if($op=='clear'){
+	            
+	            \util\ChromeSocket::config_clear();
+	            $this->jsonSend('已清理渲染工具缓存',array(),1);
+	        }elseif($op=='restart'){
+	            
+	            $error=\util\ChromeSocket::config_restart();
+	            if($error){
+	                $this->jsonSend($error);
+	            }else{
+	                $this->jsonSend('已重启渲染工具',array(),1);
+	            }
+	        }elseif($op=='list'){
+	            $config=model('Config')->getConfig('page_render','data');
+	            $chromeSocket=\util\ChromeSocket::config_init($config);
+	            
+	            $tabs=$chromeSocket?$chromeSocket->getTabs():null;
+	            init_array($tabs);
+	            $this->jsonSend('',$tabs,1);
+	        }elseif($op=='close'){
+	            $config=model('Config')->getConfig('page_render','data');
+	            $chromeSocket=\util\ChromeSocket::config_init($config);
+	            if($chromeSocket){
+	                $id=input('id','');
+	                if($id){
+	                    $chromeSocket->closeTab($id);
+	                    $this->jsonSend('已关闭渲染页面：'.$id,array(),1);
+	                }else{
+	                    $this->jsonSend('请传入渲染页面id');
+	                }
+	            }else{
+	                $this->jsonSend('渲染工具未启动');
+	            }
+	        }else{
+	            $this->jsonSend('无效操作');
+	        }
+	    }
+	}
 }

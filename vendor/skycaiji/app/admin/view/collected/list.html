@@ -18,7 +18,7 @@
 		<table id="list_table" class="table table-hover datatable">
 			<thead>
 				<tr>
-					<th class="chk">{$Think.lang.select}</th>
+					<th class="chk">ID</th>
 					<th class="url">源网址</th>
 					<th>已发布至</th>
 					<th>任务名</th>
@@ -30,7 +30,7 @@
 			<tbody>
 			{foreach name="dataList" item="item"}
 				<tr>
-					<td class="chk"><input type="checkbox" name="ids[]" value="{$item['id']}" /></td>
+					<td class="chk"><label class="checkbox-inline"><input type="checkbox" name="ids[]" value="{$item['id']}" /><small>{$item['id']}</small></label></td>
 					<td class="url"><a href="{$item['url']}" target="_blank">{$item['url']}</a></td>
 					<td class="desc">
 						{if empty($item['status'])}

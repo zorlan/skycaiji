@@ -199,13 +199,19 @@ class Collector extends \skycaiji\common\model\BaseModel{
 	    }
 	}
 	
-	public static function echo_msg_end_js($isTimeout=false,$errorMsg=null){
+	public static function echo_msg_end_js($isBreak=false,$errorMsg=null){
 	    $vars='"'.self::url_collector_process().'"';
-	    if($isTimeout){
+	    if($isBreak){
 	        
-	        $webServer=\util\Funcs::web_server_name();
-	        $webServer=$webServer?:'web';
-	        $errorMsg='运行中断了，请修改'.$webServer.'服务器的超时时间或将采集运行模式设置为<a href="'.url('admin/setting/caiji').'" target="_blank">cli命令行</a>';
+	        if(g_sc_c('caiji','server')){
+	            
+	            $errorMsg='运行中断';
+	        }else{
+	            
+	            $webServer=\util\Funcs::web_server_name();
+	            $webServer=$webServer?:'web';
+	            $errorMsg='运行中断了，请修改'.$webServer.'服务器的超时时间或将采集运行模式设置为<a href="'.url('admin/setting/caiji').'" target="_blank">cli命令行</a>';
+	        }
 	    }
 	    if($errorMsg){
 	        $errorMsg=url_b64encode($errorMsg);

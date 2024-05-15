@@ -237,12 +237,12 @@ return [
     
 	'html_v'=>'',//css和js版本,在init.php中设置
 	
-    'root_path'=>realpath(SKYCAIJI_PATH),//站点根目录
-	'app_path'=>realpath(APP_PATH),//vendor/skycaiji/app项目目录
-    'apps_path'=>realpath(SKYCAIJI_PATH.'app'),//应用程序目录
-    'plugin_path'=>realpath(SKYCAIJI_PATH.'plugin'),//插件目录
-    'vendor_path'=>realpath(VENDOR_PATH),//vendor目录
-    'runtime_path'=>realpath(RUNTIME_PATH),//runtime目录
+    'root_path'=>rtrim(SKYCAIJI_PATH,'\/\\'),//站点根目录
+    'app_path'=>rtrim(APP_PATH,'\/\\'),//vendor/skycaiji/app项目目录
+    'apps_path'=>rtrim(SKYCAIJI_PATH.'app','\/\\'),//应用程序目录
+    'plugin_path'=>rtrim(SKYCAIJI_PATH.'plugin','\/\\'),//插件目录
+    'vendor_path'=>rtrim(VENDOR_PATH,'\/\\'),//vendor目录
+    'runtime_path'=>rtrim(RUNTIME_PATH,'\/\\'),//runtime目录
     'root_url'=>rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()?:''),'\/\\'),//网址根目录
     'root_website'=>(Request::instance()->isSsl()?'https':'http').'://'.trim(Request::instance()->host()?:'','\/\\').rtrim(preg_replace('/\/index\.php.*/i','',Request::instance()->root()?:''),'\/\\'),//带域名网站根目录，去掉index.php，结尾不带/
 	

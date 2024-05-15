@@ -15,9 +15,13 @@
 .db-table-bind-op{width:auto;height:auto;display:inline;padding:0;}
 .db-table-bind-where-tpl,.db-table-bind-query-tpl{display:none;}
 
-.db-table-bind-where,.db-table-bind-query{display:none;}
+.db-table-bind-query{display:none;}
 .db-table-bind-data-seq{display:none;}
-.db-table-bind-where,.db-table-bind-query,.db-table-bind-data{border:0;}
+
+.db-table-bind-where thead tr th,.db-table-bind-query thead tr th,.db-table-bind-data thead tr th{border:0;}
+.db-table-bind-where,.db-table-bind-query,.db-table-bind-data{border:0;border-bottom:solid 1px #eee;}
+
+.db-table-bind-help{margin:0;padding:12px 15px!important;border-bottom:solid 1px #eee;display:none;}
 
 .db-table-bind-signs>.input-group-btn{position:static;}
 

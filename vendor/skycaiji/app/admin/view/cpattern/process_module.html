@@ -1,5 +1,28 @@
 <!-- 数据处理模块 -->
 <div style="display:none;">
+	<div class="c-p-process-module" module="extract">
+		<section>
+			<div class="form-group" style="margin-bottom:0;">
+				<label>提取方式</label>
+				<select class="form-control" data-process="extract:extract_module">
+					<option value="">请选择</option>
+					<option value="rule">规则匹配</option>
+					<option value="xpath">xpath匹配</option>
+					<option value="json">json提取</option>
+				</select>
+				<p class="help-block">从当前字段的值中提取出内容</p>
+			</div>
+			<div class="process-extract-module" style="margin-top:15px;" data-extract-module="rule">
+				{include file="cpattern:rule_module" _type="rule" _name="data-process" _name_pre="extract:extract_" _allow_loop="" /}
+			</div>
+			<div class="process-extract-module" style="margin-top:15px;" data-extract-module="xpath">
+				{include file="cpattern:rule_module" _type="xpath" _name="data-process" _name_pre="extract:extract_" _allow_loop="" /}
+			</div>
+			<div class="process-extract-module" style="margin-top:15px;" data-extract-module="json">
+				{include file="cpattern:rule_module" _type="json" _name="data-process" _name_pre="extract:extract_" _allow_loop="" /}
+			</div>
+		</section>
+	</div>
 	<div class="c-p-process-module" module="html">
 		<section>
 			<ul class="nav nav-tabs">
@@ -91,14 +114,23 @@
 	</div>
 	<div class="c-p-process-module" module="if">
 		<section>
-		<div class="form-group" style="margin-bottom:10px;">
-			<select data-process="if:if_type" class="form-control">
-				<option value="1">{$Think.lang.p_m_if_1}</option>
-				<option value="2">{$Think.lang.p_m_if_2}</option>
-				<option value="3">{$Think.lang.p_m_if_3}</option>
-				<option value="4">{$Think.lang.p_m_if_4}</option>
-			</select>
+		<div class="form-group">
+			<div class="input-group">
+				<span class="input-group-addon">判断</span>
+				<select data-process="if:if_type" class="form-control">
+					<option value="1">{$Think.lang.p_m_if_1}（{$Think.lang.p_m_if_4}）</option>
+					<option value="2">{$Think.lang.p_m_if_2}（{$Think.lang.p_m_if_3}）</option>
+					<option value="3">{$Think.lang.p_m_if_3}（{$Think.lang.p_m_if_2}）</option>
+					<option value="4">{$Think.lang.p_m_if_4}（{$Think.lang.p_m_if_1}）</option>
+				</select>
+				<span class="input-group-addon brl_0 brr_0">中断</span>
+				<select data-process="if:if_stop" class="form-control">
+					<option value="">遇到中断不采集该条数据</option>
+					<option value="collect">遇到中断仍采集但跳出处理</option>
+				</select>
+			</div>
 		</div>
+		
 		<div class="form-group">
     		<div class="table-responsive">
             	<table class="table table-bordered table-hover p-m-if-table" style="margin-bottom:0;">
@@ -146,6 +178,7 @@
 	                  		<div class="input-group-addon" style="padding:0;">
 		                  		<div class="form-control-slt p-m-if-val-time-date">
 							        <select class="form-control">
+		                  				<option value="">选择时间</option>
 		                  				<option value="now">当前时间</option>
 										<option value="today">今天</option>
 										<option value="today +1 day">明天</option>
@@ -449,7 +482,7 @@
 			</select>
 		</div>
 		<div class="form-group p-m-api-content-type" style="display:none;">
-			<label>POST数据类型 <a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="tipsCurlPost()"></a></label>
+			<label>POST数据类型 <a href="javascript:;" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="globalOp.tipsCurlPost()"></a></label>
 	    	<select data-process="api:api_content_type" class="form-control">
 				<option value="">默认表单数据：application/x-www-form-urlencoded</option>
 				<option value="application/json">JSON数组：application/json</option>
@@ -464,7 +497,7 @@
 		            <thead>
 	                <tr>
 	                    <td>名称</td>
-	                    <td>值</th>
+	                    <td>值</td>
 	                    <td>删除</td>
 	                </tr>
 		            </thead>
@@ -484,7 +517,7 @@
 										<option value="custom">自定义</option>
 									</select>
 								</div>
-								<input type="text" data-process="api:api_params:addon:" class="form-control" style="display:none;margin-left:-1px;">
+								<input type="text" data-process="api:api_params:addon:" class="form-control" style="display:none;">
 								<div class="input-group-addon p-m-api-val-field">
 									<div class="form-control-slt">
 										<select class="form-control">
@@ -529,7 +562,7 @@
 										<option value="custom">自定义</option>
 									</select>
 								</div>
-								<input type="text" data-process="api:api_headers:addon:" class="form-control" style="display:none;margin-left:-1px;">
+								<input type="text" data-process="api:api_headers:addon:" class="form-control" style="display:none;">
 								<div class="input-group-addon p-m-api-header-field">
 									<div class="form-control-slt">
 										<select class="form-control">
@@ -564,22 +597,32 @@
 		<div class="form-group">
 			<label>获取结果方式</label>
 			<select class="form-control" data-process="api:api_rule_module">
-				<option value="" checked="checked">JSON提取</option>
+				<option value="" checked="checked">json提取</option>
 				<option value="rule">规则匹配</option>
-				<option value="xpath">XPath匹配</option>
+				<option value="xpath">xpath匹配</option>
 			</select>
 		</div>
 		<div class="form-group">
-			<div class="p-m-api-rule-module" data-rule-module="">
+			<div class="process-extract-module" data-rule-module="">
 				{include file="cpattern:rule_module" _type="json" _name="data-process" _name_pre="api:api_" _allow_loop="" /}
 			</div>
-			<div class="p-m-api-rule-module" data-rule-module="rule">
+			<div class="process-extract-module" data-rule-module="rule">
 				{include file="cpattern:rule_module" _type="rule" _name="data-process" _name_pre="api:api_" _allow_loop="" /}
 			</div>
-			<div class="p-m-api-rule-module" data-rule-module="xpath">
+			<div class="process-extract-module" data-rule-module="xpath">
 				{include file="cpattern:rule_module" _type="xpath" _name="data-process" _name_pre="api:api_" _allow_loop="" /}
 			</div>
 		</div>
 		</section>
+	</div>
+	<div class="c-p-process-module" module="apiapp">
+		<div class="form-group" style="margin-bottom:0;">
+			<label>接口插件</label>
+			<a href="javascript:;" class="fa fa-refresh plugin-api-refresh" title="刷新"></a>
+			<select class="form-control" data-process="apiapp:apiapp_app">
+				<option value="">--请选择--</option>
+			</select>
+		</div>
+		<div class="plugin-api-op-list" style="margin-top:15px;display:none;"></div>
 	</div>
 </div>

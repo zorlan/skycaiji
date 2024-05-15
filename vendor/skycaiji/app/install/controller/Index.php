@@ -18,9 +18,6 @@ use skycaiji\common\model\User;
 class Index extends BaseController{
 	public function __construct(){
 		parent::__construct();
-		if(session_status()!==PHP_SESSION_ACTIVE){
-			session_start();
-		}
 		$lockFile=config('root_path').'/data/install.lock';
 		if(file_exists($lockFile)){
 		    
@@ -120,7 +117,7 @@ class Index extends BaseController{
 				}
 			}
 			
-			session('install_config',array('db'=>$db_config,'admin'=>$adminUser));
+			cache('install_config',array('db'=>$db_config,'admin'=>$adminUser));
 			
 			$this->success('',null,array('has_data'=>$has_data));
 		}else{
@@ -131,9 +128,9 @@ class Index extends BaseController{
 	public function step3Action(){
 		echo $this->fetch();
 		 
-		$installConfig=session('install_config');
+		$installConfig=cache('install_config');
 		if(empty($installConfig)){
-			$this->error('请先安装数据','install/index/step2');
+			$this->error('请先配置数据库','install/index/step2');
 		}
 		 
 		$dbConfig=$installConfig['db'];

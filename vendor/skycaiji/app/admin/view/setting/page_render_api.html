@@ -1,0 +1,24 @@
+<form id="win_form_page_render_api" ajax-submit="true" method="post" action="{:url('admin/setting/page_render_api')}">
+	{:html_usertoken()}
+	<div class="form-group">
+		<label>开启接口</label>
+		<div class="input-group">
+        	<label class="radio-inline"><input type="radio" name="open" value="1" {$data['open']?'checked="checked"':''}>是</label>
+        	<label class="radio-inline"><input type="radio" name="open" value="0" {$data['open']?'':'checked="checked"'}>否</label>
+        </div>
+        <p class="help-block">可通过接口执行操作，注意：清理{if $serverIsLocal}和重启{/if}操作会导致正在渲染的页面丢失</p>
+	</div>
+	<div class="form-group">
+		<label>接口密钥</label>
+		<input type="text" name="key" class="form-control" placeholder="选填，防止接口泄露" value="{$data['key']|htmlspecialchars}" />
+    </div>
+    <p class="help-block"><b>清理渲染工具缓存：</b><a href="{$urls['clear']}" target="_blank">{$urls['clear']|htmlspecialchars}</a></p>
+    {if $serverIsLocal}
+    <p class="help-block"><b>重启渲染工具：</b><a href="{$urls['restart']}" target="_blank">{$urls['restart']|htmlspecialchars}</a></p>
+    {/if}
+    <p class="help-block"><b>查看正在渲染的页面：</b><a href="{$urls['list']}" target="_blank">{$urls['list']|htmlspecialchars}</a></p>
+    <p class="help-block"><b>关闭渲染的页面：</b><a href="{$urls['close']}" target="_blank">{$urls['close']|htmlspecialchars}</a>
+    	<br><b>id：</b>可打开“正在渲染的页面”链接输入data子节点中的id属性
+    </p>
+	<button type="submit" class="btn btn-primary btn-block">保存</button>
+</form>

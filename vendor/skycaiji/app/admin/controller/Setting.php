@@ -230,7 +230,7 @@ class Setting extends BaseController {
         $mconfig=model('Config');
         
         $config=$mconfig->getConfig('page_render','data');
-        $this->_chrome_start($config,false,true);
+        \util\ChromeSocket::config_start($config);
         
         $config=$mconfig->getConfig('caiji','data');
         init_array($config);
@@ -725,8 +725,13 @@ class Setting extends BaseController {
             }
             
             $mconfig->setConfig('page_render',$config);
-            $this->_chrome_start($config);
-            $this->success(lang('op_success'),'setting/page_render');
+            
+            $error=\util\ChromeSocket::config_start($config);
+            if($error){
+                $this->error($error);
+            }else{
+                $this->success(lang('op_success'),'setting/page_render');
+            }
         }else{
             $this->set_html_tags(
                 '页面渲染设置',
@@ -737,14 +742,6 @@ class Setting extends BaseController {
             init_array($config);
             init_array($config['chrome']);
             $this->assign('config',$config);
-            
-            $chromeSocket=$this->_chrome_socket($config);
-            $toolIsOpen=$chromeSocket?$chromeSocket->hostIsOpen():false;
-            $serverIsLocal=$chromeSocket?$chromeSocket->serverIsLocal():false;
-            
-            $this->assign('toolIsOpen',$toolIsOpen);
-            $this->assign('serverIsLocal',$serverIsLocal);
-            
             return $this->fetch('page_render');
         }
     }
@@ -804,7 +801,7 @@ class Setting extends BaseController {
                 
                 if($clearPageRender&&(in_array('all', $types)||in_array('page_render', $types))){
                     
-                    $this->_clear_page_render();
+                    \util\ChromeSocket::config_clear();
                 }
             }
             
@@ -899,63 +896,88 @@ class Setting extends BaseController {
                     }
                 }elseif($info['error']){
                     $this->error($info['error']);
+                }else{
+                    $this->success('测试成功，请保存配置以便生效');
                 }
             }
         }
         $this->error('测试失败');
     }
     
-    public function chrome_cleanAction(){
-        $this->_clear_page_render();
-        $this->success('清理完成','');
-    }
-    
-    public function chrome_restartAction(){
-        $config=model('Config')->getConfig('page_render','data');
-        $this->_chrome_start($config,true);
-        $this->success('重启完成','setting/page_render');
-    }
-    
-    private function _chrome_start($config,$restart=false,$noError=false){
-        init_array($config);
-        $chromeSocket=$this->_chrome_socket($config);
-        $error='';
-        if($chromeSocket){
-            try {
-                if($restart){
-                    
-                    $chromeSocket->closeBrowser();
-                    $chromeSocket->openHost();
-                }else{
-                    if(!$chromeSocket->hostIsOpen()){
+    public function page_render_statusAction(){
+        if(request()->isPost()){
+            $config=model('Config')->getConfig('page_render','data');
+            init_array($config);
+            init_array($config['chrome']);
+            $chromeSocket=\util\ChromeSocket::config_init($config);
+            $toolIsOpen=$chromeSocket?$chromeSocket->hostIsOpen():false;
+            $serverIsLocal=$chromeSocket?$chromeSocket->serverIsLocal():false;
+            
+            
+            $tabs=$chromeSocket?$chromeSocket->getTabs():null;
+            if($tabs){
+                foreach ($tabs as $k=>$v){
+                    if(empty($v['url'])||!is_array($v)||$v['url']=='about:blank'){
                         
-                        $chromeSocket->openHost();
+                        unset($tabs[$k]);
                     }
                 }
-            }catch (\Exception $ex){
-                $error=$ex->getMessage();
             }
-        }
-        if($error&&!$noError){
-            $this->error($error);
+            $tabs=$tabs?count($tabs):0;
+            
+            $this->assign('config',$config);
+            $this->assign('toolIsOpen',$toolIsOpen);
+            $this->assign('serverIsLocal',$serverIsLocal);
+            $this->assign('tabs',$tabs);
+            return $this->fetch('page_render_status');
         }
     }
     
-    private function _chrome_socket($config){
-        init_array($config);
-        init_array($config['chrome']);
-        $chromeSocket=null;
-        if(model('Config')->page_render_is_chrome(true,$config['tool'])){
-            $chromeSocket=new \util\ChromeSocket($config['chrome']['host'],$config['chrome']['port'],$config['timeout'],$config['chrome']['filename'],$config['chrome']);
-        }
-        return $chromeSocket;
+    public function page_render_clearAction(){
+        \util\ChromeSocket::config_clear();
+        $this->success('清理完成','setting/page_render');
     }
     
-    private function _clear_page_render(){
-        $config=model('Config')->getConfig('page_render','data');
-        $chromeSocket=$this->_chrome_socket($config);
-        if($chromeSocket){
-            $chromeSocket->clearBrowser();
+    public function page_render_restartAction(){
+        $error=\util\ChromeSocket::config_restart();
+        if($error){
+            $this->error($error,'');
+        }else{
+            $this->success('重启完成','setting/page_render');
+        }
+    }
+    
+    public function page_render_apiAction(){
+        $kname='page_render_api_key';
+        $mcache=CacheModel::getInstance();
+        $data=$mcache->getCache($kname,'data');
+        init_array($data);
+        if(request()->isPost()){
+            $mcache->setCache($kname,array(
+                'open'=>input('open/d',0),
+                'key'=>input('key','','trim'),
+            ));
+            $this->success('操作成功','',array('js'=>"windowModal('API接口',ulink('setting/page_render_api'));"));
+        }else{
+            $uri='';
+            if($data['key']){
+                $uri.='key='.md5($data['key']);
+            }
+            $urls=array(
+                'clear'=>url('admin/api/page_render?'.$uri.($uri?'&':'').'op=clear','',false,true),
+                'restart'=>url('admin/api/page_render?'.$uri.($uri?'&':'').'op=restart','',false,true),
+                'list'=>url('admin/api/page_render?'.$uri.($uri?'&':'').'op=list','',false,true),
+                'close'=>url('admin/api/page_render?'.$uri.($uri?'&':'').'op=close&id=','',false,true)
+            );
+            $config=model('Config')->getConfig('page_render','data');
+            $chromeSocket=\util\ChromeSocket::config_init($config);
+            $serverIsLocal=$chromeSocket?$chromeSocket->serverIsLocal():false;
+            
+            $this->assign('data',$data);
+            $this->assign('urls',$urls);
+            $this->assign('serverIsLocal',$serverIsLocal);
+            
+            return $this->fetch('page_render_api');
         }
     }
 }

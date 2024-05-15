@@ -1,0 +1,14 @@
+{if !empty($config['tool'])}
+	{if $toolIsOpen}
+	<div class="alert alert-success" role="alert">
+		<span style="margin-right:3px;">渲染工具运行中{if $tabs>0}，有<b>{$tabs}</b>个页面正在渲染{/if}</span>
+		<button type="button" id="btn_page_render_clear" class="btn btn-sm btn-success" style="margin-left:5px;">清理渲染工具缓存</button>
+		{if $serverIsLocal}
+		<button type="button" id="btn_page_render_restart" class="btn btn-sm btn-success" style="margin-left:5px;">重启渲染工具</button>
+		{/if}
+		<button type="button" id="btn_page_render_api" class="btn btn-sm btn-success" style="margin-left:5px;">API接口</button>
+	</div>
+	{else /}
+	<div class="alert alert-warning" role="alert">渲染工具服务器未开启，请检查配置是否正确！确认无误后点击保存</div>
+	{/if}
+{/if}

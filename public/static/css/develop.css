@@ -1,0 +1,33 @@
+@CHARSET "UTF-8";
+
+.deve-editor-left{padding-right:0px;}
+.deve-editor-right{padding-left:1px;}
+.deve-editor-apps-nav{margin-bottom:0;}
+
+.deve-editor-apps{padding-left:5px;list-style:none;}
+.deve-editor-apps li{padding:2px 0;width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.deve-editor-apps li a{color:#333;}
+.deve-editor-apps li.cur a{font-weight:bold;}
+
+@media (max-width: 767px){
+	.deve-editor-left,.deve-editor-right{padding-left:15px;padding-right:15px;margin-bottom:10px;}
+}
+
+.deve-api-request-box .request-header-list td:last-child,.deve-api-request-box .request-param-list td:last-child{text-align:center;}
+.deve-api-request-box .request-header-delete,.deve-api-request-box .request-param-delete{margin-top:7px;}
+
+
+.deve-api-request-box .api-insert-variable-btn{padding:0;}
+.deve-api-request-box .api-insert-variable-btn a.dropdown-toggle{border-color:#fff;padding:6px 12px;color:#666;}
+.deve-api-request-box .api-insert-variable-btn a.dropdown-toggle:hover{color:#000;}
+.deve-api-request-box .api-insert-variable-btn a.dropdown-toggle .caret{margin-top:-2px;}
+
+/*规则样式*/
+.iga-rt{text-align:left;line-height:20px;}
+.iga-rt .blk{display:block;}
+.iga-rt .mgr{margin-right:5px;}
+
+.iga-rt1{padding:0;vertical-align:top;}
+.iga-rt1 .slt{width:100%;min-width:58px;height:24px;display:block;color:#555;font-weight:bold;padding:1px;margin:0;border:0;background:#F1F1F1;}
+.iga-rt1 .op{margin:0;padding:3px 6px;list-style:none;}
+.iga-rt1 .op li{display:none;}

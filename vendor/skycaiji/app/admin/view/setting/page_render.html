@@ -8,17 +8,9 @@
 	<div class="tab-content">
 		<div class="tab-pane active" style="padding:0px 5px;">
 		{if !empty($config['tool'])}
-			{if $toolIsOpen}
-			<div class="alert alert-success" role="alert">
-				渲染工具正在运行！
-				<button type="button" id="btn_chrome_clean" class="btn btn-sm btn-success" style="margin-left:5px;">清理渲染工具缓存</button>
-				{if $serverIsLocal}
-				<button type="button" id="btn_chrome_restart" class="btn btn-sm btn-success" style="margin-left:5px;">重启渲染工具</button>
-				{/if}
-			</div>
-			{else /}
-			<div class="alert alert-warning" role="alert">渲染工具服务器未开启，请检查配置是否正确！确认无误后点击保存</div>
-			{/if}
+		<div id="page_render_status">
+			<div class="alert alert-success" role="alert"><div class="loading-sm" style="margin-right:5px;"></div> 正在检测状态</div>
+		</div>
 		{/if}
 		<form id="form_set" method="post" role="form" action="{:url('admin/setting/page_render')}">
 		{:html_usertoken()}	
@@ -46,6 +38,9 @@
 			       		</div>
 			        </div>
 					<p class="help-block">浏览器可执行文件在服务器中的绝对路径或者在系统中的环境变量名称</p>
+			    </div>
+				<div class="form-group" data-chrome-server="remote">
+					<p class="help-block">请在远程服务器中开启Chrome/Chromium浏览器的headless模式 <a href="https://www.skycaiji.com/manual/q/chrome%20headless" target="_blank">了解headless</a></p>
 			    </div>
 			    <div class="form-group">
 			        <label>浏览器服务器</label>

@@ -1,0 +1,105 @@
+{extend name="common:main" /}
+{block name="cssjs"}
+<link href="__PUBLIC__/static/css/jquery.datetimepicker.css?{$Think.config.html_v}" rel="stylesheet">
+<script type="text/javascript" src="__PUBLIC__/static/js/jquery.datetimepicker.js?{$Think.config.html_v}"></script>
+<link href="__PUBLIC__/static/css/develop.css?{$Think.config.html_v}" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="__PUBLIC__/static/js/admin/develop.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<form id="form_api" method="post" ajax-submit="true" action="{:url('admin/develop/api')}">
+<div class="box box-default">
+	<div class="box-body" style="padding-bottom:0;">
+		{:html_usertoken()}
+		{if !empty($apiClass)}
+		    <input type="hidden" name="edit" value="1" />
+			<div class="alert alert-warning">
+		    	<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+		    	请在 {$apiClass['filename']} 文件中编辑代码 或者 <a href="{:url('develop/editor?type=api&app='.$app)}"><b>使用插件编辑器</b></a>
+		    </div>
+		    <div class="form-group">
+		    	<a href="{:url('admin/develop/export?type=api&module='.$apiClass['module'].'&app='.$apiClass['app'])}" class="btn btn-default btn-block" target="_blank">插件另存为</a>
+		    </div>
+		{/if}
+	    <div class="form-group">
+	        <label>模块</label>
+	        <select name="module" class="form-control">
+	   			<option value="">请选择</option>
+	   			{foreach $modules as $k=>$v}
+	   			<option value="{$k}">{$v['name']}：{$v['loc']}</option>
+	   			{/foreach}
+	   		</select>
+	   	</div>
+	    <div class="form-group">
+	        <label>接口名称</label>
+	        <input type="text" name="name" class="form-control">
+	        <p class="help-block">精简描述该接口</p>
+	    </div>
+	    <div class="form-group">
+	        <label>功能标识</label>
+	        <input type="text" name="identifier" class="form-control">
+	        <p class="help-block">表示该插件的作用，只能输入字母或数字</p>
+	    </div>
+	    <div class="form-group">
+	        <label>作者版权</label>
+	        <input type="text" name="copyright" class="form-control">
+	        <p class="help-block">版权归属能有效区分他人开发的插件，只能输入字母或数字</p>
+	    </div>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<div class="panel-title">操作流程</div>
+	</div>
+	<div class="panel-body" style="padding-bottom:0;">
+   		<div class="form-group">
+   			<button type="button" class="btn btn-default" id="add_variable">添加变量</button>
+   			<button type="button" class="btn btn-default" id="add_request" style="margin-left:5px;">添加请求</button>
+    	</div>
+   		<div class="row">
+	    	<div class="table-responsive">
+		    	<table class="table table-hover" id="op_list">
+		    		<tbody>
+		    		</tbody>
+		    	</table>
+	    	</div>
+    	</div>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<div class="panel-title">最终数据</div>
+	</div>
+	<div class="panel-body">
+	    <div class="form-group api-insert-variable">
+	        <textarea class="form-control" name="content" rows="3"></textarea>
+	        <div class="help-block">
+	        	最终生成的数据，可输入任何内容或
+	        	<div class="dropup api-insert-variable-btn" style="display:inline;">
+					<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">调用操作的值 <span class="caret"></span></a>
+			        <ul class="dropdown-menu dropdown-menu-right">
+			        </ul>
+				</div>
+	        </div>
+	    </div>
+    </div>
+</div>
+<div class="form-group">
+<button type="button" class="btn btn-default btn-block" id="btn_api_test" data-app="{$apiClass?$apiClass['app']:''}">测试（需先保存）</button>
+</div>
+<button type="submit" class="btn btn-primary btn-block">{$Think.lang.save}</button>
+</form>
+<table style="display:none;">
+	<tr id="tpl_op">
+		<td class="op-module" style="width:70px;padding-left:20px;"></td>
+		<td class="op-info" style="cursor:pointer;color:#3c8dbc"></td>
+		<td style="width:60px;font-size:12px;vertical-align:middle;">
+			<input type="hidden" name="ops[]" />
+			<a href="javascript:;" class="glyphicon icon-drag-move op-move" title="移动"></a>
+			<a href="javascript:;" class="glyphicon glyphicon-remove op-delete" title="删除" style="top:1.1px"></a>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">
+developClass.api('{$module}',{$apiClass|json_encode});
+</script>
+{/block}

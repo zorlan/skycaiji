@@ -2,7 +2,10 @@
 {assign name="_tpl_name" value="[_name]" /}
 {assign name="_tpl_name_pre" value="[_name_pre]" /}
 {assign name="_tpl_allow_loop" value="[_allow_loop]" /}
-{php}$_tpl_is_process=($_tpl_name=='data-process')?true:false;{/php}
+{php}
+	$_tpl_is_process=($_tpl_name=='data-process')?true:false;
+	$_tpl_name_id='c_p_'.str_replace(array('[',']'),'_',$_tpl_name).'_'.str_replace(array('[',']'),'_',$_tpl_name_pre);
+{/php}
 {if $_tpl_type=='rule'}
 	<div class="form-group">
 		<label>规则</label>
@@ -30,15 +33,18 @@
    		</div>
    	</div>
   	<div class="checkbox"><label><input type="checkbox" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'rule_multi')} value="1"> 允许匹配多个结果</label></div>
-  	<div class="input-group{if $_tpl_is_process} p-m-api-rule-multi-str{/if}" style="display:none;" {if !$_tpl_is_process}id="c_p_{$_tpl_name}_{$_tpl_name_pre}rule_multi_str"{/if}>
+  	<div class="{if $_tpl_is_process}process-extract-rule-multi-str{/if}" style="display:none;" {if !$_tpl_is_process}id="{$_tpl_name_id}rule_multi_str"{/if}>
 		{if $_tpl_allow_loop}
-			<div class="input-group-addon" style="border-right:0;"><label class="radio-inline"><input type="radio" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'rule_multi_type')} value="">拼接为文本 <span title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="cpDelimiterTips()"></span></label></div>
-	    	<input type="text" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'rule_multi_str')} class="form-control" placeholder="多个结果之间分隔符">
-			<div class="input-group-addon"><label class="radio-inline"><input type="radio" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'rule_multi_type')} value="loop">循环入库</label></div>
-  		{else /}
-  			<input type="text" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'rule_multi_str')} class="form-control" placeholder="多个结果之间分隔符" />
-			<div class="input-group-addon" style="padding-left:9px;padding-right:9px;"><span title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="cpDelimiterTips()"></span></div>
-  		{/if}
+		<select {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'rule_multi_type')} class="form-control">
+			<option value="">拼接为文本</option>
+			<option value="loop">循环入库</option>
+			<option value="list">列表数据，处理后拼接为文本</option>
+		</select> 
+  		{/if} 
+ 		<div class="input-group box-rule-multi-str" style="margin-top:10px;">
+ 			<input type="text" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'rule_multi_str')} class="form-control" placeholder="多个结果之间分隔符" />
+			<div class="input-group-addon" style="padding-left:9px;padding-right:9px;"><span title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.cpDelimiterTips()"></span></div>
+		</div>
   	</div>
 {elseif $_tpl_type=='xpath' /}
 	<div class="form-group">
@@ -71,15 +77,18 @@
 		</div>
 	</div>
 	<div class="checkbox"><label><input type="checkbox" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'xpath_multi')} value="1"> 允许匹配多个结果</label></div>
-	<div class="input-group{if $_tpl_is_process} p-m-api-xpath-multi-str{/if}" style="display:none;" {if !$_tpl_is_process}id="c_p_{$_tpl_name}_{$_tpl_name_pre}xpath_multi_str"{/if}>
+	<div class="{if $_tpl_is_process}process-extract-xpath-multi-str{/if}" style="display:none;" {if !$_tpl_is_process}id="{$_tpl_name_id}xpath_multi_str"{/if}>
 		{if $_tpl_allow_loop}
-			<div class="input-group-addon" style="border-right:0;"><label class="radio-inline"><input type="radio" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'xpath_multi_type')} value="">拼接为文本 <span title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="cpDelimiterTips()"></span></label></div>
-	    	<input type="text" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'xpath_multi_str')} class="form-control" placeholder="多个结果之间分隔符">
-			<div class="input-group-addon"><label class="radio-inline"><input type="radio" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'xpath_multi_type')} value="loop">循环入库</label></div>
-		{else /}
+		<select {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'xpath_multi_type')} class="form-control">
+			<option value="">拼接为文本</option>
+			<option value="loop">循环入库</option>
+			<option value="list">列表数据，处理后拼接为文本</option>
+		</select>
+		{/if} 
+ 		<div class="input-group box-xpath-multi-str" style="margin-top:10px;">
 			<input type="text" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'xpath_multi_str')} class="form-control" placeholder="多个结果之间分隔符" />
-			<div class="input-group-addon" style="padding-left:9px;padding-right:9px;"><span title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="cpDelimiterTips()"></span></div>
-		{/if}
+			<div class="input-group-addon" style="padding-left:9px;padding-right:9px;"><span title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.cpDelimiterTips()"></span></div>
+		</div>
   	</div>
 {elseif $_tpl_type=='json' /}	
 	<div class="form-group">
@@ -99,9 +108,9 @@
 			<option value="jsonencode">json编码</option>
 			<option value="serialize">序列化</option>
 		</select>
-		<div class="input-group{if $_tpl_is_process} p-m-api-json-arr-implode{/if}" {if !$_tpl_is_process}id="c_p_{$_tpl_name}_{$_tpl_name_pre}json_arr_implode"{/if} style="margin-top:5px;">
+		<div class="input-group{if $_tpl_is_process} process-extract-json-arr-implode{/if}" {if !$_tpl_is_process}id="{$_tpl_name_id}json_arr_implode"{/if} style="margin-top:5px;">
 			<textarea {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'json_arr_implode')} class="form-control" rows="1" placeholder="输入分隔符"></textarea>
- 			<div class="input-group-addon" style="padding-left:9px;padding-right:9px;"><span title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="cpDelimiterTips()"></span></div>
+ 			<div class="input-group-addon" style="padding-left:9px;padding-right:9px;"><span title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.cpDelimiterTips()"></span></div>
 		</div>
 	</div>
 {/if}

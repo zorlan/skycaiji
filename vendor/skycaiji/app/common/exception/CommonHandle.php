@@ -31,12 +31,12 @@ class CommonHandle extends \think\exception\Handle {
             return parent::renderHttpException($e);
         }
     }
-    protected function convertExceptionToResponse(\Exception $exception){
+    protected function convertExceptionToResponse(\Exception $e){
         if(\util\Param::is_collector_collecting()){
             
             $this->_collect_output($e);
         }else{
-            return parent::convertExceptionToResponse($exception);
+            return parent::convertExceptionToResponse($e);
         }
     }
     private function _collect_output($exception){

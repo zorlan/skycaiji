@@ -5,4 +5,3 @@ namespace plugin\func\{$module};
 class {$classname}{
 	{$methods}
 }
-?>
