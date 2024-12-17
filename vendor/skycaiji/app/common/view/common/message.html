@@ -47,7 +47,7 @@ function msgGoHome(){
 			msgWaitTm--;
 	        setTimeout("msgGoHome()",1000);
 		}else{
-			window.location.href="{$url}";
+			window{$data['window_top']?'.top':''}.location.href="{$url}";
 		}
 	}
 }

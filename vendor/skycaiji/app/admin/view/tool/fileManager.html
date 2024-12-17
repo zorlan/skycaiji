@@ -2,7 +2,7 @@
 {block name="cssjs"}
 <style type="text/css">
 .content-header{display:none;}
-.content{padding:0;}
+section.content{padding:0;}
 </style>
 {/block}
 {block name="content"}
@@ -10,19 +10,24 @@
 	<iframe style="width:100%;height:100%;padding:0;margin:0;border:0;"></iframe>
 </div>
 <script type="text/javascript">
-var ifrHeight=$(document.body).height()-$('#ifrManager').offset().top;
-$('#ifrManager').height(ifrHeight+'px');
-ajax_check_userpwd({
-	type:'post',
-	dataType:'json',
-	url:ulink('tool/elfinder'),
-	success: function (data) {
-		if(data.code==1){
-			$('#ifrManager iframe').attr('src',data.url);
-		}else{
-			toastr.error(data.msg);
-		}
+(function(){
+	if(window.top!=window.self){
+		//不要嵌套
+		$('.wrapper').hide();
+		window.top.location.href=window.self.location.href;
 	}
-});
+	ajax_check_userpwd({
+		type:'post',
+		dataType:'json',
+		url:ulink('tool/fileManager'),
+		success:function(data){
+			if(data.code==1){
+				var ifrHeight=$(document.body).height()-$('#ifrManager').offset().top;
+				$('#ifrManager').css('height',ifrHeight+'px');
+				$('#ifrManager iframe').attr('src',data.url);
+			}
+		}
+	});
+})();
 </script>
 {/block}

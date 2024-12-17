@@ -12,73 +12,402 @@
 namespace skycaiji\admin\controller;
 use skycaiji\admin\model\DbCommon;
 class Tool extends BaseController {
-	/*文件管理*/
-	public function fileManagerAction(){
-	    $this->set_html_tags(
-	        '文件管理',
-	        '文件管理',
-	        breadcrumb(array(array('url'=>url('tool/fileManager'),'title'=>'文件管理')))
-	    );
-		return $this->fetch('fileManager');
-	}
-	/*elfinder文件管理器*/
-	public function elfinderAction(){
-	    $this->check_usertoken();
-		$op=input('op');
-		if(empty($op)){
-		    
-		    $this->ajax_check_userpwd();
-		    $this->success('','tool/elfinder?op=show&pwd='.g_sc('user','password').'&'.url_usertoken());
-		}elseif('show'==$op){
-		    if(input('pwd')==g_sc('user','password')){
-		        $elfinderUrl=config('root_website').'/vendor/studio-42/elfinder';
-		        $this->assign('elfinderUrl',$elfinderUrl);
-		        return $this->fetch();
-		    }else{
-		        $this->error('密码验证错误');
-		    }
-		}elseif('connect'==$op){
-			
-			
-			\elFinder::$netDrivers['ftp'] = 'FTP';
-			
-			
-			
-			$opts = array(
-				
-				'roots' => array(
-					
-					array(
-						'driver'        => 'LocalFileSystem',           
-						'path'          => config('root_path').'/data',                 
-						'URL'           => config('root_website').'/data', 
-						'uploadDeny'    => array('all'),                
-						'uploadAllow'   => array('image/x-ms-bmp', 'image/gif', 'image/jpeg', 'image/png', 'image/x-icon', 'text/plain'), 
-						'uploadOrder'   => array('deny', 'allow'),      
-					    'attributes' => array (
-							array (
-							    'pattern' => '/\.(php|htaccess|html|lock)$/i',
-							    'read' => false,
-							    'write' => false,
-							    'hidden' => true,
-							    'locked' => false
-							),
-					        array (
-					            'pattern' => '/^\/{0,1}$/i',
-					            'read' => true,
-					            'write' => false,
-					            'hidden' => false,
-					            'locked' => false
-					        )
-						)
-					)
-				)
-			);
-			
-			$connector = new \elFinderConnector(new \elFinder($opts));
-			$connector->run();
-		}
-	}
+    /*文件管理*/
+    public function fileManagerAction(){
+        if($this->request->isPost()){
+            $this->ajax_check_userpwd();
+            session('file_manager_date',date('Y-m-d'));
+            $this->success('','tool/file');
+        }else{
+            $this->set_html_tags(
+                '文件管理',
+                '文件管理',
+                breadcrumb(array(array('url'=>url('tool/fileManager'),'title'=>'文件管理')))
+            );
+            return $this->fetch('fileManager');
+        }
+    }
+    
+    private function _file_manager_date(){
+        if(date('Y-m-d')!=session('file_manager_date')){
+            
+            $this->error('访问过期','tool/fileManager',array('window_top'=>1));
+        }
+    }
+    
+    private function _protected_paths($path){
+        static $paths=array('app','files','images','program','program/upgrade','program/backup');
+        static $pathList=null;
+        if(!isset($pathList)){
+            foreach ($paths as $v){
+                $v=config('root_path').DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.$v;
+                $v=realpath($v);
+                if($v){
+                    $pathList[]=$v;
+                }
+            }
+        }
+        $path=realpath($path);
+        if($path&&in_array($path,$pathList)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    public function fileAction(){
+        $this->_file_manager_date();
+        
+        $op=input('op');
+        $file=input('file','');
+        $file=str_replace('/', DIRECTORY_SEPARATOR, $file);
+        $file=trim($file,'\/\\');
+        $rootPath=config('root_path').DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR;
+        $filePath=$rootPath.$file;
+        $filePath=realpath($filePath);
+        $fileName='';
+        if($file){
+            
+            if(stripos($filePath, $rootPath)!==0){
+                $this->error('禁止访问根目录外的文件');
+            }
+            
+            $fileName='';
+            if(preg_match('/([^\/\\\]+)$/',$filePath,$fileName)){
+                $fileName=$fileName[1];
+            }else{
+                $fileName='';
+            }
+        }
+        $files=array();
+        if(empty($op)){
+            if(is_dir($filePath)){
+                
+                $fileList=scandir($filePath);
+                foreach ($fileList as $v){
+                    if($v=='.'||$v=='..'||$v=='index.html'||$v=='install.lock'||preg_match('/\.php$/i', $v)){
+                        
+                        continue;
+                    }
+                    $fileInfo=array('dir'=>'','date'=>'');
+                    $curFile=$filePath.DIRECTORY_SEPARATOR.$v;
+                    if(is_dir($curFile)){
+                        $fileInfo['dir']='1';
+                    }
+                    $fileInfo['date']=date("Y-m-d H:i:s",filemtime($curFile));
+                    $files[$v]=$fileInfo;
+                }
+                
+                $this->assign('file',$file);
+                $this->assign('filePath',$filePath);
+                $this->assign('files',$files);
+                return $this->fetch('file');
+            }else{
+                
+                $filePath=realpath($filePath);
+                if(empty($filePath)){
+                    $this->error('文件不存在');
+                }
+                
+                $fileData=file_get_contents($filePath);
+                $fileEncode=mb_detect_encoding($fileData,array('UTF-8','GB2312','GBK','BIG5','ASCII'));
+                
+                if($fileEncode&&strtoupper($fileEncode)=='UTF-8'){
+                    
+                    $fileData=json_encode(array('file'=>$file,'data'=>$fileData));
+                    $this->assign('fileData',$fileData);
+                    return $this->fetch('file_file');
+                }else{
+                    
+                    $fileType='';
+                    $fileInfo=array();
+                    if(getimagesize($filePath)){
+                        
+                        $fileType='img';
+                    }else{
+                        $fileType=pathinfo($filePath,PATHINFO_EXTENSION);
+                        $fileInfo['size']=filesize($filePath);
+                        $fileInfo['name']=basename($filePath);
+                        $fileInfo['file']=$filePath;
+                        if($fileInfo['size']>1024*1024){
+                            $fileInfo['size']=round($fileInfo['size']/(1024*1024),2).' MB';
+                        }else{
+                            $fileInfo['size']=round($fileInfo['size']/1024,2).' KB';
+                        }
+                        
+                        $fileInfo['ctime']=date('Y-m-d H:i:s',filectime($filePath));
+                        $fileInfo['mtime']=date('Y-m-d H:i:s',filemtime($filePath));
+                    }
+                    $this->assign('file',$file);
+                    $this->assign('fileType',$fileType);
+                    $this->assign('fileInfo',$fileInfo);
+                    $this->assign('fileUrl',config('root_url').'/data/'.$file);
+                    return $this->fetch('file_other');
+                }
+            }
+        }elseif($op=='new'){
+            
+            if(is_dir($filePath)){
+                
+                $newType=input('new_type');
+                if($this->request->isPost()){
+                    $newName=input('new_name','');
+                    if(!preg_match('/^[\w\-]+$/', $newName)){
+                        $this->error('名称只能由字母、数字和下划线组成');
+                    }
+                    $newFile=$filePath.DIRECTORY_SEPARATOR.$newName;
+                    if($newType=='folder'){
+                        if(!is_dir($newFile)){
+                            mkdir($newFile,0777,true);
+                        }
+                        $indexFile=$newFile.DIRECTORY_SEPARATOR.'index.html';
+                        if(!file_exists($indexFile)){
+                            write_dir_file($indexFile, '');
+                        }
+                    }elseif($newType=='txt'){
+                        write_dir_file($newFile.'.txt', '');
+                    }
+                    $this->success('创建成功','tool/file?file='.rawurlencode($file));
+                }else{
+                    $this->assign('file',$file);
+                    $this->assign('newType',$newType);
+                    return $this->fetch('file_add');
+                }
+            }
+        }elseif($op=='save'){
+            
+            if($this->request->isPost()){
+                $saveData=input('save_data','',null);
+                file_put_contents($filePath, $saveData);
+                $this->success('已修改','');
+            }
+        }elseif($op=='move'){
+            
+            if($this->request->isPost()){
+                if($this->_protected_paths($filePath)){
+                    $this->error('禁止移动系统文件夹：'.$filePath);
+                }
+                
+                $moveTo=input('move_to','','trim');
+                if(!preg_match('/^[\w\-\/\\\]+$/', $moveTo)||preg_match('/^[\/\\\]+$/', $moveTo)){
+                    $this->error('目录只能由字母、数字和下划线组成');
+                }
+                $moveTo=str_replace('\\', '/', $moveTo);
+                
+                $movePath=$rootPath.$moveTo;
+                if(!is_dir($movePath)){
+                    mkdir($movePath,0777,true);
+                }
+                $movePath=realpath($movePath).DIRECTORY_SEPARATOR;
+                $tips=is_dir($filePath)?'目录':'文件';
+                
+                if(file_exists($movePath.$fileName)){
+                    $this->error('移动失败，已存在'.$tips);
+                }
+                if(rename($filePath, $movePath.$fileName)){
+                    $this->success($tips.'已成功移动到：'.$movePath,'tool/file?file='.rawurlencode($moveTo));
+                }else{
+                    $this->error($tips.'移动失败');
+                }
+            }else{
+                $this->assign('file',$file);
+                $this->assign('cur',preg_replace('/[\/\\\]*[^\/\\\]+$/', '', $file));
+                $this->assign('rootPath',$rootPath);
+                return $this->fetch('file_move');
+            }
+        }elseif($op=='rename'){
+            
+            if($this->request->isPost()){
+                if($this->_protected_paths($filePath)){
+                    $this->error('禁止重命名系统文件夹：'.$filePath);
+                }
+                $rename=input('rename','','trim');
+                if(!preg_match('/^[\w\-]+$/', $rename)){
+                    $this->error('名称只能由字母、数字和下划线组成');
+                }
+                $newName=preg_replace_callback('/([^\/\\\]+)$/',function($match)use($rename){
+                    $match=$match[0];
+                    $match=explode('.',$match);
+                    $match[0]=$rename;
+                    return implode('.', $match);
+                },$filePath);
+                
+                if(file_exists($newName)){
+                    $this->error('文件名称已存在');
+                }
+                if(rename($filePath,$newName)){
+                    $this->success('重命名成功','tool/file?file='.rawurlencode(preg_replace('/[^\/\\\]+$/', '', $file)));
+                }else{
+                    $this->error('重命名失败');
+                }
+            }else{
+                $this->assign('file',$file);
+                return $this->fetch('file_rename');
+            }
+        }elseif($op=='delete'){
+            if($this->request->isPost()){
+                if($this->_protected_paths($filePath)){
+                    $this->error('禁止删除系统文件夹：'.$filePath);
+                }
+                
+                if(is_dir($filePath)){
+                    \util\Funcs::clear_dir($filePath);
+                    rmdir($filePath);
+                }else{
+                    unlink($filePath);
+                }
+                $this->success('已删除','');
+            }
+        }elseif($op=='download'){
+            $fileName=explode('.', $fileName);
+            if(is_dir($filePath)){
+                $zipFileName=dirname($filePath).DIRECTORY_SEPARATOR.'_____'.$fileName[0].'.zip';
+                $error='';
+                try{
+                    $zip=new \ZipArchive();
+                    if($zip->open($zipFileName, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+                        $this->_addFileToZip($filePath, $fileName[0], $zip);
+                        $zip->close();
+                    }else{
+                        $error='文件不存在';
+                    }
+                }catch (\Exception $ex){
+                    $error=$ex->getMessage();
+                }
+                
+                $filecont=null;
+                $filesize=0;
+                if(file_exists($zipFileName)){
+                    $filecont=file_get_contents($zipFileName);
+                    $filesize=filesize($zipFileName);
+                    unlink($zipFileName);
+                }
+                if($error){
+                    $this->error($error,'');
+                }
+                \util\Tools::browser_export_scj($fileName[0],$filecont,'zip',$filesize);
+            }else{
+                \util\Tools::browser_export_scj($fileName[0],file_get_contents($filePath),$fileName[1],filesize($filePath));
+            }
+        }
+    }
+    
+    private function _addFileToZip($path, $current, $zip) {
+        static $isWin=null;
+        if(!isset($isWin)){
+            $isWin=stripos($this->request->header('user-agent'),'windows')!==false?true:false;
+        }
+        
+        $handler = opendir($path);
+        while(($filename = readdir($handler)) !== false) {
+            if ($filename != '.' && $filename != '..') {
+                $curFile=$path.DIRECTORY_SEPARATOR.$filename;
+                $curName=$current?($current.'/'.$filename):$current;
+                
+                $nameEncode=$curName;
+                if($isWin){
+                    $nameEncode=iconv('UTF-8', 'GBK//IGNORE', $nameEncode);
+                }
+                if (is_dir($curFile)){
+                    $zip->addEmptyDir($nameEncode);
+                    $this->_addFileToZip($curFile,$curName,$zip);
+                }else{
+                    $zip->addFile($curFile,$nameEncode);
+                }
+            }
+        }
+        @closedir($handler);
+    }
+    
+    public function filesAction(){
+        $this->_file_manager_date();
+        
+        $cur=input('cur','','trim');
+        $cur=str_replace('/', DIRECTORY_SEPARATOR, $cur);
+        $cur=trim($cur,'\/\\');
+        $rootPath=config('root_path').DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR;
+        $curPath=$rootPath.$cur;
+        $curPath=realpath($curPath);
+        if($cur){
+            if(!is_dir($curPath)){
+                $this->error('当前目录错误');
+            }
+            if(stripos($curPath, $rootPath)!==0){
+                $this->error('当前目录错误');
+            }
+        }
+        
+        $files=input('files','','trim');
+        $files=$files?explode(',', $files):array();
+        init_array($files);
+        $fileList=array();
+        foreach ($files as $file){
+            
+            $fileName=$curPath.DIRECTORY_SEPARATOR.$file;
+            $fileName=realpath($fileName);
+            if(stripos($fileName, $rootPath)===0){
+                
+                if(!$this->_protected_paths($fileName)){
+                    
+                    $fileList[]=$fileName;
+                }
+            }
+        }
+        if(empty($fileList)){
+            $this->error('请选择文件');
+        }
+        $op=input('op');
+        if($op=='move'){
+            $this->assign('cur',$cur);
+            $this->assign('files',implode(',', $files));
+            $this->assign('rootPath',$rootPath);
+            return $this->fetch('files_move');
+        }elseif($op=='move_post'){
+            if($this->request->isPost()){
+                $moveTo=input('move_to','','trim');
+                if(!preg_match('/^[\w\-\/\\\]+$/', $moveTo)||preg_match('/^[\/\\\]+$/', $moveTo)){
+                    $this->error('目录只能由字母、数字和下划线组成');
+                }
+                $moveTo=str_replace('\\', '/', $moveTo);
+                
+                $movePath=$rootPath.$moveTo;
+                if(!is_dir($movePath)){
+                    mkdir($movePath,0777,true);
+                }
+                $movePath=realpath($movePath).DIRECTORY_SEPARATOR;
+                foreach ($fileList as $file){
+                    $fileName='';
+                    if(preg_match('/([^\/\\\]+)$/',$file,$fileName)){
+                        $fileName=$fileName[1];
+                    }else{
+                        $fileName='';
+                    }
+                    if(file_exists($movePath.$fileName)){
+                        
+                        continue;
+                    }
+                    rename($file, $movePath.$fileName);
+                }
+                $this->success($tips.'已成功移动到：'.$movePath,'tool/file?file='.rawurlencode($moveTo));
+            }else{
+                $this->error('无效操作');
+            }
+        }elseif($op=='delete'){
+            if($this->request->isPost()){
+                foreach ($fileList as $file){
+                    if(is_dir($file)){
+                        \util\Funcs::clear_dir($file);
+                        rmdir($file);
+                    }else{
+                        unlink($file);
+                    }
+                }
+                $this->success('已删除','tool/file?file='.rawurlencode($cur));
+            }else{
+                $this->error('无效操作');
+            }
+        }
+    }
 	
 	/*日志列表*/
 	public function logsAction(){

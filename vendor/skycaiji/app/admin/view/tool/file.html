@@ -1,0 +1,85 @@
+{extend name="common:main_clean" /}
+{block name="cssjs"}
+<style type="text/css">
+.container-fluid{padding:10px!important;}
+#fileList span.open{cursor:pointer;margin-left:3px;}
+#fileList .chk{padding-right:0;min-width:33px;width:33px;text-align:center;}
+.chk{text-align:center;}
+</style>
+<script src="__PUBLIC__/static/js/admin/tool_file_manager.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<input type="hidden" id="ipt_file" value="{$file}" />
+<div class="input-group">
+	<a href="javascript:;" class="input-group-addon" id="btn_back" title="后退"><span class="glyphicon glyphicon-arrow-left"></span></a>
+	<input class="form-control" value="{$filePath}" readonly="readonly" />
+	<a href="javascript:;" class="input-group-addon" id="btn_refresh" title="刷新"><span class="glyphicon glyphicon-refresh"></span></a>
+</div>
+<div class="table-responsive">
+<table class="table table-hover datatable" id="fileList">
+<thead>
+	<tr>
+		<th class="chk"><label class="checkbox-inline"><input type="checkbox" id="chkall" onclick="checkall(this,'files[]')">&nbsp;</label></th>
+		<th>
+			文件名
+			<div class="dropdown" style="display:inline;font-size:12px;">
+				<a href="javascript:;" class="glyphicon glyphicon-plus" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
+				<ul class="dropdown-menu">
+					<li><a href="javascript:;" id="btn_new_txt">新建空白文本</a></li>
+					<li><a href="javascript:;" id="btn_new_folder">新建文件夹</a></li>
+				</ul>
+			</div>
+		</th>
+		<th>修改时间</th>
+		<th style="width:170px">操作</th>
+	</tr>
+</thead>
+<tbody>
+	{if $files}
+	{foreach $files as $k=>$v}
+	<tr data-file="{$k}" data-is-dir="{$v['dir']}">
+		<td class="chk"><label class="checkbox-inline"><input type="checkbox" name="files[]" value="{$k}">&nbsp;</label></td>
+		{if $v['dir']}
+		<td><span class="glyphicon glyphicon-folder-close" style="color:#FADA77"></span> <span class="open">{$k}</span></td>
+		{else/}
+		<td><span class="glyphicon glyphicon-file" style="color:#999"></span> <span class="open">{$k}</span></td>
+		{/if}
+		<td>{$v['date']}</td>
+		<td>
+			<ul class="in-line">
+				<li><a href="javascript:;" class="open">打开</a></li>
+             	<li class="sep">|</li>
+             	<li><a href="javascript:;" class="download">下载</a></li>
+             	<li class="sep">|</li>
+             	<li><a href="javascript:;" class="delete">删除</a></li>
+             	<li class="sep">|</li>
+             	<li>
+             		<div class="dropdown">
+						<a href="javascript:;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">更多</a>
+						<ul class="dropdown-menu dropdown-menu-right">
+							<li><a href="javascript:;" class="rename">重命名</a></li>
+							<li><a href="javascript:;" class="move">移动</a></li>
+						</ul>
+					</div>
+             	</li>
+			</ul>
+		</td>
+	</tr>
+	{/foreach}
+	<tr>
+		<td class="chk"><label class="checkbox-inline"><input type="checkbox" id="chkall1" onclick="checkall(this,'files[]')">&nbsp;</label></td>
+		<td colspan="3">
+			<button type="button" class="btn btn-sm btn-danger" id="btn_list_delete">删除</button>
+			<button type="button" class="btn btn-sm btn-primary" id="btn_list_move">移动</button>
+		</td>
+	</tr>
+	{else/}
+	<tr><td colspan="4">没有文件</td></tr>
+	{/if}
+</tbody>
+</table>
+</div>
+<script type="text/javascript">
+toolFileManager.file_load();
+</script>
+{/block}

@@ -5,5 +5,14 @@ $_WP['title']=$msg;
 {block name="cssjs"}
 {/block}
 {block name="content"}
+<script type="text/javascript">
+(function(){
+	if(window.top!=window.self){
+		$('.main-header').hide();
+		$('.main-sidebar').hide();
+		$('.content-wrapper').css('margin-left','0px').find('.content-header>.breadcrumb').hide();
+	}
+})();
+</script>
 {include file="common@common:message" _success="1" /}
 {/block}

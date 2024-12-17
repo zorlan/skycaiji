@@ -1,0 +1,15 @@
+{extend name="common:main_clean" /}
+{block name="cssjs"}
+<style type="text/css">
+html,body{height:100%!important;}
+.container-fluid{padding:0!important;height:100%!important;}
+</style>
+<script src="__PUBLIC__/static/js/admin/tool_file_manager.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+<iframe id="ifr_editor" style="width:100%;border:0;"></iframe>
+<div style="padding:0 10px;"><button class="btn btn-primary btn-block" id="btn_save">修改文件</button></div>
+<script type="text/javascript">
+toolFileManager.file({$fileData});
+</script>
+{/block}

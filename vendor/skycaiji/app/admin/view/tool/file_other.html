@@ -1,0 +1,33 @@
+{extend name="common:main_clean" /}
+{block name="cssjs"}
+<style type="text/css">
+html,body{height:100%!important;}
+.container-fluid{padding:0!important;height:100%!important;}
+.embed-hide{width:1px;height:1px;}
+.embed-show{width:100%;height:100%;border:0;padding:0;margin:0;}
+</style>
+<script src="__PUBLIC__/static/js/admin/tool_file_manager.js?{$Think.config.html_v}"></script>
+{/block}
+{block name="content"}
+{if $fileType=='img'}
+<img src="{$fileUrl}" style="max-width:100%;" />
+{else/}
+	{if $fileType}
+	<div style="width:100%;height:100%;overflow:hidden;">
+		<div id="file_info" class="jumbotron" style="margin:20px;">
+			<p>文件名称：{$fileInfo['name']}</p>
+			<p>文件大小：{$fileInfo['size']}</p>
+			<p>文件路径：{$fileInfo['file']}</p>
+			<p>创建时间：{$fileInfo['ctime']}</p>
+			<p>修改时间：{$fileInfo['mtime']}</p>
+			<p>下载文件：<a href="javascript:;" id="btn_down">下载文件</a></p>
+			<input type="hidden" id="ipt_file" value="{$file}" />
+		</div>
+		<embed id="file_embed" src="{$fileUrl}" class="embed-hide" autostart="false"></embed>
+	</div>
+	{/if}
+	<script type="text/javascript">
+		toolFileManager.file_other();
+	</script>
+{/if}
+{/block}

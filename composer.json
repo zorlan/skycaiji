@@ -1,23 +1,12 @@
 {
-    "name": "topthink/think",
-    "description": "the new thinkphp framework",
+    "name": "zorlan/skycaiji",
+    "description": "skycaiji",
     "type": "project",
-    "keywords": [
-        "framework",
-        "thinkphp",
-        "ORM"
-    ],
-    "homepage": "http://thinkphp.cn/",
+    "keywords": ["skycaiji", "crawler"],
+    "homepage": "http://skycaiji.com/",
     "license": "Apache-2.0",
-    "authors": [
-        {
-            "name": "liu21st",
-            "email": "liu21st@gmail.com"
-        }
-    ],
     "require": {
         "php": ">=5.4.0",
-        "topthink/framework": "5.0.*",
         "topthink/think-image": "^1.0",
         "topthink/think-captcha": "1.*",
         "topthink/think-mongo": "1.*",
@@ -27,18 +16,12 @@
         "topthink/think-oracle": "1.*",
         "phpmailer/phpmailer": "~5.2",
         "matthiasmullie/minify": "^1.3",
-        "studio-42/elfinder": "^2.1",
         "phpoffice/phpexcel": "^1.8"
     },
-    "autoload": {
-        "psr-4": {
-            "app\\": "application"
-        }
-    },
-    "extra": {
-        "think-path": "thinkphp"
-    },
     "config": {
-        "preferred-install": "dist"
+        "preferred-install": "dist",
+        "allow-plugins": {
+            "topthink/think-installer": false
+        }
     }
 }

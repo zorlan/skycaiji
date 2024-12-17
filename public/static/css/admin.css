@@ -222,9 +222,9 @@ div.in-line-mg{display:inline;margin-right:5px;}
 .datatable .sort input{height:auto;padding:0 5px;min-width:100%!important;}
 .datatable .bg0{background:#fcfcfc}
 .datatable .chk-inline{vertical-align:baseline;margin-right:5px;}
-.datatable .sep{color:#999;text-indent:-9999px;display:inline-block;width:2px;line-height:12px;margin-left:1px;border-left:1px solid #aaa;}
 .datatable .nav-packs{display:inline-block;max-width:500px;overflow:hidden;text-overflow:ellipsis;}
 .datatable tr,.datatable td{white-space:nowrap;}
+.datatable .sep{color:#999;text-indent:-9999px;display:inline-block;width:2px;line-height:12px;margin-left:1px;border-left:1px solid #aaa;}
 
 .datatable .store-detail{position:relative;}
 .datatable .store-detail .new-version{position:absolute;color:green;font-size:10px;top:-4px;right:-15px;}

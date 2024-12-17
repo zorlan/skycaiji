@@ -259,7 +259,9 @@ class Api extends CollectController{
                 $listRelease=is_array($listRelease)?$listRelease:array();
                 $listFunc=model('FuncApp')->where($cond)->column('uptime','app');
                 $listFunc=is_array($listFunc)?$listFunc:array();
-                $updateResult['data']['plugin']=array_merge($listRelease,$listFunc);
+                $listApi=model('ApiApp')->where($cond)->column('uptime','app');
+                $listApi=is_array($listApi)?$listApi:array();
+                $updateResult['data']['plugin']=array_merge($listRelease,$listFunc,$listApi);
             }
             if(!empty($storeAddons['app'])&&is_array($storeAddons['app'])){
                 

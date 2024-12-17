@@ -1,0 +1,10 @@
+<form method="post" ajax-submit="true" role="form" action="{:url('tool/file')}">
+	{:html_usertoken()}
+	<input type="hidden" name="file" value="{$file}" />
+	<input type="hidden" name="op" value="rename" />
+   	<div class="form-group">
+   		<label>重命名</label>
+		<input class="form-control" name="rename" placeholder="输入新名称" />
+   	</div>
+	<button type="submit" class="btn btn-primary btn-block">确定</button>
+</form>

@@ -38,39 +38,35 @@ class Tools{
     }
     
     public static function load_data_config(){
-        static $loaded=false;
-        if(!$loaded){
-            if(file_exists(config('root_path').'/data/config.php')){
+        if(file_exists(config('root_path').'/data/config.php')){
+            
+            $dataConfig=include config('root_path').'/data/config.php';
+            if($dataConfig&&is_array($dataConfig)){
                 
-                $dataConfig=include config('root_path').'/data/config.php';
-                if($dataConfig&&is_array($dataConfig)){
-                    
-                    $dbConfig=array();
-                    foreach ($dataConfig as $k=>$v){
-                        if(strpos($k, 'DB_')!==false){
-                            
-                            $dbConfig[$k]=$v;
-                            unset($dataConfig[$k]);
-                        }
+                $dbConfig=array();
+                foreach ($dataConfig as $k=>$v){
+                    if(strpos($k, 'DB_')!==false){
+                        
+                        $dbConfig[$k]=$v;
+                        unset($dataConfig[$k]);
                     }
-                    
-                    
-                    $dbConfig=array(
-                        'type'=>$dbConfig['DB_TYPE'],
-                        'hostname'=>$dbConfig['DB_HOST'],
-                        'hostport'=>$dbConfig['DB_PORT'],
-                        'database'=>$dbConfig['DB_NAME'],
-                        'password'=>$dbConfig['DB_PWD'],
-                        'username'=>$dbConfig['DB_USER'],
-                        'prefix'=>$dbConfig['DB_PREFIX'],
-                    );
-                    
-                    if(!empty($dbConfig)&&is_array($dbConfig)){
-                        $dbConfig=array_merge(config('database'),$dbConfig);
-                        config('database',$dbConfig);
-                        config($dataConfig);
-                        $loaded=true;
-                    }
+                }
+                
+                
+                $dbConfig=array(
+                    'type'=>$dbConfig['DB_TYPE'],
+                    'hostname'=>$dbConfig['DB_HOST'],
+                    'hostport'=>$dbConfig['DB_PORT'],
+                    'database'=>$dbConfig['DB_NAME'],
+                    'password'=>$dbConfig['DB_PWD'],
+                    'username'=>$dbConfig['DB_USER'],
+                    'prefix'=>$dbConfig['DB_PREFIX'],
+                );
+                
+                if(!empty($dbConfig)&&is_array($dbConfig)){
+                    $dbConfig=array_merge(config('database'),$dbConfig);
+                    config('database',$dbConfig);
+                    config($dataConfig);
                 }
             }
         }
@@ -815,8 +811,10 @@ class Tools{
         return $urls;
     }
     
-    public static function browser_export_scj($name,$txt){
+    public static function browser_export_scj($name,$cont,$suffix='txt',$size=null){
         set_time_limit(600);
+        $suffix=$suffix?('.'.$suffix):'';
+        $size=$size?$size:mb_strlen($cont);
         ob_start();
         header("Expires: 0" );
         header("Pragma:public" );
@@ -825,13 +823,13 @@ class Tools{
         header("Content-Type:application/octet-stream" );
         
         header("Content-transfer-encoding: binary");
-        header("Content-Length: " .mb_strlen($txt));
+        header("Content-Length: " .$size);
         if (preg_match("/MSIE/i", $_SERVER["HTTP_USER_AGENT"])) {
-            header('Content-Disposition: attachment; filename="'.urlencode($name).'.txt"');
+            header('Content-Disposition: attachment; filename="'.urlencode($name).$suffix.'"');
         }else{
-            header('Content-Disposition: attachment; filename="'.$name.'.txt"');
+            header('Content-Disposition: attachment; filename="'.$name.$suffix.'"');
         }
-        echo $txt;
+        echo $cont;
         ob_end_flush();
     }
     

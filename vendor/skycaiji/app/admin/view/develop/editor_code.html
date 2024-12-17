@@ -71,6 +71,13 @@ var editor_code_op={
 		    	return false;
 		    }
 		});
+	},
+	set_option:function(opts){
+		if(isObject(opts)){
+			for(var k in opts){
+				window.codeEditor.setOption(k,opts[k]);
+			}
+		}
 	}
 };
 </script>

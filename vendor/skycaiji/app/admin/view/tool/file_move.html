@@ -1,0 +1,14 @@
+<form method="post" ajax-submit="true" role="form" action="{:url('tool/file')}">
+	{:html_usertoken()}
+	<input type="hidden" name="file" value="{$file}" />
+	<input type="hidden" name="op" value="move" />
+   	<div class="form-group">
+   		<label>移动到目录</label>
+   		<div class="input-group">
+   			<div class="input-group-addon">{$rootPath}</div>
+			<input class="form-control" name="move_to" value="{$cur}" />
+   		</div>
+   		<p class="help-block">移动到文件夹名称，子目录用斜杠分隔</p>
+   	</div>
+	<button type="submit" class="btn btn-primary btn-block">确定</button>
+</form>
