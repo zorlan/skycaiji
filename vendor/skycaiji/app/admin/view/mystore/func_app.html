@@ -8,7 +8,7 @@
 	{include file="mystore:nav" _type="func" /}
 	<div class="tab-content">
 		<div class="tab-pane active">
-		    <div class="table-responsive" style="border:0;">
+		    <div class="table-responsive table-responsive-menu" style="border:0;">
 				<form id="form_list" method="post" ajax-submit="true" action="{:url('mystore/funcAppOp')}">
 				{:html_usertoken()}
 				<table id="list_table" class="table table-hover datatable">
@@ -34,7 +34,11 @@
 							<ul class="dropdown-menu" aria-labelledby="dm_{$app['app']}">
 							</ul>
 						</td>
-						<td title="使用：{$modules[$app['module']]['loc']}">{$modules[$app['module']]['name']}</td>
+						<td>
+							<div style="display:inline;" data-toggle="popover" data-content="使用：{$modules[$app['module']]['loc']}" data-html="true" data-trigger="hover" data-placement="right">
+								{$modules[$app['module']]['name']}
+							</div>
+						</td>
 						<td>{:date('Y-m-d H:i',$app['addtime'])}</td>
 						<td>{:date('Y-m-d H:i',$app['uptime'])}</td>
 						<td>

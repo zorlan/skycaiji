@@ -134,7 +134,7 @@ CREATE TABLE `{$tname}` (
   `dateline` int(10) unsigned NOT NULL,
   `data` mediumblob NOT NULL,
   PRIMARY KEY (`cname`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 EOT;
 			db()->execute($table);
 		}

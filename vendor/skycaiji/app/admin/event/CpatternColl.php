@@ -2063,6 +2063,13 @@ class CpatternColl extends CpatternBase{
         }
         if($returnInfo){
             $htmlInfo['html']=$html;
+            $htmlInfo['cookie']='';
+            $htmlInfo['cookie_data']=\util\Funcs::get_cookies_from_header('cookie:'.$headers['cookie']."\r\n".$htmlInfo['header']);
+            if($htmlInfo['cookie_data']){
+                foreach ($htmlInfo['cookie_data'] as $k=>$v){
+                    $htmlInfo['cookie'].=$k.'='.$v.';';
+                }
+            }
             return $htmlInfo;
         }else{
             return $html;

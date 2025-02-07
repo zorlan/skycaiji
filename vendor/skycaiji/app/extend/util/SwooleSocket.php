@@ -36,7 +36,7 @@ class SwooleSocket{
         \util\Tools::cli_cache_config(true);
         
         $headers=is_array($headers)?$headers:array();
-        $headers=array_change_key_case($headers,CASE_LOWER);
+        $headers=\util\Funcs::array_keys_to_lower($headers);
         
         $options=is_array($options)?$options:array();
         $options['timeout']=$options['timeout']>0?$options['timeout']:$this->timeout;

@@ -533,7 +533,7 @@ class Tool extends BaseController {
 		$indexes=array();
 		if(!empty($tb_indexes)){
 			foreach ($tb_indexes as $tb_index){
-				$tb_index=array_change_key_case($tb_index,CASE_LOWER);
+			    $tb_index=\util\Funcs::array_keys_to_lower($tb_index);
 				
 				if(empty($indexes[$tb_index['key_name']]['type'])){
 					
@@ -581,14 +581,24 @@ class Tool extends BaseController {
 			if(empty($check_db['tables'])){
 				$this->error('没有表');
 			}
+			init_array($check_db['engines']);
+			init_array($check_db['indexes']);
 			
+			$error_engines=array();
 			$error_fields=array();
 			$error_indexes=array();
 			$table_primary=array();
+			
 			foreach ($check_db['tables'] as $table=>$fields){
-				$tb_indexes=$check_db['indexes'][$table];
-				$table=config('database.prefix').$table;
-				
+			    $tb_indexes=$check_db['indexes'][$table];
+			    $tb_engine=$check_db['engines'][$table];
+			    $table=config('database.prefix').$table;
+			    
+			    $tableEngine=\util\Db::table_engine($table);
+			    if($tb_engine!=$tableEngine){
+			        
+			        $error_engines[$table]=$tableEngine;
+			    }
 				
 				$null_table=db()->query("show tables like '{$table}';");
 				$null_table=empty($null_table)?true:false;
@@ -630,7 +640,7 @@ class Tool extends BaseController {
 				}
 				
 			}
-			if(empty($error_fields)&&empty($error_indexes)){
+			if(empty($error_engines)&&empty($error_fields)&&empty($error_indexes)){
 				
 				$this->success();
 			}else{
@@ -655,10 +665,19 @@ class Tool extends BaseController {
 						}
 					}
 					
-					$this->error('',null,array('fields'=>empty($error_fields)?null:$error_fields,'indexes'=>empty($error_indexes)?null:$error_indexes));
+					$this->error('',null,array('engines'=>empty($error_engines)?null:$error_engines,'fields'=>empty($error_fields)?null:$error_fields,'indexes'=>empty($error_indexes)?null:$error_indexes));
 				}else{
 					
 					try {
+					    
+					    foreach ($error_engines as $tb=>$tb_engine){
+					        if($tb_engine=='innodb'){
+					            
+					            continue;
+					        }
+					        \util\db::to_innodb($tb);
+					    }
+					    
 						foreach ($error_fields as $tb=>$tb_fields){
 							$primarys=$table_primary[$tb];
 							
@@ -696,7 +715,7 @@ class Tool extends BaseController {
 									$createSql.='PRIMARY KEY ('.implode(',', $primarys).')';
 								}
 								
-								$createSql.=' ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4';
+								$createSql.=' ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4';
 								db()->execute($createSql);
 							}else{
 								
@@ -791,6 +810,74 @@ class Tool extends BaseController {
 		    );
 			return $this->fetch();
 		}
+	}
+	
+	public function checkTableAction(){
+	    if($this->request->isPost()){
+    	    $op=input('op','');
+    	    if(empty($op)){
+    	        
+    	        $dbName=config('database.database');
+    	        $dbTables=db()->getConnection()->getTables($dbName);
+    	        init_array($dbTables);
+    	        foreach ($dbTables as $k=>$v){
+    	            if(stripos($v,config('database.prefix'))!==0){
+    	                unset($dbTables[$k]);
+    	            }
+    	        }
+    	        $dbTables=array_values($dbTables);
+    	        $this->success('','',$dbTables);
+    	    }elseif($op=='table'){
+    	        
+    	        $table=input('table');
+    	        if(!preg_match('/^[\w\-]+$/', $table)){
+    	            
+    	            $this->error();
+    	        }
+    	        $cacheKey=md5('admin_tool_check_table_'.$table);
+    	        $cacheCheckTable=cache($cacheKey);
+    	        init_array($cacheCheckTable);
+    	        if(empty($cacheCheckTable)||abs(time()-$cacheCheckTable['time'])>200){
+    	            
+    	            try{
+    	                
+    	                $dbConfig=config('database');
+    	                $dbConfig['params'][\PDO::ATTR_EMULATE_PREPARES]=true;
+    	                $checkList=db('',$dbConfig)->query('check table '.$table);
+    	            }catch (\Exception $ex){}
+    	            init_array($checkList);
+    	            $checkTable='';
+    	            foreach ($checkList as $v){
+    	                $v=\util\Funcs::array_keys_to_lower($v);
+    	                if(is_array($v)&&$v['msg_type']&&strtolower($v['msg_type'])=='error'){
+    	                    $v['table']=preg_replace('/^'.$dbName.'\./i', '', $v['table']);
+    	                    $checkTable=$v['table'];
+    	                }
+    	            }
+    	            $cacheCheckTable=array('time'=>time(),'table'=>array('error'=>$checkTable));
+    	            cache($cacheKey,$cacheCheckTable);
+    	        }
+    	        init_array($cacheCheckTable['table']);
+    	        
+    	        $this->success('','',array('table'=>$cacheCheckTable['table']));
+    	    }elseif($op=='repair'){
+    	        
+    	        $table=input('table');
+    	        if(!preg_match('/^[\w\-]+$/', $table)){
+    	            
+    	            $this->error();
+    	        }
+    	        try{
+    	            
+    	            db()->query('repair table '.$table);
+    	        }catch (\Exception $ex){}
+	            $cacheKey=md5('admin_tool_check_table_'.$table);
+	            cache($cacheKey,null);
+    	        $this->success();
+    	    }
+	    }else{
+	        $this->error();
+	    }
 	}
 	
 	public function previewAction(){

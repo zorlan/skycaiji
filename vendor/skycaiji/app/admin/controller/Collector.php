@@ -194,8 +194,10 @@ class Collector extends BaseController {
                 foreach ($pageConfigList as $pageConfig){
                     if(is_array($pageConfig['content_signs'])){
                         foreach ($pageConfig['content_signs'] as $v){
-                            if(is_array($v)&&$v['func']){
-                                $funcList['contentSign'][$v['func']]=$v['func'];
+                            if(is_array($v)&&$v['funcs']&&is_array($v['funcs'])){
+                                foreach ($v['funcs'] as $vfv){
+                                    $funcList['contentSign'][$vfv['func']]=$vfv['func'];
+                                }
                             }
                         }
                     }

@@ -14,6 +14,11 @@ use skycaiji\common\controller\BaseController;
 use think\db\Query;
 /*数据库升级操作*/
 class UpgradeDbVers extends BaseController{
+    /*键名小写*/
+    public function keys_to_lower($arr){
+        $arr=\util\Funcs::array_keys_to_lower($arr);
+        return $arr;
+    }
 	/*判断存在索引*/
 	public function check_exists_index($name,$indexes){
 		if(empty($name)){
@@ -21,7 +26,7 @@ class UpgradeDbVers extends BaseController{
 		}
 		$exists_index=false;
 		foreach ($indexes as $k=>$v){
-		    $v=\util\Funcs::array_keys_to_lower($v);
+		    $v=$this->keys_to_lower($v);
 			if(strcasecmp($name,$v['key_name'])==0){
 				$exists_index=true;
 				break;
@@ -37,7 +42,7 @@ class UpgradeDbVers extends BaseController{
 		
 		$exists_column=false;
 		foreach ($columns as $k=>$v){
-		    $v=\util\Funcs::array_keys_to_lower($v);
+		    $v=$this->keys_to_lower($v);
 			if(strcasecmp($name,$v['field'])==0){
 				$exists_column=true;
 				break;
@@ -48,7 +53,7 @@ class UpgradeDbVers extends BaseController{
 	/*修改字段类型*/
 	public function modify_field_type($field,$type,$modifySql,$columns){
 	    foreach ($columns as $v){
-	        $v=\util\Funcs::array_keys_to_lower($v);
+	        $v=$this->keys_to_lower($v);
 			if(strcasecmp($field,$v['field'])==0){
 				
 				if(strcasecmp($type,$v['type'])!=0){
@@ -107,7 +112,7 @@ CREATE TABLE `{$proxy_table}` (
   `num` int(11) NOT NULL DEFAULT '0',
   `time` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`ip`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
 EOF;
 			db()->execute($addTable);
 		}
@@ -156,8 +161,8 @@ CREATE TABLE `{$provider_table}` (
   `enable` tinyint(4) NOT NULL DEFAULT '0',
   `sort` mediumint(9) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `domain` (`domain`(250))
-) ENGINE=MyISAM DEFAULT CHARSET=utf8
+  KEY `domain` (`domain`(191))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
 EOF;
 			db()->execute($addTable);
 		}
@@ -176,7 +181,7 @@ CREATE TABLE `{$app_table}` (
   `uptime` int(11) NOT NULL DEFAULT '0',
   `config` mediumtext,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
 EOF;
 			db()->execute($addTable);
 		}
@@ -229,7 +234,7 @@ CREATE TABLE `{$func_app_table}` (
   UNIQUE KEY `ix_app` (`app`),
   UNIQUE KEY `module_app` (`module`,`app`),
   KEY `module_enable` (`module`,`enable`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
 EOF;
 			db()->execute($addTable);
 		}
@@ -312,7 +317,7 @@ CREATE TABLE `{$task_timer_table}` (
   `data` varchar(10) NOT NULL DEFAULT '',
   KEY `ix_tid` (`task_id`),
   KEY `ix_name` (`name`,`data`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
 EOF;
 	        db()->execute($addTable);
 	    }
@@ -330,7 +335,7 @@ CREATE TABLE `{$proxy_group_table}` (
   `parent_id` int(11) NOT NULL DEFAULT '0',
   `sort` mediumint(9) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
 EOF;
 	        db()->execute($addTable);
 	    }
@@ -355,6 +360,166 @@ EOF;
 	public function upgrade_db_to_2_6_1(){
 	    $this->table_add_columns('collected', array('contentMd5'=>"varchar(32) NOT NULL DEFAULT ''"));
 	    $this->table_add_indexes('collected', array('ix_contentmd5'=>"`contentMd5`"));
+	}
+	
+	public function upgrade_db_to_2_7(){
+	    $ver=db()->query('SELECT VERSION() as ver;');
+	    if(is_array($ver)&&is_array($ver[0])){
+	        $ver=$ver[0]['ver'];
+	    }
+	    if(empty($ver)||version_compare($ver,'5.5.3','<')){
+	        throw new \Exception('请使用5.5.3及以上版本的mysql数据库');
+	    }
+	    
+	    db()->execute('set names utf8mb4;');
+	    $db_prefix=config('database.prefix');
+	    $db_name=config('database.database');
+	    $tableStatus=db()->query("SHOW TABLE STATUS FROM `{$db_name}` LIKE '{$db_prefix}%'");
+	    foreach ($tableStatus as $v){
+	        if(is_array($v)){
+	            $v=$this->keys_to_lower($v);
+	            $tbName=$v['name'];
+	            if($tbName&&stripos($v['collation'],'utf8mb4')!==0){
+	                
+	                if($tbName==($db_prefix.'provider')){
+	                    $dbIndexes=db()->query("SHOW INDEX FROM `{$tbName}`");
+	                    if($this->check_exists_index('domain',$dbIndexes)){
+	                        db()->execute("ALTER TABLE `{$tbName}` DROP INDEX `domain`");
+	                        db()->execute("ALTER TABLE `{$tbName}` ADD INDEX `domain`(`domain`(191))");
+	                    }
+	                }
+	                if($tbName==($db_prefix.'user')){
+	                    $dbIndexes=db()->query("SHOW INDEX FROM `{$tbName}`");
+	                    if($this->check_exists_index('username',$dbIndexes)){
+	                        db()->execute("ALTER TABLE `{$tbName}` DROP INDEX `username`");
+	                        db()->execute("ALTER TABLE `{$tbName}` ADD CONSTRAINT `username` UNIQUE(`username`(191))");
+	                    }
+	                    if($this->check_exists_index('email',$dbIndexes)){
+	                        db()->execute("ALTER TABLE `{$tbName}` DROP INDEX `email`");
+	                        db()->execute("ALTER TABLE `{$tbName}` ADD INDEX `email`(`email`(191))");
+	                    }
+	                }
+	                db()->execute("ALTER TABLE `{$tbName}` CONVERT TO CHARACTER SET utf8mb4;");
+	            }
+	        }
+	    }
+	    
+	    $dataset_table=$db_prefix.'dataset';
+	    $exists=db()->query("show tables like '{$dataset_table}'");
+	    if(empty($exists)){
+	        
+	        $addTable=<<<EOF
+CREATE TABLE `{$dataset_table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL DEFAULT '',
+  `sort` mediumint(9) NOT NULL DEFAULT '0',
+  `desc` text,
+  `config` mediumtext,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+EOF;
+	        db()->execute($addTable);
+	    }
+	    
+	    
+	    $dataapi_table=$db_prefix.'dataapi';
+	    $exists=db()->query("show tables like '{$dataapi_table}'");
+	    if(empty($exists)){
+	        
+	        $addTable=<<<EOF
+CREATE TABLE `{$dataapi_table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL DEFAULT '',
+  `route` varchar(100) NOT NULL DEFAULT '',
+  `sort` mediumint(9) NOT NULL DEFAULT '0',
+  `status` tinyint(4) NOT NULL DEFAULT '0',
+  `desc` text,
+  `ds_id` int(11) NOT NULL DEFAULT '0',
+  `config` mediumtext,
+  PRIMARY KEY (`id`),
+  KEY `ix_sort` (`sort`),
+  KEY `ix_ds_id` (`ds_id`),
+  KEY `ix_route` (`route`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+EOF;
+	        db()->execute($addTable);
+	    }
+	    
+	    
+	    $collected_info_table=$db_prefix.'collected_info';
+	    $exists=db()->query("show tables like '{$collected_info_table}'");
+	    if(empty($exists)){
+	        
+	        $addTable=<<<EOF
+CREATE TABLE `{$collected_info_table}` (
+  `id` int(11) NOT NULL DEFAULT '0',
+  `url` text,
+  `target` text,
+  `desc` text,
+  `error` text,
+  KEY `ix_id` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+EOF;
+	        db()->execute($addTable);
+	    }
+	    
+	    $collected_table=$db_prefix.'collected';
+	    $collectedCount=db()->table($collected_table)->count();
+	    if($collectedCount>0){
+	        do{
+	            $maxId=db()->table($collected_info_table)->max('id');
+	            $maxId=intval($maxId);
+	            $exists=db()->table($collected_table)->field('id')->where('id','>',$maxId)->limit(1)->find();
+	            if(!empty($exists)){
+	                
+	                $sql="INSERT INTO `{$collected_info_table}` (`id`,`url`,`target`,`desc`,`error`) SELECT `id`,`url`,`target`,`desc`,`error` FROM {$collected_table} WHERE id>{$maxId} order by id asc limit 1000";
+	                db()->execute($sql);
+	            }else{
+	                break;
+	            }
+	        }while(1==1);
+	    }
+	    
+	    $this->table_add_columns('collected',array('status'=>"tinyint(1) NOT NULL DEFAULT '0'"));
+	    $this->table_add_indexes('collected',array('ix_status'=>'status'));
+	    $dbColumns=db()->query("SHOW COLUMNS FROM `{$collected_table}`");
+	    if($this->check_exists_field('target', $dbColumns)){
+	        db()->execute("update `{$collected_table}` set `status`=1 where `target`<>'';");
+	    }
+	    
+	    foreach (array('url','target','desc','error') as $fname){
+	        if($this->check_exists_field($fname, $dbColumns)){
+	            db()->execute("ALTER TABLE `{$collected_table}` DROP COLUMN `{$fname}`;");
+	        }
+	    }
+	}
+	
+	public function upgrade_db_to_2_7_1(){
+	    $db_prefix=config('database.prefix');
+	    $apiapp_table=$db_prefix.'api_app';
+	    $exists=db()->query("show tables like '{$apiapp_table}'");
+	    if(empty($exists)){
+	        
+	        $addTable=<<<EOF
+CREATE TABLE `{$apiapp_table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `module` varchar(20) NOT NULL DEFAULT '',
+  `app` varchar(100) NOT NULL,
+  `name` varchar(100) NOT NULL DEFAULT '',
+  `desc` text,
+  `enable` tinyint(1) NOT NULL DEFAULT '0',
+  `addtime` int(11) NOT NULL DEFAULT '0',
+  `uptime` int(11) NOT NULL DEFAULT '0',
+  `provider_id` int(11) NOT NULL DEFAULT '0',
+  `config` mediumtext,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ix_app` (`app`),
+  UNIQUE KEY `module_app` (`module`,`app`),
+  KEY `module_enable` (`module`,`enable`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+EOF;
+	        db()->execute($addTable);
+	    }
 	}
 }
 ?>

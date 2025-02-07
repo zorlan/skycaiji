@@ -176,7 +176,7 @@ CREATE TABLE `{$tname}` (
   KEY `ix_titlemd5` (`titleMd5`),
   KEY `ix_contentmd5` (`contentMd5`),
   KEY `ix_status` (`status`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 EOT;
 			db()->execute($table);
 		}
@@ -193,7 +193,7 @@ CREATE TABLE `{$tname}` (
   `desc` text,
   `error` text,
   KEY `ix_id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 EOT;
 			db()->execute($table);
 		}

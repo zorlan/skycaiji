@@ -1,6 +1,13 @@
 @CHARSET "UTF-8";
 /*解决底部黑色背景闪烁*/
 .wrapper{background:#ecf0f5!important;}
+.content-wrapper{min-height:calc(100vh - 50px);}
+/*全局*/
+.wrapper-no-menu>.main-header{display:none;}
+.wrapper-no-menu>.main-sidebar{display:none;}
+.wrapper-no-menu>.content-wrapper{margin-left:0px!important;padding-top:0px!important;}
+.wrapper-no-menu .content-header{display:none;}
+.sidebar-mini .wrapper-no-menu .content-wrapper{margin-left:0px!important;}
 
 .info-box-content .info-box-text{font-size:16px;line-height:25px;}
 .info-box-content .info-box-number{font-weight:normal;line-height:25px;}
@@ -39,6 +46,10 @@
     }
 }
 @media (max-width: 767px) {
+	.fixed .content-wrapper,.fixed .right-side {
+        padding-top:50px
+    }
+	.content-wrapper{min-height:calc(100vh - 50px);}	
 	.content-wrapper,.main-footer {
         margin-left:0
     }
@@ -75,6 +86,22 @@
 	-moz-transition:none!important;
 	-o-transition:none!important;
 	transition:none!important;
+}
+.open-transition .content-wrapper,
+.open-transition .main-footer,
+.open-transition .main-header .navbar,
+.open-transition .main-header .logo,
+.open-transition .main-sidebar,
+.open-transition .sidebar-menu li>a>.fa-angle-left,
+.open-transition .sidebar-menu li>a>.pull-right-container>.fa-angle-left,
+.open-transition .control-sidebar-bg,
+.open-transition .control-sidebar,
+.open-transition .small-box .icon,
+.open-transition .direct-chat-messages,
+.open-transition .direct-chat-contacts,
+.open-transition .fc-color-picker>li .fa,
+.open-transition #add-new-event {
+	transition:transform 0.1s linear,margin 0.1s linear,width 0.1s linear,left 0.1s linear,right 0.1s linear!important;
 }
 /*全局*/
 .treeview>ul.treeview-menu>li:FIRST-CHILD{padding-top:5px!important;}
@@ -151,6 +178,11 @@ div.in-line-mg{display:inline;margin-right:5px;}
 .table-responsive .table input.form-control{min-width:150px;}
 .table-responsive .table textarea.form-control{min-width:150px;}
 .table-responsive .table select.form-control{min-width:90px;}
+
+@media (min-width: 1200px) {
+	/*table-responsive设置overflow:inherit;可正常显示dropdown-menu*/
+	.table-responsive-menu{overflow:inherit;}
+}
 
 .icon-info-tips{font-size:12px;cursor:pointer;color:#bbb;}
 .icon-info-tips:hover{color:#3c8dbc;}

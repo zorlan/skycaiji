@@ -29,7 +29,7 @@
 		{if condition="g_sc_c('site','verifycode')"}	
 		<div class="form-group">
 			<div class="input-group">
-				<input type="text" name="verifycode" class="form-control" placeholder="{$Think.lang.verifycode}" />
+				<input type="text" name="verifycode" class="form-control" autocomplete="off" placeholder="{$Think.lang.verifycode}" />
 				<div class="input-group-btn"><img src="{:url('admin/index/verify')}" class="verify-img" onclick="refreshVerify(this)" onerror="verifyImgError()" /></div>
 			</div>
 		</div>

@@ -33,7 +33,7 @@ class CpatternTest extends BaseController {
         $this->success('设置成功，请重新测试');
     }
     /*测试*/
-    private function _test_init($clearCache=true,$skipCollect=false){
+    private function _test_init($clearCache=true,$skipCollect=false,$cacheFronts=false){
         set_time_limit(600);
         $coll_id=input('coll_id/d',0);
         $collData=model('Collector')->where(array('id'=>$coll_id))->find();
@@ -81,7 +81,7 @@ class CpatternTest extends BaseController {
                 $cacheFrontData=cache($cacheFrontKey);
                 if($clearCache||empty($cacheFrontData)||($cacheFrontData['update_time']!=$collData['uptime'])){
                     
-                    $this->eCpattern->collFrontUrls();
+                    $this->eCpattern->collFrontUrls(false,$cacheFronts);
                     $cacheFrontData=array(
                         'page_area_matches'=>$this->eCpattern->page_area_matches,
                         'page_url_matches'=>$this->eCpattern->page_url_matches,
@@ -136,13 +136,14 @@ class CpatternTest extends BaseController {
     
     
     public function front_urlsAction(){
-        $collData=$this->_test_init();
+        $collData=$this->_test_init(true,false,true);
         $frontDataList=array();
         foreach ($this->eCpattern->cur_front_urls as $fname=>$furl){
             $frontData=array('name'=>$fname,'url'=>$furl);
-            $htmlInfo=$this->eCpattern->get_page_html($furl,'front_url',$fname,false,true);
+            $htmlInfo=g_sc('cache_coll_front_urls',$fname);
             $frontData['html']=$htmlInfo['html'];
             $frontData['header']=$htmlInfo['header'];
+            $frontData['cookie']=$htmlInfo['cookie'];
             $frontData['content_sign']=array();
             $contentSign=$this->eCpattern->get_page_content_match('front_url', $fname);
             if(is_array($contentSign)){

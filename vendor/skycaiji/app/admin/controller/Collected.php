@@ -89,44 +89,53 @@ class Collected extends BaseController {
    		            $condJoin[$k]=$v;
    		        }
    		    }
-   		    if($condJoin){
-   		        $count=$mcollected->alias('c')->join($mcollected->collected_info_tname().' i','c.id=i.id')->where($condJoin)->count();
-   		    }else{
-   		        $count=$mcollected->where($cond)->count();
-   		    }
+   		   
 	   		$limit=$search['num'];
-	   		if($count>0){
-	   			
-	   		    if($condJoin){
-	   		        $dataList=$mcollected->alias('c')->join($mcollected->collected_info_tname().' i','c.id=i.id')->where($condJoin)->order('c.id desc')->paginate($limit,false,paginate_auto_config());
-	   		    }else{
-	   		        $dataList=$mcollected->where($cond)->order('id desc')->paginate($limit,false,paginate_auto_config());
-	   		    }
-	   			$pagenav=$dataList->render();
-	   			$this->assign('pagenav',$pagenav);
-	   			$dataList=$dataList->all();
-	   			$dataList=empty($dataList)?array():$dataList;
-	   			$dataList=$mcollected->getInfoDatas($dataList);
-	   			
-	   			$taskIds=array();
-	   			foreach ($dataList as $itemK=>$item){
-	   				$taskIds[$item['task_id']]=$item['task_id'];
-	   				if(\util\Funcs::is_right_url($item['target'])){
-	   					
-	   					$dataList[$itemK]['target']='<a href="'.$item['target'].'" target="_blank">'.$item['target'].'</a>';
-	   				}
-	   			}
-	   			if(!empty($taskIds)){
-	   				$taskList=model('Task')->where(array('id'=>array('in',$taskIds)))->column('name','id');
-	   			}
-	   		}
+   		    
+   		    if($condJoin){
+   		        $dataList=$mcollected->alias('c')->join($mcollected->collected_info_tname().' i','c.id=i.id')->field('c.id')->where($condJoin)->order('c.id desc')->paginate($limit,false,paginate_auto_config());
+   		    }else{
+   		        $dataList=$mcollected->field('id')->where($cond)->order('id desc')->paginate($limit,false,paginate_auto_config());
+   		    }
+   			$pagenav=$dataList->render();
+   			$this->assign('pagenav',$pagenav);
+   			$dataList=$dataList->all();
+   			if($dataList){
+   			    $cids=array();
+   			    foreach ($dataList as $k=>$v){
+   			        $cids[]=$v['id'];
+   			    }
+   			    $dataList1=$mcollected->where('id','in',$cids)->column('*','id');
+   			    $dataList=array();
+   			    
+   			    foreach ($cids as $cid){
+   			        $dataList[$cid]=$dataList1[$cid];
+   			        unset($dataList1[$cid]);
+   			    }
+   			}else{
+   			    $dataList=array();
+   			}
+   			
+   			$dataList=$mcollected->getInfoDatas($dataList);
+   			
+   			$taskIds=array();
+   			foreach ($dataList as $itemK=>$item){
+   				$taskIds[$item['task_id']]=$item['task_id'];
+   				if(\util\Funcs::is_right_url($item['target'])){
+   					
+   					$dataList[$itemK]['target']='<a href="'.$item['target'].'" target="_blank">'.$item['target'].'</a>';
+   				}
+   			}
+   			if(!empty($taskIds)){
+   				$taskList=model('Task')->where(array('id'=>array('in',$taskIds)))->column('name','id');
+   			}
 	   		
-	   		$this->set_html_tags(
-	   		    lang('collected_list'),
-	   		    lang('collected_list').' <small><a href="'.url('collected/chart').'">统计图表</a></small>',
-	   		    breadcrumb(array(array('url'=>url('collected/list'),'title'=>'已采集数据'),array('url'=>url('collected/list'),'title'=>$navTips?$navTips:'数据列表')))
-	   		);
    		}
+   		$this->set_html_tags(
+   		    lang('collected_list'),
+   		    lang('collected_list').' <small><a href="'.url('collected/chart').'">统计图表</a></small>',
+   		    breadcrumb(array(array('url'=>url('collected/list'),'title'=>'已采集数据'),array('url'=>url('collected/list'),'title'=>$navTips?$navTips:'数据列表')))
+   		);
    		$this->assign('search',$search);
 		$this->assign('dataList',$dataList);
 	   	$this->assign('taskList',$taskList);

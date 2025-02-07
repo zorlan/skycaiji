@@ -224,19 +224,7 @@ class CpatternEvent extends CpatternColl{
             case 'description':$val=\util\HtmlParse::getDescription($html);break;
             case 'url':$val=$cur_url;break;
             case 'header':$val=trim($htmlInfo['header']);break;
-            case 'cookie':
-                $cookie=\util\Funcs::get_cookies_from_header($htmlInfo['header'],true);
-                if(empty($cookie)){
-                    
-                    $cookie=\util\Param::get_gsc_use_cookie('',true);
-                    if(empty($cookie)){
-                        
-                        $headers=$this->config_params['headers']['page'];
-                        $cookie=is_array($headers)?$headers['cookie']:'';
-                    }
-                }
-                $val=$cookie;
-                break;
+            case 'cookie':$val=$htmlInfo['cookie'];break;
             case 'html':$val=$html;break;
         }
         return $val;

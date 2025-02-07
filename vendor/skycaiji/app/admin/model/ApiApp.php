@@ -461,29 +461,63 @@ class ApiApp extends \skycaiji\common\model\BaseModel{
 	            }
 	        }
 	    }
+	    $msg=$options['loc'].'»';
 	    if(is_object($class_list[$appName])){
+	        
+	        $configGlobalSetted=true;
+	        if(!isset($config_globals[$appName])){
+	            
+	            $configGlobalSetted=false;
+	            $apiConfig=$this->getConfigByApp($appName);
+	            $config_globals[$appName]=$apiConfig['global'];
+	        }
 	        
 	        $opVals=array();
 	        $ops=$this->get_app_ops(null,$class_list[$appName]);
 	        
-	        $userDefVals=array();
 	        foreach ($ops as $op){
 	            if($op['module']=='variable'){
 	                init_array($op['config']);
-	                if($op['config']['module']=='user'){
-	                    init_array($op['config']['user']);
-	                    $userDefVals[md5($op['config']['name'])]=$op['config']['user']['default'];
+	                $opConfig=$op['config'];
+	                if($opConfig['module']=='user'){
+	                    init_array($opConfig['user']);
+	                    $userNameKey=md5($opConfig['name']);
+	                    $userDefVal=$opConfig['user']['default'];
+	                    if(!is_empty($userDefVal,true)){
+	                        
+	                        if($opConfig['user']['global']){
+	                            
+	                            if(!$configGlobalSetted){
+	                                
+	                                if(is_empty($config_globals[$appName][$userNameKey],true)){
+	                                    $config_globals[$appName][$userNameKey]=$userDefVal;
+	                                }
+	                            }
+	                        }else{
+	                            
+	                            if(is_empty($appConfig[$userNameKey],true)){
+	                                $appConfig[$userNameKey]=$userDefVal;
+	                            }
+	                        }
+	                    }
+	                    if($opConfig['user']['required']&&in_array($opConfig['user']['tag'], array('text','select'))){
+	                        
+	                        $curUserVal='';
+	                        if($opConfig['user']['global']){
+	                            $curUserVal=$config_globals[$appName][$userNameKey];
+	                        }else{
+	                            $curUserVal=$appConfig[$userNameKey];
+	                        }
+	                        if(is_empty($curUserVal,true)){
+	                            
+	                            $result['msg']=$msg.$appName.'»未填写'.($opConfig['user']['global']?'全局':'').'配置：'.$opConfig['name'];
+	                            return $result;
+	                        }
+	                    }
 	                }
 	            }
 	        }
 	        
-	        foreach ($appConfig as $k=>$v){
-	            if(is_empty($v,true)){
-	                if(isset($userDefVals[$k])){
-	                    $appConfig[$k]=$userDefVals[$k];
-	                }
-	            }
-	        }
 	        foreach ($ops as $op){
 	            $opVal='';
 	            init_array($op['config']);
@@ -495,19 +529,6 @@ class ApiApp extends \skycaiji\common\model\BaseModel{
 	                $opMethod='_variable_module_'.$opModule;
 	                if(method_exists($this,$opMethod)){
 	                    if($opModule=='user'){
-	                        if(!isset($config_globals[$appName])){
-	                            
-	                            $apiConfig=$this->getConfigByApp($appName);
-	                            $config_globals[$appName]=$apiConfig['global'];
-	                            
-	                            foreach ($config_globals[$appName] as $k=>$v){
-	                                if(is_empty($v,true)){
-	                                    if(isset($userDefVals[$k])){
-	                                        $config_globals[$appName][$k]=$userDefVals[$k];
-	                                    }
-	                                }
-	                            }
-	                        }
 	                        $opVal=$this->_variable_module_user($opConfig,$appConfig,$config_globals[$appName],$fieldVal,$paramValList);
 	                    }elseif($opModule=='value'||$opModule=='extract'){
 	                        
@@ -571,7 +592,6 @@ class ApiApp extends \skycaiji\common\model\BaseModel{
 	            $result['data']=$content;
 	        }
 	    }else{
-	        $msg=$options['loc'].'»';
 	        if($class_list[$appName]==1){
 	            $msg.='不存在插件：';
 	        }elseif($class_list[$appName]==2){

@@ -1,5 +1,7 @@
 {extend name="common:main" /}
-{block name="cssjs"}{/block}
+{block name="cssjs"}
+<script src="__PUBLIC__/static/js/admin/tool_check.js?{$Think.config.html_v}"></script>
+{/block}
 {block name="content"}
 <div class="box box-default">
 	<div class="box-body">
@@ -13,37 +15,8 @@
 		<ul id="error_files" style="display:none;word-wrap:break-word;"></ul>
 	</div>
 </div>
-		
+
 <script type="text/javascript">
-$('#form_check').bind('submit',function(){
-	var $_o=$(this);
-	$_o.find('button[type="submit"]').attr('disabled',true).html('正在校验...');
-	ajaxOpen({
-		type: 'POST',
-		dataType: 'json',
-		url:$(this).attr('action'),
-		data: $(this).serialize(),
-		success: function (data) {
-			if(data.code==1){
-				toastr.success('程序文件全部完整！');
-			}else{
-				if(data.data.files){
-					toastr.error('文件不完整！');
-					var html='';
-					for(var i in data.data.files){
-						html+='<li>'+data.data.files[i]+'</li>';
-					}
-					$('#error_files').html(html).show();
-				}else{
-					toastr.error(data.msg);
-				}
-			}
-		},
-		complete:function(){
-			$_o.find('button[type="submit"]').removeAttr('disabled').html('开始校验');
-		}
-	});
-	return false;
-});
+toolCheckFile();
 </script>
 {/block}

@@ -740,7 +740,7 @@ class Cpattern extends CpatternEvent{
 	}
 	
 	/*采集前置页*/
-	public function collFrontUrls($resetColl=false){
+	public function collFrontUrls($resetColl=false,$isTest=false){
 	    if($resetColl){
 	        
 	        \util\Param::set_gsc_use_cookie('',null);
@@ -769,25 +769,24 @@ class Cpattern extends CpatternEvent{
 	                $pageOpened=$this->page_opened_tips('front_url',$fuv['name']);
 	                $this->echo_url_msg(array('采集前置页“%s”',$fuv['name']),$frontUrl,$pageOpened);
 	                $htmlInfo=$this->get_page_html($frontUrl,'front_url',$fuv['name'],false,true);
+	                if($isTest){
+	                    
+	                    set_g_sc(array('cache_coll_front_urls',$fuv['name']), $htmlInfo);
+	                }
 	                if($fuv['use_cookie']||$fuv['use_cookie_img']||$fuv['use_cookie_file']){
 	                    
-	                    $mUseCookie=\util\Funcs::get_cookies_from_header($htmlInfo['header']);
+	                    $curCookie=$htmlInfo['cookie_data'];
+	                    init_array($curCookie);
 	                    if($fuv['use_cookie']){
-	                        $gUseCookie=\util\Param::get_gsc_use_cookie();
-	                        init_array($gUseCookie);
-	                        \util\Param::set_gsc_use_cookie('',array_merge($gUseCookie,$mUseCookie));
+	                        \util\Param::set_gsc_use_cookie('',$curCookie);
 	                        $this->echo_msg('获取前置页cookie并在全局抓取页面时使用','black');
 	                    }
 	                    if($fuv['use_cookie_img']){
-	                        $gUseCookieImg=\util\Param::get_gsc_use_cookie('img');
-	                        init_array($gUseCookieImg);
-	                        \util\Param::set_gsc_use_cookie('img',array_merge($gUseCookieImg,$mUseCookie));
+	                        \util\Param::set_gsc_use_cookie('img',$curCookie);
 	                        $this->echo_msg('获取前置页cookie并在全局下载图片时使用','black');
 	                    }
 	                    if($fuv['use_cookie_file']){
-	                        $gUseCookieFile=\util\Param::get_gsc_use_cookie('file');
-	                        init_array($gUseCookieFile);
-	                        \util\Param::set_gsc_use_cookie('file',array_merge($gUseCookieFile,$mUseCookie));
+	                        \util\Param::set_gsc_use_cookie('file',$curCookie);
 	                        $this->echo_msg('获取前置页cookie并在全局下载文件时使用','black');
 	                    }
 	                }

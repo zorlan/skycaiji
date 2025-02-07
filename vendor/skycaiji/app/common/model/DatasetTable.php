@@ -202,7 +202,7 @@ class DatasetTable{
 			    }
 			    $table.=',';
 			}
-			$table.='PRIMARY KEY (`id`) ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4';
+			$table.='PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4';
 			db()->execute($table);
 		}
 	}

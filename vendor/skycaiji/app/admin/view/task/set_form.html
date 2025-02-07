@@ -218,7 +218,7 @@
 		        <label>{$Think.lang.set_caiji_num}</label>
 		        <input type="number" name="config[num]" class="form-control" placeholder="全局设置：{$gConfig['num']}" />
 		        <p class="help-block">该任务每次采集的数据量，不能超过采集设置中的“{$Think.lang.set_caiji_num}”，留空使用全局设置{$tipsSingle}
-		        {if $numGtG}<br/>注意：当前数量超过全局设置的数量，实际最大采集数量为：{$gConfig['num']}{/if}
+		        {if $numGtG}<br/><span style="color:red;">注意：当前数量超过全局设置的数量，实际最大采集数量为：{$gConfig['num']}</span>{/if}
 		        </p>
 		    </div>
 		    <div class="form-group">

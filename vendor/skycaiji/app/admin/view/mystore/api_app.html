@@ -30,7 +30,11 @@
 							<td>{$app['id']}</td>
 							<td><div class="name">{$app['name']}</div></td>
 							<td>{$app['app']}</td>
-							<td title="使用：{$modules[$app['module']]['loc']}">{$modules[$app['module']]['name']}</td>
+							<td>
+								<div style="display:inline;" data-toggle="popover" data-content="使用：{$modules[$app['module']]['loc']}" data-html="true" data-trigger="hover" data-placement="right">
+									{$modules[$app['module']]['name']}
+								</div>
+							</td>
 							<td>{:date('Y-m-d H:i',$app['addtime'])}</td>
 							<td>{:date('Y-m-d H:i',$app['uptime'])}</td>
 							<td>

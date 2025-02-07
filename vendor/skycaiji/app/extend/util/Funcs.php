@@ -517,7 +517,7 @@ class Funcs{
 	public static function get_cookies_from_header($header,$convert2str=false){
 	    $cookies=array();
 	    if($header){
-	        if(preg_match_all('/^\s*cookie\s*\:([^\r\n]+);/im', $header, $mcookies)){
+	        if(preg_match_all('/^\s*cookie\s*\:([^\r\n]+)/im', $header, $mcookies)){
 	            
 	            foreach ($mcookies[1] as $mcv){
 	                if(preg_match_all('/([^\;]+?)\=([^\;]*)/',$mcv,$mcookie)){

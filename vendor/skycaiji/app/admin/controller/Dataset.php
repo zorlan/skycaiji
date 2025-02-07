@@ -449,6 +449,10 @@ class Dataset extends BaseController {
             $error='';
             if($indexes){
                 
+                $engineIsMyisam=\util\Db::table_engine($dsTable->fullTableName());
+                $engineIsMyisam=$engineIsMyisam=='myisam'?true:false;
+                $maxIxLen=$engineIsMyisam?250:191;
+                
                 $allowTypes=array('bigint'=>array('index','unique'),'double'=>array('index','unique'),'mediumtext'=>array('fulltext'),'datetime'=>array('index','unique'));
                 foreach ($indexes as $k=>$v){
                     if(!in_array($v['type'], array('index','unique','fulltext'))){
@@ -470,7 +474,7 @@ class Dataset extends BaseController {
                         if($dbColumns[$fname]&&preg_match('/\bvarchar\s*\((\d+)\)/',$dbColumns[$fname]['type'],$mlen)){
                             
                             $ixLen=intval($mlen[1]);
-                            $ixLen=$ixLen>250?250:$ixLen;
+                            $ixLen=$ixLen>$maxIxLen?$maxIxLen:$ixLen;
                         }
                         if($ixLen){
                             $varcharLens[$fname]=$ixLen;
@@ -490,18 +494,20 @@ class Dataset extends BaseController {
                         continue;
                     }
                     $ixName=count($ixName)>1?('i'.substr(md5(serialize($ixName)),8,16)):$ixName[0];
-                    
-                    $lenElse=250-count($ixFields)*2+count($varcharLens)*2;
-                    if(array_sum($varcharLens)>$lenElse){
-                        asort($varcharLens);
-                        foreach ($varcharLens as $vlf=>$vlv){
-                            $varcharLen=intval($lenElse/(count($varcharLens)));
-                            if($vlv>$varcharLen){
-                                $vlv=$varcharLen;
+                    if($engineIsMyisam){
+                        
+                        $lenElse=250-count($ixFields)*2+count($varcharLens)*2;
+                        if(array_sum($varcharLens)>$lenElse){
+                            asort($varcharLens);
+                            foreach ($varcharLens as $vlf=>$vlv){
+                                $varcharLen=intval($lenElse/(count($varcharLens)));
+                                if($vlv>$varcharLen){
+                                    $vlv=$varcharLen;
+                                }
+                                $ixFields[$vlf]=$vlf.'('.$vlv.')';
+                                $lenElse=$lenElse-$vlv;
+                                unset($varcharLens[$vlf]);
                             }
-                            $ixFields[$vlf]=$vlf.'('.$vlv.')';
-                            $lenElse=$lenElse-$vlv;
-                            unset($varcharLens[$vlf]);
                         }
                     }
                     $ixFields=implode(',',$ixFields);
@@ -559,9 +565,25 @@ class Dataset extends BaseController {
         }
         $search['num']=max(30,intval($search['num']));
         $mcache->setCache('dataset_db_list_num',$search['num']);
-        $list=$dst->db()->where($cond)->order('id desc')->paginate($search['num'],false,paginate_auto_config());
+        
+        $list=$dst->db()->field('id')->where($cond)->order('id desc')->paginate($search['num'],false,paginate_auto_config());
         $pagenav=$list->render();
         $list=$list->all();
+        if($list){
+            $dids=array();
+            foreach ($list as $k=>$v){
+                $dids[$k]=$v['id'];
+            }
+            $list1=$dst->db()->where('id','in',$dids)->column('*','id');
+            $list=array();
+            
+            foreach ($dids as $did){
+                $list[]=$list1[$did];
+                unset($list1[$did]);
+            }
+        }else{
+            $list=array();
+        }
         foreach ($list as $k=>$v){
             init_array($v);
             foreach ($v as $vk=>$vv){
@@ -610,23 +632,33 @@ class Dataset extends BaseController {
             $upData=array();
             $newData=array();
             foreach ($ids as $ik=>$iv){
-                if($iv>0){
-                    
-                    $upData[$iv]=array('id'=>$iv);
-                    foreach ($fields as $fk=>$fv){
-                        $upData[$iv][$fk]=$postData[$fk][$iv];
-                    }
-                }else{
-                    
-                    foreach ($fields as $fk=>$fv){
-                        $newData[$iv][$fk]=$postData[$fk][$iv];
+                $newPostData=array();
+                foreach ($fields as $fk=>$fv){
+                    $newPostData[$fk]=$postData[$fk][$iv];
+                    if(is_empty($newPostData[$fk],true)){
+                        
+                        if(!in_array($fv['type'],array('varchar','mediumtext'))){
+                            
+                            unset($newPostData[$fk]);
+                        }
                     }
                 }
+                if($iv>0){
+                    
+                    $newPostData['id']=$iv;
+                    $upData[$iv]=$newPostData;
+                }else{
+                    
+                    $newData[]=$newPostData;
+                }
             }
+            
             $error='';
             try{
                 if($upData){
-                    $dst->db()->strict(false)->insertAll($upData,true);
+                    foreach ($upData as $k=>$v){
+                        $dst->db()->strict(false)->insert($v,true);
+                    }
                 }
                 if($newData){
                     foreach ($newData as $k=>$v){
@@ -639,12 +671,10 @@ class Dataset extends BaseController {
                                 }
                             }
                             if($isNull){
-                                unset($newData[$k]);
+                                continue;
                             }
+                            $dst->db()->strict(false)->insert($v);
                         }
-                    }
-                    if($newData){
-                        $dst->db()->strict(false)->insertAll($newData);
                     }
                 }
             }catch(\Exception $ex){

@@ -206,9 +206,10 @@ class Dataapi extends BaseModel{
         }
         $dataCount=0;
         $dataData=array();
-        if(empty($groupConds)){
-            throw new \Exception('没有符合的查询条件');
+        if(empty($groupConds)&&empty($config['default_list'])){
+            throw new \Exception('没有符合的数据查询条件');
         }else{
+            
             $dstDb=DatasetTable::getInstance($dataset['id']);
             $dstDb=$dstDb->db();
             $this->_conds_db($dstDb,$groupConds);
@@ -253,38 +254,40 @@ class Dataapi extends BaseModel{
         return array('count'=>$dataCount,'data'=>$dataData,'pages'=>ceil($dataCount/$pagePer));
     }
     private function _conds_db($dstDb,$groupConds){
-        foreach ($groupConds as $group){
-            init_array($group);
-            if($group){
-                
-                $dstDb->whereOr(function($queryG)use($group){
-                    foreach ($group as $cond){
-                        init_array($cond);
-                        if($cond){
-                            
-                            $queryG->where(function($queryC)use($cond){
-                                if($cond['is_cond']){
-                                    
-                                    $queryC->where($cond[0],$cond[1],$cond[2]);
-                                }else{
-                                    
-                                    foreach ($cond as $condSubs){
-                                        init_array($condSubs);
-                                        if($condSubs){
-                                            
-                                            $queryC->whereOr(function($queryCs)use($condSubs){
+        if($groupConds){
+            foreach ($groupConds as $group){
+                init_array($group);
+                if($group){
+                    
+                    $dstDb->whereOr(function($queryG)use($group){
+                        foreach ($group as $cond){
+                            init_array($cond);
+                            if($cond){
+                                
+                                $queryG->where(function($queryC)use($cond){
+                                    if($cond['is_cond']){
+                                        
+                                        $queryC->where($cond[0],$cond[1],$cond[2]);
+                                    }else{
+                                        
+                                        foreach ($cond as $condSubs){
+                                            init_array($condSubs);
+                                            if($condSubs){
                                                 
-                                                foreach ($condSubs as $condSub){
-                                                    $queryCs->where($condSub[0],$condSub[1],$condSub[2]);
-                                                }
-                                            });
+                                                $queryC->whereOr(function($queryCs)use($condSubs){
+                                                    
+                                                    foreach ($condSubs as $condSub){
+                                                        $queryCs->where($condSub[0],$condSub[1],$condSub[2]);
+                                                    }
+                                                });
+                                            }
                                         }
                                     }
-                                }
-                            });
+                                });
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
     }

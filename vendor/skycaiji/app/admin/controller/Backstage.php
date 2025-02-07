@@ -19,12 +19,18 @@ class Backstage extends BaseController{
 		
 		$serverData=array(
 			'os'=>php_uname('s').' '.php_uname('r'),
-			'php'=>PHP_VERSION,
+		    'php'=>constant('PHP_VERSION'),
 			'db'=>config('database.type'),
 		    'version'=>g_sc_c('version')?g_sc_c('version'):constant("SKYCAIJI_VERSION"),
-			'server'=>$_SERVER["SERVER_SOFTWARE"],
-			'upload_max'=>ini_get('upload_max_filesize')
+		    'server'=>$_SERVER["SERVER_SOFTWARE"],
+		    'php_info'=>'上传 '.ini_get('upload_max_filesize').'; 内存 '.ini_get('memory_limit'),
 		);
+		
+		if(function_exists('php_sapi_name')){
+		    $serverData['server'].='; '.php_sapi_name();
+		}
+		$serverData['server']=strtolower($serverData['server']);
+		
 		
 		if(stripos($serverData['db'],'mysql')!==false){
 			$dbVersion=db()->query('SELECT VERSION() as v;');
@@ -180,7 +186,6 @@ class Backstage extends BaseController{
 	        'phpInvalid'=>false,
 	        'swooleInvalid'=>false,
 	        'swoolePhpInvalid'=>false,
-	        'repairTables'=>'',
 	    );
 	    
 	    try{
@@ -263,51 +268,11 @@ class Backstage extends BaseController{
 	        $tongji['task_auto']=model('Task')->where('`auto`>0')->count();
 	        $tongji['task_other']=model('Task')->where('`auto`=0')->count();
 	        $info['tongji']=$tongji;
-	        
-	        
-	        $dbName=config('database.database');
-	        $dbTables=db()->getConnection()->getTables($dbName);
-	        if(!empty($dbTables)){
-	            
-	            $dbTables1=array();
-	            foreach ($dbTables as $k=>$v){
-	                $v=strtolower($v);
-	                if(stripos($v,config('database.prefix'))!==false){
-	                    $dbTables1[$v]=$v;
-	                }
-	            }
-	            $dbTables=$dbTables1;
-	            $checkList=db()->query('check table '.implode(',',$dbTables));
-	            $dbTables=array();
-	            foreach ($checkList as $v){
-	                if(is_array($v)&&$v['Msg_type']&&strtolower($v['Msg_type'])=='error'){
-	                    $v['Table']=preg_replace('/^'.$dbName.'\./i', '', $v['Table']);
-	                    $dbTables[$v['Table']]=$v['Table'];
-	                }
-	            }
-	            if($dbTables){
-	                $info['repairTables']=implode(',',$dbTables);
-	            }
-	        }
 	    }catch (\Exception $ex){
 	        
 	    }
 	    
 	    $this->success('','',$info);
-	}
-	
-	public function repairTablesAction(){
-	    if(request()->isPost()){
-	        $tables=input('tables','');
-	        $tables=explode(',', $tables);
-	        $tables=array_unique($tables);
-	        $tables=array_values($tables);
-	        if($tables){
-	            db()->query('repair table '.implode(',', $tables));
-	            $this->success('修复完成','backstage/index');
-	        }
-	    }
-	    $this->error('修复失败');
 	}
 	
 	/*检测更新*/
@@ -578,15 +543,15 @@ class Backstage extends BaseController{
 	        $mconfig=model('Config');
 	        $config=$mconfig->getConfig('admincp','data');
 	        init_array($config);
-	        if($op=='mini'||$op=='narrow'||$op=='check_skip'){
-	            $config[$op]=intval($val);
-	        }elseif($op=='skin'){
+	        if($op=='skin'){
 	            if(preg_match('/^[\w\-\_]+$/', $val)){
 	                $config[$op]=$val;
 	            }
+	        }else{
+	            $config[$op]=intval($val);
 	        }
 	        
-	        $allowConfig=array('skin'=>'','mini'=>'','narrow'=>'','check_skip'=>'');
+	        $allowConfig=array('skin'=>'','mini'=>'','fixed'=>'','narrow'=>'','check_skip'=>'');
 	        foreach ($allowConfig as $k=>$v){
 	            $allowConfig[$k]=isset($config[$k])?$config[$k]:'';
 	        }

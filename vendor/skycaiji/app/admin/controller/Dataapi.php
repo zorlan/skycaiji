@@ -60,7 +60,7 @@ class Dataapi extends BaseController {
         
         $this->set_html_tags(
             '数据接口',
-            '数据接口'.($cond?'：搜索':''),
+            '数据接口'.($cond?'：搜索结果':''),
             breadcrumb(array(array('url'=>url('dataapi/list'),'title'=>'数据接口'),array('url'=>url('dataapi/list'),'title'=>'列表')))
         );
         
