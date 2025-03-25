@@ -67,7 +67,7 @@ return array(
 	'user_username'=>'用户名',
 	'user_password'=>'密码',
 	'user_repassword'=>'确认密码',
-	'user_newpwd_tips'=>'如需修改密码，请在此输入新密码，否则留空',
+	'user_newpwd_tips'=>'如需修改密码，请输入旧密码和新密码，否则留空',
 	'user_email'=>'邮箱',
 	'user_email_tips'=>'用于找回账号密码',
 	'user_groupid'=>'用户组',

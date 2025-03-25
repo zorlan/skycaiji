@@ -140,6 +140,19 @@ class ReleaseApp extends \skycaiji\common\model\BaseModel{
 		$appName=ucfirst($appName);
 		return config('app_path').'/Release/'.$model.'/'.$appName.$model.'.class.php';
 	}
+	
+	/*代码安全检测*/
+	public function safeCodeCheck($code){
+	    $result=return_result('');
+	    $funcs=array('phpinfo');
+	    $funcs=implode('|', $funcs);
+	    if(preg_match('/('.$funcs.')\s*\(\s*\)\s*\;/i',$code,$mfunc)){
+	        $result['msg']='包含非法函数：'.$mfunc[0];
+	    }else{
+	        $result['success']=true;
+	    }
+	    return $result;
+	}
 }
 
 ?>

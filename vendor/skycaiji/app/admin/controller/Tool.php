@@ -177,6 +177,9 @@ class Tool extends BaseController {
         }elseif($op=='save'){
             
             if($this->request->isPost()){
+                if(preg_match('/\.php$/i', $filePath)){
+                    $this->error('禁止修改php文件');
+                }
                 $saveData=input('save_data','',null);
                 file_put_contents($filePath, $saveData);
                 $this->success('已修改','');
@@ -886,6 +889,9 @@ class Tool extends BaseController {
 	        $preview=array('json'=>'','html'=>'');
 	        if(preg_match('/^\w+\:\/\//', $data)){
 	            
+	            if(stripos($data,config('root_website'))===0){
+	                $this->error('禁止访问当前主机网址');
+	            }
 	            $data=get_html($data);
 	        }
 	        if(!empty($data)){

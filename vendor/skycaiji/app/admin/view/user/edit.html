@@ -29,13 +29,18 @@
 				<p class="help-block">{$Think.lang.user_email_tips}</p>
 		    </div>
 		    <div class="form-group">
-		        <label>{$Think.lang.user_password}</label>
-		        <input type="password" name="password" class="form-control" autocomplete="off" value="">
+		        <label>修改密码</label>
+			    <div class="input-group" style="margin-bottom:10px;">
+		        	<span class="input-group-addon">旧密码</span>
+		        	<input type="password" name="old_password" class="form-control" autocomplete="off" value="">
+			    </div>
+			    <div class="input-group">
+		        	<span class="input-group-addon">新密码</span>
+		        	<input type="password" name="password" class="form-control" autocomplete="off" value="">
+		        	<span class="input-group-addon brl_0 brr_0">{$Think.lang.user_repassword}</span>
+		        	<input type="password" name="repassword" class="form-control" autocomplete="off" value="">
+			    </div>
 		        <p class="help-block">{$Think.lang.user_newpwd_tips}</p>
-		    </div>
-		    <div class="form-group">
-		        <label>{$Think.lang.user_repassword}</label>
-		        <input type="password" name="repassword" class="form-control" autocomplete="off" value="">
 		    </div>
 		    {if condition="g_sc_c('site','verifycode')"}	
 			<div class="form-group">

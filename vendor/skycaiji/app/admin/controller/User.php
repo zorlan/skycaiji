@@ -129,6 +129,10 @@ class User extends BaseController {
     			$this->error($check['msg']);
     		}
     		if(!empty($newData['password'])){
+    		    if(g_sc('user','password')!=\skycaiji\admin\model\User::pwd_encrypt(input('old_password'),g_sc('user','salt'))){
+    		        
+    		        $this->error('旧密码错误');
+    		    }
     			$newData['salt']=\skycaiji\admin\model\User::rand_salt();
     			$newData['password']=\skycaiji\admin\model\User::pwd_encrypt($newData['password'],$newData['salt']);
     		}

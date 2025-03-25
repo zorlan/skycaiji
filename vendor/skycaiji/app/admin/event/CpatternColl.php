@@ -661,6 +661,7 @@ class CpatternColl extends CpatternBase{
             
             $return=array('urls'=>array(),'matches'=>array());
             foreach($cont_urls as $k=>$v){
+                $v=stripslashes($v);
                 if(!in_array($v, $return['urls'])){
                     
                     $return['urls'][]=$v;
@@ -670,7 +671,10 @@ class CpatternColl extends CpatternBase{
             return $return;
         }else{
             
-            return array_values($cont_urls);
+            $cont_urls=array_values($cont_urls);
+            init_array($cont_urls);
+            $cont_urls=array_map('stripslashes',$cont_urls);
+            return $cont_urls;
         }
     }
     

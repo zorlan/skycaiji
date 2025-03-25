@@ -1051,6 +1051,10 @@ class Mystore extends BaseController {
 	                                $pluginTitle.=$pluginData['app'];
 	                                $pluginData['code']=base64_decode($pluginData['code']);
 	                                $pluginFile=model('ReleaseApp')->appFileName($pluginData['app'],'diy');
+	                                $safeCheck=model('ReleaseApp')->safeCodeCheck($pluginData['code']);
+	                                if(!$safeCheck['success']){
+	                                    return return_result($pluginTitle.' » 导入失败 » '.$safeCheck['msg']);
+	                                }
 	                                if(!write_dir_file($pluginFile, $pluginData['code'])){
 	                                    return return_result($pluginTitle.' » 导入失败');
 	                                }
