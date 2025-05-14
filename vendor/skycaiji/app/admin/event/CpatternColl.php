@@ -41,8 +41,11 @@ class CpatternColl extends CpatternBase{
     public $pn_url_matches=array();
     public $pn_area_matches=array();
     public $show_opened_tools=false;
+    public $render_pn_sockets=array();
     protected $cache_page_htmls=array();
     protected $cache_page_urls=array();
+    protected $cache_pn_htmls=array();
+    protected $cache_pn_urls=array();
     protected $field_url_complete=true;
     protected $field_down_img=true;
     protected $field_stop_process=false;
@@ -67,6 +70,13 @@ class CpatternColl extends CpatternBase{
                 if(!empty($list)){
                     CacheModel::getInstance('cont_url')->deleteCache($list);
                 }
+            }
+        }
+        
+        if($this->render_pn_sockets){
+            
+            foreach ($this->render_pn_sockets as $socket){
+                $socket=null;
             }
         }
     }
@@ -181,6 +191,7 @@ class CpatternColl extends CpatternBase{
         $parentMatches=$this->parent_page_signs2matches($this->parent_page_signs($pageType,$pageName,($isPagination?'pn:':'').'url'));
         if(!empty($config['reg_url'])&&!empty($config['reg_url_merge'])){
             
+            $config['reg_url_merge']=$this->pn_replace_cur_url($pageType,$pageName,$isPagination,$config['reg_url_merge']);
             if(empty($config['reg_url_module'])){
                 
                 $cont_urls = $this->get_rule_module_rule_data(array(
@@ -230,6 +241,9 @@ class CpatternColl extends CpatternBase{
             }
         }
         
+        init_array($cont_urls);
+        init_array($cont_urls_matches);
+        
         
         $pnNum=array(
             'nums'=>false,
@@ -239,25 +253,35 @@ class CpatternColl extends CpatternBase{
         );
         if($isPagination&&$config['number']['open']){
             
-            $pnNum['nums']=\util\Funcs::increase_nums($config['number']['start'],$config['number']['end'],$config['number']['inc'],$config['number']['desc'],$config['number']['len'],max(count($cont_urls),intval($config['max'])));
+            $pnNum['nums']=\util\Funcs::increase_nums($config['number']['start'],$config['number']['end'],$config['number']['inc'],$config['number']['desc'],$config['number']['len']);
             $pnNum['count']=count($pnNum['nums']);
-        }
-        
-        if(empty($config['reg_url'])){
-            
             if($pnNum['nums']){
-                
-                $cont_urls=array();
-                $cont_urls_matches=array();
-                foreach ($pnNum['nums'] as $k=>$v){
-                    $cont_urls[]=$this->merge_match_signs($parentMatches, $config['reg_url_merge']);
-                    $cont_urls_matches[]=array('match@pn_number'=>$v);
+                if(empty($config['number']['url_mode'])){
+                    
+                    if(empty($config['reg_url'])||$config['reg_url']=='^.{0}'){
+                        
+                        $cont_urls=array();
+                        $cont_urls_matches=array();
+                        foreach ($pnNum['nums'] as $k=>$v){
+                            $cont_urls[]=$this->merge_match_signs($parentMatches, $config['reg_url_merge']);
+                            $cont_urls_matches[]=array('match@pn_number'=>$v);
+                        }
+                    }
+                }elseif($config['number']['url_mode']=='one_num'){
+                    
+                    if(count($cont_urls)>1){
+                        reset($cont_urls);
+                        $cont_urls=current($cont_urls);
+                        $cont_urls=array($cont_urls);
+                        if(count($cont_urls_matches)>1){
+                            reset($cont_urls_matches);
+                            $cont_urls_matches=current($cont_urls_matches);
+                            $cont_urls_matches=array($cont_urls_matches);
+                        }
+                    }
                 }
             }
         }
-        
-        init_array($cont_urls);
-        init_array($cont_urls_matches);
         
         $doComplete=false;
         $doMust=false;
@@ -340,25 +364,70 @@ class CpatternColl extends CpatternBase{
             }
         }
         
-        if($pnNum['nums']&&$contUrlsCount!==count($cont_urls)){
+        if($pnNum['nums']){
             
-            $pnNum['ix']=0;
-            foreach ($cont_urls as $k=>$contUrl){
-                if($pnNum['has']){
-                    
-                    $contUrl=$this->pn_number_replace($oldContUrls[$k], $pnNum['nums'][$pnNum['ix']]);
+            $totalCount=count($cont_urls);
+            if($contUrlsCount!==$totalCount){
+                
+                $pnNum['ix']=0;
+                foreach ($cont_urls as $k=>$contUrl){
+                    if($pnNum['has']){
+                        
+                        $contUrl=$this->pn_number_replace($oldContUrls[$k], $pnNum['nums'][$pnNum['ix']]);
+                    }
+                    init_array($cont_urls_matches[$k]);
+                    $cont_urls_matches[$k]['@pn_number']=$pnNum['nums'][$pnNum['ix']];
+                    $pnNum['ix']++;
+                    if($pnNum['has']){
+                        
+                        $doDelete=$this->_rule_match_urls_url($contUrl,$config,$completeUrlInfo,$urlCharset,$doComplete,$doMust,$doBan);
+                        if($doDelete){
+                            unset($cont_urls[$k]);
+                            unset($cont_urls_matches[$k]);
+                        }else{
+                            $cont_urls[$k]=$contUrl;
+                        }
+                    }
                 }
-                init_array($cont_urls_matches[$k]);
-                $cont_urls_matches[$k]['@pn_number']=$pnNum['nums'][$pnNum['ix']];
-                $pnNum['ix']++;
-                if($pnNum['has']){
+            }
+            
+            if($cont_urls&&($config['number']['url_mode']=='mult_num'||$config['number']['url_mode']=='one_num')){
+                
+                if($pnNum['count']<$totalCount){
                     
-                    $doDelete=$this->_rule_match_urls_url($contUrl,$config,$completeUrlInfo,$urlCharset,$doComplete,$doMust,$doBan);
-                    if($doDelete){
-                        unset($cont_urls[$k]);
-                        unset($cont_urls_matches[$k]);
-                    }else{
-                        $cont_urls[$k]=$contUrl;
+                    $contUrlNum=0;
+                    foreach ($cont_urls as $k=>$v){
+                        $contUrlNum++;
+                        if($contUrlNum>$pnNum['count']){
+                            unset($cont_urls[$k]);
+                            unset($cont_urls_matches[$k]);
+                        }
+                    }
+                }elseif($pnNum['count']>$totalCount){
+                    
+                    $contUrlEnd=array_keys($cont_urls);
+                    $contUrlEnd=end($contUrlEnd);
+                    
+                    for($i=1;$i<=($pnNum['count']-$totalCount);$i++){
+                        $contUrl=$cont_urls[$contUrlEnd];
+                        $contUrlMatches=$cont_urls_matches[$contUrlEnd];
+                        if($pnNum['has']){
+                            
+                            $contUrl=$this->pn_number_replace($oldContUrls[$contUrlEnd], $pnNum['nums'][$pnNum['ix']]);
+                        }
+                        init_array($contUrlMatches);
+                        $contUrlMatches['@pn_number']=$pnNum['nums'][$pnNum['ix']];
+                        $pnNum['ix']++;
+                        $doDelete=false;
+                        if($pnNum['has']){
+                            
+                            $doDelete=$this->_rule_match_urls_url($contUrl,$config,$completeUrlInfo,$urlCharset,$doComplete,$doMust,$doBan);
+                        }
+                        if(!$doDelete){
+                            
+                            $cont_urls[]=$contUrl;
+                            $cont_urls_matches[]=$contUrlMatches;
+                        }
                     }
                 }
             }
@@ -486,6 +555,7 @@ class CpatternColl extends CpatternBase{
                 
                 $formData=$this->arrays_to_key_val($pnConfig['url_web']['form_names'], $pnConfig['url_web']['form_vals']);
                 if(!empty($formData)&&is_array($formData)){
+                    $formData=$this->pn_replace_cur_url($pageType,$pageName,$isPagination,$formData);
                     $formParentMatches=$this->page_convert_data_signs($pageType, $pageName, 'pn:form', $formData, true);
                     $hasPnNum=$this->pn_number_exists($formData);
                     foreach ($cont_urls as $k=>$v){
@@ -503,6 +573,7 @@ class CpatternColl extends CpatternBase{
                     }
                 }
             }
+            
             if(!empty($urlsForms)){
                 if($urlWebConfig['form_method']=='post'){
                     
@@ -585,6 +656,7 @@ class CpatternColl extends CpatternBase{
                 
                 if(!empty($pnConfig['renderer']['types'])){
                     
+                    $pnConfig['renderer']['contents']=$this->pn_replace_cur_url($pageType,$pageName,$isPagination,$pnConfig['renderer']['contents']);
                     $renderParentMatches=$this->page_convert_data_signs($pageType, $pageName, 'pn:renderer', $pnConfig['renderer']['contents'], true);
                     $hasPnNum=$this->pn_number_exists($pnConfig['renderer']['contents']);
                     foreach ($cont_urls as $k=>$v){
@@ -1582,8 +1654,39 @@ class CpatternColl extends CpatternBase{
     }
     
     
+    public function pn_replace_cur_url($pageType,$pageName,$isPagination,$data){
+        if($isPagination&&$data){
+            
+            if(is_array($data)){
+                foreach ($data as $k=>$v){
+                    $data[$k]=$this->pn_replace_cur_url($pageType,$pageName,$isPagination,$v);
+                }
+            }elseif(is_string($data)&&strpos($data,'[当前网址]')!==false){
+                $curUrl=$this->cur_page_source_url($pageType, $pageName);
+                $data=str_replace('[当前网址]', $curUrl, $data);
+            }
+        }
+        return $data;
+    }
+    
+    public function cur_page_source_url($pageType,$pageName){
+        $curUrl='';
+        switch ($pageType){
+            case 'front_url':$curUrl=$this->cur_front_urls[$pageName];break;
+            case 'source_url':$curUrl=$this->cur_source_url;break;
+            case 'level_url':$curUrl=$this->cur_level_urls[$pageName];break;
+            case 'url':$curUrl=$this->cur_cont_url;break;
+        }
+        $curUrl=$curUrl?:'';
+        return $curUrl;
+    }
+    
+    
+    
     /*获取页面代码*/
     public function get_page_html($url,$pageType,$pageName,$isPagination=false,$returnInfo=false){
+        $cacheKey=md5($url);
+        
         $pageName=$pageName?$pageName:'';
         $headers=array();
         $pageSource=$this->page_source_merge($pageType, $pageName);
@@ -1623,6 +1726,7 @@ class CpatternColl extends CpatternBase{
                 if($isPagination&&$this->pagination_url_web_opened($pnConfig)){
                     
                     $pnHeaders=$this->arrays_to_key_val($pnConfig['url_web']['header_names'], $pnConfig['url_web']['header_vals']);
+                    $pnHeaders=$this->pn_replace_cur_url($pageType, $pageName, $isPagination, $pnHeaders);
                     $pnHeaders=$this->page_convert_data_signs($pageType, $pageName, 'pn:header', $pnHeaders);
                     init_array($pnHeaders);
                     if(!empty($pnHeaders)){
@@ -1692,6 +1796,7 @@ class CpatternColl extends CpatternBase{
             if($isPagination&&$this->pagination_url_web_opened($pnConfig)){
                 
                 $pnFormData=$this->arrays_to_key_val($pnConfig['url_web']['form_names'], $pnConfig['url_web']['form_vals']);
+                $pnFormData=$this->pn_replace_cur_url($pageType, $pageName, $isPagination, $pnFormData);
                 $pnFormData=$this->page_convert_data_signs($pageType, $pageName, 'pn:form', $pnFormData);
                 init_array($pnFormData);
                 if(!empty($pnFormData)){
@@ -1734,6 +1839,11 @@ class CpatternColl extends CpatternBase{
             $rendererConfig=$pageRenderer;
         }
         
+        if(!$isPagination){
+            
+            $this->render_pn_sockets[$pageSource]=null;
+        }
+        
         if($this->renderer_is_open(null,null,$pageRenderer,$pnConfig)){
             
             $filterUrl=true;
@@ -1750,6 +1860,7 @@ class CpatternColl extends CpatternBase{
             if($isPagination&&$this->pagination_renderer_opened($pnConfig)){
                 
                 $pnConfig['renderer']['contents']=$this->page_convert_data_signs($pageType, $pageName, 'pn:renderer', $pnConfig['renderer']['contents']);
+                $pnConfig['renderer']['contents']=$this->pn_replace_cur_url($pageType, $pageName, $isPagination, $pnConfig['renderer']['contents']);
                 
                 if($this->pn_number_exists($pnConfig['renderer']['contents'])){
                     foreach ($pnConfig['renderer']['contents'] as $k=>$v){
@@ -1772,6 +1883,20 @@ class CpatternColl extends CpatternBase{
             }
             $rendererConfig=array_merge($rendererConfig,$rendererData);
             $otherConfig['renderer']=$rendererConfig;
+            
+            if($pageSource&&$this->page_has_pagination($pageType)&&$this->pagination_is_open($pageType,$pageName)){
+                
+                $otherConfig['render_pn_page_source']=$pageSource;
+                if($isPagination&&!\util\Tools::echo_url_msg_pn_id($url)){
+                    
+                    unset($otherConfig['render_pn_page_source']);
+                }
+                if(!$isPagination||empty($otherConfig['render_pn_page_source'])){
+                    
+                    $this->render_pn_sockets[$pageSource]=null;
+                }
+                $url=\util\Tools::echo_url_msg_pn_id($url,true);
+            }
         }
         
         unset($pageRenderer);
@@ -1781,113 +1906,91 @@ class CpatternColl extends CpatternBase{
             $url=\util\Tools::echo_url_msg_id($url, true);
         }
         
+        $cacheKey=($cacheKey.' '.serialize(array($postData,$headers,$otherConfig['renderer'])));
+        
         $htmlInfo=array();
         $html=null;
+        
         if($isPagination){
-            
-            $htmlInfo=$this->get_html($url,$postData,$headers,$charset,$otherConfig,true);
-            $html=$htmlInfo['html'];
-        }else{
-            
-            
-            if(empty($this->cache_page_urls)){
-                $this->cache_page_urls=array(
-                    'source_url'=>$this->cur_source_url,
-                    'level_urls'=>is_array($this->cur_level_urls)?$this->cur_level_urls:array()
-                );
-            }
-            
-            
-            if(!is_array($this->cache_page_htmls)){
-                $this->cache_page_htmls=array();
-            }
-            if(!is_array($this->cache_page_htmls[$pageType])){
-                $this->cache_page_htmls[$pageType]=array();
-            }
-            if(!is_array($this->cache_page_htmls[$pageType][$pageName])){
-                $this->cache_page_htmls[$pageType][$pageName]=array();
-            }
-            
-            if($pageType=='source_url'&&$this->cur_source_url!=$this->cache_page_urls['source_url']){
+            if($cacheKey!=$this->cache_pn_urls[$pageSource]){
                 
-                $this->cache_page_urls['source_url']=$this->cur_source_url;
-                $this->cache_page_htmls=array(
-                    'front_url'=>is_array($this->cache_page_htmls['front_url'])?$this->cache_page_htmls['front_url']:array()
-                );
+                $this->cache_pn_urls[$pageSource]=$cacheKey;
+                $this->cache_pn_htmls[$pageSource]=null;
             }
-            
-            if($pageType=='level_url'&&$this->cur_level_urls[$pageName]!=$this->cache_page_urls['level_urls'][$pageName]){
+            if(isset($this->cache_pn_htmls[$pageSource])){
                 
-                $this->cache_page_urls['level_urls']=is_array($this->cur_level_urls)?$this->cur_level_urls:array();
-                $this->cache_page_htmls['level_url'][$pageName]=array();
-                $this->cache_page_htmls['url']=array();
-                $this->cache_page_htmls['relation_url']=array();
-            }
-            
-            $cacheKey=md5($url.' '.serialize($postData));
-            if(isset($this->cache_page_htmls[$pageType][$pageName][$cacheKey])){
-                
-                $htmlInfo=$this->cache_page_htmls[$pageType][$pageName][$cacheKey];
+                $htmlInfo=$this->cache_pn_htmls[$pageSource];
             }else{
                 $htmlInfo=$this->get_html($url,$postData,$headers,$charset,$otherConfig,true);
-                $this->cache_page_htmls[$pageType][$pageName][$cacheKey]=$htmlInfo;
+                $this->cache_pn_htmls[$pageSource]=$htmlInfo;
             }
-            
-            if(!is_array($htmlInfo)){
-                $htmlInfo=array();
-            }
-            $html=$htmlInfo['html'];
-            
-            
-            if(!isset($this->page_content_matches[$pageType])){
-                $this->page_content_matches[$pageType]=array();
-            }
-            if(!isset($this->page_content_matches[$pageType][$pageName])){
-                $this->page_content_matches[$pageType][$pageName]=array();
-            }
-            if($html){
+        }else{
+            if($cacheKey!=$this->cache_page_urls[$pageSource]){
                 
-                $contentMatches=array();
-                $contentSigns=$this->get_page_config($pageType,$pageName,'content_signs');
-                if(!empty($contentSigns)&&is_array($contentSigns)){
-                    $pageSourceName=$this->page_source_name($pageType, $pageName);
-                    foreach ($contentSigns as $contentSign){
-                        if(is_array($contentSign)&&$contentSign['identity']){
-                            $module=strtolower($contentSign['module']);
-                            $val='';
-                            if($module=='rule'){
-                                $val = $this->get_rule_module_rule_data(array(
-                                    'rule' => $contentSign['reg_rule'],
-                                    'rule_merge' => $contentSign['reg_rule_merge'],
-                                    'rule_multi' => $contentSign['rule_multi'],
-                                    'rule_multi_str' => $contentSign['rule_multi_str'],
-                                    'rule_multi_type' => $contentSign['rule_multi_type']
-                                ), $html,array(),true);
-                            }elseif($module=='xpath'){
-                                $val = $this->rule_module_xpath_data($contentSign,$html);
-                            }elseif($module=='json'){
-                                $val=$this->rule_module_json_data($contentSign,$html);
-                            }
+                $this->cache_page_urls[$pageSource]=$cacheKey;
+                $this->cache_page_htmls[$pageSource]=null;
+            }
+            if(isset($this->cache_page_htmls[$pageSource])){
+                
+                $htmlInfo=$this->cache_page_htmls[$pageSource];
+            }else{
+                $htmlInfo=$this->get_html($url,$postData,$headers,$charset,$otherConfig,true);
+                $this->cache_page_htmls[$pageSource]=$htmlInfo;
+            }
+        }
+        
+        init_array($htmlInfo);
+        $html=$htmlInfo['html'];
+        
+        
+        if(!isset($this->page_content_matches[$pageType])){
+            $this->page_content_matches[$pageType]=array();
+        }
+        if(!isset($this->page_content_matches[$pageType][$pageName])){
+            $this->page_content_matches[$pageType][$pageName]=array();
+        }
+        if($html){
+            
+            $contentMatches=array();
+            $contentSigns=$this->get_page_config($pageType,$pageName,'content_signs');
+            if(!empty($contentSigns)&&is_array($contentSigns)){
+                $pageSourceName=$this->page_source_name($pageType, $pageName);
+                foreach ($contentSigns as $contentSign){
+                    if(is_array($contentSign)&&$contentSign['identity']){
+                        $module=strtolower($contentSign['module']);
+                        $val='';
+                        if($module=='rule'){
+                            $val = $this->get_rule_module_rule_data(array(
+                                'rule' => $contentSign['reg_rule'],
+                                'rule_merge' => $contentSign['reg_rule_merge'],
+                                'rule_multi' => $contentSign['rule_multi'],
+                                'rule_multi_str' => $contentSign['rule_multi_str'],
+                                'rule_multi_type' => $contentSign['rule_multi_type']
+                            ), $html,array(),true);
+                        }elseif($module=='xpath'){
+                            $val = $this->rule_module_xpath_data($contentSign,$html);
+                        }elseif($module=='json'){
+                            $val=$this->rule_module_json_data($contentSign,$html);
+                        }
+                        
+                        if(!empty($contentSign['funcs'])&&is_array($contentSign['funcs'])){
                             
-                            if(!empty($contentSign['funcs'])&&is_array($contentSign['funcs'])){
-                                
-                                $csMatchSign=cp_sign('match',$contentSign['identity']);
-                                foreach ($contentSign['funcs'] as $csFunc){
-                                    if(is_array($csFunc)&&!empty($csFunc['func'])){
-                                        
-                                        $result=$this->execute_plugin_func('contentSign', $csFunc['func'], $val, $csFunc['func_param'], null, ' @ '.$pageSourceName.' '.$csMatchSign);
-                                        if(isset($result)){
-                                            $val=$result;
-                                        }
+                            $csMatchSign=cp_sign('match',$contentSign['identity']);
+                            foreach ($contentSign['funcs'] as $csFunc){
+                                if(is_array($csFunc)&&!empty($csFunc['func'])){
+                                    
+                                    $result=$this->execute_plugin_func('contentSign', $csFunc['func'], $val, $csFunc['func_param'], null, ' @ '.$pageSourceName.' '.$csMatchSign);
+                                    if(isset($result)){
+                                        $val=$result;
                                     }
                                 }
                             }
-                            $contentMatches['match'.$contentSign['identity']]=$val;
                         }
+                        $contentMatches['match'.$contentSign['identity']]=$val;
                     }
                 }
-                $this->page_content_matches[$pageType][$pageName]=$contentMatches;
             }
+            $this->page_content_matches[$pageType][$pageName]=$contentMatches;
         }
         if($returnInfo){
             return $htmlInfo;
@@ -1984,13 +2087,31 @@ class CpatternColl extends CpatternBase{
         if($pageRenderTool){
             
             if($pageRenderTool=='chrome'){
-                $chromeConfig=g_sc_c('page_render','chrome');
-                init_array($chromeConfig);
                 try {
                     $options['renderer']=$otherConfig['renderer'];
-                    $chromeSocket=new \util\ChromeSocket($chromeConfig['host'],$chromeConfig['port'],g_sc_c('page_render','timeout'),$chromeConfig['filename'],$chromeConfig);
-                    $chromeSocket->newTab($options['proxy']);
-                    $chromeSocket->websocket(null);
+                    
+                    $chromeSocket=null;
+                    if($otherConfig['render_pn_page_source']&&$this->render_pn_sockets[$otherConfig['render_pn_page_source']]){
+                        
+                        $chromeSocket=$this->render_pn_sockets[$otherConfig['render_pn_page_source']];
+                        if($chromeSocket->hasTab($chromeSocket->getTabId())){
+                            
+                            $options['render_pn_renderer']=true;
+                        }else{
+                            
+                            $chromeSocket->newTab($options['proxy']);
+                        }
+                    }else{
+                        $chromeConfig=g_sc_c('page_render','chrome');
+                        init_array($chromeConfig);
+                        $chromeSocket=new \util\ChromeSocket($chromeConfig['host'],$chromeConfig['port'],g_sc_c('page_render','timeout'),$chromeConfig['filename'],$chromeConfig);
+                        $chromeSocket->newTab($options['proxy']);
+                        $chromeSocket->websocket(null);
+                        if($otherConfig['render_pn_page_source']){
+                            
+                            $this->render_pn_sockets[$otherConfig['render_pn_page_source']]=$chromeSocket;
+                        }
+                    }
                     $htmlInfo=$chromeSocket->getRenderHtml($url,$headers,$options,$charset,$postData,true);
                 }catch (\Exception $ex){
                     $ex='页面渲染失败：'.$ex->getMessage().' 请检查<a href="'.url('setting/page_render').'" target="_blank">渲染设置</a>';

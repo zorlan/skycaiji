@@ -913,11 +913,7 @@ class Cpattern extends CpatternEvent{
 	        if(empty($html)){
 	            $html=$this->get_page_html($fromUrl, $pageType, $pageName, $isPagination);
 	        }
-	        $openPnNum=false;
-	        if($pnConfig['number']&&$pnConfig['number']['open']){
-	            $openPnNum=true;
-	        }
-	        if(!empty($pnConfig['reg_url'])||$openPnNum){
+	        if(!empty($pnConfig['reg_url'])){
 	            
 	            $allowColl=true;
 	            if($pageType=='url'&&empty($pnConfig['new_fields'])){
@@ -929,7 +925,8 @@ class Cpattern extends CpatternEvent{
 	                $areaMatch=$this->rule_match_area($pageType, $pageName, true, $html, true);
 	                $pn_area=$areaMatch['area'];
 	                $this->pn_area_matches[$pageType][$pageName]=$areaMatch['matches'];
-	                if(!empty($pn_area)||$openPnNum){
+	                
+	                if(!empty($pn_area)||($pnConfig['number']&&$pnConfig['number']['open'])){
 	                    
 	                    
 	                    if(!empty($pnConfig['url_complete'])){
@@ -953,6 +950,83 @@ class Cpattern extends CpatternEvent{
 	                        }
 	                    }
 	                    
+	                    $pnUrlIsHome='';
+	                    
+	                    if(empty($pn_urls)){
+	                        $pnUrlIsHome=$this->cur_page_source_url($pageType, $pageName);
+	                    }elseif(count($pn_urls)==1){
+	                        $curFromUrl=\util\Tools::echo_url_msg_pn_id($fromUrl,true);
+	                        $pnUrlIsHome=\util\Tools::echo_url_msg_pn_id($pn_urls[0],true);
+	                        if($curFromUrl==$pnUrlIsHome||$curFromUrl==\util\Tools::echo_url_msg_id($pnUrlIsHome,true)){
+	                            
+	                            $pnUrlIsHome=$pn_urls[0];
+	                            $pn_urls=array();
+	                        }else{
+	                            $pnUrlIsHome='';
+	                        }
+	                    }
+	                    
+	                    $isRenderClick=false;
+	                    
+	                    if($pnUrlIsHome){
+	                        
+	                        $pageSource=$this->page_source_merge($pageType, $pageName);
+	                        
+	                        $pageRenderer=$this->get_page_config($pageType,$pageName,'renderer');
+	                        
+	                        if($this->renderer_is_open(null,null,$pageRenderer,$pnConfig)){
+	                            $renderClickXpaths=array();
+	                            if($this->renderer_is_open(null,null,$pageRenderer,$pnConfig,true)){
+	                                
+	                                if(is_array($pageRenderer['types'])&&is_array($pageRenderer['elements'])){
+	                                    foreach ($pageRenderer['types'] as $k=>$v){
+	                                        if($v=='click'){
+	                                            $renderClickXpaths[$pageRenderer['elements'][$k]]=$pageRenderer['elements'][$k];
+	                                        }
+	                                    }
+	                                }
+	                            }
+	                            if($this->pagination_renderer_opened($pnConfig)){
+	                                
+	                                if(is_array($pnConfig['renderer'])&&is_array($pnConfig['renderer']['types'])&&is_array($pnConfig['renderer']['elements'])){
+	                                    foreach ($pnConfig['renderer']['types'] as $k=>$v){
+	                                        if($v=='click'){
+	                                            $renderClickXpaths[$pnConfig['renderer']['elements'][$k]]=$pnConfig['renderer']['elements'][$k];
+	                                        }
+	                                    }
+	                                }
+	                            }
+	                            if($renderClickXpaths){
+	                                $isRenderClick=true;
+	                            }
+	                            
+	                            foreach ($renderClickXpaths as $k=>$v){
+	                                $v=$this->rule_module_xpath_data(array('xpath'=>$v,'xpath_attr'=>'outerHtml'), $html);
+	                                $v=$v?$v:'';
+	                                if(empty($v)){
+	                                    
+	                                    $renderClickXpaths=array();
+	                                    break;
+	                                }else{
+	                                    $renderClickXpaths[$k]=$v;
+	                                }
+	                            }
+	                            
+	                            if($renderClickXpaths){
+	                                
+	                                $pnId='#renderpn_'.md5(serialize($renderClickXpaths));
+	                                $pnUrl=$pnUrlIsHome;
+	                                $pnUrl=\util\Tools::echo_url_msg_pn_id($pnUrl,true).$pnId;
+	                                
+	                                $renderClickXpaths=array('renderpn'=>array('xpath'=>array_keys($renderClickXpaths),'html'=>array_values($renderClickXpaths)));
+	                                init_array($renderClickXpaths['renderpn']['xpath']);
+	                                init_array($renderClickXpaths['renderpn']['html']);
+	                                \util\Param::set_echo_url_msg($pnId,$renderClickXpaths);
+	                                $pn_urls[]=$pnUrl;
+	                            }
+	                        }
+	                    }
+	                    
 	                    
 	                    if(!empty($pn_urls)){
 	                        $pn_urls=array_filter($pn_urls);
@@ -963,7 +1037,7 @@ class Cpattern extends CpatternEvent{
 	                        $this->pn_url_matches[$pageType][$pageName]=$urlsMatches['matches'];
 	                    }else{
 	                        if($isTest){
-	                            return $this->echo_error('未获取到分页链接，请检查“匹配分页网址”或“从选定区域中提取网址”');
+	                            return $this->echo_error($isRenderClick?'未获取到分页链接，请检查“页面渲染动作”中的点击元素xpath是否正确':'未获取到分页链接，请检查“匹配分页网址”或“从选定区域中提取网址”');
 	                        }
 	                    }
 	                }else{
@@ -1579,7 +1653,13 @@ class Cpattern extends CpatternEvent{
 		        $errorMsg.=($errorMsg?', ':'').$htmlInfo['header'];
 		    }
 		    $errorMsg=($errorMsg?'：':'').$errorMsg;
-		    return $this->echo_error('未抓取到源码'.$errorMsg);
+		    $errorMsg='未抓取到源码'.$errorMsg;
+		    
+		    controller('ReleaseBase','event')->record_collected(
+		        $cont_url,
+		        array('id'=>0,'error'=>$errorMsg),array('task_id'=>$this->collector['task_id'],'module'=>$this->release['module']),null,false
+		    );
+		    return $this->echo_error($errorMsg);
 		}
 		
 		foreach($this->config['new_field_list'] as $field_config){

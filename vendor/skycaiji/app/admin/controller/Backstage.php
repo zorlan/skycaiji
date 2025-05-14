@@ -179,14 +179,87 @@ class Backstage extends BaseController{
 	}
 	
 	
-	public function checkUpAction(){
-	    
+	public function startUpAction(){
+	    if($this->request->isPost()){
+	        $types=input('types/a');
+	        init_array($types);
+	        controller('admin/Setting')->_run_auto_start_up($types);
+	        sleep(3);
+	        
+	        $success=true;
+	        $info=$this->_checkUpInfo();
+	        if(in_array('page_render',$types)&&$info['pageRenderInvalid']){
+	            $success=false;
+	        }
+	        if(in_array('swoole',$types)&&$info['swooleInvalid']){
+	            $success=false;
+	        }
+	        if($success){
+	            $this->success('已启动失效功能','backstage/index');
+	        }
+	    }
+	    $this->error('无法启动失效功能，请手动操作！','');
+	}
+	
+	private function _checkUpInfo(){
 	    $info=array(
 	        'pageRenderInvalid'=>false,
 	        'phpInvalid'=>false,
 	        'swooleInvalid'=>false,
 	        'swoolePhpInvalid'=>false,
 	    );
+	    $mconfig=model('Config');
+	    
+	    if($mconfig->server_is_cli()){
+	        
+	        $phpResult=$mconfig->php_is_valid(g_sc_c('caiji','server_php'));
+	        if(empty($phpResult['success'])){
+	            $info['phpInvalid']=true;
+	        }
+	        if($phpResult['ver']){
+	            
+	            $info['cliPhpVersion']=$phpResult['ver'];
+	        }
+	    }elseif($mconfig->server_is_swoole()){
+	        
+	        $ss=new \util\SwooleSocket(g_sc_c('caiji','swoole_host'),g_sc_c('caiji','swoole_port'));
+	        if($ss->websocketError()){
+	            $info['swooleInvalid']=true;
+	        }else{
+	            
+	            $ssData=$ss->sendReceive('php_ver');
+	            if($ssData['php_ver']){
+	                $info['swoolePhpVersion']=$ssData['php_ver'];
+	            }
+	        }
+	        
+	        if(empty($info['swoolePhpVersion'])&&$mconfig->server_is_swoole_php()){
+	            
+	            $phpResult=$mconfig->php_is_valid(g_sc_c('caiji','swoole_php'));
+	            if(empty($phpResult['success'])){
+	                $info['swoolePhpInvalid']=true;
+	            }
+	            if($phpResult['ver']){
+	                
+	                $info['swoolePhpVersion']=$phpResult['ver'];
+	            }
+	        }
+	    }
+	    
+	    if($mconfig->page_render_is_chrome()){
+	        
+	        $pageRender=g_sc_c('page_render');
+	        init_array($pageRender['chrome']);
+	        $chromeSoket=new \util\ChromeSocket($pageRender['chrome']['host'],$pageRender['chrome']['port'],$pageRender['timeout'],$pageRender['chrome']['filename'],$pageRender['chrome']);
+	        $info['pageRenderInvalid']=$chromeSoket->hostIsOpen()?false:true;
+	    }
+	    
+	    return $info;
+	}
+	
+	public function checkUpAction(){
+	    
+	    $info=$this->_checkUpInfo();
 	    
 	    try{
 	        
@@ -197,56 +270,7 @@ class Backstage extends BaseController{
 	        
 	        $cacheTimeout=time()-(3600*24);
 	        CacheModel::getInstance('cont_url')->db()->where('dateline','<',$cacheTimeout)->delete();
-	        
-	        $mconfig=model('Config');
-	        
-	        if($mconfig->server_is_cli()){
-	            
-	            $phpResult=$mconfig->php_is_valid(g_sc_c('caiji','server_php'));
-	            if(empty($phpResult['success'])){
-	                $info['phpInvalid']=true;
-	            }
-	            if($phpResult['ver']){
-	                
-	                $info['cliPhpVersion']=$phpResult['ver'];
-	            }
-	        }elseif($mconfig->server_is_swoole()){
-	            
-	            $ss=new \util\SwooleSocket(g_sc_c('caiji','swoole_host'),g_sc_c('caiji','swoole_port'));
-	            if($ss->websocketError()){
-	                $info['swooleInvalid']=true;
-	            }else{
-	                
-	                $ssData=$ss->sendReceive('php_ver');
-	                if($ssData['php_ver']){
-	                    $info['swoolePhpVersion']=$ssData['php_ver'];
-	                }
-	            }
-	            
-	            if(empty($info['swoolePhpVersion'])&&$mconfig->server_is_swoole_php()){
-	                
-	                $phpResult=$mconfig->php_is_valid(g_sc_c('caiji','swoole_php'));
-	                if(empty($phpResult['success'])){
-	                    $info['swoolePhpInvalid']=true;
-	                }
-	                if($phpResult['ver']){
-	                    
-	                    $info['swoolePhpVersion']=$phpResult['ver'];
-	                }
-	            }
-	        }
-	        
-	        if(model('Task')->where('`auto`>0')->count()>0){
-	            
-	            if($mconfig->page_render_is_chrome()){
-	                
-	                $pageRender=g_sc_c('page_render');
-	                init_array($pageRender['chrome']);
-	                $chromeSoket=new \util\ChromeSocket($pageRender['chrome']['host'],$pageRender['chrome']['port'],$pageRender['timeout'],$pageRender['chrome']['filename'],$pageRender['chrome']);
-	                $info['pageRenderInvalid']=$chromeSoket->hostIsOpen()?false:true;
-	            }
-	        }
-	        
+            
 	        
 	        $cacheTongji=cache('admin_check_up_tongji');
 	        $cacheTongji=is_array($cacheTongji)?$cacheTongji:array();

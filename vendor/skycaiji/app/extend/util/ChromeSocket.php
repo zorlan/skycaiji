@@ -50,6 +50,7 @@ class ChromeSocket{
         }
     }
     
+    
     public static function defaultPort($port){
         $port=intval($port);
         if(in_array($port,array(80,8080,443))){
@@ -176,7 +177,13 @@ class ChromeSocket{
     }
     
     
-    public function receiveHtml(&$locUrl,&$htmlInfo,$waitEnd,$returnInfo){
+    public function receiveHtml(&$locUrl,&$htmlInfo,$waitEnd,$returnInfo,$options=array()){
+        init_array($options);
+        if($options['new_start_time']){
+            
+            $this->startTime=time();
+        }
+        
         $isStart=false;
         $isPageEnd=false;
         $pageFetchNum=0;
@@ -245,6 +252,13 @@ class ChromeSocket{
                         
                         break;
                     }
+                }else{
+                    if($options['get_new_url']){
+                        
+                        if($method=='Page.frameRequestedNavigation'&&is_array($data['params'])&&$data['params']['url']){
+                            $locUrl=$data['params']['url'];
+                        }
+                    }
                 }
             }
             
@@ -277,125 +291,8 @@ class ChromeSocket{
     }
     
     
-    public function getRenderHtml($url,$headers=array(),$options=array(),$fromEncode=null,$postData=null,$returnInfo=false){
-        $this->startTime=time();
-        
-        if(!preg_match('/^\w+\:\/\//', $url)){
-            
-            $url='http://'.$url;
-        }
-        
-        if(stripos($url,'&amp;')!==false){
-            
-            if(!preg_match('/\&[^\;\&]+?\=/', $url)){
-                
-                $url=str_ireplace('&amp;', '&', $url);
-            }
-        }
-        
-        if(!is_array($headers)){
-            $headers=array();
-        }
-        
-        $isPost=(isset($postData)&&$postData!==false)?true:false;
-        
-        $contentType=null;
-        if($isPost){
-            $contentType=\util\Funcs::array_val_in_keys($headers,array('content-type'),true);
-        }
-        
-        $this->send('Network.enable');
-        
-        $curCookies=array();
-        
-        $sendData=$this->send('Network.getCookies',array('urls'=>array($url)));
-        $data=$this->receiveById($sendData['id'],false);
-        if($data['result']&&is_array($data['result']['cookies'])){
-            foreach ($data['result']['cookies'] as $v){
-                if($v['name']){
-                    $curCookies[$v['name']]='';
-                }
-            }
-        }
-        if(!empty($headers['cookie'])){
-            
-            if(preg_match_all('/([^\;]+?)\=([^\;]*)/',$headers['cookie'],$mcookie)){
-                foreach ($mcookie[1] as $k=>$v){
-                    $v=trim($v);
-                    if($v){
-                        $curCookies[$v]=$mcookie[2][$k];
-                    }
-                }
-            }
-        }
-        unset($headers['cookie']);
-        if($this->isProxy&&!empty($options['proxy'])&&!empty($options['proxy']['user'])){
-            
-            $headers['Proxy-Authorization']='Basic '.base64_encode($options['proxy']['user'].':'.$options['proxy']['pwd']);
-        }
-        
-        if(!empty($headers)){
-            $this->send('Network.setExtraHTTPHeaders',array('headers'=>$headers));
-        }
-        if($options['useragent']){
-            $this->send('Network.setUserAgentOverride',array('userAgent'=>$options['useragent']));
-        }
-        if(!empty($curCookies)){
-            foreach ($curCookies as $k=>$v){
-                $curCookies[$k]=array('name'=>$k,'value'=>$v,'url'=>$url);
-            }
-            $curCookies=array_values($curCookies);
-            $this->send('Network.setCookies',array('cookies'=>$curCookies));
-        }
-        
-        $fetchPatterns=array(array('urlPattern'=>'*','requestStage'=>'Request'));
-        if($returnInfo){
-            
-            $fetchPatterns[]=array('urlPattern'=>'*','requestStage'=>'Response');
-        }
-        
-        $this->send('Fetch.enable',array('patterns'=>$fetchPatterns));
-        
-        $this->send('Page.enable');
-        if($isPost){
-            
-            if(!is_array($postData)){
-                
-                if(preg_match_all('/([^\&]+?)\=([^\&]*)/', $postData,$m_post_data)){
-                    $new_post_data=array();
-                    foreach($m_post_data[1] as $k=>$v){
-                        $new_post_data[$v]=rawurldecode($m_post_data[2][$k]);
-                    }
-                    $postData=$new_post_data;
-                }else{
-                    $postData=array();
-                }
-            }
-            
-            $formHtml='';
-            foreach ($postData as $k=>$v){
-                $formHtml.='<input type="text" name="'.addslashes($k).'" value="'.addslashes($v).'">';
-            }
-            
-            $postForm='var postForm=document.createElement("form");';
-            if(!empty($postData)&&!empty($fromEncode)&&!in_array(strtolower($fromEncode),array('auto','utf-8','utf8'))){
-                
-                $postForm.='postForm.acceptCharset="'.addslashes($fromEncode).'";';
-            }
-            if(!empty($contentType)){
-                $postForm.='postForm.enctype="'.addslashes($contentType).'";';
-            }
-            $postForm.='postForm.method="post";'
-                .'postForm.action="'.addslashes($url).'";'
-                .'postForm.innerHTML=`'.$formHtml.'`;'
-                .'document.documentElement.appendChild(postForm);'
-                .'postForm.submit();';
-            $sendData=$this->send('Runtime.evaluate',array('expression'=>$postForm));
-        }else{
-            
-            $sendData=$this->send('Page.navigate',array('url'=>$url));
-        }
-        
+    
+    private function _get_renderer_html(&$url,$options,&$htmlInfo,$returnInfo){
         $locUrl=$url;
         
         if(preg_match('/^\w+\:\/\/([\w\-]+\.){1,}[\w]+$/',$url)){
@@ -407,8 +304,6 @@ class ChromeSocket{
         $rendererTypes=is_array($renderer['types'])?$renderer['types']:array();
         $renderer['elements']=is_array($renderer['elements'])?$renderer['elements']:array();
         $renderer['contents']=is_array($renderer['contents'])?$renderer['contents']:array();
-
-        $htmlInfo=array('code'=>0,'ok'=>'','header'=>'','resp_header'=>'','html'=>'');
         
         $firstWaitEnd=false;
         if(!empty($rendererTypes)){
@@ -438,7 +333,10 @@ class ChromeSocket{
                 
                 $rdContent=intval($rdContent);
                 if($rdContent>0){
-                    sleep($rdContent);
+                    $timeout=$this->timeout;
+                    $this->timeout=$rdContent;
+                    $this->receiveHtml($locUrl,$htmlInfo,true,$returnInfo,array('new_start_time'=>true));
+                    $this->timeout=max($rdContent,$timeout);
                 }
             }elseif(in_array($rdType,$scrollTypes)){
                 
@@ -463,18 +361,23 @@ class ChromeSocket{
                         $rdContent=addslashes($rdContent);
                         $expression='(function(){'
                             .'var scjEle=document.evaluate("'.$rdElement.'",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;'
-                            .'scjEle.value="'.$rdContent.'";'
-                            .'})();';
+                                .'scjEle.value="'.$rdContent.'";'
+                                    .'})();';
                     }elseif($rdType=='click'){
                         $expression='(function(){'
                             .'var scjEle=document.evaluate("'.$rdElement.'",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;'
-                            .'if(scjEle.tagName&&scjEle.tagName.toLowerCase()=="a"){scjEle.target="_self";}'
-                            .'var scjForms=document.getElementsByTagName("form");if(scjForms.length>0){for(var i in scjForms){scjForms[i].target="_self";}}'
-                            .'scjEle.click();})();';
+                                .'if(scjEle.tagName&&scjEle.tagName.toLowerCase()=="a"){scjEle.target="_self";}'
+                                    .'var scjForms=document.getElementsByTagName("form");if(scjForms.length>0){for(var i in scjForms){scjForms[i].target="_self";}}'
+                                        .'scjEle.click();})();';
                     }
                     if($expression){
                         $sendData=$this->send('Runtime.evaluate',array('expression'=>$expression));
-                        $this->receiveHtml($locUrl,$htmlInfo,true,$returnInfo);
+                        $rhOpts=array();
+                        if($rdType=='click'){
+                            $rhOpts['new_start_time']=true;
+                            $rhOpts['get_new_url']=true;
+                        }
+                        $this->receiveHtml($locUrl,$htmlInfo,true,$returnInfo,$rhOpts);
                     }
                 }
             }
@@ -482,10 +385,143 @@ class ChromeSocket{
         $html=null;
         
         $sendData=$this->send('Runtime.evaluate',array('expression'=>'document.documentElement.outerHTML'));
-        $data=$this->receiveById($sendData['id'],false);
+        $data=$this->receiveById($sendData['id'],false,true);
         if($data['result']&&$data['result']['result']){
             $html=$data['result']['result']['value'];
         }
+        $url=$locUrl;
+        return $html;
+    }
+    
+    
+    public function getRenderHtml($url,$headers=array(),$options=array(),$fromEncode=null,$postData=null,$returnInfo=false){
+        $this->startTime=time();
+        
+        if(!preg_match('/^\w+\:\/\//', $url)){
+            
+            $url='http://'.$url;
+        }
+        
+        if(stripos($url,'&amp;')!==false){
+            
+            if(!preg_match('/\&[^\;\&]+?\=/', $url)){
+                
+                $url=str_ireplace('&amp;', '&', $url);
+            }
+        }
+        
+        $htmlInfo=array('code'=>0,'ok'=>'','header'=>'','resp_header'=>'','html'=>'');
+        
+        if($options['render_pn_renderer']){
+            
+            $html=$this->_get_renderer_html($url, $options, $htmlInfo, $returnInfo);
+        }else{
+            if(!is_array($headers)){
+                $headers=array();
+            }
+            
+            $isPost=(isset($postData)&&$postData!==false)?true:false;
+            
+            $contentType=null;
+            if($isPost){
+                $contentType=\util\Funcs::array_val_in_keys($headers,array('content-type'),true);
+            }
+            
+            $this->send('Network.enable');
+            
+            $curCookies=array();
+            
+            $sendData=$this->send('Network.getCookies',array('urls'=>array($url)));
+            $data=$this->receiveById($sendData['id'],false);
+            if($data['result']&&is_array($data['result']['cookies'])){
+                foreach ($data['result']['cookies'] as $v){
+                    if($v['name']){
+                        $curCookies[$v['name']]='';
+                    }
+                }
+            }
+            if(!empty($headers['cookie'])){
+                
+                if(preg_match_all('/([^\;]+?)\=([^\;]*)/',$headers['cookie'],$mcookie)){
+                    foreach ($mcookie[1] as $k=>$v){
+                        $v=trim($v);
+                        if($v){
+                            $curCookies[$v]=$mcookie[2][$k];
+                        }
+                    }
+                }
+            }
+            unset($headers['cookie']);
+            if($this->isProxy&&!empty($options['proxy'])&&!empty($options['proxy']['user'])){
+                
+                $headers['Proxy-Authorization']='Basic '.base64_encode($options['proxy']['user'].':'.$options['proxy']['pwd']);
+            }
+            
+            if(!empty($headers)){
+                $this->send('Network.setExtraHTTPHeaders',array('headers'=>$headers));
+            }
+            if($options['useragent']){
+                $this->send('Network.setUserAgentOverride',array('userAgent'=>$options['useragent']));
+            }
+            if(!empty($curCookies)){
+                foreach ($curCookies as $k=>$v){
+                    $curCookies[$k]=array('name'=>$k,'value'=>$v,'url'=>$url);
+                }
+                $curCookies=array_values($curCookies);
+                $this->send('Network.setCookies',array('cookies'=>$curCookies));
+            }
+            
+            $fetchPatterns=array(array('urlPattern'=>'*','requestStage'=>'Request'));
+            if($returnInfo){
+                
+                $fetchPatterns[]=array('urlPattern'=>'*','requestStage'=>'Response');
+            }
+            
+            $this->send('Fetch.enable',array('patterns'=>$fetchPatterns));
+            
+            $this->send('Page.enable');
+            if($isPost){
+                
+                if(!is_array($postData)){
+                    
+                    if(preg_match_all('/([^\&]+?)\=([^\&]*)/', $postData,$m_post_data)){
+                        $new_post_data=array();
+                        foreach($m_post_data[1] as $k=>$v){
+                            $new_post_data[$v]=rawurldecode($m_post_data[2][$k]);
+                        }
+                        $postData=$new_post_data;
+                    }else{
+                        $postData=array();
+                    }
+                }
+                
+                $formHtml='';
+                foreach ($postData as $k=>$v){
+                    $formHtml.='<input type="text" name="'.addslashes($k).'" value="'.addslashes($v).'">';
+                }
+                
+                $postForm='var postForm=document.createElement("form");';
+                if(!empty($postData)&&!empty($fromEncode)&&!in_array(strtolower($fromEncode),array('auto','utf-8','utf8'))){
+                    
+                    $postForm.='postForm.acceptCharset="'.addslashes($fromEncode).'";';
+                }
+                if(!empty($contentType)){
+                    $postForm.='postForm.enctype="'.addslashes($contentType).'";';
+                }
+                $postForm.='postForm.method="post";'
+                    .'postForm.action="'.addslashes($url).'";'
+                    .'postForm.innerHTML=`'.$formHtml.'`;'
+                    .'document.documentElement.appendChild(postForm);'
+                    .'postForm.submit();';
+                $sendData=$this->send('Runtime.evaluate',array('expression'=>$postForm));
+            }else{
+                
+                $sendData=$this->send('Page.navigate',array('url'=>$url));
+            }
+            
+            $html=$this->_get_renderer_html($url, $options, $htmlInfo, $returnInfo);
+        }
+        
         if($returnInfo){
             
             if(!is_array($htmlInfo['header'])){
@@ -552,7 +588,11 @@ class ChromeSocket{
         return $data?json_decode($data,true):null;
     }
     
-    public function receiveById($id,$returnAll=false){
+    public function receiveById($id,$returnAll=false,$newStartTime=false){
+        if($newStartTime){
+            
+            $this->startTime=time();
+        }
         $result=null;
         $all=array();
         while((time()-$this->startTime)<=$this->timeout){
@@ -598,44 +638,70 @@ class ChromeSocket{
         return $data;
     }
     
-    public function newTab($proxyData=null){
-        $tabId='';
-        $verData=null;
-        $proxyServer=null;
-        if($proxyData&&is_array($proxyData)&&$proxyData['ip']){
-            
-            $proxyServer=($proxyData['type']?($proxyData['type'].'://'):'').$proxyData['ip'].($proxyData['port']?(':'.$proxyData['port']):'');
-            $verData=$this->getVersion();
+    
+    public function hasTab($tabId=null){
+        if($tabId){
+            $tabIds=$this->getHtml('/json');
+            if(strpos($tabIds, $tabId)!==false){
+                
+                return true;
+            }
         }
-        $this->isProxy=false;
-        if(!empty($verData)&&!empty($verData['webSocketDebuggerUrl'])){
+        return false;
+    }
+    
+    
+    public function newTab($proxyData=null,$useTabId=null){
+        $tabId='';
+        if($this->hasTab($useTabId)){
             
-            $this->isProxy=true;
-            $this->websocket($verData['webSocketDebuggerUrl']);
-            $sendData=$this->send('Target.createBrowserContext',array('proxyServer'=>$proxyServer));
-            $data=$this->receiveById($sendData['id'],false);
-            if(!is_array($data)){
-                $data=array();
-            }
-            if(!is_array($data['result'])){
-                $data['result']=array();
-            }
-            $sendData=$this->send('Target.createTarget',array('url'=>'about:blank','browserContextId'=>$data['result']['browserContextId']));
-            $data=$this->receiveById($sendData['id'],false);
-            if(!is_array($data)){
-                $data=array();
-            }
-            if(!is_array($data['result'])){
-                $data['result']=array();
-            }
-            $tabId=$data['result']['targetId'];
-        }else{
+            $tabId=$useTabId;
+        }
+        if(empty($tabId)){
             
-            $tabData=$this->getHtml('/json/new');
-            $tabData=empty($tabData)?array():json_decode($tabData,true);
-            $tabId=$tabData['id'];
+            $verData=null;
+            $proxyServer=null;
+            if($proxyData&&is_array($proxyData)&&$proxyData['ip']){
+                
+                $proxyServer=($proxyData['type']?($proxyData['type'].'://'):'').$proxyData['ip'].($proxyData['port']?(':'.$proxyData['port']):'');
+                $verData=$this->getVersion();
+            }
+            $this->isProxy=false;
+            if(!empty($verData)&&!empty($verData['webSocketDebuggerUrl'])){
+                
+                $this->isProxy=true;
+                $this->websocket($verData['webSocketDebuggerUrl']);
+                $sendData=$this->send('Target.createBrowserContext',array('proxyServer'=>$proxyServer));
+                $data=$this->receiveById($sendData['id'],false);
+                if(!is_array($data)){
+                    $data=array();
+                }
+                if(!is_array($data['result'])){
+                    $data['result']=array();
+                }
+                $sendData=$this->send('Target.createTarget',array('url'=>'about:blank','browserContextId'=>$data['result']['browserContextId']));
+                $data=$this->receiveById($sendData['id'],false);
+                if(!is_array($data)){
+                    $data=array();
+                }
+                if(!is_array($data['result'])){
+                    $data['result']=array();
+                }
+                $tabId=$data['result']['targetId'];
+            }else{
+                
+                $tabData=$this->getHtml('/json/new');
+                $tabData=empty($tabData)?array():json_decode($tabData,true);
+                $tabId=$tabData['id'];
+            }
         }
         $tabId=$tabId?$tabId:'';
+        $this->tabId=$tabId;
+    }
+    public function getTabId(){
+        return $this->tabId;
+    }
+    public function setTabId($tabId){
         $this->tabId=$tabId;
     }
     public function getHtml($uri,$timeout=null){

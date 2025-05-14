@@ -306,6 +306,12 @@ class Api extends CollectController{
 	            }else{
 	                $this->jsonSend('已重启渲染工具',array(),1);
 	            }
+	        }elseif($op=='stop'){
+	            
+	            $config=model('Config')->getConfig('page_render','data');
+	            $chromeSocket=\util\ChromeSocket::config_init($config);
+	            $chromeSocket->closeBrowser();
+	            $this->jsonSend('已停止渲染工具',array(),1);
 	        }elseif($op=='list'){
 	            $config=model('Config')->getConfig('page_render','data');
 	            $chromeSocket=\util\ChromeSocket::config_init($config);

@@ -227,28 +227,38 @@ class Setting extends BaseController {
     }
     
     public function _run_auto_backstage(){
-        $mconfig=model('Config');
+        $this->_run_auto_start_up();
         
-        $config=$mconfig->getConfig('page_render','data');
-        \util\ChromeSocket::config_start($config);
-        
-        $config=$mconfig->getConfig('caiji','data');
+        $config=model('Config')->getConfig('caiji','data');
         init_array($config);
-        if($mconfig->server_is_swoole(true,$config['server'])){
-            
-            $ss=new \util\SwooleSocket($config['swoole_host'],$config['swoole_port']);
-            $ss->startWs($config['server'], $config['swoole_php'],true);
-            if($ss->websocketError()){
-                
-                $ss->startWs($config['server'], $config['swoole_php'],true);
-            }
-        }
-        
         if($config['auto']){
             if($config['run']=='backstage'){
                 
                 $bskey=\util\Param::set_auto_backstage_key();
                 @get_html(url('admin/index/auto_backstage?key='.$bskey,null,false,true),null,array('timeout'=>2));
+            }
+        }
+    }
+    
+    public function _run_auto_start_up($types=null){
+        $mconfig=model('Config');
+        if(empty($types)||in_array('page_render', $types)){
+            
+            $config=$mconfig->getConfig('page_render','data');
+            \util\ChromeSocket::config_start($config);
+        }
+        if(empty($types)||in_array('swoole', $types)){
+            
+            $config=$mconfig->getConfig('caiji','data');
+            init_array($config);
+            if($mconfig->server_is_swoole(true,$config['server'])){
+                
+                $ss=new \util\SwooleSocket($config['swoole_host'],$config['swoole_port']);
+                $ss->startWs($config['server'], $config['swoole_php'],true);
+                if($ss->websocketError()){
+                    
+                    $ss->startWs($config['server'], $config['swoole_php'],true);
+                }
             }
         }
     }
@@ -957,7 +967,7 @@ class Setting extends BaseController {
                 'open'=>input('open/d',0),
                 'key'=>input('key','','trim'),
             ));
-            $this->success('操作成功','',array('js'=>"windowModal('API接口',ulink('setting/page_render_api'));"));
+            $this->success('操作成功','',array('js'=>"windowModal('API接口',ulink('setting/page_render_api'),{lg:1});"));
         }else{
             $uri='';
             if($data['key']){
@@ -967,7 +977,8 @@ class Setting extends BaseController {
                 'clear'=>url('admin/api/page_render?'.$uri.($uri?'&':'').'op=clear','',false,true),
                 'restart'=>url('admin/api/page_render?'.$uri.($uri?'&':'').'op=restart','',false,true),
                 'list'=>url('admin/api/page_render?'.$uri.($uri?'&':'').'op=list','',false,true),
-                'close'=>url('admin/api/page_render?'.$uri.($uri?'&':'').'op=close&id=','',false,true)
+                'close'=>url('admin/api/page_render?'.$uri.($uri?'&':'').'op=close&id=','',false,true),
+                'stop'=>url('admin/api/page_render?'.$uri.($uri?'&':'').'op=stop','',false,true),
             );
             $config=model('Config')->getConfig('page_render','data');
             $chromeSocket=\util\ChromeSocket::config_init($config);

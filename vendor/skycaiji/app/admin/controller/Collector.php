@@ -95,7 +95,7 @@ class Collector extends BaseController {
 	    	if(input('easymode')){
 	    	    $htmlTagName.=' <small><a href="'.url('collector/set?task_id='.$taskId).'" onclick="if(window.top){window.top.location.href=$(this).attr(\'href\');return false;}" title="切换普通模式">普通模式</a></small>';
 	    	}else{
-	    	    $htmlTagName.=' <small><a href="'.url('cpattern/easymode?task_id='.$taskId).'" title="切换简单模式">简单模式</a></small>';
+	    	    $htmlTagName.=' <small><a href="'.url('cpattern/easymode?task_id='.$taskId).'" title="切换引导模式">引导模式</a></small>';
 	    	}
 	    	$this->set_html_tags(
 	    	    '任务:'.$taskData['name'].'_'.lang('coll_set'),
@@ -522,8 +522,10 @@ class Collector extends BaseController {
     public function echo_url_msgAction(){
         $data=input('data','','trim');
         $data=json_decode($data,true);
+        
         init_array($data['post']);
         init_array($data['renderer']);
+        init_array($data['renderpn']);
         
         
         $urlWeb=array();
@@ -540,7 +542,8 @@ class Collector extends BaseController {
         }
         $data=array(
             'url_web'=>$urlWeb,
-            'renderer'=>$renderer
+            'renderer'=>$renderer,
+            'renderpn'=>$data['renderpn']
         );
         
         $this->set_html_tags('查看网址信息','查看网址信息');

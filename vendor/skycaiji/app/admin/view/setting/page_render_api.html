@@ -12,13 +12,14 @@
 		<label>接口密钥</label>
 		<input type="text" name="key" class="form-control" placeholder="选填，防止接口泄露" value="{$data['key']|htmlspecialchars}" />
     </div>
-    <p class="help-block"><b>清理渲染工具缓存：</b><a href="{$urls['clear']}" target="_blank">{$urls['clear']|htmlspecialchars}</a></p>
-    {if $serverIsLocal}
-    <p class="help-block"><b>重启渲染工具：</b><a href="{$urls['restart']}" target="_blank">{$urls['restart']|htmlspecialchars}</a></p>
-    {/if}
     <p class="help-block"><b>查看正在渲染的页面：</b><a href="{$urls['list']}" target="_blank">{$urls['list']|htmlspecialchars}</a></p>
     <p class="help-block"><b>关闭渲染的页面：</b><a href="{$urls['close']}" target="_blank">{$urls['close']|htmlspecialchars}</a>
     	<br><b>id：</b>可打开“正在渲染的页面”链接输入data子节点中的id属性
     </p>
+    <p class="help-block"><b>清理渲染工具缓存：</b><a href="{$urls['clear']}" target="_blank">{$urls['clear']|htmlspecialchars}</a></p>
+    {if $serverIsLocal}
+    <p class="help-block"><b>重启渲染工具：</b><a href="{$urls['restart']}" target="_blank">{$urls['restart']|htmlspecialchars}</a></p>
+    <p class="help-block"><b>停止渲染工具：</b><a href="{$urls['stop']}" target="_blank">{$urls['stop']|htmlspecialchars}</a></p>
+    {/if}
 	<button type="submit" class="btn btn-primary btn-block">保存</button>
 </form>

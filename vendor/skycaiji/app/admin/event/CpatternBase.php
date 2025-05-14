@@ -82,6 +82,10 @@ class CpatternBase extends CollectBase{
                         $val=implode($multiStr, $matchConts);
                     }
                 }
+                if($configParams['rule_multi_type']=='loop'){
+                    
+                    init_array($val);
+                }
                 
             }else{
                 
@@ -713,10 +717,20 @@ class CpatternBase extends CollectBase{
         if($isPagination){
             
             init_array($pageConfig['number']);
+            $pcNumUrlMode=$pageConfig['number']['url_mode'];
             foreach ($pageConfig['number'] as $k=>$v){
                 $pageConfig['number'][$k]=intval($v);
             }
             $pageConfig['number']['inc']=max(1,intval($pageConfig['number']['inc']));
+            $pageConfig['number']['url_mode']=$pcNumUrlMode;
+            
+            if($urlRequired){
+                
+                if(empty($pageConfig['url_rule'])){
+                    $pageConfig['url_rule_module']='';
+                    $pageConfig['url_rule']='^.{0}';
+                }
+            }
         }
         
         

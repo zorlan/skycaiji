@@ -116,6 +116,8 @@
 .panel .form-group .help-block:last-child{margin-bottom:0;}
 .panel .panel:last-child{margin-bottom:5px;}
 
+.panel-nesting .panel-heading .panel-title{font-size:14px;}
+
 .label-custom-opened{font-weight:normal;background-color:#dedede;color:#555;}
 
 .plugin-func-refresh{font-size:12px;}

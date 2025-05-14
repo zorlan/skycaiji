@@ -19,6 +19,34 @@ class CpatternTest extends BaseController {
         parent::__construct($request);
         $this->eCpattern= new \skycaiji\admin\event\CpatternSingle();
     }
+    
+    
+    private function _json_encode($data){
+        if(is_array($data)){
+            foreach ($data as $k=>$v){
+                $data[$k]=$this->_json_encode($v);
+            }
+        }elseif(is_string($data)){
+            $encode = mb_detect_encoding($data, array('ASCII','UTF-8','GB2312','GBK','BIG5'));
+            if($encode!='UTF-8'){
+                $data=utf8_encode($data);
+            }
+        }
+        return $data;
+    }
+    public function error($msg = '', $url = null, $data = array(), $wait = 3, array $header = []){
+        if($data&&is_array($data)){
+            $data=$this->_json_encode($data);
+        }
+        parent::error($msg,$url,$data,$wait,$header);
+    }
+    public function success($msg = '', $url = null, $data = array(), $wait = 3, array $header = []){
+        if($data&&is_array($data)){
+            $data=$this->_json_encode($data);
+        }
+        parent::success($msg,$url,$data,$wait,$header);
+    }
+    
     /*浏览器*/
     public function browserAction(){
         return $this->_get_browser(true);
@@ -555,11 +583,18 @@ class CpatternTest extends BaseController {
             if(!empty($pageType)){
                 
                 $input_urls=array();
-                $this->eCpattern->single_input_urls($pageType=='url'?true:false,$pageType,$pageName,$inputedUrls,$input_urls);
-                $this->eCpattern->single_urls_parent($pageType=='url'?true:false, $input_urls, $inputedUrls, $input_urls);
+                
+                $ptIsUrl=$pageType=='url'?true:false;
+                
+                $this->eCpattern->single_input_urls($ptIsUrl,$pageType,$pageName,$inputedUrls,$input_urls);
+                $this->eCpattern->single_urls_parent($ptIsUrl, $input_urls, $inputedUrls, $input_urls);
                 
                 if(isset($input_urls['source_url'])&&empty($input_urls['source_url'])){
-                    $this->error('请输入起始页',$errorUrl);
+                    if($ptIsUrl&&$this->eCpattern->source_is_url()){
+                        
+                    }else{
+                        $this->error('请输入起始页',$errorUrl);
+                    }
                 }
                 if(is_array($input_urls['level_url'])){
                     foreach ($input_urls['level_url'] as $k=>$v){
@@ -813,7 +848,7 @@ class CpatternTest extends BaseController {
             }elseif($pnType=='next'){
                 
                 $curPnUrl=$test_url;
-                $nextPnUrl=$this->eCpattern->getPaginationNext($pageType,$pageName,false,$curPnUrl,'',true);
+                $nextPnUrl=$this->eCpattern->getPaginationNext($pageType,$pageName,false,$curPnUrl,'');
                 if(!empty($nextPnUrl)){
                     $pnUrls=array();
                     $pnUrls[]=array('cur'=>$curPnUrl,'next'=>$nextPnUrl);

@@ -147,7 +147,9 @@ class Param{
 	        $data=g_sc('echo_url_msg_data');
 	    }else{
 	        $data=g_sc('echo_url_msg_data',$key);
-	        self::set_echo_url_msg($key, null);
+	        if(self::is_collector_collecting()){
+	            self::set_echo_url_msg($key, null);
+	        }
 	    }
 	    return $data;
 	}

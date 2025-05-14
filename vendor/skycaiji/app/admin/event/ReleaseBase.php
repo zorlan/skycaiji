@@ -14,91 +14,93 @@ use skycaiji\admin\model\CacheModel;
 class ReleaseBase extends CollectBase{
 	/*已采集记录*/
 	public function record_collected($url,$returnData,$release,$insertData=null,$echo=true){
-	    $returnData['id']=isset($returnData['id'])?$returnData['id']:0;
-	    $returnData['target']=isset($returnData['target'])?$returnData['target']:'';
-	    $returnData['desc']=isset($returnData['desc'])?$returnData['desc']:'';
-	    $returnData['error']=isset($returnData['error'])?$returnData['error']:'';
-	    
-	    $mcollected=model('Collected');
-		if($returnData['id']>0){
-			
-			$title='';
-			$content='';
-		    if(is_array($insertData)){
-		        $title=$insertData['title'];
-		        $content=$insertData['content'];
-		    }else{
-		        
-		        $title=$insertData;
-		    }
-		    $collectedId=$mcollected->insert(array(
-				'urlMd5' => md5 ( $url ),
-			    'titleMd5'=>empty($title)?'':md5($title),
-			    'contentMd5'=>empty($content)?'':md5($content),
-				'task_id' => $release['task_id'],
-				'release' => $release['module'],
-				'addtime'=>time(),
-			    'status'=>1
-			),false,true);
-			if($collectedId>0){
-			    $mcollected->addInfo(array(
-			        'id' => $collectedId,
-			        'url' => $url,
-			        'target' => $returnData['target'],
-			        'desc' => $returnData['desc']?$returnData['desc']:'',
-			        'error'=>'',
-			    ));
-			}
-			if(!empty($returnData['target'])){
-			    $target=$returnData['target'];
-			    $echoData=array('成功将<a href="%s" target="_blank">内容</a>发布至'.lang('collected_rele_'.$release['module']).'：',$url);
-				if(preg_match('/^http(s){0,1}\:\/\//i',$target)){
-				    $echoData[0].='<a href="%s" target="_blank">%s</a>';
-				    $echoData[]=$target;
-				    $echoData[]=$target;
-				}else{
-				    $target=$mcollected->convertTarget($release['module'],$returnData['target']);
-				    if($target==$returnData['target']){
-				        
-				        $echoData[0].='%s';
-				        $echoData[]=$target;
-				    }else{
-				        $echoData[0].=$target;
-				    }
-				}
-				$this->echo_msg($echoData,'green',$echo);
-			}else{
-			    $this->echo_msg(array('成功发布：<a href="%s" target="_blank">%s</a>',$url,$url),'green',$echo);
-			}
-		}else{
-			
-			if(!empty($returnData['error'])){
-				
-			    if($mcollected->collGetNumByUrl($url)<=0){
-					
-			        $collectedId=$mcollected->insert(array(
-						'urlMd5' => md5 ( $url ),
-						'titleMd5'=>'',
-						'contentMd5'=>'',
-						'task_id' => $release['task_id'],
-						'release' => $release['module'],
-			            'addtime'=>time(),
-			            'status'=>0
-			        ),false,true);
-			        if($collectedId>0){
-			            $mcollected->addInfo(array(
-			                'id' => $collectedId,
-			                'url' => $url,
-			                'target' => '',
-			                'desc'=>'',
-			                'error' => $returnData['error'],
-			            ));
-			        }
-				}
-				$this->echo_msg(array('发布失败：%s',$returnData['error']),'red',$echo);
-			}
-		}
-		
+	    if($this->is_collecting()){
+	        
+    	    $returnData['id']=isset($returnData['id'])?$returnData['id']:0;
+    	    $returnData['target']=isset($returnData['target'])?$returnData['target']:'';
+    	    $returnData['desc']=isset($returnData['desc'])?$returnData['desc']:'';
+    	    $returnData['error']=isset($returnData['error'])?$returnData['error']:'';
+    	    
+    	    $mcollected=model('Collected');
+    		if($returnData['id']>0){
+    			
+    			$title='';
+    			$content='';
+    		    if(is_array($insertData)){
+    		        $title=$insertData['title'];
+    		        $content=$insertData['content'];
+    		    }else{
+    		        
+    		        $title=$insertData;
+    		    }
+    		    $collectedId=$mcollected->insert(array(
+    				'urlMd5' => md5 ( $url ),
+    			    'titleMd5'=>empty($title)?'':md5($title),
+    			    'contentMd5'=>empty($content)?'':md5($content),
+    				'task_id' => $release['task_id'],
+    				'release' => $release['module'],
+    				'addtime'=>time(),
+    			    'status'=>1
+    			),false,true);
+    			if($collectedId>0){
+    			    $mcollected->addInfo(array(
+    			        'id' => $collectedId,
+    			        'url' => $url,
+    			        'target' => $returnData['target'],
+    			        'desc' => $returnData['desc']?$returnData['desc']:'',
+    			        'error'=>'',
+    			    ));
+    			}
+    			if(!empty($returnData['target'])){
+    			    $target=$returnData['target'];
+    			    $echoData=array('成功将<a href="%s" target="_blank">内容</a>发布至'.lang('collected_rele_'.$release['module']).'：',$url);
+    				if(preg_match('/^http(s){0,1}\:\/\//i',$target)){
+    				    $echoData[0].='<a href="%s" target="_blank">%s</a>';
+    				    $echoData[]=$target;
+    				    $echoData[]=$target;
+    				}else{
+    				    $target=$mcollected->convertTarget($release['module'],$returnData['target']);
+    				    if($target==$returnData['target']){
+    				        
+    				        $echoData[0].='%s';
+    				        $echoData[]=$target;
+    				    }else{
+    				        $echoData[0].=$target;
+    				    }
+    				}
+    				$this->echo_msg($echoData,'green',$echo);
+    			}else{
+    			    $this->echo_msg(array('成功发布：<a href="%s" target="_blank">%s</a>',$url,$url),'green',$echo);
+    			}
+    		}else{
+    			
+    			if(!empty($returnData['error'])){
+    				
+    			    if($mcollected->collGetNumByUrl($url)<=0){
+    					
+    			        $collectedId=$mcollected->insert(array(
+    						'urlMd5' => md5 ( $url ),
+    						'titleMd5'=>'',
+    						'contentMd5'=>'',
+    						'task_id' => $release['task_id'],
+    						'release' => $release['module'],
+    			            'addtime'=>time(),
+    			            'status'=>0
+    			        ),false,true);
+    			        if($collectedId>0){
+    			            $mcollected->addInfo(array(
+    			                'id' => $collectedId,
+    			                'url' => $url,
+    			                'target' => '',
+    			                'desc'=>'',
+    			                'error' => $returnData['error'],
+    			            ));
+    			        }
+    				}
+    				$this->echo_msg(array('发布失败：%s',$returnData['error']),'red',$echo);
+    			}
+    		}
+	    }
 		
 		static $mcacheCont=null;
 		if(!isset($mcacheCont)){

@@ -144,9 +144,33 @@ class ReleaseApp extends \skycaiji\common\model\BaseModel{
 	/*代码安全检测*/
 	public function safeCodeCheck($code){
 	    $result=return_result('');
+	    try{
+	        if($code){
+	            
+	            $tokens=token_get_all($code);
+	            $newCode='';
+	            foreach ($tokens as $key=>$token){
+	                if (!is_array($token)){
+	                    $newCode.=$token;
+	                }else{
+	                    
+	                    if($token[0]==T_COMMENT||$token[0]==T_DOC_COMMENT){
+	                        if(preg_match('/[\r\n]+$/', $token[1])){
+	                            
+	                            $newCode.=PHP_EOL;
+	                        }
+	                    }else{
+	                        $newCode.=$token[1];
+	                    }
+	                }
+	            }
+	            $code=$newCode;
+	        }
+	    }catch (\Exception $e){}
+	    
 	    $funcs=array('phpinfo');
 	    $funcs=implode('|', $funcs);
-	    if(preg_match('/('.$funcs.')\s*\(\s*\)\s*\;/i',$code,$mfunc)){
+	    if(preg_match('/\b('.$funcs.')\b\s*\(\s*\)\s*\;/i',$code,$mfunc)){
 	        $result['msg']='包含非法函数：'.$mfunc[0];
 	    }else{
 	        $result['success']=true;

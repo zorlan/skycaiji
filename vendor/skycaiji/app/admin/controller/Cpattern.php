@@ -611,7 +611,7 @@ class Cpattern extends BaseController {
     	init_array($resizeWidth);
     	$resizeWidth=intval($resizeWidth['width']);
     	
-    	$this->set_html_tags('任务:'.$taskData['name'].'_简单模式');
+    	$this->set_html_tags('任务:'.$taskData['name'].'_引导模式');
     	
     	$this->assign('taskId',$taskId);
     	$this->assign('collId',$collId);

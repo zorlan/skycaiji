@@ -757,17 +757,47 @@ class Tools{
     }
     
     
+    public static function echo_url_msg_pn_id($url,$clearId=false){
+        static $reg='/\#renderpn_\w{32}/i';
+        if($clearId){
+            $url=preg_replace($reg,'',$url);
+            return $url;
+        }else{
+            $id='';
+            if(preg_match_all($reg,$url,$mids)){
+                $id=end($mids[0]);
+            }
+            return $id;
+        }
+    }
+    
+    
     public static function echo_url_msg_id($url,$clearId=false){
-        static $reg='/\#(post_|render_|post_render_){1,}\w{32}$/i';
+        static $reg='/\#(post_|render_|post_render_){1,}\w{32}/i';
         if($clearId){
             
-            $url=preg_replace($reg, '', $url);
+            if(preg_match_all($reg,$url,$mids)){
+                $total=count($mids[0]);
+                if($total>1){
+                    $url=preg_replace_callback($reg,function($matches)use($total){
+                        static $count=0;
+                        $count++;
+                        if($count>=$total){
+                            return '';
+                        }else{
+                            return $matches[0];
+                        }
+                    },$url);
+                }else{
+                    $url=preg_replace($reg,'',$url);
+                }
+            }
             return $url;
         }else{
             
             $id='';
-            if(preg_match($reg,$url,$mid)){
-                $id=$mid[0];
+            if(preg_match_all($reg,$url,$mids)){
+                $id=end($mids[0]);
             }
             return $id;
         }
@@ -777,8 +807,20 @@ class Tools{
         $data=null;
         if(strpos($url,'#')!==false){
             $urlId=\util\Tools::echo_url_msg_id($url);
-            if($urlId){
-                $urlInfo=\util\Param::get_echo_url_msg($urlId);
+            $urlPnId=\util\Tools::echo_url_msg_pn_id($url);;
+            if($urlId||$urlPnId){
+                $urlInfo=array();
+                $urlInfo1=array();
+                if($urlId){
+                    $urlInfo=\util\Param::get_echo_url_msg($urlId);
+                    init_array($urlInfo);
+                }
+                if($urlPnId){
+                    $urlInfo1=\util\Param::get_echo_url_msg($urlPnId);
+                    init_array($urlInfo1);
+                }
+                $urlInfo=array_merge($urlInfo,$urlInfo1);
+                unset($urlInfo1);
                 if(!empty($urlInfo)){
                     $urlInfo=json_encode($urlInfo);
                     $data=array(

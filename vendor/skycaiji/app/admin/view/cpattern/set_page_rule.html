@@ -113,6 +113,20 @@
 					</div>
         		</div>
         	</div>
+        	<div class="form-group">
+        		<div class="input-group">
+        			<span class="input-group-addon">匹配分页网址模式</span>
+        			<select class="form-control" name="{$_tpl_name}[number][url_mode]" >
+        				<option value="">默认“提取网址规则”匹配多个结果，以匹配的数量为准</option>
+        				<option value="mult_num">“提取网址规则”匹配多个结果，以序号的数量为准</option>
+        				<option value="one_num">“提取网址规则”匹配单个结果，以序号的数量为准</option>
+        			</select>
+        		</div>
+        		<p class="help-block">
+        			以匹配的数量为准：匹配数量大于序号数量时多出部分序号为空，匹配数量小于序号数量时去掉多出的序号数据<br>
+        			以序号的数量为准：序号数量大于匹配数量时用最后一个匹配结果填补并继续编号，序号数量小于匹配数量时去掉多出的匹配结果
+        		</p>
+        	</div>
         </div>
 	</div>
 </div>
