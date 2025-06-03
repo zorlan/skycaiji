@@ -60,9 +60,13 @@ class Readability {
      */
     function __construct($source, $input_char = "utf-8") {
         $this->source = $source;
-
         // DOM 解析类只能处理 UTF-8 格式的字符
-        $source = mb_convert_encoding($source, 'HTML-ENTITIES', $input_char);
+        //$source = mb_convert_encoding($source, 'HTML-ENTITIES', $input_char);//[修改]8.2已失效
+        $input_char=strtolower($input_char);
+        if($input_char!=Readability::DOM_DEFAULT_CHARSET){
+            $source=mb_convert_encoding($source, Readability::DOM_DEFAULT_CHARSET, $input_char);
+        }
+        $source = htmlentities($source, null, Readability::DOM_DEFAULT_CHARSET);
 
         // 预处理 HTML 标签，剔除冗余的标签等
         $source = $this->preparSource($source);
@@ -311,7 +315,8 @@ class Readability {
             $Target = $this->removeJunkAttr($Target, $attr);
         }
 
-        $content = mb_convert_encoding($Target->saveHTML(), Readability::DOM_DEFAULT_CHARSET, "HTML-ENTITIES");
+        //$content = mb_convert_encoding($Target->saveHTML(), Readability::DOM_DEFAULT_CHARSET, "HTML-ENTITIES");//[修改]8.2已失效
+        $content = html_entity_decode($Target->saveHTML(), null, Readability::DOM_DEFAULT_CHARSET);
 
         // 多个数据，以数组的形式返回
         return Array(

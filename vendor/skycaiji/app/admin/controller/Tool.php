@@ -459,7 +459,7 @@ class Tool extends BaseController {
 		if(request()->isPost()){
 		    if(input('upload')){
 		        
-		        \util\Tools::curl_skycaiji('/client/upload/log',null,array(),array('log'=>$log,'v'=>SKYCAIJI_VERSION));
+		        \util\Tools::curl_skycaiji('/client/upload/log',null,array(),array('log'=>$log,'v'=>SKYCAIJI_VERSION,'php'=>constant('PHP_VERSION')));
 		        $this->success('上报成功，感谢支持！','');
 		    }
 		}else{

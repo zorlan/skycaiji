@@ -792,7 +792,7 @@ class Mystore extends BaseController {
 	        }
 	        $config['global']=$global;
 	        $mapiApp->where('id',$id)->update(array('config'=>serialize($config)));
-	        $this->success('配置成功','',array('js'=>"$('#myModal').modal('hide');"));
+	        $this->success('配置成功','');
 	    }else{
 	        $this->assign('globalOps',$globalOps);
 	        $this->assign('appData',$appData);
@@ -825,13 +825,14 @@ class Mystore extends BaseController {
 			$data=array();
 			if($result['show_ipt_pwd']){
 			    
-			    $data['js']='win_upload_ipt_pwd();';
+			    $data['show']='show_ipt_pwd';
 			}elseif($result['show_plugins']){
 			    
-			    $data['js']='win_upload_plugins('.json_encode($result['show_plugins']).');';
+			    $data['show']='show_plugins';
+			    $data['show_data']=$result['show_plugins'];
 			}elseif($result['show_replace']){
 			    
-			    $data['js']="confirmRight('插件已存在，是否覆盖？',win_upload_replace);";
+			    $data['show']='show_replace';
 			}elseif($result['show_rule_data']){
 			    
 			    if($fromTask){
@@ -845,7 +846,8 @@ class Mystore extends BaseController {
 			            $name=addslashes($name);
 			            $ruleData=base64_encode(serialize($ruleData));
 			            $ruleData=addslashes($ruleData);
-			            $data['js']=sprintf("taskOpClass.import_rule('%s','%s')",'file:'.$ruleData,$name);
+			            $data['show']='show_rule_data';
+			            $data['show_data']=array('file:'.$ruleData,$name);
 			        }else{
 			            $this->error('没有规则');
 			        }
@@ -861,7 +863,9 @@ class Mystore extends BaseController {
 			        $name=addslashes($name);
 			        $releData=base64_encode(serialize($releData));
 			        $releData=addslashes($releData);
-			        $data['js']=sprintf("releaseClass.import_rele('%s','%s')",'file:'.$releData,$name);
+			        
+			        $data['show']='show_release_data';
+			        $data['show_data']=array('file:'.$releData,$name);
 			    }else{
 			        $this->error('没有发布设置');
 			    }

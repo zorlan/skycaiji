@@ -581,7 +581,7 @@ class Collector extends BaseController {
         }else{
             $apps=$cacheFuncs['list'];
         }
-        $this->success('',null,$apps);
+        $this->success('','',$apps);
     }
     private function _plugin_func_enable_apps($module){
         $mfuncApp=model('FuncApp');

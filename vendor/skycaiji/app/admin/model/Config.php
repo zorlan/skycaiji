@@ -451,11 +451,11 @@ class Config extends \skycaiji\common\model\Config {
 	            if(!is_dir($filePath)){
 	                $result['msg']=$title.'目录不存在！'.(self::check_basedir_limited($filePath)?lang('error_open_basedir'):'');
 	            }else{
-	                $filePath=realpath($filePath);
-	                $root_path=rtrim(realpath(config('root_path')),'\\\/');
-	                if(preg_match('/^'.addslashes($root_path).'\b/i',$filePath)){
+	                $filePath=rtrim(realpath($filePath),'\\\/').DS;
+	                $root_path=rtrim(realpath(config('root_path')),'\\\/').DS;
+	                if(stripos($filePath, $root_path)===0){
 	                    
-	                    if(!preg_match('/^'.addslashes($root_path).'[\/\\\]data[\/\\\].+/i', $filePath)){
+	                    if(stripos($filePath, $root_path.'data'.DS)!==0){
 	                        $result['msg']=$title.'保存到本程序中，目录必须在data文件夹里';
 	                    }else{
 	                        $result['success']=true;
@@ -473,8 +473,8 @@ class Config extends \skycaiji\common\model\Config {
 	    $title=$isImg?'图片':'文件';
 	    $result=return_result('',false);
 	    if(!empty($fileUrl)){
-	        if(!preg_match('/^\w+\:\/\//i',$fileUrl)){
-	            $result['msg']=$title.'链接地址必须以http://或者https://开头';
+	        if(!preg_match('/^\w+\:\/\//i',$fileUrl)&&strpos($fileUrl, '/')!==0){
+	            $result['msg']=$title.'链接地址必须以 http://、https:// 或 / 开头';
 	        }else{
 	            $result['success']=true;
 	        }

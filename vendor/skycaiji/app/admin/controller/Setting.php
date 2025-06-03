@@ -967,7 +967,7 @@ class Setting extends BaseController {
                 'open'=>input('open/d',0),
                 'key'=>input('key','','trim'),
             ));
-            $this->success('操作成功','',array('js'=>"windowModal('API接口',ulink('setting/page_render_api'),{lg:1});"));
+            $this->success('操作成功');
         }else{
             $uri='';
             if($data['key']){

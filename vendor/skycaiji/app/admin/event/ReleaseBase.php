@@ -496,7 +496,8 @@ class ReleaseBase extends CollectBase{
 			                                        $return=$mfuncApp->execute_func('downloadImg',$imgFunc['func'],$filename,$imgFunc['func_param'],$paramVals);
 			                                        if($return['success']){
 			                                            
-			                                            if($return['data']&&preg_match('/^\w+\:\/\//',$return['data'])){
+			                                            $checkResult=model('Config')->check_img_url($return['data']);
+			                                            if($return['data']&&$checkResult['success']){
 			                                                
 			                                                $this->cache_img_list[$key]=$return['data'];
 			                                            }
@@ -733,7 +734,8 @@ class ReleaseBase extends CollectBase{
                                                 $return=$mfuncApp->execute_func('downloadFile',$fileFunc['func'],$filefull,$fileFunc['func_param'],$paramVals);
                                                 if($return['success']){
                                                     
-                                                    if($return['data']&&preg_match('/^\w+\:\/\//',$return['data'])){
+                                                    $checkResult=model('Config')->check_file_url($return['data']);
+                                                    if($return['data']&&$checkResult['success']){
                                                         
                                                         $this->cache_file_list[$key]=$return['data'];
                                                     }

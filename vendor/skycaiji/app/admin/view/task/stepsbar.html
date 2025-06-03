@@ -1,23 +1,35 @@
-{php}$tplTaskId=$taskData?$taskData['id']:'';$tplCurCtl=array(request()->controller()=>' current');{/php}
+{php}
+	$tplTaskId=$taskData?$taskData['id']:'';$tplCurCtl=array(request()->controller()=>' current');
+	$tplTaskUrl=$tplTaskId?url('task/set?id='.$tplTaskId):'javascript:isNewTask();';
+	$tplCollUrl=$tplTaskId?url('collector/set?task_id='.$tplTaskId):'javascript:isNewTask();';
+	$tplReleUrl=$tplTaskId?url('release/set?task_id='.$tplTaskId):'javascript:isNewTask();';
+{/php}
+{if empty($tplTaskId)}
+<script type="text/javascript">
+function isNewTask(){
+	confirmRight({msg:'请先保存任务！',yes:'确定'});	
+}
+</script>
+{/if}
 <div class="steps-bar">
 	<div class="step current">
 		<div class="each">
-			<a href="{:url('task/set?id='.$tplTaskId)}" class="round">1</a>
+			<a href="{$tplTaskUrl}" class="round">1</a>
 		</div>
-		<div class="info"><a href="{:url('task/set?id='.$tplTaskId)}">{$Think.lang.task_set_task}</a></div>
+		<div class="info"><a href="{$tplTaskUrl}">{$Think.lang.task_set_task}</a></div>
 	</div>
 	<div class="step{$tplCurCtl['Collector']}{$tplCurCtl['Release']}">
 		<div class="each">
-			<a href="{:url('collector/set?task_id='.$tplTaskId)}" class="round">2</a>
+			<a href="{$tplCollUrl}" class="round">2</a>
 			<div class="bar"></div>
 		</div>
-		<div class="info"><a href="{:url('collector/set?task_id='.$tplTaskId)}">{$Think.lang.task_set_collector}</a></div>
+		<div class="info"><a href="{$tplCollUrl}">{$Think.lang.task_set_collector}</a></div>
 	</div>
 	<div class="step{$tplCurCtl['Release']}">
 		<div class="each">
-			<a href="{:url('release/set?task_id='.$tplTaskId)}" class="round">3</a>
+			<a href="{$tplReleUrl}" class="round">3</a>
 			<div class="bar"></div>
 		</div>
-		<div class="info"><a href="{:url('release/set?task_id='.$tplTaskId)}">{$Think.lang.task_set_release}</a></div>
+		<div class="info"><a href="{$tplReleUrl}">{$Think.lang.task_set_release}</a></div>
 	</div>
 </div>

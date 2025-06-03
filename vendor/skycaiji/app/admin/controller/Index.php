@@ -114,7 +114,7 @@ class Index extends CollectController{
                     $this->success(lang('user_login_in'),$url);
                 }else{
                     
-                    $this->success(lang('user_login_in'),null,array('js'=>'window.parent.postMessage("login_success","*");'));
+                    $this->success(lang('user_login_in'),null,array('login_success'=>1));
                 }
             }else{
                 $this->error(lang('user_error_sublogin'));

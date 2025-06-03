@@ -283,6 +283,11 @@ class CpatternBase extends CollectBase{
                     $vals=implode($multiStr, $vals);
                 }
             }
+        }else{
+            
+            if(is_array($vals)){
+                $vals=is_empty($vals[0],true)?'':$vals[0];
+            }
         }
         return $vals;
     }

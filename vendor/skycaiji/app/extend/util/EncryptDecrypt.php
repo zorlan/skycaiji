@@ -15,7 +15,7 @@ class EncryptDecrypt{
     protected $version='';
     protected $skycaiji='';
     public function __construct($version=null,$skycaiji=null){
-        $this->version=$version?$version:'1';
+        $this->version=$version?$version:'2';
         $this->skycaiji=$skycaiji?$skycaiji:SKYCAIJI_VERSION;
     }
     protected function checkError($isEncrypt,$method){
@@ -44,6 +44,13 @@ class EncryptDecrypt{
     protected function encrypt_v1($params){
         return openssl_encrypt($params['data'], 'AES-256-CBC', $params['pwd'],0,'skycaiji');
     }
+    protected function encrypt_v2($params){
+        $method='AES-256-CBC';
+        $iv=openssl_random_pseudo_bytes(openssl_cipher_iv_length($method));
+        $data=openssl_encrypt($params['data'],$method,$params['pwd'],OPENSSL_RAW_DATA,$iv);
+        $data=base64_encode($iv.$data);
+        return $data;
+    }
     
     public function decrypt($params){
         $method='decrypt_v'.$this->version;
@@ -55,6 +62,14 @@ class EncryptDecrypt{
     }
     protected function decrypt_v1($params){
         return openssl_decrypt($params['data'], 'AES-256-CBC', $params['pwd'],0,'skycaiji');
+    }
+    protected function decrypt_v2($params){
+        $method='AES-256-CBC';
+        $ivLen=openssl_cipher_iv_length($method);
+        $params['data']=base64_decode($params['data']);
+        $iv=substr($params['data'],0,$ivLen);
+        $params['data']=substr($params['data'],$ivLen);
+        return openssl_decrypt($params['data'],'AES-256-CBC',$params['pwd'],OPENSSL_RAW_DATA,$iv);
     }
 }
 

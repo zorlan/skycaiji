@@ -585,7 +585,7 @@ class Cpattern extends CpatternEvent{
 			}
 		}
 		if(empty($this->original_source_urls)){
-			$this->echo_msg('没有起始页网址！');
+			$this->echo_msg('没有起始页网址');
 			return 'completed';
 		}
 	
@@ -604,62 +604,57 @@ class Cpattern extends CpatternEvent{
 	
 		$source_interval=g_sc_c('caiji','interval')*60;
 		$time_interval_list=array();
-	
-		$source_urls=array();
-		$mcacheSource=CacheModel::getInstance('source_url');
-		if($sourceIsUrl){
-			
-			$source_urls=$this->original_source_urls;
-		}else{
-			$cacheSources=$mcacheSource->db()->where(array('cname'=>array('in',array_keys($this->original_source_urls))))->column('dateline','cname');
-			if(!empty($cacheSources)){
-				$count_db_used=0;
-				$sortSources=array('undb'=>array(),'db'=>array());
-				
-				$nowTime=time();
-				foreach ($this->original_source_urls as $sKey=>$sVal){
-					if(!isset($cacheSources[$sKey])){
-						
-						$sortSources['undb'][$sKey]=$sVal;
-					}else{
-						
-					    $time_interval=abs($nowTime-$cacheSources[$sKey]);
-						if($time_interval<$source_interval){
-							
-							$this->used_source_urls[$sVal]=1;
-							$count_db_used++;
-							$time_interval_list[]=$time_interval;
-						}else{
-							$sortSources['db'][$sKey]=$sVal;
-						}
-					}
-				}
-				if($count_db_used>0){
-				    $sourceWaitTime=$source_interval-max($time_interval_list);
-				    $this->echo_msg(array('已采集起始页网址%s条，再次采集需等待%s <a href="%s" target="_blank">设置采集运行间隔</a>',$count_db_used,\skycaiji\admin\model\Config::wait_time_tips($sourceWaitTime),url('admin/task/set?show_config=1&id='.$this->collector['task_id'])),'black');
-					if(count($this->original_source_urls)<=count($this->used_source_urls)){
-						$this->echo_msg('所有起始页采集完毕','green');
-						return 'completed';
-					}
-				}
-				$source_urls=array_merge($sortSources['undb'],$sortSources['db']);
-				unset($sortSources);
-				unset($cacheSources);
-			}else{
-				$source_urls=$this->original_source_urls;
-			}
-		}
-		$mcollected=model('Collected');
 		
+		$mcacheSource=CacheModel::getInstance('source_url');
+		$source_urls=$this->original_source_urls;
+		init_array($source_urls);
+		$source_urls=array_values($source_urls);
 		if($sourceIsUrl){
-			
-		    $source_urls=array_values($source_urls);
+		    
 		    $this->cont_urls_list['_source_is_url_']=$this->page_convert_url_signs('url', '', false, $source_urls, array(), false);
-			$source_urls=array('_source_is_url_'=>'_source_is_url_');
+		    $source_urls=array('_source_is_url_'=>'_source_is_url_');
 		}else{
 		    
 		    $source_urls=$this->page_convert_url_signs('source_url', '', false, $source_urls, array(), false);
+		    $cacheSources=$mcacheSource->db()->where(array('cname'=>array('in',array_map('md5',$source_urls))))->column('dateline','cname');
+		    if(!empty($cacheSources)){
+		        $count_db_used=0;
+		        $sortSources=array('undb'=>array(),'db'=>array());
+		        
+		        $nowTime=time();
+		        foreach ($source_urls as $sVal){
+		            $sKey=md5($sVal);
+		            if(!isset($cacheSources[$sKey])){
+		                
+		                $sortSources['undb'][$sKey]=$sVal;
+		            }else{
+		                
+		                $time_interval=abs($nowTime-$cacheSources[$sKey]);
+		                if($time_interval<$source_interval){
+		                    
+		                    $this->used_source_urls[$sVal]=1;
+		                    $count_db_used++;
+		                    $time_interval_list[]=$time_interval;
+		                }else{
+		                    $sortSources['db'][$sKey]=$sVal;
+		                }
+		            }
+		        }
+		        if($count_db_used>0){
+		            $sourceWaitTime=$source_interval-max($time_interval_list);
+		            $this->echo_msg(array('已采集起始页网址%s条，再次采集需等待%s <a href="%s" target="_blank">[设置采集运行间隔]</a>',$count_db_used,\skycaiji\admin\model\Config::wait_time_tips($sourceWaitTime),url('admin/task/set?show_config=1&id='.$this->collector['task_id'])),'black');
+		            if(count($source_urls)<=count($this->used_source_urls)){
+		                $this->echo_msg('所有起始页采集完毕','green');
+		                return 'completed';
+		            }
+		        }
+		        
+		        $source_urls=array_merge($sortSources['undb'],$sortSources['db']);
+		        unset($sortSources);
+		        unset($cacheSources);
+		    }
 		}
+		$allCompleted=true;
 		$pageOpened=$this->page_opened_tips('source_url');
 		$pnOpened=$this->page_opened_tips('source_url','',true);
 		foreach ($source_urls as $key_source_url=>$source_url){
@@ -693,6 +688,17 @@ class Cpattern extends CpatternEvent{
 		                    $forContinue=true;
 		                    break;
 		                }
+		                if($source_interval>0){
+		                    
+		                    $pnDataline=$mcacheSource->db()->where('cname',$pageCurMd5)->value('dateline');
+		                    $pnWaitTime=$source_interval-abs(time()-intval($pnDataline));
+		                    if($pnWaitTime>0){
+		                        
+		                        $this->echo_msg(array('已采集起始页分页，再次采集需等待%s <a href="%s" target="_blank">[设置采集运行间隔]</a>',\skycaiji\admin\model\Config::wait_time_tips($pnWaitTime),url('admin/task/set?show_config=1&id='.$this->collector['task_id'])),'black');
+		                        $forContinue=true;
+		                        break;
+		                    }
+		                }
 		            }
 		            $this->used_pagination_urls['source_url'][$pageCurMd5]=1;
 		            
@@ -702,8 +708,8 @@ class Cpattern extends CpatternEvent{
 		                
 		                $this->echo_msg('开始分析多级网址','black');
 		                $return_msg=$this->_collect_level($pageCurUrl,1);
-		                if($return_msg=='completed'){
-		                    return $return_msg;
+		                if($return_msg!=='completed'){
+		                    $allCompleted=false;
 		                }
 		            }else{
 		                
@@ -715,6 +721,13 @@ class Cpattern extends CpatternEvent{
 		                $forBreak=true;
 		                break;
 		            }
+		            
+		            if($pageIsPn){
+		                
+		                $this->used_source_urls[$pageCurUrl]=1;
+		                $mcacheSource->setCache($pageCurMd5,$pageCurUrl);
+		            }
+		            
 		            
 		            $doWhile=false;
 		            $nextPnUrl=$this->getPaginationNext('source_url', '', $pageIsPn, $pageCurUrl, '');
@@ -731,12 +744,16 @@ class Cpattern extends CpatternEvent{
 		        if($forBreak){
 		            break;
 		        }
+		        
+		        $this->used_source_urls[$source_url]=1;
+		        $mcacheSource->setCache(md5($source_url),$source_url);
+		        
 		    }
 		}
 		
 		
 		
-		return $this->collected_field_list;
+		return $allCompleted?'completed':null;
 	}
 	
 	/*采集前置页*/
@@ -1317,11 +1334,11 @@ class Cpattern extends CpatternEvent{
 			    foreach ($val as $v_vk=>$v_vv){
 			        if(!empty($field_process)){
 			            
-			            $v_vv=$this->process_field($field_name,$v_vv,$field_process,$cur_url_md5,$loopIndex,$cont_url_md5);
+			            $v_vv=$this->process_field($field_name,$v_vv,$field_process,$cur_url_md5,$loopIndex,$cont_url_md5,$url_info);
 			        }
 			        if(!empty($this->config['common_process'])){
 			            
-			            $v_vv=$this->process_field($field_name,$v_vv,$this->config['common_process'],$cur_url_md5,$loopIndex,$cont_url_md5);
+			            $v_vv=$this->process_field($field_name,$v_vv,$this->config['common_process'],$cur_url_md5,$loopIndex,$cont_url_md5,$url_info);
 			        }
 			        $val[$v_vk]=$v_vv;
 			    }
@@ -1329,11 +1346,11 @@ class Cpattern extends CpatternEvent{
 			}else{
 			    if(!empty($field_process)){
 			        
-			        $val=$this->process_field($field_name,$val,$field_process,$cur_url_md5,$loopIndex,$cont_url_md5);
+			        $val=$this->process_field($field_name,$val,$field_process,$cur_url_md5,$loopIndex,$cont_url_md5,$url_info);
 			    }
 			    if(!empty($this->config['common_process'])){
 			        
-			        $val=$this->process_field($field_name,$val,$this->config['common_process'],$cur_url_md5,$loopIndex,$cont_url_md5);
+			        $val=$this->process_field($field_name,$val,$this->config['common_process'],$cur_url_md5,$loopIndex,$cont_url_md5,$url_info);
 			    }
 			}
 			
@@ -1935,19 +1952,18 @@ class Cpattern extends CpatternEvent{
 		$level_name=$level.'级“'.$this->get_config('level_urls',$level-1,'name').'”';
 		
 		$level_data=$this->collLevelUrls($sourceUrl,$level,false);
-		$this->echo_msg(array('%s采集到%s网址%s条',$level_str,$level_name,count((array)$level_data['urls'])),'black');
+		$this->echo_msg(array('%s采集到第%s网址%s条',$level_str,$level_name,count((array)$level_data['urls'])),'black');
 	
 		$mcollected=model('Collected');
 		$mcacheLevel=CacheModel::getInstance('level_url');
-	
+		
+		$level_interval=g_sc_c('caiji','interval')*60;
 		if(!empty($level_data['urls'])){
 			
 			$level_urls=array();
 			foreach ($level_data['urls'] as $level_url){
 				$level_urls["level_{$level}:{$level_url}"]=$level_url;
 			}
-				
-			$level_interval=g_sc_c('caiji','interval')*60;
 			$time_interval_list=array();
 			
 			$cacheLevels=$mcacheLevel->db()->where(array('cname'=>array('in',array_map('md5', array_keys($level_urls)))))->column('dateline','cname');
@@ -1977,10 +1993,10 @@ class Cpattern extends CpatternEvent{
 				}
 				if($count_db_used>0){
 				    $levelWaitTime=$level_interval-max($time_interval_list);
-				    $this->echo_msg(array('已采集%s网址%s条，再次采集需等待%s <a href="%s" target="_blank">设置采集运行间隔</a>',$level_str.$level_name,$count_db_used,\skycaiji\admin\model\Config::wait_time_tips($levelWaitTime),url('admin/task/set?show_config=1&id='.$this->collector['task_id'])),'black');
+				    $this->echo_msg(array('已采集第%s网址%s条，再次采集需等待%s <a href="%s" target="_blank">[设置采集运行间隔]</a>',$level_str.$level_name,$count_db_used,\skycaiji\admin\model\Config::wait_time_tips($levelWaitTime),url('admin/task/set?show_config=1&id='.$this->collector['task_id'])),'black');
 					if(count($level_urls)<=$count_db_used){
-					    $this->echo_msg(array('%s网址采集完毕！',$level_str.$level_name),'green',true,$end_echo);
-						return 'completed';
+				        $this->echo_msg('','green',true,$end_echo);
+				        return $level<=1?'completed':null;
 					}
 				}
 				$level_urls=array_merge($sortLevels['undb'],$sortLevels['db']);
@@ -1990,11 +2006,8 @@ class Cpattern extends CpatternEvent{
 			$level_data['urls']=$level_urls;
 		}
 		
-		$finished_source=true;
-		$cur_level_i=0;
 		if(!empty($level_data['urls'])){
 		    foreach ($level_data['urls'] as $level_key=>$level_url){
-		        $cur_level_i++;
 			    if(array_key_exists($level_key,$this->used_level_urls)){
 			        
 			        $this->echo_msg(array('%s已采集第%s级：%s',$level_str,$level,$level_url),'orange');
@@ -2021,17 +2034,24 @@ class Cpattern extends CpatternEvent{
 				            $forContinue=true;
 				            break;
 				        }
+				        if($level_interval>0){
+				            
+				            $pnDataline=$mcacheLevel->db()->where('cname',md5($pageCurKey))->value('dateline');
+				            $pnWaitTime=$level_interval-abs(time()-intval($pnDataline));
+				            if($pnWaitTime>0){
+				                
+				                $this->echo_msg(array('已采集第%s分页，再次采集需等待%s <a href="%s" target="_blank">[设置采集运行间隔]</a>',$level_str.$level_name,\skycaiji\admin\model\Config::wait_time_tips($pnWaitTime),url('admin/task/set?show_config=1&id='.$this->collector['task_id'])),'black');
+				                $forContinue=true;
+				                break;
+				            }
+				        }
 				    }
 				    $this->used_pagination_urls[$levelSource][$pageCurMd5]=1;
 				    $pageOpened=$this->page_opened_tips('level_url',$levelConfig['name'],$pageIsPn);
 				    $this->echo_url_msg(array('%s分析第%s级%s',$next_level_str,$level,$pagePnStr),$pageCurUrl,$pageOpened);
 				    if($level_data['nextLevel']>0){
 				        
-				        $return_msg=$this->_collect_level($pageCurUrl,$level_data['nextLevel']);
-				        if($return_msg=='completed'){
-				            $this->echo_msg('','',true,$end_echo);
-				            return $return_msg;
-				        }
+				        $this->_collect_level($pageCurUrl,$level_data['nextLevel']);
 				    }else{
 				        
 				        $cont_urls=$this->getContUrls($pageCurUrl,$pageIsPn);
@@ -2039,17 +2059,15 @@ class Cpattern extends CpatternEvent{
 				        $this->cont_urls_list[$pageCurKey]=$cont_urls;
 				        $this->_collect_fields($next_level_str);
 				    }
-				    if($this->collect_num>0){
+				    if($this->collect_num>0&&count($this->collected_field_list)>=$this->collect_num){
+			            $forBreak=true;
+			            break;
+				    }
+				    
+				    if($pageIsPn){
 				        
-				        if(count($this->collected_field_list)>=$this->collect_num){
-				            
-				            if($cur_level_i<count((array)$level_data['urls'])){
-				                
-				                $finished_source=false;
-				            }
-				            $forBreak=true;
-				            break;
-				        }
+				        $this->used_level_urls[$pageCurKey]=1;
+				        $mcacheLevel->setCache(md5($pageCurKey),$pageCurKey);
 				    }
 				    
 				    $doWhile=false;
@@ -2067,21 +2085,12 @@ class Cpattern extends CpatternEvent{
 				if($forBreak){
 				    break;
 				}
-			}
-		}
-		if($finished_source){
-			
-			$source_key='level_'.($level-1).':'.$sourceUrl;
-			$this->used_level_urls[$source_key]=1;
-			$mcacheLevel->setCache(md5($source_key),$source_key);
-			if($level<=1){
-				
-				$mcacheSource=CacheModel::getInstance('source_url');
-				$this->used_source_urls[$sourceUrl]=1;
-				$mcacheSource->setCache(md5($sourceUrl),$sourceUrl);
+				$this->used_level_urls[$level_key]=1;
+				$mcacheLevel->setCache(md5($level_key),$level_key);
 			}
 		}
 		$this->echo_msg('','',true,$end_echo);
+		return $level<=1?'completed':null;
 	}
 	
 	/*采集字段列表*/

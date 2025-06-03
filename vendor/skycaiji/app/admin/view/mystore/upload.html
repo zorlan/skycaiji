@@ -1,4 +1,4 @@
-<form id="win_form_upload" method="post" ajax-submit="true" enctype="multipart/form-data" action="{:url('mystore/upload')}">
+<form id="win_form_upload" method="post" enctype="multipart/form-data" action="{:url('mystore/upload')}">
 {:html_usertoken()}	
 	<input name="type" type="hidden" value="{$type}" />
 	<input name="replace" type="hidden" value="" />
@@ -30,22 +30,41 @@
 </form>
 <script type="text/javascript">
 'use strict';
-function win_upload_replace(){
-	//替换
-	$('#win_form_upload').find('[name="replace"]').val(1);
-	$('#win_form_upload').submit();
+function win_upload_submit(){
+	$('#win_form_upload').bind('submit',function(){
+		var settings=getFormAjaxSettings($(this),function(data){
+			var show=data['show'];
+			var showData=isObject(data['show_data'])?data['show_data']:[];
+			if(show=='show_ipt_pwd'){
+				//显示密码
+				$('#win_form_upload .upload-ipt-pwd').show();
+			}else if(show=='show_plugins'){
+				//选择插件
+				var plugins=showData;
+				if(isObject(plugins)){
+					var html='<input type="hidden" name="upload_addon[ignore_plugin]" value="1" />';//导入规则显示了选择插件
+					for(var app in plugins){
+						html+='<div class="checkbox"><label><input type="checkbox" name="upload_addon[plugins][]" value="'+app+'">'+plugins[app]+'</label></div>'
+					}
+					$('#win_form_upload .upload-plugins').show().find('.upload-plugins-info').html(html);
+				}
+			}else if(show=='show_replace'){
+				confirmRight('插件已存在，是否覆盖？',function(){
+					//替换
+					$('#win_form_upload').find('[name="replace"]').val(1);
+					$('#win_form_upload').submit();
+				});
+			}else if(show=='show_rule_data'){
+				//显示规则配置
+				taskOpClass.import_rule(showData[0],showData[1]);
+			}else if(show=='show_release_data'){
+				//显示发布设置
+				releaseClass.import_rele(showData[0],showData[1]);
+			}
+		});
+		ajaxOpen(settings);
+		return false;
+	});
 }
-function win_upload_ipt_pwd(){
-	$('#win_form_upload .upload-ipt-pwd').show();
-}
-function win_upload_plugins(plugins){
-	//选择插件
-	if(isObject(plugins)){
-		var html='<input type="hidden" name="upload_addon[ignore_plugin]" value="1" />';//导入规则显示了选择插件
-		for(var app in plugins){
-			html+='<div class="checkbox"><label><input type="checkbox" name="upload_addon[plugins][]" value="'+app+'">'+plugins[app]+'</label></div>'
-		}
-		$('#win_form_upload .upload-plugins').show().find('.upload-plugins-info').html(html);
-	}
-}
+win_upload_submit();
 </script>

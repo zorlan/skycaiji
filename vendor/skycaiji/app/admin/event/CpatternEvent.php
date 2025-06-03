@@ -533,7 +533,7 @@ class CpatternEvent extends CpatternColl{
         }
         return $urls;
     }
-    public function process_f_download($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName=''){
+    public function process_f_download($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName,$urlInfo){
         if($params['download_op']=='is_img'){
             
             if(!is_empty(g_sc_c('download_img','download_img'))&&!empty($fieldVal)){
@@ -586,27 +586,26 @@ class CpatternEvent extends CpatternColl{
                     if(is_array($tags)&&!empty($tags[0])){
                         
                         for($i=0;$i<count($tags[0]);$i++){
-                            $reg='/<'.$tags[1][$i].'\b[^<>]*\b'.$tags[2][$i].'\s*=\s*[\'\"](http[s]{0,1}\:[^\'\"]+?)[\'\"]/i';
-                            if(preg_match_all($reg,$fieldVal,$fileUrls)){
-                                $fileUrls=is_array($fileUrls[1])?$fileUrls[1]:array();
+                            $fieldVal=preg_replace_callback('/(<'.$tags[1][$i].'\b[^<>]*\b'.$tags[2][$i].'\s*=\s*[\'\"])([^\'\"]*)([\'\"])/i',function($matche) use (&$valFiles,$params,$urlInfo){
+                                $matche[2]=\util\Tools::create_complete_url($matche[2], $urlInfo);
+                                $fileUrl=$matche[2];
                                 if(!empty($params['download_file_must'])){
                                     
-                                    foreach ($fileUrls as $k=>$v){
-                                        if(!preg_match('/'.$params['download_file_must'].'/ui', $v)){
-                                            unset($fileUrls[$k]);
-                                        }
+                                    if(!preg_match('/'.$params['download_file_must'].'/ui', $fileUrl)){
+                                        $fileUrl='';
                                     }
                                 }
                                 if(!empty($params['download_file_ban'])){
                                     
-                                    foreach ($fileUrls as $k=>$v){
-                                        if(preg_match('/'.$params['download_file_ban'].'/ui', $v)){
-                                            unset($fileUrls[$k]);
-                                        }
+                                    if(preg_match('/'.$params['download_file_ban'].'/ui', $fileUrl)){
+                                        $fileUrl='';
                                     }
                                 }
-                                $valFiles=array_merge($valFiles,$fileUrls);
-                            }
+                                if($fileUrl){
+                                    $valFiles[]=$fileUrl;
+                                }
+                                return $matche[1].$matche[2].$matche[3];
+                            },$fieldVal);
                         }
                     }
                 }
@@ -1144,11 +1143,11 @@ class CpatternEvent extends CpatternColl{
         return $fieldVal;
     }
     /*数据处理*/
-    public function process_field($fieldName,$fieldVal,$process,$curUrlMd5,$loopIndex,$contUrlMd5){
+    public function process_field($fieldName,$fieldVal,$process,$curUrlMd5,$loopIndex,$contUrlMd5,$urlInfo){
         if(empty($process)){
             return $fieldVal;
         }
-        static $conds=array('filter','if','func','api','download','insert','apiapp');
+        static $conds=array('filter','if','func','api','insert','apiapp');
         static $fnConds=array('translate','tool');
         foreach ($process as $params){
             
@@ -1174,8 +1173,10 @@ class CpatternEvent extends CpatternColl{
             $funcName='process_f_'.$params['module'];
             if(method_exists($this, $funcName)){
                 if(in_array($params['module'],$conds)){
-                    
                     $fieldVal=$this->$funcName($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName);
+                }elseif($params['module']=='download'){
+                    
+                    $fieldVal=$this->$funcName($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName,$urlInfo);
                 }elseif(in_array($params['module'],$fnConds)){
                     $fieldVal=$this->$funcName($fieldVal,$params,$fieldName);
                 }else{

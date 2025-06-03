@@ -243,16 +243,8 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
         
         if($collectAuto){
             
-            
-            if(g_sc_c('caiji','interval')>0){
-                $waitTime=(60*g_sc_c('caiji','interval'))-abs($curTime-$taskData['caijitime']);
-                if($waitTime>0){
-                    $msg=sprintf('%s再次采集需等待%s <a href="%s" target="_blank">设置采集运行间隔</a>',$taskTips,\skycaiji\admin\model\Config::wait_time_tips($waitTime),url('admin/task/set?show_config=1&id='.$taskData['id']));
-                    return $this->_collect_echo_end($isBatch,$msg,$releIsApi);
-                }
-            }
-            
             $timerTrigger=model('TaskTimer')->timer_trigger($taskData,$nowTime);
+            
             if($timerTrigger['is_timer']){
                 if($timerTrigger['is_trigger']){
                     
@@ -262,6 +254,15 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
                 }else{
                     
                     return $this->_collect_echo_end($isBatch,$taskTips.'未到定时采集时间',$releIsApi);
+                }
+            }else{
+                
+                if(g_sc_c('caiji','interval')>0){
+                    $waitTime=(60*g_sc_c('caiji','interval'))-abs($curTime-$taskData['caijitime']);
+                    if($waitTime>0){
+                        $msg=sprintf('%s再次采集需等待%s <a href="%s" target="_blank">[设置采集运行间隔]</a>',$taskTips,\skycaiji\admin\model\Config::wait_time_tips($waitTime),url('admin/task/set?show_config=1&id='.$taskData['id']));
+                        return $this->_collect_echo_end($isBatch,$msg,$releIsApi);
+                    }
                 }
             }
             if(!$releIsApi){
@@ -294,16 +295,17 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
             
             while($taskNum>0){
                 $fieldNum=0;
-                $field_list=$acoll->collect($taskNum);
-                if($field_list=='completed'){
+                $completed=$acoll->collect($taskNum);
+                if(is_array($acoll->collected_field_list)&&!empty($acoll->collected_field_list)){
                     
-                    break;
-                }elseif(is_array($field_list)&&!empty($field_list)){
-                    
-                    $fieldNum=count($field_list);
-                    $all_field_list=array_merge($all_field_list,$field_list);
+                    $fieldNum=count($acoll->collected_field_list);
+                    $all_field_list=array_merge($all_field_list,$acoll->collected_field_list);
                     $taskNum-=$fieldNum;
                     $collectNum-=$fieldNum;
+                }
+                if($completed==='completed'){
+                    
+                    break;
                 }
                 if($taskNum>0){
                     $this->echo_msg(array('%s采集到%s条数据，还差%s条',$taskTips,$fieldNum,$taskNum),'orange');
@@ -312,12 +314,12 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
         }else{
             
             do{
-                $field_list=$acoll->collect($taskNum);
-                if(is_array($field_list)&&!empty($field_list)){
+                $completed=$acoll->collect($taskNum);
+                if(is_array($acoll->collected_field_list)&&!empty($acoll->collected_field_list)){
                     
-                    $all_field_list=array_merge($all_field_list,$field_list);
+                    $all_field_list=array_merge($all_field_list,$acoll->collected_field_list);
                 }
-            }while($field_list!='completed');
+            }while($completed!=='completed');
         }
         
         if(empty($all_field_list)){
