@@ -104,9 +104,11 @@ class ChromeSocket{
                 $command=\skycaiji\admin\model\Config::cli_safe_filename($command);
             }
             
+            $error='';
             if($isTest&&!IS_WIN){
                 
                 $command.=' --version';
+                $error='页面渲染需开启proc_open';
             }else{
                 $command.=' --headless --proxy-server';
                 if(!empty($options['user_data_dir'])){
@@ -119,9 +121,10 @@ class ChromeSocket{
                 }else{
                     $command=sprintf('%s --remote-debugging-port=%s',$command,$port);
                 }
+                $error='页面渲染需开启proc_open或在服务器中执行命令：'.$command;
             }
             if(!$hasProcOpen){
-                $return['error']='页面渲染需开启proc_open或在服务器中执行命令：'.$command;
+                $return['error']=$error;
             }else{
                 
                 try{

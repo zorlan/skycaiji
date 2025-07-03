@@ -473,7 +473,12 @@ class Backstage extends BaseController{
         			$pagenav=$list->render();
         			$list=$list->all();
         			$list=model('Collected')->getInfoDatas($list);
-        			
+        			foreach ($list as $k=>$v){
+        			    if(\util\Funcs::is_right_url($v['target'])){
+        			        
+        			        $list[$k]['target']='<a href="'.$v['target'].'" target="_blank">'.$v['target'].'</a>';
+        			    }
+        			}
         			$this->assign('list',$list);
         			$this->assign('pagenav',$pagenav);
     			}

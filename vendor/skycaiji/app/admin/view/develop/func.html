@@ -7,7 +7,7 @@
 	<div class="box-body">
 		<form id="form_func" method="post" ajax-submit="true" action="{:url('admin/develop/func')}">
 		{:html_usertoken()}
-			{if !empty($funcClass['filename'])}
+			{if !empty($funcClass)}
 		    <input type="hidden" name="edit" value="1" />
 		    <input type="hidden" name="app" value="{$funcClass['app']}" />
 			<div class="alert alert-warning">
@@ -51,7 +51,10 @@
 					<li>{$k}：{$v['comment']}</li>
 					{/foreach}
 				</ul>
-				<p class="help-block">如需编辑方法请在插件文件中修改，仅获取public方法，注释必须在方法的前一行且以/**开头，/*或//都获取不到注释</p>
+				<div class="help-block">
+					如需编辑方法请在插件文件中修改，仅获取public方法，注释必须在方法的前一行且以/**开头，/*或//都获取不到注释
+					<div class="help-block method-tips-url" style="display:none;">注意：如果有返回值，将作为新的<em style="font-style:normal;"></em>链接地址！</div>
+				</div>
 		    </div>
 		    {else /}
     		<div class="form-group">
@@ -72,7 +75,7 @@
 	                   </tbody>
 					</table>
         		</div>
-        		<p class="help-block">类的方法名必须符合php命名规范</p>
+        		<p class="help-block">类的方法名必须符合php命名规范<span class="method-tips-url" style="display:none;">，注意：如果有返回值，将作为新的<em style="font-style:normal;"></em>链接地址！</span></p>
      		</div>
      		{/if}
 		   	<div class="form-group">

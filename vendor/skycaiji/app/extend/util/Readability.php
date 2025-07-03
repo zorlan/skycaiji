@@ -66,8 +66,9 @@ class Readability {
         if($input_char!=Readability::DOM_DEFAULT_CHARSET){
             $source=mb_convert_encoding($source, Readability::DOM_DEFAULT_CHARSET, $input_char);
         }
-        $source = htmlentities($source, null, Readability::DOM_DEFAULT_CHARSET);
-
+        $source = htmlentities($source, ENT_NOQUOTES, Readability::DOM_DEFAULT_CHARSET);
+        $source=str_replace('&lt;','<',$source);//恢复<>标签
+        $source=str_replace('&gt;','>',$source);
         // 预处理 HTML 标签，剔除冗余的标签等
         $source = $this->preparSource($source);
 
@@ -316,8 +317,7 @@ class Readability {
         }
 
         //$content = mb_convert_encoding($Target->saveHTML(), Readability::DOM_DEFAULT_CHARSET, "HTML-ENTITIES");//[修改]8.2已失效
-        $content = html_entity_decode($Target->saveHTML(), null, Readability::DOM_DEFAULT_CHARSET);
-
+        $content = html_entity_decode($Target->saveHTML(), ENT_NOQUOTES, Readability::DOM_DEFAULT_CHARSET);
         // 多个数据，以数组的形式返回
         return Array(
             //'lead_image_url' => $this->getLeadImageUrl($Target),

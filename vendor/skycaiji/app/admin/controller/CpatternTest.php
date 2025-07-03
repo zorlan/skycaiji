@@ -925,7 +925,7 @@ class CpatternTest extends BaseController {
                 exit('未抓取到源码'.$errorMsg);
             }else{
                 
-                exit(' '.$htmlInfo['html']);
+                exit(' '.trim($htmlInfo['header']).'<!-----skycaiji_header----->'.$htmlInfo['html']);
             }
         }elseif('get_browser'==$testName){
             

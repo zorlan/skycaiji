@@ -1199,32 +1199,6 @@ class Develop extends BaseController {
 	        return $arr;
 	}
 	
-	private function _copy_files($fromPath,$toPath){
-	    if(empty($fromPath)||empty($toPath)){
-	        return false;
-	    }
-	    if(is_dir($fromPath)){
-	        
-	        $fileList=scandir($fromPath);
-	        foreach( $fileList as $file ){
-	            if('.'== $file || '..' == $file){
-	                continue;
-	            }
-	            $fileName=$fromPath.'/'.$file;
-	            if(!file_exists($fileName)){
-	                continue;
-	            }
-	            $toFile=$toPath.'/'.$file;
-	            if(is_dir( $fileName )){
-	                mkdir($toFile,0777,true);
-	                $this->_copy_files($fileName, $toFile);
-	            }elseif(is_file($fileName)){
-	                write_dir_file($toFile,file_get_contents($fileName));
-	            }
-	        }
-	    }
-	}
-	
 	/*开发接口插件*/
 	public function apiAction(){
 	    $mapiApp=new ApiApp();

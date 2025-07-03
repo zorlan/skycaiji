@@ -10,7 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.9.3');
+define('SKYCAIJI_VERSION', '2.9.4');
 \think\Loader::addNamespace('plugin',SKYCAIJI_PATH.'plugin');
 \think\Loader::addNamespace('util',APP_PATH.'extend/util');
 
@@ -223,7 +223,7 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
         $options['useragent']=$userAgent;
     }
     if(empty($options['useragent'])){
-        $options['useragent']='Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70 Safari/537.36';
+        $options['useragent']='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36';
     }
     $options['timeout']=$options['timeout']>0?$options['timeout']:30;
     if(isset($headers['content-type'])){

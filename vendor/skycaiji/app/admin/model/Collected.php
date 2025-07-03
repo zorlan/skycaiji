@@ -79,7 +79,17 @@ class Collected extends \skycaiji\common\model\BaseModel{
 	    if(is_array($urls)){
 	        $cond['urlMd5']=array('in',array_map('md5', $urls));
 	    }else{
-	        $cond['urlMd5']=md5($urls);
+	        
+	        $url=preg_replace_callback('/^\w+\:\/\//', function($match){
+	            $match=strtolower($match[0]);
+	            if($match=='http://'){
+	                $match='https://';
+	            }elseif($match=='https://'){
+	                $match='http://';
+	            }
+	            return $match;
+	        }, $urls);
+	        $cond['urlMd5']=array(array('eq',md5($urls)),array('eq',md5($url)),'or');
 	    }
 	    if(g_sc_c('caiji','same_url')){
 	        
