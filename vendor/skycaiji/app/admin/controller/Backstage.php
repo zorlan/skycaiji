@@ -580,7 +580,7 @@ class Backstage extends BaseController{
 	            $config[$op]=intval($val);
 	        }
 	        
-	        $allowConfig=array('skin'=>'','mini'=>'','fixed'=>'','narrow'=>'','check_skip'=>'');
+	        $allowConfig=array('skin'=>'','mini'=>'','newwin'=>'','fixed'=>'','narrow'=>'','check_skip'=>'');
 	        foreach ($allowConfig as $k=>$v){
 	            $allowConfig[$k]=isset($config[$k])?$config[$k]:'';
 	        }

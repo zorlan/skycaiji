@@ -300,7 +300,8 @@ return array(
 	'yzm_error_yzm'=>'激活码错误',
 		
 	'admincp_style'=>'界面',	
-	'admincp_sidebar_mini'=>'菜单最小化',
+    'admincp_sidebar_mini'=>'菜单最小化',
+    'admincp_sidebar_newwin'=>'菜单新窗口打开',
 	'admincp_skins'=>'设置皮肤',
 	'skin_blue'=>'蓝',
 	'skin_black'=>'黑',

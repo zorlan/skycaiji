@@ -10,7 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '2.9.4');
+define('SKYCAIJI_VERSION', '2.9.5');
 \think\Loader::addNamespace('plugin',SKYCAIJI_PATH.'plugin');
 \think\Loader::addNamespace('util',APP_PATH.'extend/util');
 
@@ -283,21 +283,27 @@ function get_html($url,$headers=array(),$options=array(),$fromEncode='auto',$pos
                             }
                             $postDataJsonKey=&$postDataJsonKey[$kv];
                         }
-                        
-                        if(is_numeric($v)&&is_string($v)){
-                            
-                            if(strpos($v,'.')!==false){
+                        if(!is_empty($v,true)&&is_string($v)){
+                            if(is_numeric($v)){
                                 
-                                if(strlen(str_replace(array('-','.'),'',$v))<=14){
-                                    
-                                    $v=floatval($v);
-                                }
-                            }else{
                                 
-                                if(strlen(str_replace('-','',$v))<=18){
+                                if(strpos($v,'.')!==false){
                                     
-                                    $v=intval($v);
+                                    if(strlen(str_replace(array('-','.'),'',$v))<=14){
+                                        
+                                        $v=floatval($v);
+                                    }
+                                }else{
+                                    
+                                    if(strlen(str_replace('-','',$v))<=18){
+                                        
+                                        $v=intval($v);
+                                    }
                                 }
+                            }elseif($v==='true'){
+                                $v=true;
+                            }elseif($v==='false'){
+                                $v=false;
                             }
                         }
                         $postDataJsonKey=$v;

@@ -2319,16 +2319,10 @@ class Cpattern extends CpatternEvent{
 	                $this->collected_field_list[]=$collected_data;
 	            }else{
 	                
-	                if(!$url_repeat){
-	                    
-	                    controller('ReleaseBase','event')->record_collected(
-	                        $collected_data['url'],
-	                        array('id'=>0,'error'=>$collected_error),array('task_id'=>$this->collector['task_id'],'module'=>$this->release['module'])
-	                    );
-	                }else{
-	                    
-	                    $this->echo_msg(array('%s',$collected_error));
-	                }
+                    controller('ReleaseBase','event')->record_collected(
+                        $collected_data['url'],
+                        array('id'=>0,'error'=>$collected_error),array('task_id'=>$this->collector['task_id'],'module'=>$this->release['module'])
+                    );
 	            }
 	        }
 	    }

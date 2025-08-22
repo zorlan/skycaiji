@@ -74,7 +74,7 @@ class Collected extends \skycaiji\common\model\BaseModel{
         }
     }
 	/*采集时获取的数据*/
-	public function collGetNumByUrl($urls){
+	public function collGetNumByUrl($urls,$status=null){
 	    $cond=array();
 	    if(is_array($urls)){
 	        $cond['urlMd5']=array('in',array_map('md5', $urls));
@@ -90,6 +90,10 @@ class Collected extends \skycaiji\common\model\BaseModel{
 	            return $match;
 	        }, $urls);
 	        $cond['urlMd5']=array(array('eq',md5($urls)),array('eq',md5($url)),'or');
+	    }
+	    if(isset($status)){
+	        
+	        $cond['status']=$status?1:0;
 	    }
 	    if(g_sc_c('caiji','same_url')){
 	        

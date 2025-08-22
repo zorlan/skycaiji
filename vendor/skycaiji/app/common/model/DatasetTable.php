@@ -198,7 +198,7 @@ class DatasetTable{
 			    $typeSql=$this->getTypeSql($field['type'],$field['len']);
 			    if($typeSql){
 			        
-			        $table.=$dbName.$typeSql." COMMENT '".addslashes($field['name'])."'";
+			        $table.='`'.$dbName.'`'.$typeSql." COMMENT '".addslashes($field['name'])."'";
 			    }
 			    $table.=',';
 			}

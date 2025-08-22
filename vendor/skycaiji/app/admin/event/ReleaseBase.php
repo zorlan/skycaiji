@@ -76,7 +76,7 @@ class ReleaseBase extends CollectBase{
     			
     			if(!empty($returnData['error'])){
     				
-    			    if($mcollected->collGetNumByUrl($url)<=0){
+    			    if($mcollected->collGetNumByUrl($url,0)<=0){
     					
     			        $collectedId=$mcollected->insert(array(
     						'urlMd5' => md5 ( $url ),

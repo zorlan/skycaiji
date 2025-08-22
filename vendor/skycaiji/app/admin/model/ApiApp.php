@@ -689,7 +689,9 @@ class ApiApp extends \skycaiji\common\model\BaseModel{
 	        if(preg_match_all('/\[\x{53d8}\x{91cf}\:(.+?)\]/u',$data,$replace)){
 	            $replace=$replace[1];
 	            $replace=array_unique($replace);
-            }
+	        }else{
+	            $replace=array();
+	        }
             init_array($replace);
             $replaceData=array();
             if($def){
@@ -709,6 +711,8 @@ class ApiApp extends \skycaiji\common\model\BaseModel{
 	        if(preg_match_all('/\[\x{8bf7}\x{6c42}\:(.+?)\]/u',$data,$replace)){
 	            $replace=$replace[1];
 	            $replace=array_unique($replace);
+	        }else{
+	            $replace=array();
 	        }
 	        init_array($replace);
 	        $replaceData=array();

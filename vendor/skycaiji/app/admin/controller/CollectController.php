@@ -323,6 +323,10 @@ class CollectController extends \skycaiji\admin\controller\BaseController{
         }
         
         if(empty($all_field_list)){
+            if($releIsApi&&\util\Param::is_task_api_response()){
+                
+                $this->_collect_echo_end($isBatch, $taskTips.'没有采集到数据，请使用测试功能查看运行流程',$releIsApi);
+            }
             $this->echo_msg(array('%s没有采集到数据',$taskTips),'orange');
         }else{
             $this->echo_msg(array('%s采集到%s条数据',$taskTips,count($all_field_list)),'green');

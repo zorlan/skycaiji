@@ -320,7 +320,7 @@ class CpatternBase extends CollectBase{
                             $newConfigParams=$configParams;
                             $newConfigParams['json']=array_slice($jsonFmt, $i);
                             $newConfigParams['json']=implode('.', $newConfigParams['json']);
-                            
+                            init_array($val);
                             foreach ($val as $vk=>$vv){
                                 
                                 $val[$vk]=$this->rule_module_json_data($newConfigParams,$vv);
@@ -329,6 +329,10 @@ class CpatternBase extends CollectBase{
                         }else{
                             if($key!='*'){
                                 
+                                if(!is_array($val)){
+                                    
+                                    $val=\util\Funcs::convert_html2json($val);
+                                }
                                 $val=is_array($val)?$val[$key]:'';
                             }
                         }

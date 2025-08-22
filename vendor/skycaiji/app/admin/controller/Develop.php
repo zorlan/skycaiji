@@ -1245,7 +1245,11 @@ class Develop extends BaseController {
 	        $id=$mapiApp->createApp($module,$app,array('name'=>$name,'ops'=>$ops,'content'=>$content));
 	        
 	        if($id>0){
-	            $this->success('创建成功','develop/api?app='.$app);
+	            if(input('?edit')){
+	                $this->success('修改成功','');
+	            }else{
+	                $this->success('创建成功','develop/api?app='.$app);
+	            }
 	        }else{
 	            $this->error('创建失败');
 	        } 

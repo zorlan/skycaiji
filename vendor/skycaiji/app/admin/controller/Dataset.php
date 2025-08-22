@@ -574,7 +574,12 @@ class Dataset extends BaseController {
             foreach ($list as $k=>$v){
                 $dids[$k]=$v['id'];
             }
-            $list1=$dst->db()->where('id','in',$dids)->column('*','id');
+            $list1=$dst->db()->where('id','in',$dids)->select();
+            $list=array();
+            foreach ($list1 as $v){
+                $list[$v['id']]=$v;
+            }
+            $list1=$list;
             $list=array();
             
             foreach ($dids as $did){

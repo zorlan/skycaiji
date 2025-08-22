@@ -146,6 +146,9 @@ class Collected extends BaseController {
 	    if(request()->isPost()){
 	        $release=input('release/a');
 	        init_array($release);
+	        if(empty($release)){
+	            $this->error('请选择发布方式','');
+	        }
 	        if(in_array('all', $release)){
 	            
 	            model('Collected')->deleteByCond(array('status'=>0));
