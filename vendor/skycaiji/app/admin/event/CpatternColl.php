@@ -220,7 +220,7 @@ class CpatternColl extends CpatternBase{
                     $cont_urls=is_array($cont_urls)?$cont_urls:array();
                 }elseif('json'==$config['reg_url_module']){
                     
-                    $cont_urls=$this->rule_module_json_data(array('json'=>$config['reg_url'],'json_arr'=>'_original_'),$html);
+                    $cont_urls=$this->rule_module_json_data(array('json'=>$config['reg_url'],'json_merge_data'=>true,'json_arr'=>'_original_'),$html);
                     if(empty($cont_urls)){
                         $cont_urls=array();
                     }elseif(!is_array($cont_urls)){
@@ -1682,6 +1682,24 @@ class CpatternColl extends CpatternBase{
     }
     
     
+    public function set_exclude_cont_url($contUrlMd5,$curUrlMd5,$loopIndex,$excludeData){
+        if(!isset($this->exclude_cont_urls[$contUrlMd5])){
+            $this->exclude_cont_urls[$contUrlMd5]=array();
+        }
+        init_array($excludeData);
+        $excludeData=json_encode($excludeData);
+        if(empty($this->first_loop_field)){
+            
+            $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=$excludeData;
+        }else{
+            
+            if(!isset($this->exclude_cont_urls[$contUrlMd5][$curUrlMd5])){
+                $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=array();
+            }
+            $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5][$loopIndex]=$excludeData;
+        }
+    }
+    
     
     /*获取页面代码*/
     public function get_page_html($url,$pageType,$pageName,$isPagination=false,$returnInfo=false){
@@ -1979,8 +1997,11 @@ class CpatternColl extends CpatternBase{
                             foreach ($contentSign['funcs'] as $csFunc){
                                 if(is_array($csFunc)&&!empty($csFunc['func'])){
                                     
-                                    $result=$this->execute_plugin_func('contentSign', $csFunc['func'], $val, $csFunc['func_param'], null, ' @ '.$pageSourceName.' '.$csMatchSign);
-                                    if(isset($result)){
+                                    $result=$this->execute_plugin_func('contentSign', $csFunc['func'], $val, $csFunc['func_param'], null, '【'.$pageSourceName.'：'.$csMatchSign.'】',true);
+                                    if(empty($result['success'])){
+                                        $this->echo_msg_exit('');
+                                    }
+                                    if(isset($result['data'])){
                                         $val=$result;
                                     }
                                 }

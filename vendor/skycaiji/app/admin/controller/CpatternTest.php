@@ -1057,6 +1057,7 @@ class CpatternTest extends BaseController {
             }elseif($type=='json'){
                 $val = $this->eCpattern->rule_module_json_data(array(
                     'json' => $field['json'],
+                    'json_merge_data' => $field['json_merge_data'],
                     'json_arr' =>  $field['json_arr'],
                     'json_arr_implode' =>  $field['json_arr_implode'],
                 ), $content);

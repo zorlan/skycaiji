@@ -257,6 +257,7 @@ class Rtoapi extends Release{
                             if(isset($apiResponse[$k])){
                                 $returnData[$k]=$cpatternBase->rule_module_json_data(array(
                                     'json' => $apiResponse[$k],
+                                    'json_merge_data' =>  '',
                                     'json_arr' =>  '',
                                     'json_arr_implode' =>  '',
                                 ), $json);

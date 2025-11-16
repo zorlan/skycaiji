@@ -144,6 +144,7 @@ class CpatternEvent extends CpatternColl{
                 break;
             case 'json':
                 $field_params['json']=$field_params['extract_json'];
+                $field_params['json_merge_data']=$field_params['extract_json_merge_data'];
                 $field_params['json_loop']=$field_params['extract_json_loop'];
                 $field_params['json_arr']=$field_params['extract_json_arr'];
                 $field_params['json_arr_implode']=$field_params['extract_json_arr_implode'];
@@ -747,18 +748,35 @@ class CpatternEvent extends CpatternColl{
     }
     public function process_f_func($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName=''){
         
-        $result=$this->execute_plugin_func('process', $params['func_name'], $fieldVal, $params['func_param'], $this->_get_insert_fields($params['func_param'], $curUrlMd5, $loopIndex));
-        if(isset($result)){
-            $fieldVal=$result;
+        if($params&&$params['func_name']){
+            $result=$this->execute_plugin_func('process', $params['func_name'], $fieldVal, $params['func_param'], $this->_get_insert_fields($params['func_param'], $curUrlMd5, $loopIndex),null,true);
+            if(empty($result['success'])){
+                
+                $this->echo_msg_exit('');
+            }
+            if(isset($result['data'])){
+                $fieldVal=$result['data'];
+            }
         }
         return $fieldVal;
     }
     public function process_f_apiapp($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName=''){
         
-        init_array($params['apiapp_config']);
-        $result=$this->execute_plugin_apiapp('process', $params['apiapp_app'], $fieldVal, $params['apiapp_config'], $this->_get_insert_fields(implode("\r\n", $params['apiapp_config']), $curUrlMd5, $loopIndex));
-        if(isset($result)){
-            $fieldVal=$result;
+        if($params&&$params['apiapp_app']){
+            init_array($params['apiapp_config']);
+            $result=$this->execute_plugin_apiapp('process', $params['apiapp_app'], $fieldVal, $params['apiapp_config'], $this->_get_insert_fields(implode("\r\n", $params['apiapp_config']), $curUrlMd5, $loopIndex),null,true);
+            if(empty($result['success'])){
+                
+                if($result['exclude_cont_url']){
+                    
+                    $this->set_exclude_cont_url($contUrlMd5, $curUrlMd5, $loopIndex, array('field'=>$fieldName,'type'=>'apiapp','msg'=>$result['msg']));
+                }else{
+                    $this->echo_msg_exit('');
+                }
+            }
+            if(isset($result['data'])){
+                $fieldVal=$result['data'];
+            }
         }
         return $fieldVal;
     }
@@ -791,20 +809,7 @@ class CpatternEvent extends CpatternColl{
                     foreach ($filterList as $filterStr){
                         if(stripos($fieldVal,$filterStr)!==false){
                             
-                            if(!isset($this->exclude_cont_urls[$contUrlMd5])){
-                                $this->exclude_cont_urls[$contUrlMd5]=array();
-                            }
-                            
-                            if(empty($this->first_loop_field)){
-                                
-                                $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=json_encode(array('field'=>$fieldName,'type'=>'filter','filter'=>$filterStr));
-                            }else{
-                                
-                                if(!isset($this->exclude_cont_urls[$contUrlMd5][$curUrlMd5])){
-                                    $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=array();
-                                }
-                                $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5][$loopIndex]=json_encode(array('field'=>$fieldName,'type'=>'filter','filter'=>$filterStr));
-                            }
+                            $this->set_exclude_cont_url($contUrlMd5, $curUrlMd5, $loopIndex, array('field'=>$fieldName,'type'=>'filter','filter'=>$filterStr));
                             break;
                         }
                     }
@@ -833,20 +838,7 @@ class CpatternEvent extends CpatternColl{
                     }
                     if(!$hasKey){
                         
-                        if(!isset($this->exclude_cont_urls[$contUrlMd5])){
-                            $this->exclude_cont_urls[$contUrlMd5]=array();
-                        }
-                        
-                        if(empty($this->first_loop_field)){
-                            
-                            $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=json_encode(array('field'=>$fieldName,'type'=>'filter','filter'=>''));
-                        }else{
-                            
-                            if(!isset($this->exclude_cont_urls[$contUrlMd5][$curUrlMd5])){
-                                $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=array();
-                            }
-                            $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5][$loopIndex]=json_encode(array('field'=>$fieldName,'type'=>'filter','filter'=>''));
-                        }
+                        $this->set_exclude_cont_url($contUrlMd5, $curUrlMd5, $loopIndex, array('field'=>$fieldName,'type'=>'filter','filter'=>''));
                     }
                 }
             }else{
@@ -907,7 +899,14 @@ class CpatternEvent extends CpatternColl{
                                 $funcName=$params['if_addon']['func'][$ifIndex];
                                 $isTurn=$params['if_addon']['turn'][$ifIndex];
                                 $isTurn=$isTurn?true:false;
-                                $result=$this->execute_plugin_func('processIf', $funcName, $fieldVal, $ifVal, $this->_get_insert_fields($ifVal, $curUrlMd5, $loopIndex));
+                                
+                                $result=$this->execute_plugin_func('processIf', $funcName, $fieldVal, $ifVal, $this->_get_insert_fields($ifVal, $curUrlMd5, $loopIndex),null,true);
+                                if(empty($result['success'])&&$funcName){
+                                    
+                                    $this->echo_msg_exit('');
+                                    return $fieldVal;
+                                }
+                                $result=$result['data'];
                                 $result=$result?true:false;
                                 if($isTurn){
                                     $result=$result?false:true;
@@ -968,11 +967,10 @@ class CpatternEvent extends CpatternColl{
                     $exclude['type']='if';
                     $exclude['field']=$fieldName;
                     $exclude['cond']=$breakCond;
-                    $exclude=json_encode($exclude);
                     
                     if($params['if_stop']=='collect'){
                         
-                        $msg=$this->exclude_url_msg($exclude);
+                        $msg=$this->exclude_url_msg(json_encode($exclude));
                         $msg=$msg.'»仍采集但跳出处理';
                         $this->echo_msg($msg,'orange');
                         $exclude=null;
@@ -981,20 +979,7 @@ class CpatternEvent extends CpatternColl{
                     
                     if(!empty($exclude)){
                         
-                        if(!isset($this->exclude_cont_urls[$contUrlMd5])){
-                            $this->exclude_cont_urls[$contUrlMd5]=array();
-                        }
-                        
-                        if(empty($this->first_loop_field)){
-                            
-                            $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=$exclude;
-                        }else{
-                            
-                            if(!isset($this->exclude_cont_urls[$contUrlMd5][$curUrlMd5])){
-                                $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5]=array();
-                            }
-                            $this->exclude_cont_urls[$contUrlMd5][$curUrlMd5][$loopIndex]=$exclude;
-                        }
+                        $this->set_exclude_cont_url($contUrlMd5, $curUrlMd5, $loopIndex, $exclude);
                     }
                 }
             }
@@ -1097,7 +1082,9 @@ class CpatternEvent extends CpatternColl{
                     $url=\util\Funcs::url_params_charset($url,$postData,$charset);
                     $postData=null;
                 }
-                $this->echo_msg(array('正在数据处理：%s » <a href="%s" target="_blank">调用接口</a>',$fieldName,$url),'black');
+                if($retryCur<=0){
+                    $this->echo_msg(array('正在数据处理：%s » 调用接口',$fieldName),'black');
+                }
                 $htmlInfo=get_html($url,$headers,array('timeout'=>60,'curlopts'=>$curlopts),$charset,$postData,true);
                 $this->collect_sleep($params['api_interval'],true);
                 if(!empty($htmlInfo['ok'])){
@@ -1108,6 +1095,7 @@ class CpatternEvent extends CpatternColl{
                         
                         $fieldVal=$this->rule_module_json_data(array(
                             'json' => $params['api_json'],
+                            'json_merge_data' => $params['api_json_merge_data'],
                             'json_arr' => $params['api_json_arr'],
                             'json_arr_implode' => $params['api_json_arr_implode']
                         ),$htmlInfo['html']);
@@ -1136,6 +1124,9 @@ class CpatternEvent extends CpatternColl{
                     
                     if($this->retry_do_func($retryCur,$retryMax,'接口无效','接口无效')){
                         return $this->process_f_api($retryParams[0],$retryParams[1],$retryParams[2],$retryParams[3],$retryParams[4],$retryParams[5]);
+                    }else{
+                        
+                        $this->set_exclude_cont_url($contUrlMd5, $curUrlMd5, $loopIndex, array('field'=>$fieldName,'type'=>'api','msg'=>'数据处理»调用接口失败'));
                     }
                 }
             }
@@ -1209,6 +1200,7 @@ class CpatternEvent extends CpatternColl{
             
             $fieldVal=$this->rule_module_json_data(array(
                 'json' => $params['extract_json'],
+                'json_merge_data' => $params['extract_json_merge_data'],
                 'json_arr' => $params['extract_json_arr'],
                 'json_arr_implode' => $params['extract_json_arr_implode']
             ),$fieldVal);
@@ -1270,7 +1262,7 @@ class CpatternEvent extends CpatternColl{
             $jsonData=$this->get_html($url);
             if(!empty($jsonData)){
                 
-                $urls=$this->rule_module_json_data(array('json'=>$jsonRule,'json_arr'=>'_original_'),$jsonData);
+                $urls=$this->rule_module_json_data(array('json'=>$jsonRule,'json_merge_data'=>true,'json_arr'=>'_original_'),$jsonData);
                 if(empty($urls)){
                     $urls=array();
                 }

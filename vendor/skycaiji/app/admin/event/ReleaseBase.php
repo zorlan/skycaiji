@@ -503,7 +503,7 @@ class ReleaseBase extends CollectBase{
 			                                            }
 			                                        }elseif($return['msg']){
 			                                            
-			                                            $this->echo_msg(array('%s',$return['msg']));
+			                                            $this->echo_msg_exit(array('%s',$return['msg']));
 			                                        }
 			                                    }
 			                                }
@@ -741,7 +741,7 @@ class ReleaseBase extends CollectBase{
                                                     }
                                                 }elseif($return['msg']){
                                                     
-                                                    $this->echo_msg(array('%s',$return['msg']));
+                                                    $this->echo_msg_exit(array('%s',$return['msg']));
                                                 }
                                             }
                                         }

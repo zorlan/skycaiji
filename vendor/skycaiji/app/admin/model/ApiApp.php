@@ -445,161 +445,164 @@ class ApiApp extends \skycaiji\common\model\BaseModel{
 	    $options=$this->apiModules[$module];
 	    $result=return_result('',false,array('data'=>null));
 	    
-	    if(!isset($class_list[$appName])){
-	        
-	        $class=$this->app_classname($module,$appName);
-	        if(!\util\Funcs::class_exists_clean($class)){
-	            $class_list[$appName]=1;
-	        }else{
-	            $enable=$this->field('enable')->where(array('app'=>$appName,'module'=>$module))->value('enable');
-	            if($enable){
-	                
-	                $class=new $class();
-	                $class_list[$appName]=$class;
-	            }else{
-	                $class_list[$appName]=2;
-	            }
-	        }
-	    }
-	    $msg=$options['loc'].'»';
-	    if(is_object($class_list[$appName])){
-	        
-	        $configGlobalSetted=true;
-	        if(!isset($config_globals[$appName])){
-	            
-	            $configGlobalSetted=false;
-	            $apiConfig=$this->getConfigByApp($appName);
-	            $config_globals[$appName]=$apiConfig['global'];
-	        }
-	        
-	        $opVals=array();
-	        $ops=$this->get_app_ops(null,$class_list[$appName]);
-	        
-	        foreach ($ops as $op){
-	            if($op['module']=='variable'){
-	                init_array($op['config']);
-	                $opConfig=$op['config'];
-	                if($opConfig['module']=='user'){
-	                    init_array($opConfig['user']);
-	                    $userNameKey=md5($opConfig['name']);
-	                    $userDefVal=$opConfig['user']['default'];
-	                    if(!is_empty($userDefVal,true)){
-	                        
-	                        if($opConfig['user']['global']){
-	                            
-	                            if(!$configGlobalSetted){
-	                                
-	                                if(is_empty($config_globals[$appName][$userNameKey],true)){
-	                                    $config_globals[$appName][$userNameKey]=$userDefVal;
-	                                }
-	                            }
-	                        }else{
-	                            
-	                            if(is_empty($appConfig[$userNameKey],true)){
-	                                $appConfig[$userNameKey]=$userDefVal;
-	                            }
-	                        }
-	                    }
-	                    if($opConfig['user']['required']&&in_array($opConfig['user']['tag'], array('text','select'))){
-	                        
-	                        $curUserVal='';
-	                        if($opConfig['user']['global']){
-	                            $curUserVal=$config_globals[$appName][$userNameKey];
-	                        }else{
-	                            $curUserVal=$appConfig[$userNameKey];
-	                        }
-	                        if(is_empty($curUserVal,true)){
-	                            
-	                            $result['msg']=$msg.$appName.'»未填写'.($opConfig['user']['global']?'全局':'').'配置：'.$opConfig['name'];
-	                            return $result;
-	                        }
-	                    }
-	                }
-	            }
-	        }
-	        
-	        foreach ($ops as $op){
-	            $opVal='';
-	            init_array($op['config']);
-	            $opConfig=$op['config'];
-	            $opMsg=sprintf('云端»仓库»接口插件»%s»开发»%s:%s»',$appName,lang('apiapp_op_'.$op['module']),$opConfig['name']);
-	            if($op['module']=='variable'){
-	                
-	                $opModule=$opConfig['module']?$opConfig['module']:'value';
-	                $opMethod='_variable_module_'.$opModule;
-	                if(method_exists($this,$opMethod)){
-	                    if($opModule=='user'){
-	                        $opVal=$this->_variable_module_user($opConfig,$appConfig,$config_globals[$appName],$fieldVal,$paramValList);
-	                    }elseif($opModule=='value'||$opModule=='extract'){
-	                        
-	                        $opVal=$this->$opMethod($opConfig,$opVals);
-	                    }else{
-	                        $opVal=$this->$opMethod($opConfig);
-	                    }
-	                }
-	                
-	                
-	                init_array($opConfig['func']);
-	                $opFunc=$opConfig['func'];
-	                if(!empty($opFunc)&&!empty($opFunc['open'])){
-	                    
-	                    $opFunc=$this->filter_variable_func($opFunc);
-	                    foreach ($opFunc['names'] as $fk=>$fv){
-	                        $opVals['variable:###']=$opVal;
-	                        $funcResult=$this->_op_variable_func($module,$appName,$class_list[$appName],$fv,$opFunc['params'][$fk],$opVals);
-	                        if(!$funcResult['success']){
-	                            $funcResult['msg']=$opMsg.$funcResult['msg'];
-	                            if($isTest){
-	                                $funcResult['data']=array('ops'=>$opVals);
-	                            }
-	                            return $funcResult;
-	                            break;
-	                        }else{
-	                            $opVal=$funcResult['data'];
-	                        }
-	                    }
-	                }
-	                $opVals['variable:###']=$opVal;
-	            }elseif($op['module']=='request'){
-	                
-	                $requestResult=$this->_op_request($opConfig,$opVals);
-	                if(!$requestResult['success']){
-	                    $requestResult['msg']=$opMsg.$requestResult['msg'];
-	                    if($isTest){
-	                        $requestResult['data']=array('ops'=>$opVals);
-	                    }
-	                    return $requestResult;
-	                    break;
-	                }else{
-	                    $opVal=$requestResult['data'];
-	                }
-	            }
-	            $opVals[$op['module'].':'.$opConfig['name']]=$opVal;
-	        }
-	        
-	        $content=$this->get_app_content($class_list[$appName]);
-	        if($content){
-	            
-	            $content=$class_list[$appName]->_content;
-	            $content=$this->_op_replace_vars($content,$opVals);
-	            $content=$this->_op_replace_requests($content,$opVals);
-	        }
-	        $result['success']=true;
-	        if($isTest){
-	            
-	            $result['data']=array('content'=>$content,'ops'=>$opVals);
-	        }else{
-	            $result['data']=$content;
-	        }
-	    }else{
-	        if($class_list[$appName]==1){
-	            $msg.='不存在插件：';
-	        }elseif($class_list[$appName]==2){
-	            $msg.='已禁用插件：';
-	        }else{
-	            $msg.='无效的插件：';
-	        }
-	        $result['msg']=$msg.$appName;
+	    if(!empty($appName)){
+    	    if(!isset($class_list[$appName])){
+    	        
+    	        $class=$this->app_classname($module,$appName);
+    	        if(!\util\Funcs::class_exists_clean($class)){
+    	            $class_list[$appName]=1;
+    	        }else{
+    	            $enable=$this->field('enable')->where(array('app'=>$appName,'module'=>$module))->value('enable');
+    	            if($enable){
+    	                
+    	                $class=new $class();
+    	                $class_list[$appName]=$class;
+    	            }else{
+    	                $class_list[$appName]=2;
+    	            }
+    	        }
+    	    }
+    	    $msg=$options['loc'].'»';
+    	    if(is_object($class_list[$appName])){
+    	        
+    	        $configGlobalSetted=true;
+    	        if(!isset($config_globals[$appName])){
+    	            
+    	            $configGlobalSetted=false;
+    	            $apiConfig=$this->getConfigByApp($appName);
+    	            $config_globals[$appName]=$apiConfig['global'];
+    	        }
+    	        
+    	        $opVals=array();
+    	        $ops=$this->get_app_ops(null,$class_list[$appName]);
+    	        
+    	        foreach ($ops as $op){
+    	            if($op['module']=='variable'){
+    	                init_array($op['config']);
+    	                $opConfig=$op['config'];
+    	                if($opConfig['module']=='user'){
+    	                    init_array($opConfig['user']);
+    	                    $userNameKey=md5($opConfig['name']);
+    	                    $userDefVal=$opConfig['user']['default'];
+    	                    if(!is_empty($userDefVal,true)){
+    	                        
+    	                        if($opConfig['user']['global']){
+    	                            
+    	                            if(!$configGlobalSetted){
+    	                                
+    	                                if(is_empty($config_globals[$appName][$userNameKey],true)){
+    	                                    $config_globals[$appName][$userNameKey]=$userDefVal;
+    	                                }
+    	                            }
+    	                        }else{
+    	                            
+    	                            if(is_empty($appConfig[$userNameKey],true)){
+    	                                $appConfig[$userNameKey]=$userDefVal;
+    	                            }
+    	                        }
+    	                    }
+    	                    if($opConfig['user']['required']&&in_array($opConfig['user']['tag'], array('text','select'))){
+    	                        
+    	                        $curUserVal='';
+    	                        if($opConfig['user']['global']){
+    	                            $curUserVal=$config_globals[$appName][$userNameKey];
+    	                        }else{
+    	                            $curUserVal=$appConfig[$userNameKey];
+    	                        }
+    	                        if(is_empty($curUserVal,true)){
+    	                            
+    	                            $result['msg']=$msg.$appName.'»未填写'.($opConfig['user']['global']?'全局':'').'配置：'.$opConfig['name'];
+    	                            return $result;
+    	                        }
+    	                    }
+    	                }
+    	            }
+    	        }
+    	        
+    	        foreach ($ops as $op){
+    	            $opVal='';
+    	            init_array($op['config']);
+    	            $opConfig=$op['config'];
+    	            $opMsg=sprintf('云端»仓库»接口插件»%s»开发»%s:%s»',$appName,lang('apiapp_op_'.$op['module']),$opConfig['name']);
+    	            if($op['module']=='variable'){
+    	                
+    	                $opModule=$opConfig['module']?$opConfig['module']:'value';
+    	                $opMethod='_variable_module_'.$opModule;
+    	                if(method_exists($this,$opMethod)){
+    	                    if($opModule=='user'){
+    	                        $opVal=$this->_variable_module_user($opConfig,$appConfig,$config_globals[$appName],$fieldVal,$paramValList);
+    	                    }elseif($opModule=='value'||$opModule=='extract'){
+    	                        
+    	                        $opVal=$this->$opMethod($opConfig,$opVals);
+    	                    }else{
+    	                        $opVal=$this->$opMethod($opConfig);
+    	                    }
+    	                }
+    	                
+    	                
+    	                init_array($opConfig['func']);
+    	                $opFunc=$opConfig['func'];
+    	                if(!empty($opFunc)&&!empty($opFunc['open'])){
+    	                    
+    	                    $opFunc=$this->filter_variable_func($opFunc);
+    	                    foreach ($opFunc['names'] as $fk=>$fv){
+    	                        $opVals['variable:###']=$opVal;
+    	                        $funcResult=$this->_op_variable_func($module,$appName,$class_list[$appName],$fv,$opFunc['params'][$fk],$opVals);
+    	                        if(!$funcResult['success']){
+    	                            $funcResult['msg']=$opMsg.$funcResult['msg'];
+    	                            if($isTest){
+    	                                $funcResult['data']=array('ops'=>$opVals);
+    	                            }
+    	                            return $funcResult;
+    	                            break;
+    	                        }else{
+    	                            $opVal=$funcResult['data'];
+    	                        }
+    	                    }
+    	                }
+    	                $opVals['variable:###']=$opVal;
+    	            }elseif($op['module']=='request'){
+    	                
+    	                $requestResult=$this->_op_request($opConfig,$opVals);
+    	                if(!$requestResult['success']){
+    	                    $requestResult['msg']=$opMsg.$requestResult['msg'];
+    	                    $requestResult['exclude_cont_url']=true;
+    	                    if($isTest){
+    	                        $requestResult['data']=array('ops'=>$opVals);
+    	                    }
+    	                    return $requestResult;
+    	                    break;
+    	                }else{
+    	                    $opVal=$requestResult['data'];
+    	                }
+    	            }
+    	            $opVals[$op['module'].':'.$opConfig['name']]=$opVal;
+    	        }
+    	        
+    	        $content=$this->get_app_content($class_list[$appName]);
+    	        if($content){
+    	            
+    	            $content=$class_list[$appName]->_content;
+    	            $content=$this->_op_replace_vars($content,$opVals);
+    	            $content=$this->_op_replace_requests($content,$opVals);
+    	        }
+    	        $result['success']=true;
+    	        if($isTest){
+    	            
+    	            $result['data']=array('content'=>$content,'ops'=>$opVals);
+    	        }else{
+    	            $result['data']=$content;
+    	        }
+    	    }else{
+    	        if($class_list[$appName]==1){
+    	            $msg.='不存在插件：';
+    	        }elseif($class_list[$appName]==2){
+    	            $msg.='已禁用插件：';
+    	        }else{
+    	            $msg.='无效的插件：';
+    	        }
+    	        $result['msg']=$msg.$appName;
+    	    }
 	    }
 	    return $result;
 	}
@@ -877,6 +880,7 @@ class ApiApp extends \skycaiji\common\model\BaseModel{
     	    }elseif($config['type']=='json'){
     	        $val = $cpatternBase->rule_module_json_data(array(
     	            'json' => $config['json'],
+    	            'json_merge_data' => $config['json_merge_data'],
     	            'json_arr' => $config['json_arr'],
     	            'json_arr_implode' => $config['json_arr_implode'],
     	        ), $content);

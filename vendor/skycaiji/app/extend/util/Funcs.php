@@ -121,13 +121,19 @@ class Funcs{
 	    return $arr;
 	}
 	
-	public static function array_implode($glue, $pieces){
+	public static function array_implode($glue, $pieces,&$isSub=null){
 	    $str='';
 	    foreach ($pieces as $v){
 	        if(is_array($v)){
-	            $str.=self::array_implode($glue,$v);
+	            $str.=self::array_implode($glue,$v,$isSub);
 	        }else{
-	            $str.=$glue.$v;
+	            if(!$isSub){
+	                
+	                $isSub=true;
+	                $str.=$v;
+	            }else{
+	                $str.=$glue.$v;
+	            }
 	        }
 	    }
 	    return $str;

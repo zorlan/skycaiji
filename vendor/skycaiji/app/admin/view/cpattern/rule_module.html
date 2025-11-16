@@ -93,7 +93,10 @@
 {elseif $_tpl_type=='json' /}	
 	<div class="form-group">
 		<label>提取规则</label>
-		<input type="text" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'json')} class="form-control" />
+		<div class="input-group">
+			<input type="text" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'json')} class="form-control" />
+			<div class="input-group-addon"><label style="width:auto;font-weight:normal;margin:0;"><input type="checkbox" {:\\util\\Tools::cp_rule_module_name($_tpl_name,$_tpl_name_pre,'json_merge_data')} /> 合并数据</label> <span title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.cpJsonMergeDataTips()"></span></div>
+		</div>
 		<p class="help-block">直接输入键名，子节点用：a.b.c，通配符*</p>
 	</div>
 	{if $_tpl_allow_loop}

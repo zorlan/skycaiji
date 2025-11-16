@@ -186,13 +186,13 @@ class Cpattern extends BaseController {
 				'rule' =>array('rule','rule_multi','rule_multi_type','rule_multi_str','rule_merge'),
 				'auto' =>'auto',
 				'xpath' =>array('xpath','xpath_multi','xpath_multi_type','xpath_multi_str','xpath_attr','xpath_attr_custom'),
-				'json' =>array('json','json_arr','json_arr_implode','json_loop'),
+				'json' =>array('json','json_merge_data','json_arr','json_arr_implode','json_loop'),
 				'words' =>'words',
 			    'num' => array('num_start','num_end'),
 			    'no' => array('no_start','no_inc','no_len'),
 				'time' => array ('time_format','time_start','time_end','time_stamp'),
 				'list' => array('list','list_type'),
-			    'extract' =>array('extract','extract_module','extract_rule','extract_rule_merge','extract_rule_multi','extract_rule_multi_type','extract_rule_multi_str','extract_xpath','extract_xpath_attr','extract_xpath_attr_custom','extract_xpath_multi','extract_xpath_multi_type','extract_xpath_multi_str','extract_json','extract_json_arr','extract_json_arr_implode','extract_json_loop'),
+			    'extract' =>array('extract','extract_module','extract_rule','extract_rule_merge','extract_rule_multi','extract_rule_multi_type','extract_rule_multi_str','extract_xpath','extract_xpath_attr','extract_xpath_attr_custom','extract_xpath_multi','extract_xpath_multi_type','extract_xpath_multi_str','extract_json','extract_json_merge_data','extract_json_arr','extract_json_arr_implode','extract_json_loop'),
 				'merge' => 'merge',
 			    'sign' => 'sign'
 			);

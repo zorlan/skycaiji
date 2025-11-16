@@ -648,6 +648,7 @@ class Release extends CollectController{
                 $this->error($apiError,'',$apiHtml);
             }
             $appApi=$appApi['data'];
+            $appApi=$this->_toapiAppStripTags($appApi);
         }
         
         init_array($appApi);
@@ -678,5 +679,22 @@ class Release extends CollectController{
             $this->assign('appCustomParams',$appCustomParams);
             return $this->fetch('toapiApp');
         }
+    }
+    
+    private function _toapiAppStripTags($data){
+        if($data&&is_array($data)){
+            $arr=array();
+            foreach ($data as $k=>$v){
+                $k=strip_tags($k);
+                if(!is_array($v)){
+                    $arr[$k]=strip_tags($v,'<a><b><i><strong><em><br><p>');
+                }else{
+                    $arr[$k]=$this->_toapiAppStripTags($v);;
+                }
+            }
+        }else{
+            $arr=$data;
+        }
+        return $arr;
     }
 }

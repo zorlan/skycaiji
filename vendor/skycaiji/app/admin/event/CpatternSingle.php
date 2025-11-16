@@ -15,9 +15,7 @@ use skycaiji\admin\model\CacheModel;
 class CpatternSingle extends Cpattern{
     public function echo_error($msg = '', $url = null, $data = array(), $wait = 3, array $header = []){
         if($this->is_collecting()){
-            
-            $this->echo_msg($msg,'red');
-            return null;
+            return parent::echo_error($msg,$url,$data,$wait,$header);
         }else{
             $url=$url?$url:'';
             $msg=$this->_echo_msg_str($msg,'red');

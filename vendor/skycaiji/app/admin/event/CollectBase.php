@@ -14,11 +14,11 @@ namespace skycaiji\admin\event;
 class CollectBase extends \skycaiji\admin\controller\CollectController {
 	/*防止执行采集时出现错误模板后终止采集*/
 	public function echo_error($msg = '', $url = null, $data = array(), $wait = 3, array $header = []){
-		if($this->is_collecting()){
-			
-			$this->echo_msg($msg,'red');
-			return null;
-		}else{
+	    if($this->is_collecting()){
+	        
+	        $this->echo_msg($msg,'red');
+	        return null;
+	    }else{
 		    $url=$url?$url:'';
 		    $msg=$this->_echo_msg_str($msg,'red');
 		    $txt=g_sc('collect_echo_msg_txt');

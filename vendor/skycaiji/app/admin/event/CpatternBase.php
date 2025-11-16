@@ -292,7 +292,7 @@ class CpatternBase extends CollectBase{
         return $vals;
     }
     
-    public function rule_module_json_data($configParams,$jsonArrOrStr){
+    public function rule_module_json_data($configParams,$jsonArrOrStr,$isSub=false,&$mergeData=null){
         $jsonArr=array();
         if(is_array($jsonArrOrStr)){
             $jsonArr=&$jsonArrOrStr;
@@ -301,6 +301,12 @@ class CpatternBase extends CollectBase{
             $jsonArr=\util\Funcs::convert_html2json($jsonArrOrStr);
             unset($jsonArrOrStr);
         }
+        
+        if(!$isSub){
+            
+            $mergeData=array();
+        }
+        
         $val='';
         if(!empty($jsonArr)){
             if(!empty($configParams['json'])){
@@ -323,7 +329,7 @@ class CpatternBase extends CollectBase{
                             init_array($val);
                             foreach ($val as $vk=>$vv){
                                 
-                                $val[$vk]=$this->rule_module_json_data($newConfigParams,$vv);
+                                $val[$vk]=$this->rule_module_json_data($newConfigParams,$vv,true,$mergeData);
                             }
                             break;
                         }else{
@@ -335,14 +341,30 @@ class CpatternBase extends CollectBase{
                                 }
                                 $val=is_array($val)?$val[$key]:'';
                             }
+                            if(!empty($configParams['json_merge_data'])){
+                                
+                                if(!isset($jsonFmt[$i+1])){
+                                    
+                                    $mergeData[]=$val;
+                                }
+                            }
                         }
+                        
                         $prevKey=$key;
                     }
                 }
             }
         }
-        
-        return $this->rule_module_json_data_convert($val, $configParams);
+        if($isSub){
+            
+            return $val;
+        }else{
+            if(!empty($configParams['json_merge_data'])){
+                
+                $val=$mergeData;
+            }
+            return $this->rule_module_json_data_convert($val, $configParams);
+        }
     }
     public function rule_module_json_data_convert($val,$configParams){
         if(is_array($val)){
@@ -487,6 +509,8 @@ class CpatternBase extends CollectBase{
                 $msg.='»'.$val['cond'];
             }
             $msg.=')';
+        }elseif(in_array($type,array('func','api','apiapp'))){
+            $msg='[字段:'.$val['field'].'] '.$val['msg'];
         }
         return $msg;
     }
@@ -1060,14 +1084,19 @@ class CpatternBase extends CollectBase{
      * @param array $paramValList 需要替换的数据列表
      * @param string $errorTips 错误提示信息
      */
-    public function execute_plugin_func($module,$funcName,$fieldVal,$paramsStr,$paramValList=null,$errorTips=null){
+    public function execute_plugin_func($module,$funcName,$fieldVal,$paramsStr,$paramValList=null,$errorTips=null,$returnAll=false){
         $return=model('FuncApp')->execute_func($module,$funcName,$fieldVal,$paramsStr,$paramValList);
         if(empty($return['success'])&&!empty($return['msg'])){
             
             $errorTips=$errorTips?$errorTips:'';
-            $this->echo_error(htmlspecialchars($return['msg'].$errorTips));
+            $return['msg']=htmlspecialchars($return['msg'].$errorTips);
+            $this->echo_error($return['msg']);
         }
-        return $return['data'];
+        if($returnAll){
+            return $return;
+        }else{
+            return $return['data'];
+        }
     }
     /**
      * 执行数据处理»接口函数
@@ -1077,15 +1106,21 @@ class CpatternBase extends CollectBase{
      * @param string $appConfig 接口配置
      * @param array $paramValList 需要替换的数据列表
      * @param string $errorTips 错误提示信息
+     * @param bool $returnAll 返回所有信息
      */
-    public function execute_plugin_apiapp($module,$appName,$fieldVal,$appConfig,$paramValList=null,$errorTips=null){
+    public function execute_plugin_apiapp($module,$appName,$fieldVal,$appConfig,$paramValList=null,$errorTips=null,$returnAll=false){
         $return=model('ApiApp')->execute_app($module,$appName,$fieldVal,$appConfig,$paramValList);
         if(empty($return['success'])&&!empty($return['msg'])){
             
             $errorTips=$errorTips?$errorTips:'';
-            $this->echo_error(htmlspecialchars($return['msg'].$errorTips));
+            $return['msg']=htmlspecialchars($return['msg'].$errorTips);
+            $this->echo_error($return['msg']);
         }
-        return $return['data'];
+        if($returnAll){
+            return $return;
+        }else{
+            return $return['data'];
+        }
     }
 }
 ?>
