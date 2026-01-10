@@ -1262,7 +1262,7 @@ class CpatternEvent extends CpatternColl{
             $jsonData=$this->get_html($url);
             if(!empty($jsonData)){
                 
-                $urls=$this->rule_module_json_data(array('json'=>$jsonRule,'json_merge_data'=>true,'json_arr'=>'_original_'),$jsonData);
+                $urls=$this->rule_module_json_data(array('json'=>$jsonRule,'json_merge_data'=>false,'json_arr'=>'_original_'),$jsonData);
                 if(empty($urls)){
                     $urls=array();
                 }

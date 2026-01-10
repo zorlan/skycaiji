@@ -220,7 +220,7 @@ class CpatternColl extends CpatternBase{
                     $cont_urls=is_array($cont_urls)?$cont_urls:array();
                 }elseif('json'==$config['reg_url_module']){
                     
-                    $cont_urls=$this->rule_module_json_data(array('json'=>$config['reg_url'],'json_merge_data'=>true,'json_arr'=>'_original_'),$html);
+                    $cont_urls=$this->rule_module_json_data(array('json'=>$config['reg_url'],'json_merge_data'=>false,'json_arr'=>'_original_'),$html);
                     if(empty($cont_urls)){
                         $cont_urls=array();
                     }elseif(!is_array($cont_urls)){
