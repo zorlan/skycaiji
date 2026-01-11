@@ -61,6 +61,10 @@ class ChromeSocket{
         return $port;
     }
     
+    public static function defaultUserDataDir(){
+        return config('runtime_path'). DIRECTORY_SEPARATOR .'page_render_user';
+    }
+    
     public function openHost(){
         if($this->serverIsLocal()){
             
@@ -82,12 +86,13 @@ class ChromeSocket{
         $port=self::defaultPort($port);
         $options=is_array($options)?$options:array();
         $return=array('error'=>'','info'=>'');
+        $userDataDir=$options['user_data_dir'];
         if(empty($port)){
             $return['error']='请设置端口';
-        }elseif(!empty($options['user_data_dir'])&&!is_dir($options['user_data_dir'])){
+        }elseif(!empty($userDataDir)&&!is_dir($userDataDir)){
             
             $return['error']='用户配置目录不存在！';
-            if(\skycaiji\admin\model\Config::check_basedir_limited($options['user_data_dir'])){
+            if(\skycaiji\admin\model\Config::check_basedir_limited($userDataDir)){
                 
                 $return['error'].=lang('error_open_basedir');
             }
@@ -111,9 +116,16 @@ class ChromeSocket{
                 $error='页面渲染需开启proc_open';
             }else{
                 $command.=' --headless --proxy-server';
-                if(!empty($options['user_data_dir'])){
+                if(empty($userDataDir)){
+                    $userDataDir=self::defaultUserDataDir();
+                    write_dir_file($userDataDir.'/index.html', '');
+                }
+                if(!empty($userDataDir)){
                     
-                    $command=sprintf('%s --user-data-dir=%s',$command,$options['user_data_dir']);
+                    $userDataDir.=DIRECTORY_SEPARATOR.$port;
+                    write_dir_file($userDataDir.'/index.html', '');
+                    
+                    $command=sprintf('%s --user-data-dir=%s',$command,$userDataDir);
                 }
                 if($isTest&&$hasProcOpen){
                     

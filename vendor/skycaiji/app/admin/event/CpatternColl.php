@@ -2002,7 +2002,7 @@ class CpatternColl extends CpatternBase{
                                         $this->echo_msg_exit('');
                                     }
                                     if(isset($result['data'])){
-                                        $val=$result;
+                                        $val=$result['data'];
                                     }
                                 }
                             }

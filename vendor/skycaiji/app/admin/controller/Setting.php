@@ -749,9 +749,11 @@ class Setting extends BaseController {
                 breadcrumb(array(array('url'=>url('setting/caiji'),'title'=>lang('setting_caiji')),array('url'=>url('setting/page_render'),'title'=>'页面渲染')))
             );
             $config=$mconfig->getConfig('page_render','data');
+            $defDir=\util\ChromeSocket::defaultUserDataDir();
             init_array($config);
             init_array($config['chrome']);
             $this->assign('config',$config);
+            $this->assign('defDir',$defDir);
             return $this->fetch('page_render');
         }
     }

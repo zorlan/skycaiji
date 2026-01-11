@@ -25,7 +25,7 @@ class BaseController extends \skycaiji\common\controller\BaseController{
     
     public function check_usertoken(){
         if(g_sc('usertoken')!=input('_usertoken_')){
-            $useCookie=ini_get('session.use_cookie');
+            $useCookie=ini_get('session.use_cookies');
             $useCookie=intval($useCookie);
             if($useCookie<1){
                 $this->error('session未开启，请在php.ini配置文件中设置session.use_cookies=1');
