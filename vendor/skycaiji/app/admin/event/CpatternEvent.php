@@ -540,14 +540,46 @@ class CpatternEvent extends CpatternColl{
         return $urls;
     }
     public function process_f_download($fieldVal,$params,$curUrlMd5,$loopIndex,$contUrlMd5,$fieldName,$urlInfo){
-        if($params['download_op']=='is_img'){
+        if($params['download_op']=='is_img'||$params['download_op']=='url_img'){
             
             if(!is_empty(g_sc_c('download_img','download_img'))&&!empty($fieldVal)){
                 
                 $valImgs=array();
-                if(preg_match_all('/(?<![\'\"])(\bhttp[s]{0,1}\:\/\/[^\s\'\"\<\>]+)(?![\'\"])/i',$fieldVal,$murls)){
-                    $valImgs=$murls[1];
+                if($params['download_op']=='is_img'){
+                    
+                    if(preg_match_all('/(?<![\'\"])(\bhttp[s]{0,1}\:\/\/[^\s\'\"\<\>]+)(?![\'\"])/i',$fieldVal,$murls)){
+                        $valImgs=$murls[1];
+                    }
+                }elseif($params['download_op']=='url_img'){
+                    if(preg_match_all('/'.$params['download_url_img_match'].'/ui',$fieldVal,$murls)){
+                        foreach ($murls as $k=>$v){
+                            if(strpos($k, 'url_img_')===0&&is_array($v)){
+                                $valImgs=array_merge($valImgs,$v);
+                            }
+                        }
+                    }
+                    if($params['download_url_img_must']||$params['download_url_img_ban']){
+                        foreach ($valImgs as $k=>$v){
+                            if(!empty($params['download_url_img_must'])){
+                                
+                                if(!preg_match('/'.$params['download_url_img_must'].'/ui', $v)){
+                                    $v='';
+                                }
+                            }
+                            if(!empty($params['download_url_img_ban'])){
+                                
+                                if(preg_match('/'.$params['download_url_img_ban'].'/ui', $v)){
+                                    $v='';
+                                }
+                            }
+                            if(empty($v)){
+                                unset($valImgs[$k]);
+                            }
+                        }
+                        $valImgs=array_values($valImgs);
+                    }
                 }
+                
                 if(!empty($valImgs)){
                     $fieldImgs=array();
                     if(empty($this->first_loop_field)){
@@ -576,7 +608,7 @@ class CpatternEvent extends CpatternColl{
             }else{
                 $this->field_val_list[$fieldName]['imgs'][$curUrlMd5][$loopIndex]=array();
             }
-        }elseif($params['download_op']=='is_file'||$params['download_op']=='file'){
+        }elseif($params['download_op']=='is_file'||$params['download_op']=='url_file'||$params['download_op']=='file'){
             
             if(!is_empty(g_sc_c('download_file','download_file'))&&!empty($fieldVal)){
                 
@@ -586,7 +618,35 @@ class CpatternEvent extends CpatternColl{
                     if(preg_match_all('/(?<![\'\"])(\bhttp[s]{0,1}\:\/\/[^\s\'\"\<\>]+)(?![\'\"])/i',$fieldVal,$murls)){
                         $valFiles=$murls[1];
                     }
-                }else{
+                }elseif($params['download_op']=='url_file'){
+                    if(preg_match_all('/'.$params['download_url_file_match'].'/ui',$fieldVal,$murls)){
+                        foreach ($murls as $k=>$v){
+                            if(strpos($k, 'url_file_')===0&&is_array($v)){
+                                $valFiles=array_merge($valFiles,$v);
+                            }
+                        }
+                    }
+                    if($params['download_url_file_must']||$params['download_url_file_ban']){
+                        foreach ($valFiles as $k=>$v){
+                            if(!empty($params['download_url_file_must'])){
+                                
+                                if(!preg_match('/'.$params['download_url_file_must'].'/ui', $v)){
+                                    $v='';
+                                }
+                            }
+                            if(!empty($params['download_url_file_ban'])){
+                                
+                                if(preg_match('/'.$params['download_url_file_ban'].'/ui', $v)){
+                                    $v='';
+                                }
+                            }
+                            if(empty($v)){
+                                unset($valFiles[$k]);
+                            }
+                        }
+                        $valFiles=array_values($valFiles);
+                    }
+                }elseif($params['download_op']=='file'){
                     
                     $tags=\skycaiji\admin\model\Config::process_tag_attr($params['download_file_tag'],true);
                     if(is_array($tags)&&!empty($tags[0])){

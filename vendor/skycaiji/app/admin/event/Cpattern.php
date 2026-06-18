@@ -1851,6 +1851,28 @@ class Cpattern extends CpatternEvent{
 				if('replace'==$v['module']){
 				    $v['replace_from']=$this->correct_reg_pattern($v['replace_from']);
 				}elseif('download'==$v['module']){
+				    $v['download_url_img_match']=$this->correct_reg_pattern($v['download_url_img_match']);
+				    $index=0;
+				    
+				    $v['download_url_img_match']=preg_replace_callback('/\[\x{56fe}\x{7247}\x{94fe}\x{63a5}\]/u',function($match)use(&$index){
+				        $index++;
+				        return '(?P<url_img_'.$index.'>\bhttp[s]{0,1}.+?)';
+				    }, $v['download_url_img_match']);
+				    
+				    $v['download_url_img_must']=$this->correct_reg_pattern($v['download_url_img_must']);
+				    $v['download_url_img_ban']=$this->correct_reg_pattern($v['download_url_img_ban']);
+				    
+				    $v['download_url_file_match']=$this->correct_reg_pattern($v['download_url_file_match']);
+				    $index=0;
+				    
+				    $v['download_url_file_match']=preg_replace_callback('/\[\x{6587}\x{4ef6}\x{94fe}\x{63a5}\]/u',function($match)use(&$index){
+				        $index++;
+				        return '(?P<url_file_'.$index.'>\bhttp[s]{0,1}.+?)';
+				    }, $v['download_url_file_match']);
+				    
+				    $v['download_url_file_must']=$this->correct_reg_pattern($v['download_url_file_must']);
+				    $v['download_url_file_ban']=$this->correct_reg_pattern($v['download_url_file_ban']);
+				    
 				    $v['download_file_must']=$this->correct_reg_pattern($v['download_file_must']);
 				    $v['download_file_ban']=$this->correct_reg_pattern($v['download_file_ban']);
 				}

@@ -306,11 +306,17 @@
 		<div class="form-group">
 			<label>操作</label>
 			<select data-process="download:download_op" class="form-control">
-				<option value="">--选择操作--</option>
-				<option value="is_img">将文本链接标记为图片</option>
-				<option value="is_file">将文本链接标记为文件</option>
-				<option value="no_img">不下载图片</option>
-				<option value="file">下载文件</option>
+				<option value="">请选择操作</option>
+				<optgroup label="图片（默认下载&lt;img&gt;标签图片，可按需操作）">
+					<option value="is_img">将文本链接标记为图片</option>
+					<option value="url_img">匹配出图片链接</option>
+					<option value="no_img">不下载图片</option>
+				</optgroup>
+				<optgroup label="文件（默认不下载任何文件，须指定操作）">
+					<option value="is_file">将文本链接标记为文件</option>
+					<option value="url_file">匹配出文件链接</option>
+					<option value="file">下载文件</option>
+				</optgroup>
 			</select>
 			<div class="p-m-download-op" data-op="is_img">
 				{if !empty($downImgUrl)}
@@ -318,17 +324,93 @@
 				{/if}
 				<p class="help-block">如果字段的值是完整的url链接，标记为图片后可将其本地化</p>
 			</div>
-			<div class="p-m-download-op" data-op="is_file">
-				{if !empty($downFileUrl)}
-				<a href="{$downFileUrl}" target="_blank">请先开启并配置文件本地化</a>
+			<div class="p-m-download-op" data-op="url_img">
+				{if !empty($downImgUrl)}
+				<a href="{$downImgUrl}" target="_blank">请先开启并配置图片本地化</a>
 				{/if}
-				<p class="help-block">如果字段的值是完整的url链接，标记为文件后可将其本地化</p>
+				<div class="form-group p-m-download-url-img-match"{if !empty($downImgUrl)} style="display:none;"{/if}>
+					<div class="form-group">
+						<label>匹配链接</label>
+						<div class="input-group">
+							<textarea data-process="download:download_url_img_match" rows="3" class="form-control"></textarea>
+							<div class="input-group-addon iga-rt">
+						      	<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk c-p-process-sign-wildcard">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+								<a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tool_tips()"></a>
+							</div>
+						</div>
+						<p class="help-block">匹配出任意形式的图片链接并将其本地化，插入 <a href="javascript:;" data-val="[图片链接]">[图片链接]</a> 可匹配出网址，例如：&lt;img src="[图片链接]"&gt;</p>
+					</div>
+					<div class="form-group">
+						<label>网址过滤</label>
+						<div class="input-group" style="margin-bottom:7px;">
+					       	<span class="input-group-addon">必须包含</span>
+					       	<input type="text" data-process="download:download_url_img_must" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
+				      		<div class="input-group-addon iga-rt">
+				      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="c-p-process-sign-wildcard">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
+				      		</div>
+					    </div>
+					    <div class="input-group">
+					    	<span class="input-group-addon">不能包含</span>
+					    	<input type="text" data-process="download:download_url_img_ban" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
+				      		<div class="input-group-addon iga-rt">
+				      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="c-p-process-sign-wildcard">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
+				      		</div>
+						</div>
+					</div>
+				</div>
 			</div>
 			<div class="p-m-download-op" data-op="no_img">
 				{if !empty($downImgUrl)}
 				<a href="{$downImgUrl}" target="_blank">请先开启并配置图片本地化</a>
 				{/if}
 				<p class="help-block">默认自动下载&lt;img&gt;标签中的图片，该选项可不下载图片</p>
+			</div>
+			<div class="p-m-download-op" data-op="is_file">
+				{if !empty($downFileUrl)}
+				<a href="{$downFileUrl}" target="_blank">请先开启并配置文件本地化</a>
+				{/if}
+				<p class="help-block">如果字段的值是完整的url链接，标记为文件后可将其本地化</p>
+			</div>
+			<div class="p-m-download-op" data-op="url_file">
+				{if !empty($downFileUrl)}
+				<a href="{$downFileUrl}" target="_blank">请先开启并配置文件本地化</a>
+				{/if}
+				<div class="form-group p-m-download-url-file-match"{if !empty($downFileUrl)} style="display:none;"{/if}>
+					<div class="form-group">
+						<label>匹配链接</label>
+						<div class="input-group">
+							<textarea data-process="download:download_url_file_match" rows="3" class="form-control"></textarea>
+							<div class="input-group-addon iga-rt">
+						      	<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="blk c-p-process-sign-wildcard">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}" class="blk">正则</span>
+								<a href="javascript:;" title="提示信息" class="glyphicon glyphicon-info-sign icon-info-tips" onclick="ruleInsertSign.tool_tips()"></a>
+							</div>
+						</div>
+						<p class="help-block">匹配出任意形式的文件链接并将其本地化，插入 <a href="javascript:;" data-val="[文件链接]">[文件链接]</a> 可匹配出网址，例如：&lt;embed src="[文件链接]"&gt;</p>
+					</div>
+					<div class="form-group">
+						<label>网址过滤</label>
+						<div class="input-group" style="margin-bottom:7px;">
+					       	<span class="input-group-addon">必须包含</span>
+					       	<input type="text" data-process="download:download_url_file_must" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
+				      		<div class="input-group-addon iga-rt">
+				      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="c-p-process-sign-wildcard">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
+				      		</div>
+					    </div>
+					    <div class="input-group">
+					    	<span class="input-group-addon">不能包含</span>
+					    	<input type="text" data-process="download:download_url_file_ban" class="form-control" placeholder="选填，可模糊匹配" autocomplete="off" />
+				      		<div class="input-group-addon iga-rt">
+				      			<a href="javascript:;" title="{$Think.lang.tips_sign_wildcard}" class="c-p-process-sign-wildcard">{$Think.lang.sign_wildcard}</a>
+								<span title="{$Think.lang.tips_regular}">正则</span>
+				      		</div>
+						</div>
+					</div>
+				</div>
 			</div>
 			<div class="p-m-download-op" data-op="file">
 				{if !empty($downFileUrl)}
@@ -338,7 +420,7 @@
 					<label>下载标签属性中的文件</label>
 					<input type="text" data-process="download:download_file_tag" class="form-control" placeholder="" autocomplete="off" />
 					<div class="help-block">
-						<div class="dropdown" style="display:inline;">
+						<div class="dropdown" style="display:inline;cursor:pointer;">
 							<a class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 								填入html标签及属性
 								<span class="caret"></span>

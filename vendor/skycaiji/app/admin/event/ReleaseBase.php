@@ -126,6 +126,11 @@ class ReleaseBase extends CollectBase{
 				$total=count($collFieldVal['img']);
 				if($total>0){
 				    $this->echo_msg(array('正在下载：%s » %s张图片',$collFieldVal['name'],$total),'black');
+				    
+				    usort($collFieldVal['img'], function ($str1, $str2) {
+				        
+				        return strlen($str2)-strlen($str1);
+				    });
 				}
 				$curI=0;
 				foreach ($collFieldVal['img'] as $imgUrl){
@@ -154,6 +159,11 @@ class ReleaseBase extends CollectBase{
 		        $total=count($collFieldVal['file']);
 		        if($total>0){
 		            $this->echo_msg(array('正在下载：%s » %s个文件',$collFieldVal['name'],$total),'black');
+		            
+		            usort($collFieldVal['file'], function ($str1, $str2) {
+		                
+		                return strlen($str2)-strlen($str1);
+		            });
 		        }
 		        $curI=0;
 		        foreach ($collFieldVal['file'] as $fileUrl){
