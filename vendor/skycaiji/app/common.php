@@ -10,7 +10,7 @@
  */
 
 
-define('SKYCAIJI_VERSION', '3.0.2');
+define('SKYCAIJI_VERSION', '3.0.3');
 \think\Loader::addNamespace('plugin',SKYCAIJI_PATH.'plugin');
 \think\Loader::addNamespace('util',APP_PATH.'extend/util');
 

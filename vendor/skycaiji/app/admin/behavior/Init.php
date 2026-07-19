@@ -17,6 +17,7 @@ class Init{
 	public function run(){
 		$curController=strtolower(request()->controller());
 		/*自动登录*/
+		
 		$muser=model('User');
 		
 		$s_userlogin=session('user_login');
