@@ -514,8 +514,11 @@ class ReleaseBase extends CollectBase{
     			                                                    imagecopy($icfImg,$icfWm,$cWmRight,$cWmBottom,0,0,$imgInfoWm[0],$imgInfoWm[1]);
     			                                                }
     			                                                call_user_func($funcImage,$icfImg,$filename);
-    			                                                imagedestroy($icfWm);
-    			                                                imagedestroy($icfImg);
+    			                                                if (PHP_VERSION_ID < 80000) {
+    			                                                    
+    			                                                    imagedestroy($icfWm);
+    			                                                    imagedestroy($icfImg);
+    			                                                }
     			                                            }else{
     			                                                $this->echo_msg('添加水印失败，不存在函数：'.$funcImage);
     			                                            }

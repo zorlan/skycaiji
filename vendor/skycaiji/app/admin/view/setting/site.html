@@ -63,6 +63,11 @@
 		        </div>
 		        <p class="help-block">日志文件会占用磁盘空间，非运维人员建议关闭</p>
 		    </div>
+		    <div class="form-group" id="closelog_num">
+		        <label>日志保存数量</label>
+			    <input type="number" name="lognum" class="form-control" value="{:intval($siteConfig['lognum'])}">
+		        <p class="help-block">超过数量会自动清理较早的日志文件，避免日志文件占满磁盘空间，默认不清理</p>
+		    </div>
 		    <div class="form-group">
 		        <label>调整时区</label>
 		        <div class="input-group">

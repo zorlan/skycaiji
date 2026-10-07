@@ -123,6 +123,12 @@ class Init{
 		if(!is_empty(g_sc_c('site','closelog'))){
 			
 			\think\Log::init(array('type'=>'test','level'=>array()));
+		}else{
+		    $lognum=g_sc_c('site','lognum');
+		    if($lognum>0){
+		        
+		        config('log.max_files',$lognum);
+		    }
 		}
 		if(!is_empty(g_sc_c('site','dblong'))){
 			

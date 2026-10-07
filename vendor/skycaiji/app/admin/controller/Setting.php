@@ -24,6 +24,7 @@ class Setting extends BaseController {
             $config['verifycode_len']=input('verifycode_len/d',0);
             $config['hidehome']=input('hidehome/d',0);
             $config['closelog']=input('closelog/d',0);
+            $config['lognum']=input('lognum/d',0);
             $config['dblong']=input('dblong/d',0);
             $config['login']=input('login/a',array());
             $config['timezone']=input('timezone','');
